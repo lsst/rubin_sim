@@ -17,23 +17,24 @@ from scipy import interpolate
 
 from .base_metric import BaseMetric
 
-# A collection of metrics which are primarily intended to be used as summary statistics.
+# Metrics which are primarily intended to be used as summary statistics.
 
 
-class FootprintFraction(BaseMetric):
-    """Find what fraction of a desired footprint got covered. Helpful to check if everything was covered in first year
+class FootprintFractionMetric(BaseMetric):
+    """Calculate fraction of a desired footprint got covered.
+    Helpful to check if everything was covered in first year
 
     Parameters
     ----------
-    n_min : int (1)
+    footprint : `np.ndarray`, (N,)
+        The HEALpix footprint to compare to.
+        Nside of the footprint should match nside of the slicer.
+    n_min : `int`
         The number of visits to require to consider an area covered
-    footprint : np.array (None)
-        The HEALpix footprint to compare to. The nside of the footprint should match
-        the nside of the slicer.
     """
 
-    def __init__(self, footprint=None, metric_name="FootprintFraction", n_min=1, **kwargs):
-        super().__init__(metric_name=metric_name, **kwargs)
+    def __init__(self, footprint=None, n_min=1, **kwargs):
+        super().__init__(**kwargs)
         self.footprint = footprint
         self.nside = hp.npix2nside(footprint.size)
         self.npix = np.where(self.footprint > 0)[0].size
@@ -48,35 +49,32 @@ class FootprintFraction(BaseMetric):
 
 
 class FONv(BaseMetric):
-    """
-    Metrics based on a specified area, but returning NVISITS related to area:
-    given asky, what is the minimum and median number of visits obtained over that much area?
-    (choose the portion of the sky with the highest number of visits first).
+    """Given asky area, what is the minimum and median NVISITS obtained over
+    that area?
+    (chooses the portion of the sky with the highest number of visits first).
 
     Parameters
     ----------
-    col : str or list of strs, optional
+    col : `str` or `list` of `strs`, optional
         Name of the column in the numpy recarray passed to the summary metric.
-    asky : float, optional
+    asky : `float`, optional
         Area of the sky to base the evaluation of number of visits over.
-        Default 18,0000 sq deg.
-    nside : int, optional
-        Nside parameter from healpix slicer, used to set the physical relationship between on-sky area
-        and number of healpixels. Default 128.
-    n_visit : int, optional
-        Number of visits to use as the benchmark value, if choosing to return a normalized n_visit value.
+    nside : `int`, optional
+        Nside parameter from healpix slicer, used to set the physical
+        relationship between on-sky area and number of healpixels.
+    n_visit : `int`, optional
+        Number of visits to use as the benchmark value, if choosing to return
+        a normalized n_visit value.
     norm : `bool`, optional
-        Normalize the returned "n_visit" (min / median) values by n_visit, if true.
-        Default False.
-    metricName : str, optional
+        Normalize the returned "n_visit" (min / median) values by n_visit,
+        if true.
+    metric_name : `str`, optional
         Name of the summary metric. Default FONv.
     """
 
-    def __init__(
-        self, col="metricdata", asky=18000.0, nside=128, n_visit=825, norm=False, metric_name="FONv", **kwargs
-    ):
+    def __init__(self, col="metricdata", asky=18000.0, nside=128, n_visit=825, norm=False, **kwargs):
         """asky = square degrees"""
-        super().__init__(col=col, metric_name=metric_name, **kwargs)
+        super().__init__(col=col, **kwargs)
         self.nvisit = n_visit
         self.nside = nside
         # Determine how many healpixels are included in asky sq deg.
@@ -91,7 +89,6 @@ class FONv(BaseMetric):
         result["name"][1] = "MinNvis"
         # If there is not even as much data as needed to cover Asky:
         if len(data_slice) < self.npix__asky:
-            # Return the same type of metric value, to make it easier downstream.
             result["value"][0] = self.badval
             result["value"][1] = self.badval
             return result
@@ -108,28 +105,24 @@ class FONv(BaseMetric):
 
 
 class FOArea(BaseMetric):
-    """
-    Metrics based on a specified number of visits, but returning AREA related to Nvisits:
-    given n_visit, what amount of sky is covered with at least that many visits?
+    """Given an n_visit threshold, how much AREA receives at least that many
+    visits?
 
     Parameters
     ----------
-    col : str or list of strs, optional
+    col : `str` or `list` of `strs`, optional
         Name of the column in the numpy recarray passed to the summary metric.
-    n_visit : int, optional
-        Number of visits to use as the minimum required -- metric calculated area that has this many visits.
-        Default 825.
-    asky : float, optional
-        Area to use as the benchmark value, if choosing to returned a normalized Area value.
-        Default 18,0000 sq deg.
-    nside : int, optional
-        Nside parameter from healpix slicer, used to set the physical relationship between on-sky area
-        and number of healpixels. Default 128.
+    n_visit : `int`, optional
+        Number of visits to use as the minimum required --
+        metric calculated area that has this many visits.
+    asky : `float`, optional
+        Area to use as the benchmark area value,
+        if choosing to return a normalized Area value.
+    nside : `int`, optional
+        Nside parameter from healpix slicer, used to set the physical
+        relationship between on-sky area and number of healpixels.
     norm : `bool`, optional
-        Normalize the returned "area" (area with minimum n_visit visits) value by asky, if true.
-        Default False.
-    metricName : str, optional
-        Name of the summary metric. Default FOArea.
+        If true, normalize the returned area value by asky.
     """
 
     def __init__(

@@ -245,23 +245,27 @@ class MetricBundleGroup:
         plot_now=False,
         plot_kwargs=None,
     ):
-        """Run all the metricBundles which match this constraint in the metricBundleGroup.
+        """Run all the metricBundles which match this constraint in the
+        metricBundleGroup.
 
-        Calculates the metric values, then runs reduce functions and summary statistics for
-        metrics in the current set only (see self.setCurrent).
+        Calculates the metric values, then runs reduce functions and
+        summary statistics for metrics in the current set only
+        (see self.setCurrent).
 
         Parameters
         ----------
         constraint : `str`
            constraint to use to set the currently active metrics
         sim_data : `numpy.ndarray`, optional
-           If simData is not None, then this numpy structured array is used instead of querying
-           data from the dbObj.
+           If simData is not None, then this numpy structured array is used
+           instead of querying data from the dbObj.
         clear_memory : `bool`, optional
-           If True, metric values are deleted from memory after they are calculated (and saved to disk).
+           If True, metric values are deleted from memory after they are
+           calculated (and saved to disk).
         plot_now : `bool`, optional
-           Plot immediately after calculating metric values (instead of the usual procedure, which
-           is to plot after metric values are calculated for all constraints).
+           Plot immediately after calculating metric values
+           (instead of the usual procedure, which is to plot after metric
+           values are calculated for all constraints).
         plot_kwargs : kwargs, optional
            Plotting kwargs to pass to plotCurrent.
         """
@@ -335,7 +339,8 @@ class MetricBundleGroup:
     def get_data(self, constraint):
         """Query the data from the database.
 
-        The currently bundleDict should generally be set before calling getData (using setCurrent).
+        The currently bundleDict should generally be set
+        before calling getData (using setCurrent).
 
         Parameters
         ----------
@@ -350,7 +355,8 @@ class MetricBundleGroup:
                     "Querying table %s with constraint %s for columns %s"
                     % (self.db_table, constraint, self.db_cols)
                 )
-        # Note that we do NOT run the stackers at this point (this must be done in each 'compatible' group).
+        # Note that we do NOT run the stackers at this point
+        # (this must be done in each 'compatible' group).
         self.sim_data = utils.get_sim_data(
             self.db_obj,
             constraint,
@@ -362,13 +368,14 @@ class MetricBundleGroup:
             print("Found %i visits" % (self.sim_data.size))
 
     def _run_compatible(self, compatible_list):
-        """Runs a set of 'compatible' metricbundles in the MetricBundleGroup dictionary,
-        identified by 'compatible_list' keys.
+        """Runs a set of 'compatible' metricbundles in the MetricBundleGroup
+        dictionary identified by 'compatible_list' keys.
 
         A compatible list of MetricBundles is a subset of the currentBundleDict.
         The currentBundleDict == set of MetricBundles with the same constraint.
-        The compatibleBundles == set of MetricBundles with the same constraint, the same
-        slicer, the same maps applied to the slicer, and stackers which do not clobber each other's data.
+        The compatibleBundles == set of MetricBundles with the same constraint,
+        the same slicer, the same maps applied to the slicer,
+        and stackers which do not clobber each other's data.
 
         This is where the work of calculating the metric values is done.
         """
@@ -376,10 +383,12 @@ class MetricBundleGroup:
         if len(self.sim_data) == 0:
             return
 
-        # Grab a dictionary representation of this subset of the dictionary, for easier iteration.
+        # Grab a dictionary representation of this subset of the dictionary,
+        # for easier iteration.
         b_dict = {key: self.current_bundle_dict.get(key) for key in compatible_list}
 
-        # Find the unique stackers and maps. These are already "compatible" (as id'd by compatible_list).
+        # Find the unique stackers and maps.
+        # These are already "compatible" (as id'd by compatible_list).
         uniq_stackers = []
         all_stackers = []
         uniq_maps = []
@@ -396,12 +405,13 @@ class MetricBundleGroup:
 
         # Run stackers.
         for stacker in uniq_stackers:
-            # Note that stackers will clobber previously existing rows with the same name.
+            # Note that stackers will clobber previously existing columns
             self.sim_data = stacker.run(self.sim_data, override=True)
 
         # Pull out one of the slicers to use as our 'slicer'.
-        # This will be forced back into all of the metricBundles at the end (so that they track
-        #  the same info_label such as the slice_points, in case the same actual object wasn't used).
+        # This will be forced back into all of the metricBundles
+        # at the end (so that they track the same info_label such as the
+        # slice_points, in case the same actual object wasn't used).
         slicer = list(b_dict.values())[0].slicer
         slicer.setup_slicer(self.sim_data, maps=uniq_maps)
         # Copy the slicer (after setup) back into the individual metricBundles.
@@ -414,7 +424,8 @@ class MetricBundleGroup:
             b._setup_metric_values()
 
         # Set up an ordered dictionary to be the cache if needed:
-        # (Currently using OrderedDict, it might be faster to use 2 regular Dicts instead)
+        # (Currently using OrderedDict,
+        # it might be faster to use 2 regular Dicts instead)
         if slicer.cache_size > 0:
             cache_dict = OrderedDict()
             cache = True
@@ -460,7 +471,8 @@ class MetricBundleGroup:
                             b.metric_values.data[i] = b.metric.run(
                                 slicedata, slice_point=slice_i["slice_point"]
                             )
-                    # If we are above the cache size, drop the oldest element from the cache dict.
+                    # If we are above the cache size,
+                    # drop the oldest element from the cache dict.
                     if len(cache_dict) > slicer.cache_size:
                         del cache_dict[list(cache_dict.keys())[0]]
 
@@ -474,7 +486,8 @@ class MetricBundleGroup:
                         except BaseException as e:
                             print(f"Failed at slice_point {slice_i}, sid {i}")
                             raise e
-        # Mask data where metrics could not be computed (according to metric bad value).
+        # Mask data where metrics could not be computed
+        # (according to metric bad value).
         for b in b_dict.values():
             if b.metric_values.dtype.name == "object":
                 for ind, val in enumerate(b.metric_values.data):
@@ -486,7 +499,7 @@ class MetricBundleGroup:
                     b.metric_values.data == b.metric.badval, True, b.metric_values.mask
                 )
 
-        # Save data to disk as we go, although this won't keep summary values, etc. (just failsafe).
+        # Save data to disk as we go (just failsafe).
         if self.save_early:
             for b in b_dict.values():
                 b.write(out_dir=self.out_dir, results_db=self.results_db)
@@ -498,28 +511,32 @@ class MetricBundleGroup:
     def reduce_all(self, update_summaries=True):
         """Run the reduce methods for all metrics in bundleDict.
 
-        Running this method, for all MetricBundles at once, assumes that clearMemory was False.
+        Running this method, for all MetricBundles at once,
+        assumes that clearMemory was False.
 
         Parameters
         ----------
         update_summaries : `bool`, optional
-            If True, summary metrics are removed from the top-level (non-reduced)
-            MetricBundle. Usually this should be True, as summary metrics are generally
-            intended to run on the simpler data produced by reduce metrics.
+            If True, summary metrics are removed from the top-level
+            (non-reduced) MetricBundle. Usually this should be True,
+            as summary metrics are generally intended to run on the simpler
+            data produced by reduce metrics.
         """
         for constraint in self.constraints:
             self.set_current(constraint)
             self.reduce_current(update_summaries=update_summaries)
 
     def reduce_current(self, update_summaries=True):
-        """Run all reduce functions for the metricbundle in the currently active set of MetricBundles.
+        """Run all reduce functions for the metricbundle in the
+        currently active set of MetricBundles.
 
         Parameters
         ----------
         update_summaries : `bool`, optional
-            If True, summary metrics are removed from the top-level (non-reduced)
-            MetricBundle. Usually this should be True, as summary metrics are generally
-            intended to run on the simpler data produced by reduce metrics.
+            If True, summary metrics are removed from the top-level
+            (non-reduced) MetricBundle. Usually this should be True,
+            as summary metrics are generally intended to run on the simpler
+            data produced by reduce metrics.
         """
         # Create a temporary dictionary to hold the reduced metricbundles.
         reduce_bundle_dict = {}
@@ -557,7 +574,8 @@ class MetricBundleGroup:
             self.summary_current()
 
     def summary_current(self):
-        """Run summary statistics on all the metricBundles in the currently active set of MetricBundles."""
+        """Run summary statistics on all the metricBundles in the
+        currently active set of MetricBundles."""
         for b in self.current_bundle_dict.values():
             b.compute_summary_stats(self.results_db)
 
@@ -573,28 +591,29 @@ class MetricBundleGroup:
     ):
         """Generate all the plots for all the metricBundles in bundleDict.
 
-        Generating all plots, for all MetricBundles, at this point, assumes that
-        clearMemory was False.
+        Generating all plots, for all MetricBundles,
+        At this point, assumes that clearMemory was False.
 
         Parameters
         ----------
-        save_figs : `bool`, optional
+        savefig : `bool`, optional
             If True, save figures to disk, to self.out_dir directory.
-        outfile_suffix : `bool`, optional
-            Append outfile_suffix to the end of every plot file generated. Useful for generating
-            sequential series of images for movies.
+        outfile_suffix : `str`, optional
+            Append outfile_suffix to the end of every plot file generated.
+            Useful for generating sequential series of images for movies.
         fig_format : `str`, optional
-            Matplotlib figure format to use to save to disk. Default pdf.
+            Matplotlib figure format to use to save to disk.
         dpi : `int`, optional
-            DPI for matplotlib figure. Default 600.
+            DPI for matplotlib figure.
         trim_whitespace : `bool`, optional
-            If True, trim additional whitespace from final figures. Default True.
+            If True, trim additional whitespace from final figures.
         thumbnail : `bool`, optional
-            If True, save a small thumbnail jpg version of the output file to disk as well.
-            This is useful for showMaf web pages. Default True.
+            If True, save a small thumbnail jpg version of the output file
+            to disk as well. This is useful for show_maf web pages.
         closefigs : `bool`, optional
-            Close the matplotlib figures after they are saved to disk. If many figures are
-            generated, closing the figures saves significant memory. Default True.
+            Close the matplotlib figures after they are saved to disk.
+            If many figures are generated, closing the figures saves
+            significant memory.
         """
         for constraint in self.constraints:
             if self.verbose:
@@ -628,20 +647,21 @@ class MetricBundleGroup:
         savefig : `bool`, optional
             If True, save figures to disk, to self.out_dir directory.
         outfile_suffix : `str`, optional
-            Append outfile_suffix to the end of every plot file generated. Useful for generating
-            sequential series of images for movies.
+            Append outfile_suffix to the end of every plot file generated.
+            Useful for generating sequential series of images for movies.
         fig_format : `str`, optional
-            Matplotlib figure format to use to save to disk. Default pdf.
+            Matplotlib figure format to use to save to disk.
         dpi : `int`, optional
-            DPI for matplotlib figure. Default 600.
+            DPI for matplotlib figure.
         trim_whitespace : `bool`, optional
-            If True, trim additional whitespace from final figures. Default True.
+            If True, trim additional whitespace from final figures.
         thumbnail : `bool`, optional
-            If True, save a small thumbnail jpg version of the output file to disk as well.
-            This is useful for showMaf web pages. Default True.
+            If True, save a small thumbnail jpg version of the output file
+            to disk as well. This is useful for show_maf web pages.
         closefigs : `bool`, optional
-            Close the matplotlib figures after they are saved to disk. If many figures are
-            generated, closing the figures saves significant memory. Default True.
+            Close the matplotlib figures after they are saved to disk.
+            If many figures are generated, closing the figures saves
+            significant memory.
         """
         plot_handler = PlotHandler(
             out_dir=self.out_dir,
@@ -691,9 +711,8 @@ class MetricBundleGroup:
     def read_all(self):
         """Attempt to read all MetricBundles from disk.
 
-        You must set the metrics/slicer/constraint/run_name for a metricBundle appropriately;
-        then this method will search for files in the location self.out_dir/metricBundle.fileRoot.
-        Reads all the files associated with all metricbundles in self.bundle_dict.
+        You must set the metrics/slicer/constraint/run_name for a metricBundle
+        appropriately, so that the file_root is correct.
         """
         reduce_bundle_dict = {}
         remove_bundles = []
@@ -702,35 +721,38 @@ class MetricBundleGroup:
             filename = os.path.join(self.out_dir, bundle.file_root + ".npz")
             try:
                 # Create a temporary metricBundle to read the data into.
-                #  (we don't use b directly, as this overrides plot_dict/etc).
+                # We are not using "b" directly, as we are trying NOT
+                # to override the plot_dict or display_dict.
                 tmp_bundle = create_empty_metric_bundle()
                 tmp_bundle.read(filename)
                 # Copy the tmp_bundle metric_values into bundle.
                 bundle.metric_values = tmp_bundle.metric_values
                 # And copy the slicer into b, to get slice_points.
                 bundle.slicer = tmp_bundle.slicer
+                # Copy the summary stats though.
+                bundle.summary_values = tmp_bundle.summary_values
                 if self.verbose:
                     print("Read %s from disk." % (bundle.file_root))
             except IOError:
                 warnings.warn("Warning: file %s not found, bundle not restored." % filename)
                 remove_bundles.append(b)
 
-            # Look to see if this is a complex metric, with associated 'reduce' functions,
-            # and read those in too.
+            # Look to see if this is a complex metric,
+            # with associated 'reduce' functions, and read those in too.
             if len(bundle.metric.reduce_funcs) > 0:
                 orig_metric_name = bundle.metric.name
                 for reduce_func in bundle.metric.reduce_funcs.values():
                     reduce_name = orig_metric_name + "_" + reduce_func.__name__.replace("reduce", "")
-                    # Borrow the fileRoot in b (we'll reset it appropriately afterwards).
+                    # Borrow the fileRoot in b (we'll reset it appropriately)
                     bundle.metric.name = reduce_name
                     bundle._build_file_root()
                     filename = os.path.join(self.out_dir, bundle.file_root + ".npz")
                     tmp_bundle = create_empty_metric_bundle()
                     try:
                         tmp_bundle.read(filename)
-                        # This won't necessarily recreate the plot_dict and display_dict exactly
-                        # as they would have been made if you calculated the reduce metric from scratch.
-                        # Perhaps update these metric reduce dictionaries after reading them in?
+                        # This won't necessarily recreate the plot_dict and
+                        # display_dict exactly as they would have been made
+                        # if you calculated the reduce metric from scratch.
                         newmetric_bundle = MetricBundle(
                             metric=bundle.metric,
                             slicer=bundle.slicer,
@@ -747,7 +769,8 @@ class MetricBundleGroup:
                         )
                         newmetric_bundle.metric.name = reduce_name
                         newmetric_bundle.metric_values = ma.copy(tmp_bundle.metric_values)
-                        # Add the new metricBundle to our metricBundleGroup dictionary.
+                        newmetric_bundle.summary_values = tmp_bundle.summary_values
+                        # Add the new metricBundle to metricBundleGroup dict.
                         name = newmetric_bundle.metric.name
                         if name in self.bundle_dict:
                             name = newmetric_bundle.file_root
@@ -767,6 +790,7 @@ class MetricBundleGroup:
 
         # Add the reduce bundles into the bundleDict.
         self.bundle_dict.update(reduce_bundle_dict)
-        # And remove the bundles which were not found on disk, so we don't try to make (blank) plots.
+        # And remove the bundles which were not found on disk,
+        # so we don't try to make (blank) plots.
         for b in remove_bundles:
             del self.bundle_dict[b]

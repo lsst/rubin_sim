@@ -304,8 +304,9 @@ class MetricBundle:
 
         Parameters
         ----------
-        summary_metrics : List[BaseMetric]
-            Instantiated summary metrics to use to calculate summary statistics for this metric.
+        summary_metrics : `List` of [`BaseMetric`]
+            Instantiated summary metrics to use to calculate
+            summary statistics for this metric.
         """
         if summary_metrics is not None:
             if isinstance(summary_metrics, metrics.BaseMetric):
@@ -317,7 +318,8 @@ class MetricBundle:
                         raise ValueError("SummaryStats must only contain rubin_sim.maf.metrics objects")
                     self.summary_metrics.append(s)
         else:
-            # Add identity metric to unislicer metric values (to get them into resultsDB).
+            # Add identity metric to unislicer metric values
+            # (to get them into resultsDB).
             if self.slicer.slicer_name == "UniSlicer":
                 self.summary_metrics = [metrics.IdentityMetric()]
             else:
@@ -326,12 +328,13 @@ class MetricBundle:
     def set_plot_funcs(self, plot_funcs):
         """Set or reset the plotting functions.
 
-        The default is to use all the plotFuncs associated with the slicer, which
-        is what happens in self.plot if setPlotFuncs is not used to override self.plotFuncs.
+        The default is to use all the plotFuncs associated with the slicer,
+        which is what happens in self.plot if setPlotFuncs is not used to
+        override self.plotFuncs.
 
         Parameters
         ----------
-        plot_funcs : List[BasePlotter]
+        plot_funcs : `List` [`BasePlotter`]
             The plotter or plotters to use to generate visuals for this metric.
         """
         if plot_funcs is not None:
@@ -386,13 +389,14 @@ class MetricBundle:
 
         Parameters
         ----------
-        display_dict : Optional[dict]
-            Dictionary of display parameters for showMaf.
-            Expected keywords: 'group', 'subgroup', 'order', 'caption'.
-            'group', 'subgroup', and 'order' control where the metric results are shown on the showMaf page.
+        display_dict : `dict` of `str`
+            Dictionary of display parameters for show_maf.
+            Expected keys are: 'group', 'subgroup', 'order', 'caption'.
+            'group', 'subgroup', and 'order' control where the
+            metric results are shown on the show_maf page.
             'caption' provides a caption to use with the metric results.
             These values are saved in the results database.
-        results_db : Optional[ResultsDb]
+        results_db : `maf.ResultsDb`
             A MAF results database, used to save the display parameters.
         """
         # Set up a temporary dictionary with the default values.
@@ -439,21 +443,22 @@ class MetricBundle:
             results_db.update_display(metric_id, self.display_dict)
 
     def set_run_name(self, run_name, update_file_root=True):
-        """Set (or reset) the run_name. FileRoot will be updated accordingly if desired.
+        """Set (or reset) the run_name.
+        FileRoot will be updated accordingly if desired.
 
         Parameters
         ----------
-        run_name: str
+        run_name: `str`
             Run Name, which will become part of the fileRoot.
-        fileRoot: bool, optional
-            Flag to update the fileRoot with the run_name. Default True.
+        fileRoot: `bool`, optional
+            Flag to update the fileRoot with the run_name.
         """
         self.run_name = run_name
         if update_file_root:
             self._build_file_root()
 
     def write_db(self, results_db=None, outfile_suffix=None):
-        """Write the metric_values to the database"""
+        """Write the metric information to the results database"""
         if outfile_suffix is not None:
             outfile = self.file_root + "_" + outfile_suffix + ".npz"
         else:
@@ -474,13 +479,14 @@ class MetricBundle:
 
         Parameters
         ----------
-        comment : Optional[str]
+        comment : `str`
             Any additional comments to add to the output file
-        out_dir : Optional[str]
+        out_dir : `str`
             The output directory
-        outfile_suffix : Optional[str]
-            Additional suffix to add to the output files (typically a numerical suffix for movies)
-        results_db : Optional[ResultsDb]
+        outfile_suffix :`str`
+            Additional suffix to add to the output files
+            (typically a numerical suffix for movies)
+        results_db : `maf.ResultsDb`
             Results database to store information on the file output
         """
         if outfile_suffix is not None:
@@ -518,12 +524,12 @@ class MetricBundle:
         return io
 
     def read(self, filename):
-        """Read metric_values and associated info_label from disk.
+        """Read metric data from disk.
         Overwrites any data currently in metricbundle.
 
         Parameters
         ----------
-        filename : str
+        filename : `str`
            The file from which to read the metric bundle data.
         """
         if not os.path.isfile(filename):

@@ -46,41 +46,43 @@ class SlicerRegistry(type):
 
 class BaseSlicer(with_metaclass(SlicerRegistry, object)):
     """
-    Base class for all slicers: sets required methods and implements common functionality.
+    Base class for all slicers: sets required methods and
+    implements common functionality.
 
-    After first construction, the slicer should be ready for setup_slicer to define slice_points, which will
-    let the slicer 'slice' data and generate plots.
-    After init after a restore: everything necessary for using slicer for plotting or
-    saving/restoring metric data should be present (although slicer does not need to be able to
-    slice data again and generally will not be able to).
+    After first construction, the slicer should be ready for
+    `setup_slicer` which defines slice_points, allowing the slicer to "slice"
+    data and generate plots.
+    After init after a restore: everything necessary for using slicer for
+    plotting or saving/restoring metric data should be present, although
+    the slicer does not need to be able to slice data again and generally
+    will not be able to do so.
 
     Parameters
     ----------
     verbose: `bool`, optional
         True/False flag to send extra output to screen.
-        Default True.
-    badval: int or float, optional
+    badval: `int` or `float`, optional
         The value the Slicer uses to fill masked metric data values
-        Default -666.
     """
 
     def __init__(self, verbose=True, badval=-666):
         self.verbose = verbose
         self.badval = badval
-        # Set the cache_size. Currently only healpixSlicers (and their derivatives) use the cache.
+        # Set the cache_size.
+        # Currently only healpixSlicers (and their derivatives) use the cache.
         # The size of the cache is set directly by those slicers.
         self.cache_size = 0
         # Set length of Slicer. This determines the endpoint for iteration.
         self.nslice = None
-        # Set the length of the data (metric) values. This is often but not necessarily the same as nslice.
+        # Set the length of the data (metric) values.
+        # This is often but not necessarily the same as nslice.
         self.shape = None
         self.slice_points = {}
         self.slicer_name = self.__class__.__name__
         self.columns_needed = []
         # Create a dict that saves how to re-init the slicer.
-        #  This may not be the whole set of args/kwargs, but those which carry useful metadata or
-        #   are absolutely necesary for init.
-        # Will often be overwritten by individual slicer slicer_init dictionaries.
+        # This may not be the whole set of args/kwargs, may only be
+        # those which carry useful metadata or are necesary for init.
         self.slicer_init = {"badval": badval}
         self.plot_funcs = []
 
@@ -93,17 +95,18 @@ class BaseSlicer(with_metaclass(SlicerRegistry, object)):
     def setup_slicer(self, sim_data, maps=None):
         """Set up Slicer for data slicing.
 
-        Set up internal parameters necessary for slicer to slice data and generates indexes on sim_data.
+        Set up internal parameters necessary for slicer to slice data
+        and generates indexes on sim_data.
         Also sets _slice_sim_data for a particular slicer.
 
         Parameters
         -----------
-        sim_data : np.recarray
+        sim_data : `np.recarray`
             The simulated data to be sliced.
-        maps : list of rubin_sim.maf.maps objects, optional.
-            Maps to apply at each slice_point, to add to the slice_point metadata. Default None.
+        maps : `list` of `rubin_sim.maf.maps` objects, optional.
+            Maps to apply at each slice_point,
+            to add to the slice_point metadata.
         """
-        # Typically args will be sim_data, but opsimFieldSlicer also uses fieldData.
         raise NotImplementedError()
 
     def get_slice_points(self):
@@ -124,7 +127,8 @@ class BaseSlicer(with_metaclass(SlicerRegistry, object)):
 
         Results of self._slice_sim_data should be dictionary of
         {'idxs': the data indexes relevant for this slice of the slicer,
-        'slice_point': the metadata for the slice_point, which always includes 'sid' key for ID of slice_point.}
+        'slice_point': the metadata for the slice_point, which always
+        includes 'sid' key for ID of slice_point.}
         """
         if self.islice >= self.nslice:
             raise StopIteration
@@ -136,27 +140,23 @@ class BaseSlicer(with_metaclass(SlicerRegistry, object)):
         return self._slice_sim_data(islice)
 
     def __eq__(self, other_slicer):
-        """
-        Evaluate if two slicers are equivalent.
-        """
+        """Evaluate if two slicers are equivalent."""
         raise NotImplementedError()
 
     def __ne__(self, other_slicer):
-        """
-        Evaluate if two slicers are not equivalent.
-        """
+        """Evaluate if two slicers are not equivalent."""
         if self == other_slicer:
             return False
         else:
             return True
 
     def _slice_sim_data(self, slice_point):
-        """
-        Slice the simulation data appropriately for the slicer.
+        """Slice the simulation data appropriately for the slicer.
 
         Given the identifying slice_point metadata
-        The slice of data returned will be the indices of the numpy rec array (the sim_data)
-        which are appropriate for the metric to be working on, for that slice_point.
+        The slice of data returned will be the indices of the
+        numpy rec array (the sim_data) which are appropriate for the metric
+        to be working on, for that slice_point.
         """
         raise NotImplementedError('This method is set up by "setup_slicer" - run that first.')
 
@@ -180,6 +180,20 @@ class BaseSlicer(with_metaclass(SlicerRegistry, object)):
             The output file name.
         metric_values : `np.ma.MaskedArray` or `np.ndarray`
             The metric values to save to disk.
+        metric_name : `str`
+            Name of the metric as configured when run
+        sim_data_name : `str`
+            Name of the simulation metric run on
+        constraint : `str`
+            Constraint used to subselect data
+        info_label : `str`
+            Descriptive additional information
+        plot_dict : `dict`
+            Dictionary of plotting parameters
+        display_dict : `dict`
+            Dictionary of display parameters, including caption
+        summary_values : `dict`
+            Dictionary of summary statistics
         """
         header = {}
         header["metric_name"] = metric_name
@@ -225,31 +239,37 @@ class BaseSlicer(with_metaclass(SlicerRegistry, object)):
         plot_dict=None,
     ):
         """
-        Send metric data to JSON streaming API, along with a little bit of metadata.
+        Send metric data to JSON streaming API,
+        along with a little bit of metadata.
 
-        This method will only work for metrics where the metricDtype is float or int,
-        as JSON will not interpret more complex data properly. These values can't be plotted anyway though.
+        This method will only work for metrics where the
+        metricDtype is float or int, as JSON will not interpret more
+        complex data properly. These values can't be plotted anyway though.
 
         Parameters
         -----------
-        metric_values : np.ma.MaskedArray or np.ndarray
+        metric_values : `np.ma.MaskedArray` or `np.ndarray`
             The metric values.
-        metric_name : str, optional
-            The name of the metric. Default ''.
-        sim_data_name : str, optional
-            The name of the simulated data source. Default ''.
-        info_label : str, optional
-            Some additional information about this metric and how it was calculated. Default ''.
-        plot_dict : dict, optional.
-            The plot_dict for this metric bundle. Default None.
+        metric_name : `str`, optional
+            The name of the metric.
+        sim_data_name : `str`, optional
+            The name of the simulated data source.
+        info_label : `str`, optional
+            Some additional information about this metric
+            and how it was calculated.
+        plot_dict : `dict`, optional.
+            The plot_dict for this metric bundle.
 
         Returns
         --------
-        StringIO
-            StringIO object containing a header dictionary with metric_name/metadata/sim_data_name/slicer_name,
+        io : `StringIO`
+            StringIO object containing a header dictionary with
+            metric_name/metadata/sim_data_name/slicer_name,
             and plot labels from plot_dict, and metric values/data for plot.
-            if oneDSlicer, the data is [ [bin_left_edge, value], [bin_left_edge, value]..].
-            if a spatial slicer, the data is [ [lon, lat, value], [lon, lat, value] ..].
+            if oneDSlicer,
+            the data is [ [bin_left_edge, value], [bin_left_edge, value]..].
+            if a spatial slicer,
+            the data is [ [lon, lat, value], [lon, lat, value] ..].
         """
         # Bail if this is not a good data type for JSON.
         if not (metric_values.dtype == "float") or (metric_values.dtype == "int"):
@@ -346,27 +366,33 @@ class BaseSlicer(with_metaclass(SlicerRegistry, object)):
 
     def read_data(self, infilename):
         """
-        Read metric data from disk, along with the info to rebuild the slicer (minus new slicing capability).
+        Read metric data from disk, along with the info to
+        rebuild the slicer (minus new slicing capability).
 
         Parameters
         -----------
-        infilename: str
+        infilename: `str`
             The filename containing the metric data.
 
         Returns
         -------
-        np.ma.MaskedArray, rubin_sim.maf.slicer, dict
-            MetricValues stored in data file, the slicer basis for those metric values, and a dictionary
-            containing header information (run_name, metadata, etc.).
+        metric_values, slicer, header : `np.ma.MaskedArray`,
+        `rubin_sim.maf.slicer`, `dict`
+            MetricValues stored in data file,
+            the slicer basis for those metric values,
+            and a dictionary containing header information
+            (run_name, metadata, etc.).
         """
         import rubin_sim.maf.slicers as slicers
 
-        # Allowing pickles here is required, because otherwise we cannot restore data saved as objects.
+        # Allowing pickles here is required, because otherwise we cannot
+        # restore data saved as objects.
         restored = np.load(infilename, allow_pickle=True)
         if "slicer_name" not in restored:
             metric_values, slicer, header = self.read_backwards_compatible(restored, infilename)
             return metric_values, slicer, header
-        # This is the standard behavior and will be the sole behavior at a future release point.
+        # This is the standard behavior and will be the
+        # sole behavior at a future release point.
         # Get metadata and other sim_data info.
         header = restored["header"][()]
         if "dateRan" in header:

@@ -16,39 +16,42 @@ from .base_metric import BaseMetric
 
 
 class ParallaxMetric(BaseMetric):
-    """Calculate the uncertainty in a parallax measurement given a series of observations.
+    """Calculate the uncertainty in a parallax measurement
+    given a series of observations.
 
-    Uses columns ra_pi_amp and dec_pi_amp, calculated by the ParallaxFactorStacker.
+    Uses columns ra_pi_amp and dec_pi_amp,
+    calculated by the ParallaxFactorStacker.
 
     Parameters
     ----------
-    metricName : str, optional
-        Default 'parallax'.
-    m5_col : str, optional
-        The default column name for m5 information in the input data. Default fiveSigmaDepth.
-    filter_col : str, optional
-        The column name for the filter information. Default filter.
-    seeing_col : str, optional
-        The column name for the seeing information. Since the astrometry errors are based on the physical
-        size of the PSF, this should be the FWHM of the physical psf. Default seeingFwhmGeom.
-    rmag : float, optional
-        The r magnitude of the fiducial star in r band. Other filters are sclaed using sedTemplate keyword.
-        Default 20.0
-    SedTemplate : str, optional
-        The template to use. This can be 'flat' or 'O','B','A','F','G','K','M'. Default flat.
-    atm_err : float, optional
-        The expected centroiding error due to the atmosphere, in arcseconds. Default 0.01.
+    m5_col : `str`, optional
+        The default column name for m5 information in the input data.
+    filter_col : `str`, optional
+        The column name for the filter information.
+    seeing_col : `str`, optional
+        The column name for the seeing information.
+        Since the astrometry errors are based on the physical size of the PSF,
+        this should be the FWHM of the physical psf, e.g. seeingFwhmGeom.
+    rmag : `float`, optional
+        The r magnitude of the fiducial star in r band.
+        Other filters are scaled using sedTemplate keyword.
+    SedTemplate : `str`, optional
+        The template to use. This can be 'flat' or 'O','B','A','F','G','K','M'.
+    atm_err : `float`, optional
+        The expected centroiding error due to the atmosphere, in arcseconds.
+        Default 0.01.
     normalize : `bool`, optional
-        Compare the astrometric uncertainty to the uncertainty that would result if half the observations
-        were taken at the start and half at the end. A perfect survey will have a value close to 1, while
-        a poorly scheduled survey will be close to 0. Default False.
-    badval : float, optional
-        The value to return when the metric value cannot be calculated. Default -666.
+        Compare the astrometric uncertainty to the uncertainty
+        that would result if half the observations were taken at the start
+        and half at the end.
+        A perfect survey will have a value close to 1, while
+        a poorly scheduled survey will be close to 0.
+    badval : `float`, optional
+        The value to return when the metric value cannot be calculated.
     """
 
     def __init__(
         self,
-        metric_name="parallax",
         m5_col="fiveSigmaDepth",
         filter_col="filter",
         seeing_col="seeingFwhmGeom",
