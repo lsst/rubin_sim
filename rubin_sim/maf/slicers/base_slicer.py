@@ -170,9 +170,11 @@ class BaseSlicer(with_metaclass(SlicerRegistry, object)):
         info_label="",
         plot_dict=None,
         display_dict=None,
+        summary_values=None,
     ):
         """
-        Save metric values along with the information required to re-build the slicer.
+        Save metric values along with the information required to
+        re-build the slicer.
 
         Parameters
         -----------
@@ -206,6 +208,7 @@ class BaseSlicer(with_metaclass(SlicerRegistry, object)):
             display_dict = {"group": "Ungrouped"}
         header["display_dict"] = display_dict
         header["plot_dict"] = plot_dict
+        header["summary_values"] = summary_values
         for key in version_info:
             header[key] = version_info[key]
         if hasattr(metric_values, "mask"):  # If it is a masked array
@@ -216,16 +219,24 @@ class BaseSlicer(with_metaclass(SlicerRegistry, object)):
             data = metric_values
             mask = None
             fill = None
-        # npz file acts like dictionary: each keyword/value pair below acts as a dictionary in loaded NPZ file.
+        # npz file acts like dictionary: each keyword/value pair
+        # below acts as a dictionary in loaded NPZ file.
         np.savez(
             outfilename,
-            header=header,  # header saved as dictionary
-            metric_values=data,  # metric data values
-            mask=mask,  # metric mask values
-            fill=fill,  # metric badval/fill val
-            slicer_init=self.slicer_init,  # dictionary of instantiation parameters
-            slicer_name=self.slicer_name,  # class name
-            slice_points=self.slice_points,  # slice_point metadata saved (is a dictionary)
+            # header saved as dictionary
+            header=header,
+            # metric data values
+            metric_values=data,
+            # metric mask values
+            mask=mask,
+            # metric badval/fill val
+            fill=fill,
+            # dictionary of instantiation parameters
+            slicer_init=self.slicer_init,
+            # class name
+            slicer_name=self.slicer_name,
+            # slice_point metadata saved (is a dictionary)
+            slice_points=self.slice_points,
             slicer_n_slice=self.nslice,
             slicer_shape=self.shape,
         )

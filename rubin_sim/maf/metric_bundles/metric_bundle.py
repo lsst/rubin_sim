@@ -502,6 +502,7 @@ class MetricBundle:
             info_label=self.info_label + comment,
             display_dict=self.display_dict,
             plot_dict=self.plot_dict,
+            summary_values=self.summary_values,
         )
         if results_db is not None:
             self.write_db(results_db=results_db)
@@ -566,6 +567,8 @@ class MetricBundle:
                 self.set_plot_dict(header["plot_dict"])
             if "display_dict" in header:
                 self.set_display_dict(header["display_dict"])
+            if "summary_values" in header:
+                self.summary_values = header["summary_values"]
         if self.info_label is None:
             self._build_metadata()
         path, head = os.path.split(filename)
