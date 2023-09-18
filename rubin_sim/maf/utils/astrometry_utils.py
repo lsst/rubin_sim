@@ -32,7 +32,7 @@ def sigma_slope(x, sigma_y):
         return result
 
 
-def m52snr(m, m5, gamma=0.039):
+def m52snr(m, m5, gamma=0.04):
     """
     Calculate the SNR for a star of magnitude m in an
     observation with 5-sigma limiting magnitude depth m5.
@@ -46,15 +46,24 @@ def m52snr(m, m5, gamma=0.039):
         The magnitude of the star
     m5 : `float` or `np.ndarray` (N,)
         The m5 limiting magnitude of the observation
+    gamma : `float` or None
+        The 'gamma' value used when calculating photometric or
+        astrometric errors and weighting SNR accordingly.
+        See equation 5 of the LSST Overview paper.
+        Use "None" to discount the gamma factor completely
+        and just use 10^^(0.4 * (m-m5)).
 
     Returns
     -------
     snr : `float` or `np.ndarray` (N,)
         The SNR
     """
-    # gamma varies per band, but is fairly close to 0.039 or 0.04
+    # gamma varies per band, but is fairly close to 0.04
     xval = np.power(10, 0.4 * (m - m5))
-    snr = 1 / np.sqrt((0.04 - gamma) * xval + gamma * xval * xval)
+    if gamma is None:
+        snr = xval
+    else:
+        snr = 1 / np.sqrt((0.04 - gamma) * xval + gamma * xval * xval)
     return snr
 
 
