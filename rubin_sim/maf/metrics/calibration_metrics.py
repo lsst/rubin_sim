@@ -240,9 +240,8 @@ class ProperMotionMetric(BaseMetric):
             else:
                 snr = mafUtils.m52snr(self.mags[f], data_slice[self.m5_col][observations])
                 precis[observations] = mafUtils.astrom_precision(
-                    data_slice[self.seeing_col][observations], snr
+                    data_slice[self.seeing_col][observations], snr, self.atm_err
                 )
-                precis[observations] = np.sqrt(precis[observations] ** 2 + self.atm_err**2)
         good = np.where(precis != self.badval)
         result = mafUtils.sigma_slope(data_slice[self.mjd_col][good], precis[good])
         result = result * 365.25 * 1e3  # Convert to mas/yr
@@ -364,9 +363,7 @@ class ParallaxCoverageMetric(BaseMetric):
 
     def _compute_weights(self, data_slice, snr):
         # Compute centroid uncertainty in each visit
-        position_errors = np.sqrt(
-            mafUtils.astrom_precision(data_slice[self.seeing_col], snr) ** 2 + self.atm_err**2
-        )
+        position_errors = mafUtils.astrom_precision(data_slice[self.seeing_col], snr, self.atm_err)
         weights = 1.0 / position_errors**2
         return weights
 
@@ -493,9 +490,7 @@ class ParallaxDcrDegenMetric(BaseMetric):
         # Compute the centroiding uncertainties
         # Note that these centroiding uncertainties depend on the physical size of the PSF, thus
         # we are using seeingFwhmGeom for these metrics, not seeingFwhmEff.
-        position_errors = np.sqrt(
-            mafUtils.astrom_precision(data_slice[self.seeing_col], snr) ** 2 + self.atm_err**2
-        )
+        position_errors = mafUtils.astrom_precision(data_slice[self.seeing_col], snr, self.atm_err)
         # Construct the vectors of RA/Dec offsets. xdata is the "input data". ydata is the "output".
         xdata = np.empty((2, data_slice.size * 2), dtype=float)
         xdata[0, :] = np.concatenate((data_slice["ra_pi_amp"], data_slice["dec_pi_amp"]))

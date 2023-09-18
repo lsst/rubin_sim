@@ -32,7 +32,7 @@ def sigma_slope(x, sigma_y):
         return result
 
 
-def m52snr(m, m5):
+def m52snr(m, m5, gamma=0.039):
     """
     Calculate the SNR for a star of magnitude m in an
     observation with 5-sigma limiting magnitude depth m5.
@@ -52,14 +52,13 @@ def m52snr(m, m5):
     snr : `float` or `np.ndarray` (N,)
         The SNR
     """
-    # gamma varies per band, but is fairly close to this value
-    rgamma = 0.039
+    # gamma varies per band, but is fairly close to 0.039 or 0.04
     xval = np.power(10, 0.4 * (m - m5))
-    snr = 1 / np.sqrt((0.04 - rgamma) * xval + rgamma * xval * xval)
+    snr = 1 / np.sqrt((0.04 - gamma) * xval + gamma * xval * xval)
     return snr
 
 
-def astrom_precision(fwhm, snr, systematic_floor=0.01):
+def astrom_precision(fwhm, snr, systematic_floor=0.00):
     """
     Calculate the approximate precision of astrometric measurements,
     given a particular seeing and SNR value.
@@ -71,12 +70,14 @@ def astrom_precision(fwhm, snr, systematic_floor=0.01):
     snr : float` or `np.ndarray` (N,)
         The SNR of the object.
     systematic_floor : `float`
-        Systematic noise floor for astrometric error.
+        Systematic noise floor for astrometric error, in arcseconds.
+        Default here is 0, for backwards compatibility.
+        General Rubin use should be 0.01.
 
     Returns
     -------
-    astrp,+err " `float` or `numpy.ndarray` (N,)
-        The astrometric precision.
+    astrom_err : `float` or `numpy.ndarray` (N,)
+        The astrometric precision, in arcseconds.
     """
     astrom_err = np.sqrt((fwhm / snr) ** 2 + systematic_floor**2)
     return astrom_err
