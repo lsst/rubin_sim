@@ -61,7 +61,8 @@ class MetricRegistry(type):
 
 class ColRegistry:
     """
-    ColRegistry tracks the columns needed for all metric objects (kept internally in a set).
+    ColRegistry tracks the columns needed for all metric objects
+    (kept internally in a set).
 
     ColRegistry.col_set : a set of all unique columns required for metrics.
     ColRegistry.dbCols : the subset of these which come from the database.
@@ -82,12 +83,13 @@ class ColRegistry:
     def add_cols(self, col_array):
         """Add the columns in ColArray into the ColRegistry.
 
-        Add the columns in col_array into the ColRegistry set (self.col_set) and identifies their source,
-         using ColInfo (rubin_sim.maf.stackers.getColInfo).
+        Add the columns in col_array into the ColRegistry set (self.col_set)
+        and identifies their source, using ColInfo
+        (rubin_sim.maf.stackers.getColInfo).
 
         Parameters
         ----------
-        col_array : list
+        col_array : `list`
             list of columns used in a metric.
         """
         for col in col_array:
@@ -104,8 +106,9 @@ class ColRegistry:
 class BaseMetric(with_metaclass(MetricRegistry, object)):
     """
     Base class for the metrics.
-    Sets up some basic functionality for the MAF framework: after __init__ every metric will
-    record the columns (and stackers) it requires into the column registry, and the metric_name,
+    Sets up some basic functionality for the MAF framework:
+    after __init__ every metric will record the columns (and stackers)
+    it requires into the column registry, and the metric_name,
     metric_dtype, and units for the metric will be set.
 
     Parameters
@@ -170,8 +173,7 @@ class BaseMetric(with_metaclass(MetricRegistry, object)):
         self.reduce_order = {}
         for i, r in enumerate(inspect.getmembers(self, predicate=inspect.ismethod)):
             if r[0].startswith("reduce"):
-                # Automatically named reduce functions have "reduce_" at the start of their name,
-                # which is undesirable to read in the output.
+                # Remove the "reduce_" part of the reduce functions names.
                 reducename = r[0].replace("reduce_", "", 1)
                 self.reduce_funcs[reducename] = r[1]
                 self.reduce_order[reducename] = i
@@ -189,7 +191,8 @@ class BaseMetric(with_metaclass(MetricRegistry, object)):
                 units = ""
         self.units = units
         # Add the ability to set a comment
-        # (that could be propagated automatically to a benchmark's display caption).
+        # (that could be propagated automatically to a benchmark's
+        # display caption).
         self.comment = None
 
         # Default to only return one metric value per slice
@@ -200,9 +203,9 @@ class BaseMetric(with_metaclass(MetricRegistry, object)):
 
         Parameters
         ----------
-        data_slice : `numpy.recarray`
-           Values passed to metric by the slicer, which the metric will use to calculate
-           metric values at each slice_point.
+        data_slice : `numpy.ndarray`, (N,)
+           Values passed to metric by the slicer, which the metric will
+           use to calculate metric values at each slice_point.
         slice_point : `dict` or None
            Dictionary of slice_point metadata passed to each metric.
            E.g. the ra/dec of the healpix pixel or opsim fieldId.

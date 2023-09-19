@@ -568,8 +568,8 @@ def radar_limited(
     subgroupCount += 1
     displayDict["subgroup"] = f"{subgroupCount}: WL"
     displayDict["order"] = 0
-    sqlconstraint = f'note not like "DD%" and (filter="g" or filter="r" or filter="i")'
-    info_label = f"gri band non-DD"
+    sqlconstraint = 'note not like "DD%" and (filter="g" or filter="r" or filter="i")'
+    info_label = "gri band non-DD"
     minExpTime = 15
     m = metrics.WeakLensingNvisits(
         lsst_filter=bandpass,

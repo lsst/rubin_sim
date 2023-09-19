@@ -126,9 +126,7 @@ class BDParallaxMetric(BaseMetric):
                     self.mags[str(filt)][:, np.newaxis], data_slice[self.m5_col][good]
                 )
 
-        position_errors = np.sqrt(
-            mafUtils.astrom_precision(data_slice[self.seeing_col], snr) ** 2 + self.atm_err**2
-        )
+        position_errors = mafUtils.astrom_precision(data_slice[self.seeing_col], snr, self.atm_err)
         # uncertainty in the parallax in mas
         sigma = self._final_sigma(position_errors, data_slice["ra_pi_amp"], data_slice["dec_pi_amp"])
         fitted_parallax_snr = self.parallaxes / sigma

@@ -589,7 +589,7 @@ def science_radar_batch(
     plotDict = {"n_ticks": 5}
     # Have to include all filters in query, so that we check for all-band coverage.
     # Galaxy numbers calculated using 'bandpass' images only though.
-    sqlconstraint = f'note not like "DD%"'
+    sqlconstraint = 'note not like "DD%"'
     info_label = f"{bandpass} band galaxies non-DD"
     metric = maf.DepthLimitedNumGalMetric(
         nside=nside,
@@ -628,8 +628,8 @@ def science_radar_batch(
     subgroupCount += 1
     displayDict["subgroup"] = f"{subgroupCount}: WL"
     displayDict["order"] = 0
-    sqlconstraint = f'note not like "DD%" and (filter="g" or filter="r" or filter="i")'
-    info_label = f"gri band non-DD"
+    sqlconstraint = 'note not like "DD%" and (filter="g" or filter="r" or filter="i")'
+    info_label = "gri band non-DD"
     minExpTime = 15
     m = metrics.WeakLensingNvisits(
         lsst_filter=bandpass,
@@ -1457,9 +1457,9 @@ def science_radar_batch(
     plotDict = {"color_min": 0, "color_max": 1500, "x_min": 0, "x_max": 2000}
     displayDict["order"] = 0
     displayDict["caption"] = (
-        f"Evaluate the distribution of filter pairs and time gaps at each point in "
-        f"the sky. The time gaps are evaluated on a logarithmic spacing "
-        f"from 0-100 days for pairs of filters, and 0-3650 days for same filters."
+        "Evaluate the distribution of filter pairs and time gaps at each point in "
+        "the sky. The time gaps are evaluated on a logarithmic spacing "
+        "from 0-100 days for pairs of filters, and 0-3650 days for same filters."
     )
     summarystats = [
         metrics.MedianMetric(),
@@ -1881,8 +1881,8 @@ def science_radar_batch(
     # galaxy counting uses dustmap
     slicer = slicers.HealpixSlicer(nside=nside, use_cache=False)
     displayDict["caption"] = (
-        f"Approximate number of resolvable galaxies in i band, scaled by the "
-        f"coadded depth and median seeing. A dust and magnitude cut has been applied."
+        "Approximate number of resolvable galaxies in i band, scaled by the "
+        "coadded depth and median seeing. A dust and magnitude cut has been applied."
     )
     bundle = mb.MetricBundle(
         metric,
@@ -1901,9 +1901,9 @@ def science_radar_batch(
     # NlcPoints metric uses star density maps
     slicer = slicers.HealpixSlicer(nside=nside, use_cache=False)
     displayDict["caption"] = (
-        f"Approximate number of expected stellar measurements (nstars * nobs) "
-        f"in all filters, where the limiting magnitude for at least 10 visits "
-        f"is fainter than 21st magnitude, using a TRILEGAL stellar density map."
+        "Approximate number of expected stellar measurements (nstars * nobs) "
+        "in all filters, where the limiting magnitude for at least 10 visits "
+        "is fainter than 21st magnitude, using a TRILEGAL stellar density map."
     )
     bundle = mb.MetricBundle(
         metric,

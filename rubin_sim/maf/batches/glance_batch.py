@@ -473,7 +473,7 @@ def glanceBatch(
     for filtername in filternames:
         sql = "filter='%s' and night < 365" % filtername
         metric = metrics.CountMetric(col="night", metric_name="N year 1")
-        summary_stat = metrics.FootprintFraction(
+        summary_stat = metrics.FootprintFractionMetric(
             footprint=footprints_hp_array[filtername],
             n_min=3,
         )
@@ -499,7 +499,7 @@ def glanceBatch(
 
     # Add basic slew stats.
     try:
-        slewDict = slewBasics(colmap=colmap, runName=run_name)
+        slewDict = slewBasics(colmap=colmap, run_name=run_name)
         bd.update(slewDict)
     except KeyError as e:
         warnings.warn("Could not add slew stats: missing required key %s from colmap" % (e))

@@ -16,39 +16,42 @@ from .base_metric import BaseMetric
 
 
 class ParallaxMetric(BaseMetric):
-    """Calculate the uncertainty in a parallax measurement given a series of observations.
+    """Calculate the uncertainty in a parallax measurement
+    given a series of observations.
 
-    Uses columns ra_pi_amp and dec_pi_amp, calculated by the ParallaxFactorStacker.
+    Uses columns ra_pi_amp and dec_pi_amp,
+    calculated by the ParallaxFactorStacker.
 
     Parameters
     ----------
-    metricName : str, optional
-        Default 'parallax'.
-    m5_col : str, optional
-        The default column name for m5 information in the input data. Default fiveSigmaDepth.
-    filter_col : str, optional
-        The column name for the filter information. Default filter.
-    seeing_col : str, optional
-        The column name for the seeing information. Since the astrometry errors are based on the physical
-        size of the PSF, this should be the FWHM of the physical psf. Default seeingFwhmGeom.
-    rmag : float, optional
-        The r magnitude of the fiducial star in r band. Other filters are sclaed using sedTemplate keyword.
-        Default 20.0
-    SedTemplate : str, optional
-        The template to use. This can be 'flat' or 'O','B','A','F','G','K','M'. Default flat.
-    atm_err : float, optional
-        The expected centroiding error due to the atmosphere, in arcseconds. Default 0.01.
+    m5_col : `str`, optional
+        The default column name for m5 information in the input data.
+    filter_col : `str`, optional
+        The column name for the filter information.
+    seeing_col : `str`, optional
+        The column name for the seeing information.
+        Since the astrometry errors are based on the physical size of the PSF,
+        this should be the FWHM of the physical psf, e.g. seeingFwhmGeom.
+    rmag : `float`, optional
+        The r magnitude of the fiducial star in r band.
+        Other filters are scaled using sedTemplate keyword.
+    SedTemplate : `str`, optional
+        The template to use. This can be 'flat' or 'O','B','A','F','G','K','M'.
+    atm_err : `float`, optional
+        The expected centroiding error due to the atmosphere, in arcseconds.
+        Default 0.01.
     normalize : `bool`, optional
-        Compare the astrometric uncertainty to the uncertainty that would result if half the observations
-        were taken at the start and half at the end. A perfect survey will have a value close to 1, while
-        a poorly scheduled survey will be close to 0. Default False.
-    badval : float, optional
-        The value to return when the metric value cannot be calculated. Default -666.
+        Compare the astrometric uncertainty to the uncertainty
+        that would result if half the observations were taken at the start
+        and half at the end.
+        A perfect survey will have a value close to 1, while
+        a poorly scheduled survey will be close to 0.
+    badval : `float`, optional
+        The value to return when the metric value cannot be calculated.
     """
 
     def __init__(
         self,
-        metric_name="parallax",
         m5_col="fiveSigmaDepth",
         filter_col="filter",
         seeing_col="seeingFwhmGeom",
@@ -64,9 +67,7 @@ class ParallaxMetric(BaseMetric):
             units = "ratio"
         else:
             units = "mas"
-        super(ParallaxMetric, self).__init__(
-            cols, metric_name=metric_name, units=units, badval=badval, **kwargs
-        )
+        super().__init__(cols, units=units, badval=badval, **kwargs)
         # set return type
         self.m5_col = m5_col
         self.seeing_col = seeing_col
@@ -123,9 +124,7 @@ class ParallaxMetric(BaseMetric):
         for filt in filters:
             good = np.where(data_slice[self.filter_col] == filt)
             snr[good] = mafUtils.m52snr(self.mags[str(filt)], data_slice[self.m5_col][good])
-        position_errors = np.sqrt(
-            mafUtils.astrom_precision(data_slice[self.seeing_col], snr) ** 2 + self.atm_err**2
-        )
+        position_errors = mafUtils.astrom_precision(data_slice[self.seeing_col], snr, self.atm_err)
         sigma = self._final_sigma(position_errors, data_slice["ra_pi_amp"], data_slice["dec_pi_amp"])
         if self.normalize:
             # Leave the dec parallax as zero since one can't have ra and dec maximized at the same time.
@@ -241,9 +240,8 @@ class ProperMotionMetric(BaseMetric):
             else:
                 snr = mafUtils.m52snr(self.mags[f], data_slice[self.m5_col][observations])
                 precis[observations] = mafUtils.astrom_precision(
-                    data_slice[self.seeing_col][observations], snr
+                    data_slice[self.seeing_col][observations], snr, self.atm_err
                 )
-                precis[observations] = np.sqrt(precis[observations] ** 2 + self.atm_err**2)
         good = np.where(precis != self.badval)
         result = mafUtils.sigma_slope(data_slice[self.mjd_col][good], precis[good])
         result = result * 365.25 * 1e3  # Convert to mas/yr
@@ -365,9 +363,7 @@ class ParallaxCoverageMetric(BaseMetric):
 
     def _compute_weights(self, data_slice, snr):
         # Compute centroid uncertainty in each visit
-        position_errors = np.sqrt(
-            mafUtils.astrom_precision(data_slice[self.seeing_col], snr) ** 2 + self.atm_err**2
-        )
+        position_errors = mafUtils.astrom_precision(data_slice[self.seeing_col], snr, self.atm_err)
         weights = 1.0 / position_errors**2
         return weights
 
@@ -494,9 +490,7 @@ class ParallaxDcrDegenMetric(BaseMetric):
         # Compute the centroiding uncertainties
         # Note that these centroiding uncertainties depend on the physical size of the PSF, thus
         # we are using seeingFwhmGeom for these metrics, not seeingFwhmEff.
-        position_errors = np.sqrt(
-            mafUtils.astrom_precision(data_slice[self.seeing_col], snr) ** 2 + self.atm_err**2
-        )
+        position_errors = mafUtils.astrom_precision(data_slice[self.seeing_col], snr, self.atm_err)
         # Construct the vectors of RA/Dec offsets. xdata is the "input data". ydata is the "output".
         xdata = np.empty((2, data_slice.size * 2), dtype=float)
         xdata[0, :] = np.concatenate((data_slice["ra_pi_amp"], data_slice["dec_pi_amp"]))

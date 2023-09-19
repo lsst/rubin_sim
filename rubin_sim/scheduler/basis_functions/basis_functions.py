@@ -867,7 +867,7 @@ class M5DiffBasisFunction(BaseBasisFunction):
     """
 
     def __init__(self, filtername="r", fiducial_FWHMEff=0.7, nside=None):
-        super(M5DiffBasisFunction, self).__init__(nside=nside, filtername=filtername)
+        super().__init__(nside=nside, filtername=filtername)
         # The dark sky surface brightness values
         self.dark_sky = dark_sky(nside)[filtername]
         self.dark_map = None
@@ -876,13 +876,12 @@ class M5DiffBasisFunction(BaseBasisFunction):
 
     def _calc_value(self, conditions, indx=None):
         if self.dark_map is None:
-            # compute the maximum altitude each HEALpix reaches
-            sindec = np.sin(conditions.dec)
-            sinlat = np.sin(conditions.site.latitude_rad)
-            sinalt = sindec * sinlat + np.cos(conditions.dec) * np.cos(conditions.site.latitude_rad)
-            sinalt = np.clip(sinalt, -1, 1)
-            alt_max = np.arcsin(sinalt)
-            airmass_min = 1.0 / np.cos(np.pi / 2.0 - alt_max)
+            # compute the maximum altitude each HEALpix reaches,
+            # this lets us determine the dark sky values with appropriate seeing
+            # for each declination.
+            min_z = np.abs(conditions.dec - conditions.site.latitude_rad)
+            airmass_min = 1 / np.cos(min_z)
+            airmass_min = np.where(airmass_min < 0, np.nan, airmass_min)
             sm = SeeingModel(filter_list=[self.filtername])
             fwhm_eff = sm(self.fiducial_FWHMEff, airmass_min)["fwhmEff"][0]
             self.dark_map = m5_flat_sed(
