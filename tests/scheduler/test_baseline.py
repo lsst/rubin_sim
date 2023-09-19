@@ -5,6 +5,7 @@ import numpy as np
 
 import rubin_sim.scheduler.basis_functions as bf
 import rubin_sim.scheduler.detailers as detailers
+import rubin_sim.utils as utils
 from rubin_sim.data import get_data_dir
 from rubin_sim.scheduler import sim_runner
 from rubin_sim.scheduler.example import example_scheduler
@@ -138,7 +139,7 @@ class TestExample(unittest.TestCase):
     @unittest.skipUnless(os.path.isfile(SAMPLE_BIG_DATA_FILE), "Test data not available.")
     def test_example(self):
         """Try out the example scheduler."""
-        mjd_start = 60115.0
+        mjd_start = utils.survey_start_mjd()
         nside = 32
         survey_length = 2.0  # days
         scheduler = example_scheduler(nside=nside, mjd_start=mjd_start)
@@ -162,7 +163,7 @@ class TestFeatures(unittest.TestCase):
         """
         Set up a greedy survey and run for a few days. A crude way to touch lots of code.
         """
-        mjd_start = 60110.0
+        mjd_start = utils.survey_start_mjd()
         nside = 32
         survey_length = 2.0  # days
 
@@ -192,7 +193,7 @@ class TestFeatures(unittest.TestCase):
         """
         Set up a blob selection survey
         """
-        mjd_start = 60110.0
+        mjd_start = utils.survey_start_mjd()
         nside = 32
         survey_length = 2.0  # days
 
@@ -225,7 +226,7 @@ class TestFeatures(unittest.TestCase):
         """
         test running at higher nside
         """
-        mjd_start = 60110.0
+        mjd_start = utils.survey_start_mjd()
         nside = 64
         survey_length = 2.0  # days
 

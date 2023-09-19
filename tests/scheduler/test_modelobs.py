@@ -2,6 +2,7 @@ import unittest
 
 import numpy as np
 
+import rubin_sim.utils as utils
 from rubin_sim.scheduler.model_observatory import ModelObservatory
 
 
@@ -24,7 +25,7 @@ class TestModelObservatory(unittest.TestCase):
     def test_replace(self):
         """test that we can replace default downtimes, seeing, and clouds"""
 
-        mjd_start = 60111.0
+        mjd_start = utils.survey_start_mjd()
         mo_default = ModelObservatory(mjd_start=mjd_start)
         # Never load too many nights of sky
         mo_default.sky_model.load_length = 10.0

@@ -221,11 +221,13 @@ def generate_sky(
 
 if __name__ == "__main__":
     # Make a quick small one for speed loading
-    # generate_sky(mjd0=59579, mjd_max=59579+10., outpath='healpix', outfile='small_example.npz_small')
-    # generate_sky(mjd0=59579, mjd_max=59579+10., outpath='opsimFields', fieldID=True)
+    print("generating small file")
+    m0 = utils.survey_start_mjd()
+    generate_sky(mjd0=m0 - 1, mjd_max=m0 + 31)
 
     nyears = 25.0  # 20  # 13
     day_pad = 30
+
     # Full year
     # mjds = np.arange(59560, 59560+365.25*nyears+day_pad+366, 366)
     # 6-months

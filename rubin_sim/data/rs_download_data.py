@@ -39,7 +39,7 @@ def data_dict():
         "sim_baseline": "sim_baseline_2023_01_18.tgz",
         "site_models": "site_models_2023_03_28.tgz",
         "skybrightness": "skybrightness_2023_09_11.tgz",
-        "skybrightness_pre": "skybrightness_pre_2023_09_12.tgz",
+        "skybrightness_pre": "skybrightness_pre_2023_09_19.tgz",
         "throughputs": "throughputs_2023_09_07.tgz",
         "tests": "tests_2022_10_18.tgz",
     }

@@ -58,18 +58,6 @@ class TestSkyPre(unittest.TestCase):
                                     np.size(indx),
                                 )
 
-    def test_crazy_date(self):
-        """
-        Test date that falls at akward time
-        """
-        if self.data_present:
-            mjd = 60291.35423611111
-            sm = self.sm
-            mags = sm.return_mags(mjd)
-
-            good_vals = np.where(mags["g"] != hp.UNSEEN)[0]
-            assert len(good_vals) > 0
-
     def test_sbp(self):
         """
         Check that values are similar enough

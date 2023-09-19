@@ -8,6 +8,7 @@ from rubin_sim.scheduler import sim_runner
 from rubin_sim.scheduler.example import example_scheduler
 from rubin_sim.scheduler.model_observatory import ModelObservatory
 from rubin_sim.scheduler.utils import restore_scheduler, run_info_table, season_calc
+from rubin_sim.utils import survey_start_mjd
 
 
 class TestUtils(unittest.TestCase):
@@ -17,7 +18,7 @@ class TestUtils(unittest.TestCase):
     )
     def test_nside(self):
         """Test the example scheduler can be set to different nsides."""
-        mjd_start = 60110.0
+        mjd_start = survey_start_mjd()
         scheduler = example_scheduler(mjd_start=mjd_start, nside=64)
         scheduler = example_scheduler(mjd_start=mjd_start, nside=8)
 
@@ -28,7 +29,7 @@ class TestUtils(unittest.TestCase):
     def test_restore(self):
         """Test we can restore a scheduler properly"""
         # MJD set so it's in test data range
-        mjd_start = 60110.0
+        mjd_start = survey_start_mjd()
         n_visit_limit = 3000
 
         scheduler = example_scheduler(mjd_start=mjd_start)
@@ -153,7 +154,7 @@ class TestUtils(unittest.TestCase):
         """Test run_info_table gets information"""
         observatory = ModelObservatory(
             nside=8,
-            mjd_start=59853.5,
+            mjd_start=survey_start_mjd(),
             seeing_db=os.path.join(get_data_dir(), "tests", "seeing.db"),
         )
         version_info = run_info_table(observatory)
