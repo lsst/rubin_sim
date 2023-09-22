@@ -452,8 +452,8 @@ def ra_dec_hp_map(nside=None):
 def get_dustmap(nside=None):
     if nside is None:
         nside = set_default_nside()
-    ebv_data_dir = os.path.join(get_data_dir(), "maps")
-    filename = "DustMaps/dust_nside_%i.npz" % nside
+    ebv_data_dir = os.path.join(get_data_dir(), "scheduler")
+    filename = "dust_maps/dust_nside_%i.npz" % nside
     dustmap = np.load(os.path.join(ebv_data_dir, filename))["ebvMap"]
     return dustmap
 
@@ -980,7 +980,7 @@ def combo_dust_fp(
     """
 
     ebv_data_dir = get_data_dir()
-    filename = "maps/DustMaps/dust_nside_%i.npz" % nside
+    filename = "scheduler/dust_maps/dust_nside_%i.npz" % nside
     dustmap = np.load(os.path.join(ebv_data_dir, filename))["ebvMap"]
 
     if smooth:
