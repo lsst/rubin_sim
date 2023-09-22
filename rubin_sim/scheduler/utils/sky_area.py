@@ -142,14 +142,11 @@ class SkyAreaGenerator:
     def read_dustmap(self, dustmap_file=None):
         """Read the dustmap from rubin_sim, in the appropriate resolution."""
         # Dustmap from rubin_sim_data  - this is basically just a data directory
-        # The dustmap data is downloadable from
-        # https://lsst.ncsa.illinois.edu/sim-data/rubin_sim_data/maps_may_2021.tgz
-        # (then just set RUBIN_SIM_DATA_DIR to where you downloaded it, after untarring the file)
         if dustmap_file is None:
             datadir = rs_data.get_data_dir()
             if datadir is None:
                 raise Exception('Cannot find datadir, please set "RUBIN_SIM_DATA_DIR"')
-            datadir = os.path.join(datadir, "maps", "DustMaps")
+            datadir = os.path.join(datadir, "scheduler", "dust_maps")
             filename = os.path.join(datadir, "dust_nside_%i.npz" % self.nside)
         self.dustmap = np.load(filename)["ebvMap"]
 

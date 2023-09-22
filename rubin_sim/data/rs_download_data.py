@@ -35,12 +35,12 @@ def data_dict():
         "movingObjects": "movingObjects_oct_2021.tgz",
         "orbits": "orbits_2022_3_1.tgz",
         "orbits_precompute": "orbits_precompute_2023_05_23.tgz",
-        "scheduler": "scheduler_2023_03_09.tgz",
-        "sim_baseline": "sim_baseline_2023_01_18.tgz",
+        "scheduler": "scheduler_2023_09_22.tgz",
+        "sim_baseline": "sim_baseline_2023_09_22.tgz",
         "site_models": "site_models_2023_03_28.tgz",
         "skybrightness": "skybrightness_2023_09_11.tgz",
         "skybrightness_pre": "skybrightness_pre_2023_09_19.tgz",
-        "throughputs": "throughputs_2023_09_07.tgz",
+        "throughputs": "throughputs_2023_09_22.tgz",
         "tests": "tests_2022_10_18.tgz",
     }
     return file_dict
