@@ -1,0 +1,67 @@
+name: Build and Upload Docs
+
+"on":
+  push:
+    tags:
+      - "*"
+    branches:
+      - "main"
+  pull_request: {}
+  workflow_dispatch:
+
+jobs:
+  build_sphinx_docs:
+    name: Build and upload documentation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: conda-incubator/setup-miniconda@v2
+        with:
+          auto-update-conda: true
+          python-version: "3.11"
+          channels: conda-forge
+          channel-priority: strict
+          show-channel-urls: true
+
+      - name: configure and install requirements and documenteer
+        shell: bash -l {0}
+        run: |
+          conda config --set always_yes yes
+          conda install --quiet --file=requirements.txt
+          conda install --quiet pip
+          pip install "documenteer[guide]"
+
+      - name: install rubin_sim
+        shell: bash -l {0}
+        run: |
+          echo `pwd`
+          ls ${{ github.workspace }}
+          python -m pip install .
+
+      - name: download rubin_sim_data components needed to set up metrics for metricList
+        shell: bash -l {0}
+        run: |
+          export RUBIN_SIM_DATA_DIR=${{ github.workspace }}
+          rs_download_data --tdqm_disable -d 'maf,throughputs'
+
+      - name: check conda and documenteer
+        shell: bash -l {0}
+        run: |
+          conda list
+
+      - name: build docs
+        shell: bash -l {0}
+        run: |
+          export RUBIN_SIM_DATA_DIR=${{ github.workspace }}
+          cd doc
+          python metric_list.py
+          package-docs build
+
+      - name: upload documentation
+        uses: lsst-sqre/ltd-upload@v1
+        with:
+          project: "rubin-sim"
+          dir: "docs/_build/html"
+          username: ${{ secrets.ltd_username }}
+          password: ${{ secrets.ltd_password }}
+
