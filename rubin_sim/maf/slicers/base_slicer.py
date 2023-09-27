@@ -9,7 +9,6 @@ from io import StringIO
 
 import numpy as np
 import numpy.ma as ma
-from six import with_metaclass
 
 from rubin_sim.maf.utils import get_date_version
 
@@ -44,7 +43,7 @@ class SlicerRegistry(type):
                 print(inspect.getdoc(cls.registry[slicername]))
 
 
-class BaseSlicer(with_metaclass(SlicerRegistry, object)):
+class BaseSlicer(metaclass=SlicerRegistry):
     """
     Base class for all slicers: sets required methods and
     implements common functionality.

@@ -9,7 +9,6 @@ palpy
 scipy
 sqlite
 sqlalchemy
-six
 astropy
 pytables
 h5py
