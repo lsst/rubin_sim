@@ -67,6 +67,7 @@ class ModelObservatory:
         cloud_data=None,
         seeing_data=None,
         downtimes=None,
+        no_sky=False,
     ):
         """
         Parameters
@@ -108,6 +109,9 @@ class ModelObservatory:
         downtimes : None
             If one wants to replace the default downtimes. Should be a np.array with columns
             of "start" and "end" with MJD values and should include both scheduled and unscheduled downtime
+        no_sky : bool
+            Don't bother loading sky files. Handy if one wants a well filled out Conditions object,
+            but doesn't need the sky since that can be slower to load. Default False.
         """
 
         if nside is None:
@@ -115,6 +119,7 @@ class ModelObservatory:
         self.nside = nside
 
         self.cloud_limit = cloud_limit
+        self.no_sky = no_sky
 
         self.alt_min = np.radians(alt_min)
         self.lax_dome = lax_dome
@@ -192,7 +197,10 @@ class ModelObservatory:
         else:
             self.cloud_data = CloudData(mjd_start_time, cloud_db=cloud_db, offset_year=cloud_offset_year)
 
-        self.sky_model = sb.SkyModelPre(init_load_length=init_load_length)
+        if not self.no_sky:
+            self.sky_model = sb.SkyModelPre(init_load_length=init_load_length)
+        else:
+            self.sky_model = None
 
         if kinem_model is None:
             self.observatory = KinemModel(mjd0=self.mjd_start)
@@ -288,7 +296,8 @@ class ModelObservatory:
         self.conditions.fwhm_eff = self.seeing_fwhm_eff
 
         # sky brightness
-        self.conditions.skybrightness = self.sky_model.return_mags(self.mjd)
+        if self.sky_model is not None:
+            self.conditions.skybrightness = self.sky_model.return_mags(self.mjd)
 
         self.conditions.mounted_filters = self.observatory.mounted_filters
         self.conditions.current_filter = self.observatory.current_filter[0]
@@ -390,10 +399,11 @@ class ModelObservatory:
         observation["night"] = self.night
         observation["mjd"] = self.mjd
 
-        hpid = _ra_dec2_hpid(self.sky_model.nside, observation["RA"], observation["dec"])
-        observation["skybrightness"] = self.sky_model.return_mags(self.mjd, indx=[hpid], extrapolate=True)[
-            observation["filter"][0]
-        ]
+        if self.sky_model is not None:
+            hpid = _ra_dec2_hpid(self.sky_model.nside, observation["RA"], observation["dec"])
+            observation["skybrightness"] = self.sky_model.return_mags(
+                self.mjd, indx=[hpid], extrapolate=True
+            )[observation["filter"][0]]
 
         observation["fivesigmadepth"] = m5_flat_sed(
             observation["filter"][0],

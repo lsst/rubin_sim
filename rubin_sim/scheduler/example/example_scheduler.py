@@ -29,9 +29,8 @@ from rubin_sim.scheduler.surveys import (
     generate_ddf_scheduled_obs,
 )
 from rubin_sim.scheduler.utils import ConstantFootprint, EuclidOverlapFootprint, make_rolling_footprints
-from rubin_sim.utils import _hpid2_ra_dec
 from rubin_sim.site_models import Almanac
-
+from rubin_sim.utils import _hpid2_ra_dec
 
 iers.conf.auto_download = False
 
