@@ -34,8 +34,8 @@ class MyHTMLParser(HTMLParser):
         tag : `str`
             The name of the tag converted to lower case.
         attrs : `list`
-            A list of (name, value) pairs containing the attributes found inside the
-        tag’s <> brackets
+            A list of (name, value) pairs containing the attributes
+            found inside the tag’s <> brackets
         """
         try:
             self.filenames
