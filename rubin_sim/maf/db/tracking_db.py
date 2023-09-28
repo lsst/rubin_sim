@@ -1,7 +1,6 @@
 __all__ = ("TrackingDb", "add_run_to_database")
 
 import os
-import warnings
 
 from sqlalchemy import Column, Integer, String, create_engine
 from sqlalchemy.engine import url
@@ -17,7 +16,8 @@ class RunRow(Base):
     """
     Define contents and format of run list table.
 
-    Table to list all available MAF results, along with their opsim run and some comment info.
+    Table to list all available MAF results,
+    along with their opsim run and some comment info.
     """
 
     __tablename__ = "runs"
@@ -57,16 +57,17 @@ class RunRow(Base):
 
 
 class TrackingDb:
-    """Sqlite database to track MAF output runs and their locations, for show_maf"""
+    """Sqlite database to track MAF output runs and their locations,
+    for show_maf
+    """
 
     def __init__(self, database=None, trackingDbverbose=False):
         """
-        Instantiate the results database, creating metrics, plots and summarystats tables.
+        Set up the Tracking Database.
         """
         self.verbose = trackingDbverbose
         self.driver = "sqlite"
-        # Connect to database
-        # for sqlite, connecting to non-existent database creates it automatically
+        # connecting to non-existent database creates it automatically
         if database is None:
             # Default is a file in the current directory.
             self.database = os.path.join(os.getcwd(), "trackingDb_sqlite.db")
@@ -108,33 +109,35 @@ class TrackingDb:
 
         Parameters
         ----------
-        run_group : str, optional
+        run_group : `str`, optional
             Set a name to group this run with (eg. "Tier 1, 2016").
-        run_name : str, optional
+        run_name : `str`, optional
             Set a name for the opsim run.
-        run_comment : str, optional
+        run_comment : `str`, optional
             Set a comment describing the opsim run.
-        run_version : str, optional
+        run_version : `str`, optional
             Set the version of opsim.
-        run_date : str, optional
+        run_date : `str`, optional
             Set the date the opsim run was created.
-        maf_comment : str, optional
+        maf_comment : `str`, optional
             Set a comment to describe the MAF analysis.
-        maf_version : str, optional
+        maf_version : `str`, optional
             Set the version of MAF used for analysis.
-        maf_date : str, optional
+        maf_date : `str`, optional
             Set the date the MAF analysis was run.
-        maf_dir : str, optional
+        maf_dir : `str`, optional
             The relative path to the MAF directory.
-        db_file : str, optional
+        db_file : `str`, optional
             The relative path to the Opsim SQLite database file.
-        maf_run_id : int, optional
-            The maf_run_id to assign to this record in the database (note this is a primary key!).
-            If this run (ie the maf_dir) exists in the database already, this will be ignored.
+        maf_run_id : `int`, optional
+            The maf_run_id to assign to this record in the database
+            (note this is a primary key!).
+            If this run (ie the maf_dir) exists in the database already,
+            this will be ignored.
 
         Returns
         -------
-        int
+        maf_run_id : `int`
             The maf_run_id stored in the database.
         """
         if run_group is None:
@@ -258,20 +261,19 @@ def add_run_to_database(
     maf_dir : `str`
         Path to the directory where the MAF results are located.
     tracking_db_file : `str`
-        Full filename (+path) to the tracking database storing the MAF run information.
+        Full filename (+path) to the tracking database to use.
     run_group: `str`, optional
-        Name to use to group this run with other opsim runs. Default None.
+        Name to use to group this run with other opsim runs.
     run_name : `str`, optional
-        Name of the opsim run. If not provided, will attempt to use run_name from configSummary.txt.
+        Name of the opsim run.
     run_comment : `str`, optional
-        Comment about the opsim run. If not provided, will attempt to use runComment from configSummary.txt.
+        Comment about the opsim run.
     run_version : `str`, optional
-        Value to use for the opsim version information. If not provided, will attempt to use the value from
-        configSummary.txt
+        Value to use for the opsim version information.
     maf_comment : `str`, optional
-        Comment about the MAF analysis. If not provided, no comment will be recorded.
+        Comment about the MAF analysis.
     db_file : `str`, optional
-        Relative path + name of the opsim database file. If not provided, no location will be recorded.
+        Relative path + name of the opsim database file.
     """
     maf_dir = os.path.abspath(maf_dir)
     if not os.path.isdir(maf_dir):
@@ -281,25 +283,22 @@ def add_run_to_database(
 
     # Connect to resultsDb for additional information if available
     if os.path.isfile(os.path.join(maf_dir, "resultsDb_sqlite.db")) and not skip_extras:
-        try:
-            resdb = ResultsDb(maf_dir)
-            if run_name is None:
-                run_name = resdb.get_run_name()
-                if len(run_name) > 1:
-                    run_name = 0
-                else:
-                    run_name = run_name[0]
-            if maf_version is None or maf_date is None:
-                resdb.open()
-                query = resdb.session.query(VersionRow).all()
-                for v in query:
-                    if maf_version is None:
-                        maf_version = v.version
-                    if maf_date is None:
-                        maf_date = v.run_date
-                resdb.close()
-        except:
-            warnings.warn(f"Could not pull run information from resultsDb file for {maf_dir}")
+        resdb = ResultsDb(maf_dir)
+        if run_name is None:
+            run_name = resdb.get_run_name()
+            if len(run_name) > 1:
+                run_name = 0
+            else:
+                run_name = run_name[0]
+        if maf_version is None or maf_date is None:
+            resdb.open()
+            query = resdb.session.query(VersionRow).all()
+            for v in query:
+                if maf_version is None:
+                    maf_version = v.version
+                if maf_date is None:
+                    maf_date = v.run_date
+            resdb.close()
 
     print("Adding to tracking database at %s:" % (tracking_db_file))
     print(" Maf_dir = %s" % (maf_dir))

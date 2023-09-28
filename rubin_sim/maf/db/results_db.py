@@ -109,7 +109,9 @@ class PlotRow(Base):
     """
     Define contents and format of plot list table.
 
-    (Table to list all plots, link them to relevant metrics in MetricList, and provide info on filename).
+    (Table to list all plots,
+    link them to relevant metrics in MetricList,
+    and provide info on filename).
     """
 
     __tablename__ = "plots"
@@ -133,8 +135,8 @@ class SummaryStatRow(Base):
     """
     Define contents and format of the summary statistics table.
 
-    (Table to list and link summary stats to relevant metrics in MetricList, and provide summary stat name,
-    value and potentially a comment).
+    (Table to list and link summary stats to relevant metrics in MetricList,
+    and provide summary stat name, value and potentially a comment).
     """
 
     __tablename__ = "summarystats"
@@ -155,18 +157,19 @@ class SummaryStatRow(Base):
 
 
 class ResultsDb:
-    """The ResultsDb is a sqlite database containing information on the metrics run via MAF,
-    the plots created, the display information (such as captions), and any summary statistics output.
+    """ResultsDb is a sqlite database containing information on the metrics
+    run via MAF, the plots created, the display information (such as captions),
+    and any summary statistics output.
     """
 
     def __init__(self, out_dir=None, database=None, verbose=False):
         """
-        Instantiate the results database, creating metrics, plots and summarystats tables.
+        Set up the resultsDb database.
         """
-        # We now require results_db to be a sqlite file (for simplicity). Leaving as attribute though.
+        # We now require results_db to be a sqlite file (for simplicity).
+        # Leaving as attribute though.
         self.driver = "sqlite"
-        # Connect to database
-        # for sqlite, connecting to non-existent database creates it automatically
+        # connecting to non-existent database creates it automatically
         if database is None:
             # Using default value for database name, should specify directory.
             if out_dir is None:
@@ -190,7 +193,8 @@ class ResultsDb:
         # If this is a new file, then we should record date and version later.
         needs_version = not os.path.isfile(self.database)
 
-        # Connect to the specified file; this will create the database if it doesn't exist.
+        # Connect to the specified file;
+        # this will create the database if it doesn't exist.
         already_file = os.path.isfile(self.database)
         db_address = url.URL.create(self.driver, database=self.database)
 
@@ -207,7 +211,8 @@ class ResultsDb:
                     % (self.driver, self.database)
                 )
         self.slen = 1024
-        # Check if we have a database matching this schema (with metric_info_label)
+        # Check if we have a database matching this schema
+        # (with metric_info_label)
         query = text("select * from metrics limit 1")
         cols = self.session.execute(query)._metadata.keys
         if "sql_constraint" not in cols:
@@ -225,10 +230,13 @@ class ResultsDb:
 
     def update_database(self):
         """Update the results_db from 'metricMetaData' to 'metric_info_label'
-        and now also changing the camel case to snake case (metricId to metric_id, etc.).
+        and now also changing the camel case to snake case
+        (metricId to metric_id, etc.).
 
-        This updates results_db to work with the current version of MAF, including RunComparison and showMaf.
-        There is also a 'downgrade_database' to revert to the older style with 'metricMetadata.
+        This updates results_db to work with the current version of MAF,
+        including RunComparison and showMaf.
+        There is also a 'downgrade_database' to revert to the older style
+        with 'metricMetadata.
         """
         warnings.warn(
             "Updating database to match new schema."
@@ -241,7 +249,8 @@ class ResultsDb:
             query = text("alter table metrics rename column metricMetadata to metric_info_label")
             self.session.execute(query)
             self.session.commit()
-        # Check for metricId vs. metric_id separately, as this change happened independently.
+        # Check for metricId vs. metric_id separately,
+        # as this change happened independently.
         if "metricId" in cols:
             for table in ["metrics", "summarystats", "plots", "displays"]:
                 query = text(f"alter table {table} rename column metricId to metric_id")
@@ -305,7 +314,8 @@ class ResultsDb:
     def downgrade_database(self):
         """
         Downgrade resultsDb to work with v0.10<MAF< v1.0
-        There is also a 'upgradeDatabase' to update to the newer style with 'metric_info_label.
+        There is also a 'upgradeDatabase' to update to the newer
+        style with 'metric_info_label.
         """
         self.open()
         warnings.warn("Downgrading MAF resultsDb to run with MAF < v1.0")
@@ -403,7 +413,8 @@ class ResultsDb:
         sql_constraint : `str`
             sql_constraint relevant for the metric bundle
         metric_info_label : `str`
-            Information associated with the metric. Could be derived from the sql_constraint or could
+            Information associated with the metric.
+            Could be derived from the sql_constraint or could
             be a more descriptive version, specified by the user.
         metric_datafile : `str`
             The data file the metric bundle output is stored in.
@@ -413,8 +424,8 @@ class ResultsDb:
         metric_id : `int`
             The Id number of this metric in the metrics table.
 
-        If same metric (same metric_name, slicer_name, run_name, sql_constraint, infoLabel)
-        already exists, it does nothing.
+        If same metric (same metric_name, slicer_name, run_name,
+        sql_constraint, infoLabel) already exists, it does nothing.
         """
         self.open()
         if run_name is None:
@@ -463,12 +474,14 @@ class ResultsDb:
         metric_id : `int`
             The metricID for this metric bundle in the metrics table
         display_dict : `dict`
-            Dictionary containing the display info (group/subgroup/order/caption)
+            Dictionary containing the display info
+            (group/subgroup/order/caption)
         overwrite : `bool`, opt
-            Replaces existing row with same metric_id if overwrite is True (default=True).
+            Replaces existing row with same metric_id if overwrite is True.
         """
-        # Because we want to maintain 1-1 relationship between metric_id's and display_dict's:
-        # First check if a display line is present with this metricID.
+        # Because we want to maintain 1-1 relationship between
+        # metric_id's and display_dict's: First check if a display line
+        # is present with this metricID.
         self.open()
         displayinfo = self.session.query(DisplayRow).filter_by(metric_id=metric_id).all()
         if len(displayinfo) > 0:
@@ -517,8 +530,9 @@ class ResultsDb:
         plot_file : `str`
             The filename for this plot
         overwrite : `bool`
-            Replaces existing row with the same metric_id and plot_type, if True.
-            Default False, in which case additional plot is added to output (e.g. with different range)
+            If True, replaces existing row.
+            If False, an additional plot is added to the output (e.g. with
+            a different range of color values, etc).
         """
         self.open()
         plotinfo = self.session.query(PlotRow).filter_by(metric_id=metric_id, plot_type=plot_type).all()
@@ -534,11 +548,12 @@ class ResultsDb:
         """
         Add a row to or update a row in the summary statistic table.
 
-        Most summary statistics will be a simple name (string) + value (float) pair.
-        For special summary statistics which must return multiple values, the base name
-        can be provided as 'name', together with a np recarray as 'value', where the
-        recarray also has 'name' and 'value' columns (and each name/value pair is then saved
-        as a summary statistic associated with this same metric_id).
+        Most summary statistics will be a simple name (string) + value (float)
+        pair. For special summary statistics which must return multiple values,
+        the base name can be provided as 'name', together with a np.ndarray as
+        'value', where the array also has 'name' and 'value' columns
+        (and each name/value pair is then saved as a summary statistic
+        associated with this same metric_id).
 
         Parameters
         ----------
@@ -546,17 +561,17 @@ class ResultsDb:
             The metric Id of this metric bundle
         summary_name : `str`
             The name of this summary statistic
-        summary_value: : `float` or `numpy.ndarray`
+        summary_value: : `float` or `np.ndarray`
             The value for this summary statistic.
-            If this is a numpy recarray, then it should also have 'name' and 'value' columns to save
-            each value to rows in the summary statistic table.
+            If this is a np.ndarray, then it should also have 'name' and
+            'value' columns to save each value to rows in the summary stats.
         ntry : `int`, opt
-            The number of times to retry if database is locked. Default 3 times.
+            The number of times to retry if database is locked.
         pause_time : `int`, opt
-            Time to wait until trying again. Default 100s.
+            Time to wait until trying again.
         """
-        # Allow for special summary statistics which return data in a np structured array with
-        #   'name' and 'value' columns.  (specificially needed for TableFraction summary statistic).
+        # Allow for special summary statistics which return data in a
+        # np.ndarray with 'name' and 'value' columns.
         self.open()
         tries = 0
         if isinstance(summary_value, np.ndarray):
@@ -573,9 +588,9 @@ class ResultsDb:
                         summary_value=value["value"],
                     )
                     success = False
-                    # This can hit a locked database if running jobs in parallel
-                    # have it try a few times before actually failing since nothing should
-                    # be writing for a long time.
+                    # This can hit a locked database if running in parallel
+                    # have it try a few times before actually failing
+                    # since nothing should be writing for a long time.
                     while (not success) & (tries < ntry):
                         try:
                             self.session.add(summarystat)
@@ -647,7 +662,8 @@ class ResultsDb:
         metric_info_label_like=None,
         run_name=None,
     ):
-        """Find metric bundle Ids from the metric table, but search for names 'like' the values.
+        """Find metric bundle Ids from the metric table,
+        but search for names 'like' the values.
         (instead of a strict match from get_metric_id).
 
         Parameters
@@ -701,7 +717,8 @@ class ResultsDb:
 
     @staticmethod
     def build_summary_name(metric_name, metric_info_label, slicer_name, summary_stat_name=None):
-        """Standardize a complete summary metric name, combining the metric + slicer + summary + info_label"""
+        """Standardize a complete summary metric name,
+        combining the metric + slicer + summary + info_label."""
         if metric_info_label is None:
             metric_info_label = ""
         if slicer_name is None:
@@ -727,7 +744,8 @@ class ResultsDb:
         """
         Get the summary stats (optionally for metric_id list).
         Optionally, also specify the summary metric name.
-        Returns a numpy array of the metric information + summary statistic information.
+        Returns a numpy array of the metric information +
+        summary statistic information.
 
         Parameters
         ----------
@@ -745,7 +763,7 @@ class ResultsDb:
         Returns
         -------
         summarystats : `np.recarray`
-            Numpy recarray containing the selected summary statistic information.
+            Numpy recarray containing the selected summary stat information.
         """
         if metric_id is not None:
             if not hasattr(metric_id, "__iter__"):
@@ -754,7 +772,8 @@ class ResultsDb:
                 ]
         summarystats = []
         self.open()
-        # Join the metric table and the summarystat table, based on the metricID (the second filter)
+        # Join the metric table and the summarystat table,
+        # based on the metricID (the second filter)
         query = self.session.query(MetricRow, SummaryStatRow).filter(
             MetricRow.metric_id == SummaryStatRow.metric_id
         )
@@ -805,8 +824,8 @@ class ResultsDb:
 
     def get_plot_files(self, metric_id=None, with_sim_name=False):
         """
-        Return the metric_id, name, info_label, and all plot info (optionally for metric_id list).
-        Returns a numpy array of the metric information + plot file names.
+        Find the metric_id, name, info_label, and all plot info
+        (optionally for metric_id list).
 
         Parameters
         ----------
@@ -824,7 +843,8 @@ class ResultsDb:
             ``metric_name``
                 The metric name
             ``metric_info_label``
-                info_label extracted from the sql constraint (usually the filter)
+                info_label extracted from the sql constraint
+                (usually the filter)
             ``plot_type``
                 The plot type
             ``plot_file``
@@ -843,14 +863,16 @@ class ResultsDb:
         self.open()
         plotfiles = []
         for mid in metric_id:
-            # Join the metric table and the plot table based on the metricID (the second filter does the join)
+            # Join the metric table and the plot table based on the metricID
+            # (the second filter does the join)
             query = (
                 self.session.query(MetricRow, PlotRow)
                 .filter(MetricRow.metric_id == mid)
                 .filter(MetricRow.metric_id == PlotRow.metric_id)
             )
             for m, p in query:
-                # The plot_file typically ends with .pdf (but the rest of name can have '.' or '_')
+                # The plot_file typically ends with .pdf
+                # (but the rest of name can have '.' or '_')
                 thumb_file = "thumb." + ".".join(p.plot_file.split(".")[:-1]) + ".png"
                 plot_file_fields = (
                     m.metric_id,
@@ -926,7 +948,8 @@ class ResultsDb:
             ``sql_constraint``
                 The full sql constraint used in the bundleGroup
             ``metric_info_label``
-                Metadata extracted from the `sql_constraint` (usually the filter)
+                Metadata extracted from the `sql_constraint`
+                (usually the filter)
             ``metric_datafile``
                 The file name of the file with the metric data itself.
             ``run_name``
@@ -942,7 +965,7 @@ class ResultsDb:
         self.open()
         metricInfo = []
         for mId in metric_id:
-            # Query for all rows in metrics and displays that match any of the metric_ids.
+            # Query for all rows in metrics and displays that match metric_ids
             query = self.session.query(MetricRow).filter(MetricRow.metric_id == mId)
             for m in query:
                 base_metric_name = m.metric_name.split("_")[0]
@@ -978,13 +1001,12 @@ class ResultsDb:
 
     def get_metric_display_info(self, metric_id=None):
         """
-        Get the contents of the metrics and displays table, together with the 'basemetric_name'
-        (optionally, for metric_id list).
+        Get the contents of the metrics and displays table,
+        together with the 'basemetric_name' (optionally, for metric_id list).
         Returns a numpy array of the metric information + display information.
 
-        One underlying assumption here is that all metrics have some display info.
-        In newer batches, this may not be the case, as the display info gets auto-generated when the
-        metric is plotted.
+        An underlying assumption here is that all metrics have some
+        display info. This may not always be the case.
         """
         if metric_id is None:
             metric_id = self.get_all_metric_ids()
@@ -995,7 +1017,7 @@ class ResultsDb:
         self.open()
         metricInfo = []
         for mId in metric_id:
-            # Query for all rows in metrics and displays that match any of the metric_ids.
+            # Query for all rows in metrics and displays that match metric_ids.
             query = (
                 self.session.query(MetricRow, DisplayRow)
                 .filter(MetricRow.metric_id == mId)
@@ -1038,7 +1060,9 @@ class ResultsDb:
         return metricInfo
 
     def get_run_name(self):
-        """Return a list of the run_names for the metric bundles in the database."""
+        """Return a list of the run_names for the metric bundles in
+        the database.
+        """
         self.open()
         query = self.session.query(MetricRow.run_name.distinct()).all()
         run_name = []
