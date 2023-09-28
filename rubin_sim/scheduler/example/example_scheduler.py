@@ -29,6 +29,7 @@ from rubin_sim.scheduler.surveys import (
     generate_ddf_scheduled_obs,
 )
 from rubin_sim.scheduler.utils import ConstantFootprint, EuclidOverlapFootprint, make_rolling_footprints
+from rubin_sim.site_models import Almanac
 from rubin_sim.utils import _hpid2_ra_dec
 
 iers.conf.auto_download = False
@@ -1341,13 +1342,14 @@ def example_scheduler(
 
     repeat_night_weight = None
 
-    observatory = ModelObservatory(nside=nside, mjd_start=mjd_start)
-    conditions = observatory.return_conditions()
+    almanac = Almanac(mjd_start=mjd_start)
+    sun_moon_info = almanac.get_sun_moon_positions(mjd_start)
+    sun_ra_start = sun_moon_info["sun_RA"].copy()
 
     footprints = make_rolling_footprints(
         fp_hp=footprints_hp,
-        mjd_start=conditions.mjd_start,
-        sun_ra_start=conditions.sun_ra_start,
+        mjd_start=mjd_start,
+        sun_ra_start=sun_ra_start,
         nslice=nslice,
         scale=rolling_scale,
         nside=nside,
@@ -1400,7 +1402,7 @@ def example_scheduler(
         nside,
         nexp=nexp,
         footprints=footprints,
-        mjd_start=conditions.mjd_start,
+        mjd_start=mjd_start,
     )
     twi_blobs = generate_twi_blobs(
         nside,
