@@ -1,4 +1,4 @@
-name: Ruff
+name: Ruff and iSort
 on:
   # Trigger the workflow on push (to main) or pull request
   push:
@@ -10,6 +10,13 @@ on:
   workflow_dispatch:
 
 jobs:
+  isort:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: isort/isort-action@v1
+        with:
+          requirements-files: "requirements.txt test-requirements.txt"
   ruff:
     runs-on: ubuntu-latest
     steps:
