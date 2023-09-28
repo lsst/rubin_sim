@@ -15,10 +15,10 @@ Scheduler, survey strategy analysis, and other simulation tools for Rubin Observ
 
 If you are only running `rubin_sim` code and not making changes. If you will be editing the code or need the very latest verison, use the pip instructions below.
 ```
-conda create -n rubin-sim -c conda-forge rubin_sim # Create a new environment
+conda create -n rubin-sim -c conda-forge rubin_sim  ## Create a new environment and install rubin_sim
 conda activate rubin-sim
-rs_download_data  # Downloads a few of data to $RUBIN_SIM_DATA_DIR (~/rubin_sim_data if unset)
-conda install -c conda-forge jupyter # Optional install of jupyter
+rs_download_data  ## Downloads a few of data to $RUBIN_SIM_DATA_DIR (~/rubin_sim_data if unset)
+conda install -c conda-forge jupyter  ## Optional install of jupyter
 ```
 Note that this is not the best option for developers working on their own metrics - a pip installation from their own fork of the repo may work better.
 
@@ -29,21 +29,25 @@ pip install rubin_sim
 ```
 
 Please note that the pip installation of pyoorb does not come with the necessary data files. 
-If you need this functionality, the data files are most easily installable via conda with
+To actually use pyoorb, the data files are most easily installable via conda with
  ```
+ conda install -c conda-forge openorb-data
  conda install -c conda-forge openorb-data-de405
  ```
- 
+The pip installation of `rubin_sim` will install the pip version of `pyoorb` which is
+more up-to-date compared to the conda-forge version of `openorb`. For the purposes of 
+`rubin_sim`, the functionality is essentially the same however.
+
 
 ### Developer Installation ###
 
 To install `rubin_sim` from source using pip, with all required dependencies:
 ```
-git clone https://github.com/lsst/rubin_sim.git ; cd rubin_sim # clone and cd into repo
-conda create -n rubin-sim ; conda activate rubin-sim  # optional (but recommended) new conda env
-conda install -c conda-forge --file=all_req.txt  # substitute mamba for conda if you like
+git clone https://github.com/lsst/rubin_sim.git ; cd rubin_sim  ## clone and cd into repo
+conda create -n rubin-sim ; conda activate rubin-sim   ## optional (but recommended) new conda env
+conda install -c conda-forge --file=all_req.txt   ## substitute mamba for conda if you like
 pip install -e .
-rs_download_data  # Downloads a few GB of data to $RUBIN_SIM_DATA_DIR (~/rubin_sim_data if unset)
+rs_download_data  ## Downloads a few GB of data to $RUBIN_SIM_DATA_DIR (~/rubin_sim_data if unset)
 ```
 Note that external collaborators will likely want to follow similar directions, using a fork of our rubin_sim github repo first (and then clone from there).
 
@@ -52,8 +56,8 @@ Note that external collaborators will likely want to follow similar directions, 
 **Optional: Set $RUBIN_SIM_DATA_DIR data directory.** By default, `rubin_sim` will download needed data files to `$HOME/rubin_sim_data`. If you would like the data to save elsewhere, you should set the `RUBIN_SIM_DATA_DIR` environment variable. In bash  `export RUBIN_SIM_DATA_DIR="/my/preferred/data/path"` (note, always make sure this is set before trying to run `rubin_sim` packages, so put in your .bashrc or whatnot). Another possibility is to set the location via sym-link, `ln -s /my/preferred/data/path ~/rubin_sim_data`.
 
 ```
-export RUBIN_SIM_DATA_DIR=$HOME/rubin_sim_data # Optional. Set the data directory path via env variable
-rs_download_data  # Downloads a few GB of data to $RUBIN_SIM_DATA_DIR
+export RUBIN_SIM_DATA_DIR=$HOME/rubin_sim_data  ## Optional. Set the data directory path via env variable
+rs_download_data  ## Downloads a few GB of data to $RUBIN_SIM_DATA_DIR
 ```
 If you are only interested in a subset of the data, you can specify which directories to download, e.g.
 ```
@@ -68,7 +72,7 @@ If you have a previous installation of rubin_sim or wish to update your data dow
 git clone https://github.com/lsst/rubin_sim_notebooks.git
 cd rubin_sim_notebooks
 # Example: make a plot of the number of visits per pointing
-jupyter notebook maf/tutorial/Survey\ Footprint.ipynb  
+jupyter notebook maf/tutorial/Survey_footprint.ipynb  
 ```
 
 

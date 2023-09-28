@@ -78,7 +78,7 @@ make_lsst_obs = "rubin_sim.moving_objects.make_lsst_obs:make_lsst_obs"
 version = { attr = "setuptools_scm.get_version" }
 
 [tool.setuptools.packages.find]
-where = [ "rubin_sim" ]
+where = [ "" ]
 
 [tool.setuptools_scm]
 #version_file = "rubin_sim/version.py"
