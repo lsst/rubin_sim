@@ -24,6 +24,7 @@ def get_oorb_data_dir():
             data_path = os.path.join(conda_dir, "share/openorb")
             if not os.path.isdir(data_path):
                 data_path = None
+        os.environ["OORB_DATA"] = data_path
     if data_path is None:
         warnings.warn(
             "Failed to find path for oorb data files. "
@@ -61,7 +62,6 @@ class PyOrbEphemerides:
 
         # Set up oorb. Call this once.
         if ephfile is None:
-            # just making a copy on our own so we don't have to chase down oorb install dir
             ephfile = os.path.join(get_oorb_data_dir(), "de430.dat")
         self.ephfile = ephfile
         self._init_oorb()
