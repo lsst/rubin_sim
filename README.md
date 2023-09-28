@@ -11,20 +11,31 @@ Scheduler, survey strategy analysis, and other simulation tools for Rubin Observ
 
 # Installation
 
-Prerequisites:  A working [conda installation ](https://www.anaconda.com/products/individual)
-
 ### Conda Installation ###
 
 If you are only running `rubin_sim` code and not making changes. If you will be editing the code or need the very latest verison, use the pip instructions below.
 ```
 conda create -n rubin-sim -c conda-forge rubin_sim # Create a new environment
 conda activate rubin-sim
-rs_download_data  # Downloads ~2Gb of data to $RUBIN_SIM_DATA_DIR (~/rubin_sim_data if unset)
+rs_download_data  # Downloads a few of data to $RUBIN_SIM_DATA_DIR (~/rubin_sim_data if unset)
 conda install -c conda-forge jupyter # Optional install of jupyter
 ```
 Note that this is not the best option for developers working on their own metrics - a pip installation from their own fork of the repo may work better.
 
-### Pip Installation ###
+### Pip installation ###
+
+```
+pip install rubin_sim
+```
+
+Please note that the pip installation of pyoorb does not come with the necessary data files. 
+If you need this functionality, the data files are most easily installable via conda with
+ ```
+ conda install -c conda-forge openorb-data-de405
+ ```
+ 
+
+### Developer Installation ###
 
 To install `rubin_sim` from source using pip, with all required dependencies:
 ```
@@ -32,7 +43,7 @@ git clone https://github.com/lsst/rubin_sim.git ; cd rubin_sim # clone and cd in
 conda create -n rubin-sim ; conda activate rubin-sim  # optional (but recommended) new conda env
 conda install -c conda-forge --file=all_req.txt  # substitute mamba for conda if you like
 pip install -e .
-rs_download_data  # Downloads ~2Gb of data to $RUBIN_SIM_DATA_DIR (~/rubin_sim_data if unset)
+rs_download_data  # Downloads a few GB of data to $RUBIN_SIM_DATA_DIR (~/rubin_sim_data if unset)
 ```
 Note that external collaborators will likely want to follow similar directions, using a fork of our rubin_sim github repo first (and then clone from there).
 
@@ -42,7 +53,7 @@ Note that external collaborators will likely want to follow similar directions, 
 
 ```
 export RUBIN_SIM_DATA_DIR=$HOME/rubin_sim_data # Optional. Set the data directory path via env variable
-rs_download_data  # Downloads ~2Gb of data to $RUBIN_SIM_DATA_DIR
+rs_download_data  # Downloads a few GB of data to $RUBIN_SIM_DATA_DIR
 ```
 If you are only interested in a subset of the data, you can specify which directories to download, e.g.
 ```
@@ -61,18 +72,21 @@ jupyter notebook maf/tutorial/Survey\ Footprint.ipynb
 ```
 
 
-### Additional installation and download options ###
+### Downloading additional skybrightness_pre skybrightness files ###
 
-Optional dependencies used by some of the more esoteric MAF functions:
-```
-conda install -c conda-forge sncosmo sympy george
-```
+The default skybrightness_pre directory downloaded above contains only one month of pre-calculated skybrightness files.
+If you wish to run the scheduler for a longer time period, or need this information outside of the span of that month period,
+you will need to download a larger set of pre-computed sky data.
 
-Optional download all the (43 Gb) of pre-computed sky data. Only needed if you are planning to run full 10 year scheduler simulations. Not needed for MAF, etc.:
+To download the entire optional set all the (43 Gb) of pre-computed sky data. 
 ```
 rs_download_sky
 ```
-
+Note that subsets of this data can get downloaded via http directly from
+```
+https://s3df.slac.stanford.edu/data/rubin/sim-data/sims_skybrightness_pre/h5_2023_09_12/
+```
+(the file names reflect the range of MJD covered within each data file).
 
 
 # Documentation
@@ -90,76 +104,3 @@ make html
 ## Getting Help ##
 
 Questions about `rubin_sim` can be posted on the [sims slack channel](https://lsstc.slack.com/archives/C2LQ5JW9W), or on https://community.lsst.org/ (tag @yoachim and/or @ljones so we get notifications about it).
-
-# Mix and match data files
-
-If someone finds themselves in a situation where they want to use the latest code, but an older version of the data files, one could mix and match by:
-```
-git checkout <some old git sha>
-rs_download_data --force
-git checkout master
-```
-And viola, one has the current version of the code, but the data files from a previous version.
-
-
-# Notes on installing/running on hyak (and other clusters)
-
-A new anaconda install is around 11 GB (and hyak has a home dir quota of 10GB), so ensure your anaconda dir and the rubin_sim_data dir are not in your home directory. Helpful link to the anaconda linux install instructions:  https://docs.anaconda.com/anaconda/install/linux/
-
-The `conda activate` command fails in a bash script. One must first `source ~/anaconda3/etc/profile.d/conda.sh
-` (replace with path to your anaconda install if different), then `conda activate rubin`.
-
-The conda create command failed a few times. It looks like creating the conda environment and then installing dependencies in 3-4 batches can be a work-around.
-
-Handy command to get a build node on hyak `srun -p build --time=2:00:00 --mem=20G --pty /bin/bash`
-
-
-# Developer Guide
-
-If you have push permissions to rubin_sim, you can make changes to the code by checking out a new branch, making edits, push and then make a pull request.
-However, we do expect many users who wish to contribute metrics will not have these permissions -- for these contributors the easiest way to do development on rubin_sim may be the following:
- - create a fork of rubin_sim 
- - pip install the fork copy as above (but git clone your own fork, and then use this copy of rubin_sim)
- - edit the code in your fork of rubin_sim, test it, etc.
- - issue a PR from your fork to our original lsst/rubin_sim repository
-
-When contributing code, metrics for MAF can be placed into either rubin_sim/rubin_sim/maf/metrics or rubin_sim/rubin_sim/maf/mafContrib (preferably rubin_sim/maf/metrics). Adding a unit test in the appropriate rubin_sim/tests directory is desirable. For unit tests, all filename should start with `test_` so py.test can automatically find them. An example notebook can be contributed to lsst/rubin_sim_notebooks. 
-
-When contributing to the package, make sure you reformat the code with `black` before commiting.
-The package ships with a `pre-commit` configuration file, which allows developers to install a git hook that will reformat the code before commiting.
-Most IDEs also contains `black` reformat add-ons.
-
-To install the `pre-commit` hook first install the `pre-commit` package with:
-```
-conda install -c conda-forge pre-commit
-```
-
-Then, install the hook with:
-```
-pre-commit install
-```
-
-## Updating data files
-
-(This must be done by project developers only at this time). 
-To update the source contents of the data files:
-
-* Update the files in your local installation
-* If you are updating the baseline sim, create a symlink of the new database to baseline.db
-* Create a new tar file with a new name, e.g., `tar -chvzf maf_2021_06_01.tgz maf` (no `-h` if symlinks should stay as symlinks)
-* Copy your new tar file to S3DF USDF s3dflogin.slac.stanford.edu:/sdf/group/rubin/web_data/sim-data/rubin_sim_data/
-* You can check that it is uploaded here: https://s3df.slac.stanford.edu/data/rubin/sim-data/rubin_sim_data/
-* Update `rubin_sim/data/rs_download_data.py` so the `data_dict` function uses your new filename
-* Push and merge the change to `bin/rs_download_data`
-* Add a new tag, with a message indicating how the data package was changed. 
-
-## Updating throughputs
-
-Process for updating pre-computed files if system throughputs change.
-
-1) update rubin_sim_data/throughputs files
-2) update rubin_sim/rubin_sim/utils/sys_eng_vals.py
-3) recompute sky brightness files with rubin_sim.skybrightness.recalc_mags
-4) remake skybrightness_pre files with rubin_sim/rubin_sim/skybrightness_pre/data/generate_hdf5.py
-5) remake dark sky map with rubin_sim/rubin_sim/skybrightness_pre/data/generate_dark_sky.py
-6) tar and update files at SDF (throughputs, skybrightness, skybrightness_pre)
