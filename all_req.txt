@@ -7,9 +7,7 @@ pandas
 numexpr
 palpy
 scipy
-sqlite
 sqlalchemy
-six
 astropy
 pytables
 h5py
@@ -24,10 +22,9 @@ requests
 shapely
 skyfield
 tqdm
-jupyter
 pytest
-pytest-flake8
 pytest-cov
 pytest-black
-black>=22.3.0
-flake8
+black
+ruff
+jupyter
