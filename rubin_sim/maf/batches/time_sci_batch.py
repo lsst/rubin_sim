@@ -18,24 +18,24 @@ def phaseGap(
     extraSql=None,
     extraInfoLabel=None,
 ):
-    """Generate a set of statistics about the pair/triplet/etc. rate within a night.
+    """Generate a set of statistics about period coverage and phase gaps.
 
     Parameters
     ----------
-    colmap : dict or None, optional
-        A dictionary with a mapping of column names. Default will use OpsimV4 column names.
-    runName : str, optional
-        The name of the simulated survey. Default is "opsim".
-    nside : int, optional
-        Nside for the healpix slicer. Default 64.
-    extraSql : str or None, optional
+    colmap : `dict` or None, optional
+        A dictionary with a mapping of column names.
+    runName : `str`, optional
+        The name of the simulated survey.
+    nside : `int`, optional
+        Nside for the healpix slicer.
+    extraSql : `str` or None, optional
         Additional sql constraint to apply to all metrics.
-    extraInfoLabel : str or None, optional
+    extraInfoLabel : `str` or None, optional
         Additional info_label to apply to all results.
 
     Returns
     -------
-    metric_bundleDict
+    metric_bundleDict : `dict` of `maf.MetricBundle`
     """
 
     if colmap is None:

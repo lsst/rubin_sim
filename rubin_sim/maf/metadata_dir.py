@@ -11,11 +11,10 @@ import numpy as np
 matplotlib.use("Agg")
 
 from . import batches as batches
-from .db import ResultsDb, TrackingDb
+from .db import ResultsDb
 from .metric_bundles import MetricBundle, MetricBundleGroup
 from .metrics import CountExplimMetric
 from .slicers import HealpixSlicer, HealpixSubsetSlicer
-from .utils import get_date_version
 
 
 def metadata_dir():
@@ -45,7 +44,8 @@ def metadata_dir():
     )
     args = parser.parse_args()
 
-    # If runNames not given, scan for sim_name databases in current directory and use those
+    # If runNames not given, scan for sim_name databases in current
+    # directory and use those
     # Note that 'runNames' can be full path to directories
 
     if args.db is None:
@@ -89,7 +89,7 @@ def metadata_dir():
         wfd_hpix = np.where(wfd_footprint == 1)[0]
         wfd_slicer = HealpixSubsetSlicer(nside=args.nside, hpid=wfd_hpix)
 
-        bdict = batches.metadata_bundle_dicts(allsky_slicer, wfd_slicer, sim_name, colmap)
+        bdict = batches.info_bundle_dicts(allsky_slicer, wfd_slicer, sim_name, colmap)
 
         # Set up the resultsDB
         results_db = ResultsDb(out_dir=out_dir)

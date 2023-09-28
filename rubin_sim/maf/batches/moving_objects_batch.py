@@ -302,7 +302,7 @@ def discovery_batch(
         magStacker = stackers.MoMagStacker(loss_col="dmag_trail", magtype=magtype)
         detection_losses = " trailing loss"
     else:
-        # This is SNR losses, plus additional loss due to detecting with stellar PSF.
+        # SNR losses, plus additional loss due to detecting with stellar PSF.
         magStacker = stackers.MoMagStacker(loss_col="dmag_detect", magtype=magtype)
         detection_losses = " detection loss"
 
@@ -649,30 +649,33 @@ def discovery_batch(
 
 def run_completeness_summary(bdict, h_mark, times, out_dir, results_db):
     """
-    Calculate completeness and create completeness bundles from all N_Chances and Time (child) metrics
-    of the (discovery) bundles in bdict, and write completeness at h_mark to results_db, save bundle to disk.
+    Calculate completeness and create completeness bundles from all
+    N_Chances and Time (child) metrics of the (discovery) bundles in bdict,
+    and write completeness at h_mark to results_db, save bundle to disk.
 
     This should be done after combining any sub-sets of the metric results.
 
     Parameters
     ----------
-    bdict : dict of metric_bundles
+    bdict : `dict` of `maf.MetricBundle`
         Dict containing ~rubin_sim.maf.MoMetricBundles,
         including bundles we're expecting to contain completeness.
-    h_mark : float
+    h_mark : `float`
         h_mark value to add to completeness plotting dict.
-        If not defined (None), then the h_mark from the plotdict from the metric will be used if available.
-        If None and h_mark not in plot_dict, then median of h_range value will be used.
-    times : np.ndarray
+        If not defined (None), then the h_mark from the plotdict from the
+        metric bundle will be used if available.
+        If None and h_mark not in plot_dict, then median of h_range values
+         will be used.
+    times : `np.ndarray`
         The times at which to calculate completeness (over time).
-    out_dir : str
+    out_dir : `str`
         Output directory to save completeness bundles to disk.
-    results_db : ~rubin_sim.maf.db.results_db
+    results_db : `maf.ResultsDb`
         Results database to save information about completeness bundle.
 
     Returns
     -------
-    dict of metric_bundles
+    metricDict : `dict` of `maf.MetricBundles`
         A dictionary of the new completeness bundles. Keys match original keys,
         with additions of "[Differential,Cumulative]Completeness@Time"
         and "[Differential,Cumulative]Completeness" to distinguish new entries.
@@ -691,7 +694,8 @@ def run_completeness_summary(bdict, h_mark, times, out_dir, results_db):
         summaryTimeMetrics2 = summary_completeness_at_time(times, h_val=h_mark - 2, h_index=0.33)
         summaryHMetrics = summary_completeness_over_h(requiredChances=1, Hindex=0.33)
         comp = {}
-        # Bundle = single metric bundle. Add differential and cumulative completeness.
+        # Bundle = single metric bundle.
+        # Add differential and cumulative completeness.
         if "Time" in bundle.metric.name:
             for metric in summaryTimeMetrics:
                 newkey = b + " " + metric.name
@@ -763,7 +767,8 @@ def plot_completeness(
     fig_format="pdf",
 ):
     """Plot a minor subset of the completeness results."""
-    # Separate some subsets to plot together - first just the simple 15 and 30 night detection loss metrics.
+    # Separate some subsets to plot together -
+    # first just the simple 15 and 30 night detection loss metrics.
     keys = [
         "3_pairs_in_30_nights_detection_loss",
         "3_pairs_in_15_nights_detection_loss",
@@ -783,7 +788,8 @@ def plot_completeness(
                     elif "Cumulative" in k:
                         plotComp[k] = bdictCompleteness[k]
 
-    # Add plot dictionaries to code 30 nights red, 15 nights blue, differentials dotted.
+    # Add plot dictionaries to code 30 nights red, 15 nights blue,
+    # differentials dotted.
     def _codePlot(key):
         plotDict = {}
         if "Differential" in k:
@@ -811,7 +817,8 @@ def plot_completeness(
         figroot = run_name
     display_dict = deepcopy(first.display_dict)
 
-    # Plot completeness as a function of time. Make custom plot, then save it with PlotHandler.
+    # Plot completeness as a function of time.
+    # Make custom plot, then save it with PlotHandler.
     fig = plt.figure(figsize=(8, 6))
     for k in plotTimes:
         plt.plot(
@@ -1264,34 +1271,37 @@ def characterization_outer_batch(
 
 def run_fraction_summary(bdict, h_mark, out_dir, results_db):
     """
-    Calculate fractional completeness of the population for color and lightcurve metrics.
+    Calculate fractional completeness of the population for
+    color and lightcurve metrics.
 
     This should be done after combining any sub-sets of the metric results.
 
     Parameters
     ----------
-    bdict : dict of metric_bundles
-        Dict containing ~rubin_sim.maf.MoMetricBundles,
-        including bundles we're expecting to contain lightcurve/color evaluations.
-    h_mark : float
+    bdict : `dict` of `maf.MoMetricBundle`
+        Dict containing bundles contianing lightcurve/color evaluations.
+    h_mark : `float`
         h_mark value to add to completeness plotting dict.
-        If defined, this value is used. If None, but h_mark in plot_dict for metric, then this value (-2) is
-        used. If h_mark not in plotdict, then the median h_range value - 2 is used.
-    times : np.ndarray
+        If defined, this value is used.
+        If None, but h_mark in plot_dict for metric, then this value (-2) is
+        used. If h_mark not in plotdict, then use the median h_range value-2.
+    times : `np.ndarray`
         The times at which to calculate completeness (over time).
-    out_dir : str
+    out_dir : `str`
         Output directory to save completeness bundles to disk.
-    results_db : ~rubin_sim.maf.db.results_db
+    results_db : `maf.ResultsDb`
         Results database to save information about completeness bundle.
 
     Returns
     -------
-    dict of metric_bundles
-        Dictionary of the metric bundles for the fractional evaluation of the population.
+    metricDict : `dict` of `maf.MetricBundle`
+        Dictionary of the metric bundles for the fractional evaluation
+        of the population.
     """
     fractions = {}
 
-    # Look for metrics from asteroid or outer solar system color/lightcurve metrics.
+    # Look for metrics from asteroid or outer solar system
+    # color/lightcurve metrics.
     inversionSummary = fraction_population_at_threshold([1], ["Lightcurve Inversion"])
     asteroidColorSummary = fraction_population_at_threshold(
         [4, 3, 2, 1],
@@ -1319,7 +1329,7 @@ def run_fraction_summary(bdict, h_mark, out_dir, results_db):
             h_mark = bundle.plot_dict["h_mark"] - 2
         if h_mark is None:
             h_mark = np.median(bundle.slicer.slice_points["H"]) - 2
-        # Make sure we didn't push h_mark outside the range of H values for metric
+        # Make sure we didn't push h_mark outside the range of H values
         if h_mark < bundle.slicer.slice_points["H"].min():
             h_mark = bundle.slicer.slice_points["H"].min()
         for k in asteroidSummaryMetrics:
@@ -1337,7 +1347,7 @@ def run_fraction_summary(bdict, h_mark, out_dir, results_db):
                         bundle, summary_metric, h_mark=h_mark, results_db=results_db
                     )
 
-    # Write the fractional populations bundles to disk, so we can re-read them later.
+    # Write fractional populations bundles to disk, so we can re-read later.
     for b, bundle in fractions.items():
         bundle.write(out_dir=out_dir, results_db=results_db)
     return fractions
@@ -1479,7 +1489,7 @@ def plot_activity(bdict, figroot=None, results_db=None, out_dir=".", fig_format=
             outfile_root=figroot + "_activityDays",
         )
     if len(activity_deg) > 0:
-        # Plot (mean) likelihood of detection of activity over X amount of orbit
+        # Plot mean likelihood of detection of activity over X amount of orbit
         ph = plots.PlotHandler(fig_format=fig_format, results_db=results_db, out_dir=out_dir)
         ph.set_metric_bundles(activity_deg)
         ph.joint_metric_names = "Chances of detecting activity covering X deg"
@@ -1493,30 +1503,34 @@ def plot_activity(bdict, figroot=None, results_db=None, out_dir=".", fig_format=
 
 
 def read_and_combine(orbitRoot, baseDir, splits, metricfile):
-    """Read and combine the metric results from split locations, returning a single bundle.
+    """Read and combine the metric results from split locations,
+    returning a single bundle.
 
     This will read the files from
     baseDir/orbitRoot_[split]/metricfile
-    where split = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9], etc. (the subsets the original orbit file was split into).
+    where split = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9], etc.
+    (the subsets the original orbit file was split into).
 
     Parameters
     ----------
-    orbitRoot: str
+    orbitRoot : `str`
         The root of the orbit file - l7_5k, mbas_5k, etc.
-    baseDir: str
+    baseDir: `str`
         The root directory containing the subset directories. (e.g. '.' often)
-    splits: np.ndarray or list of ints
-        The integers describing the split directories (e.g. [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
-    metricfile: str
+    splits:` np.ndarray` or `list` of `ints`
+        The integers describing the split directories
+        (e.g. [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+    metricfile: `str`
         The metric filename.
 
     Returns
     -------
-    ~rubin_sim.maf.bundle
-        A single metric bundle containing the combined data from each of the subsets.
+    metric_bundle : `~rubin_sim.maf.MoMetricBundle`
+        A single metric bundle containing the combined data from the subsets.
 
-    Note that this won't work for particularly complex metric values, such as the parent Discovery metrics.
-    However, you can read and combine their child metrics, as for these we can propagate the data masks.
+    Note that this won't work for particularly complex metric values,
+    such as the parent Discovery metrics. However, you can read and combine
+    their child metrics, as for these we can propagate the data masks.
     """
     subsets = {}
     for i in splits:
@@ -1548,7 +1562,8 @@ def combine_subsets(mbSubsets):
     # Join metric values.
     joint.slicer = slicer
     joint.metric = first.metric
-    # Don't just use the slicer shape to define the metric_values, because of CompletenessBundles.
+    # Don't just use the slicer shape to define the metric_values,
+    # because of CompletenessBundles.
     metric_values = np.zeros(first.metric_values.shape, float)
     metric_values_mask = np.zeros(first.metric_values.shape, bool)
     for i in mbSubsets:

@@ -33,38 +33,44 @@ def metadataBasics(
     extraInfoLabel=None,
     slicer=None,
 ):
-    """Calculate basic metrics on visit metadata 'value' (e.g. airmass, normalized airmass, seeing..).
-    Calculates this around the sky (HealpixSlicer), makes histograms of all visits (OneDSlicer),
-    and calculates statistics on all visits (UniSlicer) for the quantity in all visits and per filter.
+    """Calculate basic metrics on visit metadata 'value'
+    (e.g. airmass, normalized airmass, seeing..).
+    Calculates this around the sky (HealpixSlicer),
+    makes histograms of all visits (OneDSlicer),
+    and calculates statistics on all visits (UniSlicer) for the quantity,
+     in all visits and per filter.
 
     Currently have a hack for HA & normairmass.
 
     Parameters
     ----------
-    value : str
-        The column name for the quantity to evaluate. (column name in the database or created by a stacker).
-    colmap : dict or None, optional
-        A dictionary with a mapping of column names. Default will use OpsimV4 column names.
-    runName : str, optional
-        The name of the simulated survey. Default is "opsim".
-    valueName : str, optional
-        The name of the value to be reported in the results_db and added to the metric.
-        This is intended to help standardize metric comparison between sim versions.
+    value : `str`
+        The column name for the quantity to evaluate.
+         (column name in the database or created by a stacker).
+    colmap : `dict` or None, optional
+        A dictionary with a mapping of column names.
+    runName : `str`, optional
+        The name of the simulated survey.
+    valueName : `str`, optional
+        The name of the value to be reported in the results_db and
+        added to the metric.
+        This is intended to help standardize metric comparison between
+        sim versions.
         value = name as it is in the database (seeingFwhmGeom, etc).
-        valueName = name to be recorded ('seeingGeom', etc.).  Default is None, which will match 'value'.
-    groupName : str, optional
-        The group name for this quantity in the display_dict. Default is the same as 'valueName', capitalized.
-    extraSql : str, optional
-        Additional constraint to add to any sql constraints (e.g. 'propId=1' or 'fieldID=522').
-        Default None, for no additional constraints.
-    extraInfoLabel : str, optional
-        Additional info_labels to add before any below (i.e. "WFD").  Default is None.
+        valueName = name to be recorded ('seeingGeom', etc.).
+    groupName : `str`, optional
+        The group name for this quantity in the display_dict.
+        None will default to the same as 'valueName', capitalized.
+    extraSql : `str`, optional
+        Additional constraint to add to any sql constraints.
+    extraInfoLabel : `str`, optional
+        Additional info_labels to add before any below (i.e. "WFD").
     slicer : `rubin_sim.maf.slicers.BaseSlicer`, optional
         Optionally use a different slicer than an nside=64 healpix slicer.
 
     Returns
     -------
-    metric_bundleDict
+    metric_bundleDict : `dict` of `maf.MetricBundle`
     """
     if colmap is None:
         colmap = col_map_dict()
@@ -99,7 +105,7 @@ def metadataBasics(
     else:
         skyslicer = slicers.HealpixSlicer(nside=64, lon_col=raCol, lat_col=decCol, lat_lon_deg=degrees)
 
-    # Hack to make HA work, but really I need to account for any stackers/colmaps.
+    # Hack to make HA work, but really need to account for any stackers
     if value == "HA":
         stackerList = [stackers.HourAngleStacker(lst_col=colmap["lst"], ra_col=raCol, degrees=degrees)]
     elif value == "normairmass":
@@ -107,7 +113,8 @@ def metadataBasics(
     else:
         stackerList = None
 
-    # Summarize values over all and per filter (min/mean/median/max/percentiles/outliers/rms).
+    # Summarize values over all and per filter
+    # (min/mean/median/max/percentiles/outliers/rms).
     slicer = slicers.UniSlicer()
     for f in filterlist:
         for m in extended_metrics(value, replace_colname=valueName):
@@ -142,7 +149,8 @@ def metadataBasics(
         )
         bundleList.append(bundle)
 
-    # Make maps of min/median/max for all and per filter, per RA/Dec, with standard summary stats.
+    # Make maps of min/median/max for all and per filter,
+    # per RA/Dec, with standard summary stats.
     plotDict = {"percentile_clip": 98}
     mList = []
     mList.append(metrics.MinMetric(value, metric_name="Min %s" % (valueName)))
@@ -184,37 +192,42 @@ def metadataBasicsAngle(
     extraInfoLabel=None,
     slicer=None,
 ):
-    """Calculate basic metrics on visit metadata 'value', where value is a wrap-around angle.
+    """Calculate basic metrics on visit metadata 'value',
+    where value is a wrap-around angle.
 
-    Calculates extended standard metrics (with unislicer) on the quantity (all visits and per filter),
+    Calculates extended standard metrics (with unislicer) on the quantity
+    (all visits and per filter),
     makes histogram of the value (all visits and per filter),
 
 
     Parameters
     ----------
     value : `str`
-        The column name for the quantity to evaluate. (column name in the database or created by a stacker).
+        The column name for the quantity to evaluate.
+        (column name in the database or created by a stacker).
     colmap : `dict` or None, optional
-        A dictionary with a mapping of column names. Default will use OpsimV4 column names.
+        A dictionary with a mapping of column names.
     runName : `str`, optional
-        The name of the simulated survey. Default is "opsim".
+        The name of the simulated survey.
     valueName : `str`, optional
-        The name of the value to be reported in the results_db and added to the metric.
-        This is intended to help standardize metric comparison between sim versions.
+        The name of the value to be reported in the results_db
+        and added to the metric.
+        This is intended to help standardize metric comparison
+        between sim versions.
         value = name as it is in the database (seeingFwhmGeom, etc).
-        valueName = name to be recorded ('seeingGeom', etc.).  Default is None, which will match 'value'.
+        valueName = name to be recorded ('seeingGeom', etc.).
     groupName : `str`, optional
-        The group name for this quantity in the display_dict. Default is the same as 'valueName', capitalized.
+        The group name for this quantity in the display_dict.
+        None will default to the same as 'valueName', capitalized.
     extraSql : `str`, optional
-        Additional constraint to add to any sql constraints (e.g. 'propId=1' or 'fieldID=522').
-        Default None, for no additional constraints.
+        Additional constraint to add to any sql constraints.
     extraInfoLabel : `str`, optional
-        Additional info_label to add before any below (i.e. "WFD").  Default is None.
+        Additional info_label to add before any below (i.e. "WFD").
     slicer : `rubin_sim.maf.slicer.BaseSlicer` or None, optional
 
     Returns
     -------
-    metric_bundleDict
+    metric_bundleDict : `dict` of `maf.MetricBundle`
     """
     if colmap is None:
         colmap = col_map_dict()
@@ -281,7 +294,8 @@ def metadataBasicsAngle(
         )
         bundleList.append(bundle)
 
-    # Make maps of min/median/max for all and per filter, per RA/Dec, with standard summary stats.
+    # Make maps of min/median/max for all and per filter,
+    # per RA/Dec, with standard summary stats.
     mList = []
     mList.append(metrics.MeanAngleMetric(value, metric_name="AngleMean %s" % (valueName)))
     mList.append(metrics.FullRangeAngleMetric(value, metric_name="AngleRange %s" % (valueName)))
@@ -314,26 +328,26 @@ def metadataBasicsAngle(
 
 def allMetadata(colmap=None, runName="opsim", extraSql=None, extraInfoLabel=None, slicer=None):
     """Generate a large set of metrics about the metadata of each visit -
-    distributions of airmass, normalized airmass, seeing, sky brightness, single visit depth,
-    hour angle, distance to the moon, and solar elongation.
-    The exact metadata which is analyzed is set by the colmap['metadataList'] value.
+    distributions of airmass, normalized airmass, seeing, sky brightness,
+    single visit depth, hour angle, distance to the moon, and solar elongation.
+    The exact metadata which is analyzed is set by the colmap['metadataList'].
 
     Parameters
     ----------
     colmap : `dict` or None, optional
-        A dictionary with a mapping of column names. Default will use OpsimV4 column names.
+        A dictionary with a mapping of column names.
     runName : `str`, optional
-        The name of the simulated survey. Default is "opsim".
+        The name of the simulated survey.
     extraSql : `str`, optional
-        Sql constraint (such as WFD only). Default is None.
+        Sql constraint (such as WFD only).
     extraInfoLabel : `str`, optional
-        Metadata to identify the sql constraint (such as WFD). Default is None.
+        Metadata to identify the sql constraint (such as WFD).
     slicer : `rubin_sim.maf.slicer.BaseSlicer` or None, optional
         Optionally use something other than an nside=64 healpix slicer.
 
     Returns
     -------
-    metric_bundleDict
+    metric_bundleDict : `dict` of `maf.MetricBundle`
     """
 
     if colmap is None:
@@ -384,34 +398,37 @@ def metadataMaps(
     extraInfoLabel=None,
     slicer=None,
 ):
-    """Calculate 25/50/75 percentile values on maps across sky for a single metadata value.
+    """Calculate 25/50/75 percentile values on maps across sky
+    for a single metadata value.
 
     Parameters
     ----------
     value : `str`
-        The column name for the quantity to evaluate. (column name in the database or created by a stacker).
+        The column name for the quantity to evaluate.
+        (column name in the database or created by a stacker).
     colmap : `dict` or None, optional
-        A dictionary with a mapping of column names. Default will use OpsimV4 column names.
+        A dictionary with a mapping of column names.
     runName : `str`, optional
-        The name of the simulated survey. Default is "opsim".
+        The name of the simulated survey.
     valueName : `str`, optional
-        The name of the value to be reported in the results_db and added to the metric.
-        This is intended to help standardize metric comparison between sim versions.
+        The name of the value to be reported in the results_db
+        and added to the metric.
+        This is intended to help standardize metric comparison
+        between sim versions.
         value = name as it is in the database (seeingFwhmGeom, etc).
-        valueName = name to be recorded ('seeingGeom', etc.).  Default is None, which will match 'value'.
+        valueName = name to be recorded ('seeingGeom', etc.).
     groupName : `str`, optional
-        The group name for this quantity in the display_dict. Default is the same as 'valueName', capitalized.
+        The group name for this quantity in the display_dict.
     extraSql : `str`, optional
-        Additional constraint to add to any sql constraints (e.g. 'propId=1' or 'fieldID=522').
-        Default None, for no additional constraints.
+        Additional constraint to add to any sql constraints.
     extraInfoLabel : `str`, optional
-        Additional info_label to add before any below (i.e. "WFD").  Default is None.
+        Additional info_label to add before any below (i.e. "WFD").
     slicer : `rubin_sim.maf.slicer.BaseSlicer` or None, optional
         Optionally use something other than an nside=64 HealpixSlicer
 
     Returns
     -------
-    metric_bundleDict
+    metric_bundleDict : `dict` of `maf.MetricBundle`
     """
     if colmap is None:
         colmap = col_map_dict()
@@ -432,15 +449,15 @@ def metadataMaps(
 
     displayDict = {"group": groupName, "subgroup": subgroup}
 
-    raCol = colmap["ra"]
-    decCol = colmap["dec"]
+    ra_col = colmap["ra"]
+    dec_col = colmap["dec"]
     degrees = colmap["raDecDeg"]
     # Set up basic all and per filter sql constraints.
     filterlist, colors, orders, sqls, info_label = filter_list(
         all=True, extra_sql=extraSql, extra_info_label=extraInfoLabel
     )
 
-    # Hack to make HA work, but really I need to account for any stackers/colmaps.
+    # Hack to make HA work, but really need to account for any stackers
     if value == "HA":
         stackerList = [stackers.HourAngleStacker(lst_col=colmap["lst"], ra_col=ra_col, degrees=degrees)]
     elif value == "normairmass":
@@ -448,7 +465,8 @@ def metadataMaps(
     else:
         stackerList = None
 
-    # Make maps of 25/median/75 for all and per filter, per RA/Dec, with standard summary stats.
+    # Make maps of 25/median/75 for all and per filter,
+    # per RA/Dec, with standard summary stats.
     mList = []
     mList.append(
         metrics.PercentileMetric(value, percentile=25, metric_name="25thPercentile %s" % (valueName))
@@ -458,7 +476,7 @@ def metadataMaps(
         metrics.PercentileMetric(value, percentile=75, metric_name="75thPercentile %s" % (valueName))
     )
     if slicer is None:
-        slicer = slicers.HealpixSlicer(nside=64, lat_col=decCol, lon_col=raCol, lat_lon_deg=degrees)
+        slicer = slicers.HealpixSlicer(nside=64, lat_col=dec_col, lon_col=ra_col, lat_lon_deg=degrees)
 
     for f in filterlist:
         for m in mList:
@@ -486,25 +504,26 @@ def metadataMaps(
 
 
 def firstYearMetadata(colmap=None, runName="opsim", extraSql=None, extraInfoLabel=None, slicer=None):
-    """Measure the distribution of some basic metadata in the first year of operations -
+    """Measure the distribution of some basic metadata in the first year
+    of operations -
     distributions of airmass, seeing, sky brightness, single visit depth.
 
     Parameters
     ----------
     colmap : `dict` or None, optional
-        A dictionary with a mapping of column names. Default will use OpsimV4 column names.
+        A dictionary with a mapping of column names.
     runName : `str`, optional
-        The name of the simulated survey. Default is "opsim".
+        The name of the simulated survey.
     extraSql : `str`, optional
-        Sql constraint (such as WFD only). Default is None.
+        Sql constraint (such as WFD only).
     extraInfoLabel : `str`, optional
-        Metadata to identify the sql constraint (such as WFD). Default is None.
+        Metadata to identify the sql constraint (such as WFD).
     slicer : `rubin_sim.maf.slicer.BaseSlicer` or None, optional
         Optionally use something other than an nside=64 healpix slicer.
 
     Returns
     -------
-    metric_bundleDict
+    metric_bundleDict : `dict` of `maf.MetricBundle`
     """
 
     if colmap is None:

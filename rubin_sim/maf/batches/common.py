@@ -35,19 +35,20 @@ def filter_list(all=True, extra_sql=None, extra_info_label=None):
     Parameters
     ----------
     all : `bool`, optional
-        Include 'all' in the list of filters and as part of the colors/orders dictionaries.
-        Default True.
-    extra_sql : str, optional
-        Additional sql constraint to add to sqlconstraints returned per filter.
-        Default None.
-    extra_info_label : str, optional
+        Include 'all' in the list of filters and as part of the
+        colors/orders dictionaries.
+    extra_sql : `str`, optional
+        Additional sql constraint to add to constraints returned per filter.
+    extra_info_label : `str`, optional
         Substitute info_label to add to info_label strings composed per band.
-        Default None.
 
     Returns
     -------
-    list, dict, dict
-        List of filter names, dictionary of colors (for plots), dictionary of orders (for display)
+    filterlist : `list` of `str
+    colors : `dict` of {`str`: `str`}
+    orders : `dict` of {`str`: int}
+    sqls : `dict` of {`str`: `str`}
+    info_labels : `dict` of {`str`: `str}
     """
     if all:
         filterlist = ("all", "u", "g", "r", "i", "z", "y")
@@ -83,8 +84,21 @@ def filter_list(all=True, extra_sql=None, extra_info_label=None):
     return filterlist, colors, orders, sqls, info_labels
 
 
-def standard_summary(withCount=True):
-    """A set of standard summary metrics, to calculate Mean, RMS, Median, #, Max/Min, and # 3-sigma outliers."""
+def standard_summary(with_count=True):
+    """A set of standard summary metrics, to calculate
+    Mean, RMS, Median, #, Max/Min, and # 3-sigma outliers.
+
+    Parameters
+    ----------
+    with_count : `bool`, optional
+        Include the "Count" metric in the set of summary metrics or not.
+
+    Returns
+    -------
+    standardSummary : `list` of `maf.BaseMetric`
+        List of metrics appropriate to use to summarize the results from
+        another metric.
+    """
     standardSummary = [
         metrics.MeanMetric(),
         metrics.RmsMetric(),
@@ -94,15 +108,21 @@ def standard_summary(withCount=True):
         metrics.NoutliersNsigmaMetric(metric_name="N(+3Sigma)", n_sigma=3),
         metrics.NoutliersNsigmaMetric(metric_name="N(-3Sigma)", n_sigma=-3.0),
     ]
-    if withCount:
+    if with_count:
         standardSummary += [metrics.CountMetric()]
     return standardSummary
 
 
 def extended_summary():
-    """An extended set of summary metrics, to calculate all that is in the standard summary stats,
-    plus 25/75 percentiles."""
+    """An extended set of summary metrics, to calculate all that is in
+    the standard summary stats, plus 25/75 percentiles.
 
+    Returns
+    --------
+    extendedSummary : `list` of `maf.BaseMetric`
+        List of metrics appropriate to use to summarize the results
+        from another metric.
+    """
     extendedStats = standard_summary()
     extendedStats += [
         metrics.PercentileMetric(metric_name="25th%ile", percentile=25),
@@ -123,21 +143,24 @@ def lightcurve_summary():
 
 
 def standard_metrics(colname, replace_colname=None):
-    """A set of standard simple metrics for some quantity. Typically would be applied with unislicer.
+    """A set of standard simple metrics for some quantity.
+     Typically would be applied with unislicer.
 
-    Parameters
-    ----------
-    colname : str
-        The column name to apply the metrics to.
-    replace_colname: str or None, optional
-        Value to replace colname with in the metric_name.
-        i.e. if replace_colname='' then metric name is Mean, instead of Mean Airmass, or
-        if replace_colname='seeingGeom', then metric name is Mean seeingGeom instead of Mean seeingFwhmGeom.
-        Default is None, which does not alter the metric name.
+     Parameters
+     ----------
+     colname : `str`
+         The column name to apply the metrics to.
+     replace_colname: `str` or None, optional
+         Value to replace colname with in the metric_name.
+         i.e. if replace_colname='' then metric name is Mean,
+         instead of Mean Airmass, or
+         if replace_colname='seeingGeom', then metric name is
+         Mean seeingGeom instead of Mean seeingFwhmGeom.
 
-    Returns
-    -------
-    List of configured metrics.
+     Returns
+     -------
+    standardMetrics : `list` of `maf.BaseMetric`
+        List of appropriate MAF metrics to evaluate a distribution.
     """
     standardMetrics = [
         metrics.MeanMetric(colname),
@@ -155,21 +178,24 @@ def standard_metrics(colname, replace_colname=None):
 
 
 def extended_metrics(colname, replace_colname=None):
-    """An extended set of simple metrics for some quantity. Typically applied with unislicer.
+    """An extended set of simple metrics for some quantity.
+    Typically applied with unislicer.
 
     Parameters
     ----------
-    colname : str
+    colname : `str`
         The column name to apply the metrics to.
-    replace_colname: str or None, optional
+    replace_colname: `str` or None, optional
         Value to replace colname with in the metric_name.
-        i.e. if replace_colname='' then metric name is Mean, instead of Mean Airmass, or
-        if replace_colname='seeingGeom', then metric name is Mean seeingGeom instead of Mean seeingFwhmGeom.
-        Default is None, which does not alter the metric name.
+        i.e. if replace_colname='' then metric name is Mean,
+        instead of Mean Airmass, or
+        if replace_colname='seeingGeom', then metric name is
+        Mean seeingGeom instead of Mean seeingFwhmGeom.
 
     Returns
     -------
-    List of configured metrics.
+    extendedMetrics : `list` of `maf.BaseMetric`
+        List of appropriate MAF metrics to evaluate a distribution.
     """
     extendedMetrics = standard_metrics(colname, replace_colname=None)
     extendedMetrics += [
@@ -190,21 +216,23 @@ def extended_metrics(colname, replace_colname=None):
 
 
 def standard_angle_metrics(colname, replace_colname=None):
-    """A set of standard simple metrics for some quantity which is a wrap-around angle.
+    """A set of standard simple metrics for a wrap-around angle quantity.
 
     Parameters
     ----------
-    colname : str
+    colname : `str`
         The column name to apply the metrics to.
-    replace_colname: str or None, optional
+    replace_colname: `str` or None, optional
         Value to replace colname with in the metric_name.
-        i.e. if replace_colname='' then metric name is Mean, instead of Mean Airmass, or
-        if replace_colname='seeingGeom', then metric name is Mean seeingGeom instead of Mean seeingFwhmGeom.
-        Default is None, which does not alter the metric name.
+        i.e. if replace_colname='' then metric name is Mean,
+        instead of Mean Airmass, or
+        if replace_colname='seeingGeom', then metric name is
+        Mean seeingGeom instead of Mean seeingFwhmGeom.
 
     Returns
     -------
-    List of configured metrics.
+    standardAngleMetrics : `list` of `maf.BaseMetric`
+        List of appropriate MAF metrics for angle distributions.
     """
     standardAngleMetrics = [
         metrics.MeanAngleMetric(colname),
@@ -223,22 +251,26 @@ def standard_angle_metrics(colname, replace_colname=None):
 
 
 def summary_completeness_at_time(times, h_val, h_index=0.33):
-    """A simple list of summary metrics to be applied to the Discovery_Time or PreviouslyKnown metrics.
-    (can be used with any moving object metric which returns the time of discovery).
+    """A simple list of summary metrics to be applied to the Discovery_Time
+    or PreviouslyKnown metrics.
+    (can be used with any moving object metric which returns the
+    time of discovery).
 
     Parameters
     ----------
-    times : np.ndarray or list
+    times : `np.ndarray `or list` of `float`
         The times at which to evaluate the completeness @ Hval.
-    h_val : float
-        The H value at which to evaluate the completeness (cumulative and differential).
-    h_index : float, optional
-        The index of the power law to integrate H over (for cumulative completeness).
-        Default is 0.33.
+    h_val : `float`
+        The H value at which to evaluate the completeness
+        (cumulative and differential).
+    h_index : `float`, optional
+        The index of the power law to integrate H over
+        (for cumulative completeness).
 
     Returns
     -------
-    List of moving object MoCompletenessAtTime metrics (cumulative and differential)
+    summaryMetrics : `list` of `maf.MoCompletenessAtTimeMetric`
+        List of completeness metrics to be evaluated at the specified times.
     """
     summaryMetrics = [
         metrics.MoCompletenessAtTimeMetric(times=times, hval=h_val, hindex=h_index, cumulative=False),
@@ -248,19 +280,23 @@ def summary_completeness_at_time(times, h_val, h_index=0.33):
 
 
 def summary_completeness_over_h(requiredChances=1, Hindex=0.33):
-    """A simple list of summary metrics to be applied to the Discovery_N_Chances metric.
+    """A simple list of summary metrics to be applied to the
+    Discovery_N_Chances metric.
 
     Parameters
     ----------
-    requiredChances : int, optional
-        Number of discovery opportunities required to consider an object 'discovered'.
-    Hindex : float, optional
-        The index of the power law to integrate H over (for cumulative completeness).
-        Default is 0.33.
+    requiredChances : `int`, optional
+        Number of discovery opportunities required to consider an
+        object 'discovered'.
+    Hindex : `float`, optional
+        The index of the power law to integrate H over
+        (for cumulative completeness).
 
     Returns
     -------
-    List of moving object MoCompleteness metrics (cumulative and differential)
+    summaryMetrics : `list` of `maf.MoCompletenessMetric`
+        List of moving object MoCompleteness metrics
+        (cumulative and differential)
     """
     summaryMetrics = [
         metrics.MoCompletenessMetric(threshold=requiredChances, cumulative=False, hindex=Hindex),
@@ -270,19 +306,25 @@ def summary_completeness_over_h(requiredChances=1, Hindex=0.33):
 
 
 def fraction_population_at_threshold(thresholds, optnames=None):
-    """Creates a list of summary metrics to be applied to any moving object metric
-    which reports a float value, calculating the fraction of the population above X.
+    """Creates a list of summary metrics to be applied to any moving object
+    metric which reports a float value, calculating the fraction of the
+    population above X.
 
     Parameters
     ----------
-    thresholds : list of float
-        The thresholds at which to calculate what fraction of the population exceeds these values.
-    optnames : list of str, optional
-        If provided, these names will be used instead of the threshold values when constructing
-        the metric names. This allows more descriptive summary statistic names.
+    thresholds : `list` of `float`
+        The thresholds at which to calculate what fraction of the population
+        exceeds these values.
+    optnames : `list` of `str`, optional
+        If provided, these names will be used instead of the threshold values
+        when constructing the metric names.
+        This allows more descriptive summary statistic names.
+
     Returns
     -------
-    List of moving object MoCompleteness metrics (differential fractions of the population).
+    fracMetrics : `list` of `maf.MoCompletenessMetric`
+        List of moving object MoCompleteness metrics
+        (differential fractions of the population).
     """
     fracMetrics = []
     for i, threshold in enumerate(thresholds):
@@ -298,6 +340,25 @@ def fraction_population_at_threshold(thresholds, optnames=None):
 
 
 def microlensing_summary(metric_type, npts_required=10, Fisher_sigmatE_tE_cutoff=0.1):
+    """Calculate summary metrics for the microlensing population metrics.
+
+    Parameters
+    -----------
+    metric_type : `str`
+        Identify whether the metric is "Npts" or Fisher"
+    npts_required : `int`, optional
+        Count the fraction of microlensing events with more than npts_required
+        observations
+    Fisher_sigmatE_tE_cutoff : `float`, optional
+        Count the fraction of microlensing events with characterization
+        uncertainty less than this
+
+    Returns
+    -------
+    microlensingSummary : `list` of `maf.BaseMetric`
+        List of appropriate MAF metrics for this type of microlensing
+        metric with the specified threshold values.
+    """
     if metric_type != "Npts" and metric_type != "Fisher":
         raise Exception('metric_type must be "Npts" or "Fisher"')
     if metric_type == "Npts":

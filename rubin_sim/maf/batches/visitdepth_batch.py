@@ -1,4 +1,5 @@
-"""Sets of metrics to look at general sky coverage - nvisits/coadded depth/Teff.
+"""Sets of metrics to look at general sky coverage -
+nvisits/coadded depth/Teff.
 """
 __all__ = ("nvisitsM5Maps", "tEffMetrics", "nvisitsPerNight", "nvisitsPerSubset")
 
@@ -44,7 +45,7 @@ def nvisitsM5Maps(
 
     Returns
     -------
-    metric_bundleDict
+    metric_bundleDict : `dict` of `maf.MetricBundle`
     """
     if colmap is None:
         colmap = col_map_dict()
@@ -214,12 +215,12 @@ def tEffMetrics(
         Additional constraint to add to any sql constraints.
     extraInfoLabel : `str`, optional
         Additional info_label to add before any below (i.e. "WFD").
-    slicer : `rubin_sim.maf.slicer` or None, optional
+    slicer : `rubin_sim.maf.BaseSlicer` or None, optional
         Optionally, use something other than an nside=64 healpix slicer
 
     Returns
     -------
-    metric_bundleDict
+    metric_bundleDict : `dict` of `maf.MetricBundle`
     """
     if colmap is None:
         colmap = col_map_dict()
@@ -340,7 +341,7 @@ def nvisitsPerNight(
 
     Returns
     -------
-    metric_bundleDict
+    metric_bundleDict : `dict` of `maf.MetricBundle`
     """
     if colmap is None:
         colmap = col_map_dict()
@@ -400,7 +401,7 @@ def nvisitsPerSubset(
     colmap : `dict` or None, optional
         A dictionary with a mapping of column names.
     runName : `str`, optional
-        The name of the simulated survey. Default is "opsim".
+        The name of the simulated survey.
     binNights : `int`, optional
         Number of nights to count in each bin.
     constraint : `str` or None, optional

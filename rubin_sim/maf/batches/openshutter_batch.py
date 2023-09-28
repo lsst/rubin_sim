@@ -15,15 +15,18 @@ def openshutterFractions(colmap=None, runName="opsim", extraSql=None, extraInfoL
 
     Parameters
     ----------
-    colmap : dict, optional
-        A dictionary with a mapping of column names. Default will use OpsimV4 column names.
-    runName : str, optional
-        The name of the simulated survey. Default is "opsim".
-    extraSql : str, optional
+    colmap : `dict`, optional
+        A dictionary with a mapping of column names.
+    runName : `str`, optional
+        The name of the simulated survey.
+    extraSql : `str`, optional
         Additional constraint to add to any sql constraints (e.g. 'night<365')
-        Default None, for no additional constraints.
-    extraInfoLabel : str, optional
-        Additional info_label to add before any below (i.e. "WFD").  Default is None.
+    extraInfoLabel : `str`, optional
+        Additional info_label to add before any below (i.e. "WFD").
+
+    Returns
+    -------
+    metric_bundleDict : `dict` of `maf.MetricBundle`
     """
     if colmap is None:
         colmap = col_map_dict()
@@ -55,7 +58,8 @@ def openshutterFractions(colmap=None, runName="opsim", extraSql=None, extraInfoL
     slicer = slicers.UniSlicer()
     bundle = mb.MetricBundle(metric, slicer, extraSql, info_label=subgroup, display_dict=displayDict)
     bundleList.append(bundle)
-    # Count the number of nights total in the survey (start to finish of observations).
+    # Count the number of nights total in the survey
+    # (start to finish of observations).
     displayDict["caption"] = "Number of nights from start to finish of survey, %s." % subgroup.lower()
     metric = metrics.FullRangeMetric(colmap["night"])
     slicer = slicers.UniSlicer()

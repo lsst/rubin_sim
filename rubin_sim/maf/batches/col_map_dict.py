@@ -1,24 +1,4 @@
-__all__ = ("get_col_map", "col_map_dict")
-
-
-def get_col_map(opsdb):
-    """Get the colmap dictionary, if you already have a database object.
-
-    Parameters
-    ----------
-    opsdb : rubin_sim.maf.db.Database or rubin_sim.maf.db.OpsimDatabase
-
-    Returns
-    -------
-    dictionary
-    """
-    try:
-        version = opsdb.opsimVersion
-        version = "opsim" + version.lower()
-    except AttributeError:
-        version = "fbs"
-    colmap = col_map_dict(version)
-    return colmap
+__all__ = ("col_map_dict",)
 
 
 def col_map_dict(dict_name=None):
@@ -217,6 +197,6 @@ def col_map_dict(dict_name=None):
         col_map["metadataAngleList"] = ["rotSkyPos"]
 
     else:
-        raise ValueError(f"No built in column dict with name {dictMap}")
+        raise ValueError(f"No built in column dict with name {dict_name}")
 
     return col_map

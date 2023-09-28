@@ -18,22 +18,34 @@ def ddfBatch(
     extra_info_label=None,
 ):
     """
+    A set of metrics to evaluate DDF fields.
+
     Parameters
     ----------
-    nside : `int` (512)
-        The HEALpix nside to run most of the metrics on. default 512.
-    radius : `float` (2.5)
-        The radius to select around each ddf (degrees). Default 2.5. Note that
-        Going too large will result in more background being selected, which
-        can throw off things like the median number of visits. But going too
-        small risks missing some DDF area on the double Euclid field, or a regular
-        field with large dithers.
-    nside_sne : `int` (128)
-        The HEALpix nside to use with the SNe metric.
-    extra_sql : `str` (None)
-        Additional sql constraint (such as night<=365) to add to the necessary sql constraints below
-    extra_info_label : `str` (None)
+    run_name : `str`, optional
+        The name of the simulation (for plot titles and file outputs).
+    nside : `int`, optional
+        The HEALpix nside to run most of the metrics on.
+    radius : `float`
+        The radius to select around each ddf (degrees).
+        The default value of 2.5 degrees has been chosen to balance
+        selecting a large enough area to ensure gathering all of the double
+        Euclid field or a run with large dithers,
+        while not including too much background area (which can
+        skew metrics of the median number of visits, etc.).
+    nside_sne : `int`, optional
+        The HEALpix nside to use with the SNe metric. The default is lower
+        than the default nside for other metrics, as the SNe metric is
+        more computationally expensive.
+    extra_sql : `str`, optional
+        Additional sql constraint (such as night<=365) to add to the
+        necessary sql constraints for each metric.
+    extra_info_label : `str`, optional
         Additional description information to add (alongside the extra_sql)
+
+    Returns
+    -------
+    metric_bundleDict : `dict` of `maf.MetricBundle`
     """
 
     bundle_list = []
@@ -51,7 +63,7 @@ def ddfBatch(
     }
     del ddfs["EDFS_a"]
     del ddfs["EDFS_b"]
-    # Let's include an arbitrary point that should be in the WFD for comparision
+    # Let's include an arbitrary point that should be in the WFD for comparison
     ddfs["WFD"] = {"ra": 0, "dec": -20.0}
 
     ra, dec = hpid2_ra_dec(nside, np.arange(hp.nside2npix(nside)))
@@ -122,7 +134,8 @@ def ddfBatch(
             daymax_step=3,
             coadd_night=True,
             gamma_name="gamma_DDF.hdf5",
-            metric_name=f"SNNSNMetric {fieldname}",  # have to add here, as must be in reduceDict key
+            # have to add field name here, to avoid reduceDict key collissions
+            metric_name=f"SNNSNMetric {fieldname}",
         )
         bundle_list.append(
             maf.MetricBundle(
@@ -219,7 +232,9 @@ def ddfBatch(
                 )
 
         # Weak lensing visits
-        # XXX-bad magic numbers everywhere
+        # The "magic numbers" here scale the final depth into
+        # approximately consistent visits per year - final depth is
+        # determined by arbitrary definition of 'good sample'
         lim_ebv = 0.2
         offset = 0.1
         mag_cuts = {
@@ -450,8 +465,9 @@ def ddfBatch(
         )
 
         # Now to compute some things at just the center of the DDF
-        # For these metrics, add a requirement that the 'note' label match the DDF,
-        # to avoid WFD visits skewing the results (we want to exclude these)
+        # For these metrics, add a requirement that the 'note' label
+        # match the DDF, to avoid WFD visits skewing the results
+        # (we want to exclude non-DD visits),
         ptslicer = maf.UserPointsSlicer(np.mean(ddfs[ddf]["ra"]), np.mean(ddfs[ddf]["dec"]))
 
         displayDict["group"] = "Cadence"
@@ -563,7 +579,8 @@ def ddfBatch(
 
         # Histogram of the season lengths, all filters
         def rfunc(simdata):
-            # Sometimes number of seasons is 10, sometimes 11 (depending on where survey starts/end)
+            # Sometimes number of seasons is 10, sometimes 11
+            # (depending on where survey starts/end)
             # so normalize it so there's always 11 values
             if len(simdata) < 11:
                 simdata = np.concatenate([simdata, np.array([0], float)])

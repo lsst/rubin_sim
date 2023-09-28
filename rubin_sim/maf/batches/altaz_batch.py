@@ -32,26 +32,26 @@ def altazHealpix(
     extraInfoLabel=None,
     metric_name="NVisits Alt/Az",
 ):
-    """Generate a set of metrics measuring the number visits as a function of alt/az
-    plotted on a HealpixSkyMap.
+    """
+    Generate a set of metrics measuring the number visits as a function
+    of alt/az plotted on a HealpixSkyMap.
 
     Parameters
     ----------
-    colmap : dict, optional
-        A dictionary with a mapping of column names. Default will use OpsimV4 column names.
-    run_name : str, optional
-        The name of the simulated survey. Default is "opsim".
-    extraSql : str, optional
-        Additional constraint to add to any sql constraints (e.g. 'propId=1' or 'fieldID=522').
-        Default None, for no additional constraints.
-    extraInfoLabel : str, optional
-        Additional info_label to add before any below (i.e. "WFD").  Default is None.
-    metric_name : str, optional
+    colmap : `dict`, optional
+        A dictionary with a mapping of column names.
+    run_name : `str`, optional
+        The name of the simulated survey.
+    extraSql : `str`, optional
+        Additional constraint to add to any sql constraints.
+    extraInfoLabel : `str`, optional
+        Additional info_label to add before any below (i.e. "WFD").
+    metric_name : `str`, optional
         Unique name to assign to metric
 
     Returns
     -------
-    metric_bundleDict
+    metric_bundleDict : `dict` of {`str`: `maf.MetricBundle`}
     """
 
     colmap, slicer, metric = basicSetup(metric_name=metric_name, colmap=colmap)
@@ -101,26 +101,26 @@ def altazLambert(
     extraInfoLabel=None,
     metric_name="Nvisits as function of Alt/Az",
 ):
-    """Generate a set of metrics measuring the number visits as a function of alt/az
-    plotted on a LambertSkyMap.
+    """
+    Generate a set of metrics measuring the number visits as a
+    function of alt/az plotted on a LambertSkyMap.
 
     Parameters
     ----------
-    colmap : dict, optional
-        A dictionary with a mapping of column names. Default will use OpsimV4 column names.
-    runName : str, optional
-        The name of the simulated survey. Default is "opsim".
-    extraSql : str, optional
-        Additional constraint to add to any sql constraints (e.g. 'propId=1' or 'fieldID=522').
-        Default None, for no additional constraints.
-    extraInfoLabel : str, optional
-        Additional info_label to add before any below (i.e. "WFD").  Default is None.
-    metric_name : str, optional
+    colmap : `dict`, optional
+        A dictionary with a mapping of column names.
+    runName : `str`, optional
+        The name of the simulated survey.
+    extraSql : `str`, optional
+        Additional constraint to add to any sql constraints.
+    extraInfoLabel : `str`, optional
+        Additional info_label to add before any below (i.e. "WFD").
+    metric_name : `str`, optional
         Unique name to assign to metric
 
     Returns
     -------
-    metric_bundleDict
+    metric_bundleDict : `dict` of {`str`: `maf.MetricBundle`}
     """
 
     colmap, slicer, metric = basicSetup(metric_name=metric_name, colmap=colmap)
