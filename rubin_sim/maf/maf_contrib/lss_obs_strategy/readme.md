@@ -15,7 +15,7 @@ Options 1-4 were implemented for both [Awan+2016](https://arxiv.org/abs/1605.005
 
 ----
 Helper modules include
-- `newDitherStackers.py` which contains the dither stackers (only those that are not already incorporated in [sims_maf](https://github.com/lsst/sims_maf/blob/master/python/lsst/sims/maf/stackers/ditherStackers.py).
+- `newDitherStackers.py` which contains the dither stackers (only those that are not already incorporated in [sims_maf](https://github.com/lsst/sims_maf/blob/master/python/lsst/sims/maf/stackers/ditherStackers.py). DEPRECATED.
 - `plotBundleMaps.py` which contains the function for plotting skymaps, power spectra, and cartview plots.
-- `saveBundleData_npzFormat.py` which contains the function for saving data as npz files.
+- `saveBundleData_npzFormat.py` which contains the function for saving data as npz files. DEPRECATED.
 - `constantsForPipeline.py` which contains variables used in the code, including plot colors and power law constants for the galaxy luminosity functions for different redshift bins (based on mock catalogs from Padilla+).

@@ -67,7 +67,6 @@ from rubin_sim.maf.maf_contrib.lss_obs_strategy.galaxy_counts_with_pixel_calibra
 from rubin_sim.maf.maf_contrib.lss_obs_strategy.masking_algorithm_generalized import (
     masking_algorithm_generalized,
 )
-from rubin_sim.maf.maf_contrib.lss_obs_strategy.save_bundle_data_npz_format import save_bundle_data_npz_format
 from rubin_sim.maf.metrics import CountMetric as NumObsMetric
 
 
@@ -534,19 +533,8 @@ def artificial_structure_calculation(
         save_early=False,
     )
     b_group.run_all()
-    # ------------------------------------------------------------------------
+    b_group.write_all()
 
-    # save the raw num_gal data.
-    if save_raw_num_gal_data:
-        out_dir_new = "numGalData_beforeMasking_before0pt"
-        if not os.path.exists("%s%s/%s" % (path, out_dir, out_dir_new)):
-            os.makedirs("%s%s/%s" % (path, out_dir, out_dir_new))
-        save_bundle_data_npz_format(
-            "%s%s/%s" % (path, out_dir, out_dir_new),
-            my_bundles,
-            "numGalData_unmasked_no0pt",
-            filter_band,
-        )
     # ------------------------------------------------------------------------
     # print out tot(num_gal) associated with each strategy
     # write to the readme as well
@@ -591,14 +579,9 @@ def artificial_structure_calculation(
     # save the num_gal data.
     if save_num_gal_data_after_masking:
         out_dir_new = "numGalData_afterBorderMasking"
-        if not os.path.exists("%s%s/%s" % (path, out_dir, out_dir_new)):
-            os.makedirs("%s%s/%s" % (path, out_dir, out_dir_new))
-        save_bundle_data_npz_format(
-            "%s%s/%s" % (path, out_dir, out_dir_new),
-            my_bundles,
-            "numGalData_masked",
-            filter_band,
-        )
+        for b in my_bundles:
+            my_bundles[b].write(out_dir=out_dir_new)
+
     # ------------------------------------------------------------------------
     # print out tot(num_gal) associated with each strategy
     # write to the readme as well
@@ -972,14 +955,9 @@ def artificial_structure_calculation(
         # save the raw num_gal data.
         if save_num_gal_data_after0pt:
             out_dir_new = "numGalData_afterBorderMasking_after0pt"
-            if not os.path.exists("%s%s/%s" % (path, out_dir, out_dir_new)):
-                os.makedirs("%s%s/%s" % (path, out_dir, out_dir_new))
-            save_bundle_data_npz_format(
-                "%s%s/%s" % (path, out_dir, out_dir_new),
-                my_bundles,
-                "numGalData_masked_with0pt",
-                filter_band,
-            )
+            for b in my_bundles:
+                my_bundles[b].write(out_dir=out_dir_new)
+
         # ------------------------------------------------------------------------
         # print out tot(num_gal) associated with each strategy
         # add to the read me as well
@@ -1020,14 +998,9 @@ def artificial_structure_calculation(
         # save the num_gal data.
         if saveNumGalDataAfterPoisson:
             out_dir_new = "numGalData_afterBorderMasking_after0pt_afterPoisson"
-            if not os.path.exists("%s%s/%s" % (path, out_dir, out_dir_new)):
-                os.makedirs("%s%s/%s" % (path, out_dir, out_dir_new))
-            save_bundle_data_npz_format(
-                "%s%s/%s" % (path, out_dir, out_dir_new),
-                my_bundles,
-                "numGalData_masked_with0pt_withPoisson",
-                filter_band,
-            )
+            for b in my_bundles:
+                my_bundles[b].write(out_dir=out_dir_new)
+
         # ------------------------------------------------------------------------
         # print out tot(num_gal) associated with each strategy
         # add to the read me as well
@@ -1089,14 +1062,9 @@ def artificial_structure_calculation(
     # save the deltaN/N data
     if save_delta_n_by_n_data:
         out_dir_new = "deltaNByNData"
-        if not os.path.exists("%s%s/%s" % (path, out_dir, out_dir_new)):
-            os.makedirs("%s%s/%s" % (path, out_dir, out_dir_new))
-        save_bundle_data_npz_format(
-            "%s%s/%s" % (path, out_dir, out_dir_new),
-            my_bundles,
-            "deltaNByNData_masked",
-            filter_band,
-        )
+        for b in my_bundles:
+            my_bundles[b].write(out_dir=out_dir_new)
+
     # ------------------------------------------------------------------------
     # Calculate total power
     # add to the read me as well

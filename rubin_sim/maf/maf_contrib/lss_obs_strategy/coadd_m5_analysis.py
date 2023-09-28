@@ -28,7 +28,6 @@ from rubin_sim.maf.maf_contrib.lss_obs_strategy.constants_for_pipeline import pl
 from rubin_sim.maf.maf_contrib.lss_obs_strategy.masking_algorithm_generalized import (
     masking_algorithm_generalized,
 )
-from rubin_sim.maf.maf_contrib.lss_obs_strategy.save_bundle_data_npz_format import save_bundle_data_npz_format
 
 
 def coadd_m5_analysis(
@@ -468,14 +467,8 @@ def coadd_m5_analysis(
     # save the unmasked data?
     if saveun_masked_coadd_data:
         out_dir_new = "unmaskedCoaddData"
-        if not os.path.exists("%s%s/%s" % (path, out_dir, out_dir_new)):
-            os.makedirs("%s%s/%s" % (path, out_dir, out_dir_new))
-        save_bundle_data_npz_format(
-            "%s%s/%s" % (path, out_dir, out_dir_new),
-            coadd_bundle,
-            "coaddM5Data_unmasked",
-            filter_band,
-        )
+        for b in coadd_bundle:
+            coadd_bundle[b].write(out_dir=out_dir_new)
 
     # ------------------------------------------------------------------------
     # mask the edges
@@ -518,14 +511,8 @@ def coadd_m5_analysis(
     # save the masked data?
     if save_masked_coadd_data and (pixel_radius_for_masking > 0):
         out_dir_new = "maskedCoaddData"
-        if not os.path.exists("%s%s/%s" % (path, out_dir, out_dir_new)):
-            os.makedirs("%s%s/%s" % (path, out_dir, out_dir_new))
-        save_bundle_data_npz_format(
-            "%s%s/%s" % (path, out_dir, out_dir_new),
-            coadd_bundle,
-            "coaddM5Data_masked",
-            filter_band,
-        )
+        for b in coadd_bundle:
+            coadd_bundle[b].write(out_dir=out_dir_new)
 
     # ------------------------------------------------------------------------
     # plot comparison plots
