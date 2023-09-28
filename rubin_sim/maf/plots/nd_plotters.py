@@ -198,10 +198,10 @@ class OneDSubsetData(BasePlotter):
         xlabel = plot_dict["xlabel"]
         if xlabel is None:
             xlabel = slicer.sliceColName[axis]
-            if plot_dict["units"] != None:
+            if plot_dict["units"] is not None:
                 xlabel += " (" + plot_dict["units"] + ")"
         plt.xlabel(xlabel)
-        if plot_dict["histRange"] != None:
+        if plot_dict["histRange"] is not None:
             plt.xlim(plot_dict["histRange"])
         plt.title(plot_dict["title"])
         return fig.number

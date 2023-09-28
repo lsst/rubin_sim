@@ -9,10 +9,6 @@ __all__ = ("CalcExpectedVisitsMetric",)
 
 import numpy as np
 
-import rubin_sim.maf.db as db
-import rubin_sim.maf.metricBundles as metricBundles
-import rubin_sim.maf.metrics as metrics
-import rubin_sim.maf.slicers as slicers
 from rubin_sim.maf.metrics import BaseMetric
 
 from .calculate_lsst_field_visibility_astropy import calculate_lsst_field_visibility

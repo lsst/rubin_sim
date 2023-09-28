@@ -11,25 +11,25 @@ from rubin_sim.maf.utils import m52snr
 
 from .periodic_star_metric import PeriodicStar
 
-""" This metric is based on the PeriodicStar metric 
+""" This metric is based on the PeriodicStar metric
     It was modified in a way to reproduce attempts to identify period/ phase modulation (Blazhko effect)
-    in RR Lyrae stars.    
-    We are not implementing a period/ phase modulation in the light curve, but rather use short baselines 
-    (e.g.: 20 days) of observations to test how well we can recover the period, phase and amplitude. We 
-    do this as such an attempt is also useful for other purposes, i.e. if we want to test whether we 
-    can just recover period, phase and amplitude from short baselines at all, without necessarily having 
+    in RR Lyrae stars.
+    We are not implementing a period/ phase modulation in the light curve, but rather use short baselines
+    (e.g.: 20 days) of observations to test how well we can recover the period, phase and amplitude. We
+    do this as such an attempt is also useful for other purposes, i.e. if we want to test whether we
+    can just recover period, phase and amplitude from short baselines at all, without necessarily having
     in mind to look for period/ phase modulations.
-    Like in the PeriodicStar metric, the light curve of an RR Lyrae star, or a periodic star in general, 
-    is approximated as a simple sin wave. Other solutions might make use of light curve templates to 
+    Like in the PeriodicStar metric, the light curve of an RR Lyrae star, or a periodic star in general,
+    is approximated as a simple sin wave. Other solutions might make use of light curve templates to
     generate light curves.
     Two other modifications we introduced for the PeriodicStarModulationMetric are:
-    In contrast to the PeriodicStar metric, we allow for a random phase offset to mimic observation 
+    In contrast to the PeriodicStar metric, we allow for a random phase offset to mimic observation
     starting at random phase.
-    Also, we vary the periods and amplitudes within +/- 10 % to allow for a more realistic 
+    Also, we vary the periods and amplitudes within +/- 10 % to allow for a more realistic
     sample of variable stars.
-    
+
     This metric is based on the cadence note:
-    N. Hernitschek, K. Stassun, LSST Cadence Note: Cadence impacts on reliable classification 
+    N. Hernitschek, K. Stassun, LSST Cadence Note: Cadence impacts on reliable classification
     of standard-candle variable stars (2021) https://docushare.lsst.org/docushare/dsweb/Get/Document-37673
 """
 

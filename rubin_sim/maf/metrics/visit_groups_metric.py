@@ -289,13 +289,11 @@ class VisitGroupsMetric(BaseMetric):
         )
         max_sequence = 0
         cur_sequence = 0
-        in_seq = False
         for l in lunations:
             # Find visits within lunation.
             vl, nl = self._in_lunation(metricval["visits"], metricval["nights"], l, lunation_length)
             # If no visits this lunation:
             if len(vl) == 0:
-                in_seq = False
                 max_sequence = max(max_sequence, cur_sequence)
                 cur_sequence = 0
             # Else, look to see if groups can be made from the visits.
@@ -305,11 +303,9 @@ class VisitGroupsMetric(BaseMetric):
                 # If there was a group within this lunation:
                 if len(nw) >= self.min_n_nights:
                     cur_sequence += 1
-                    in_seq = True
                     break
                 # Otherwise we're not in a sequence (anymore, or still).
                 else:
-                    in_seq = False
                     max_sequence = max(max_sequence, cur_sequence)
                     cur_sequence = 0
         # Pick up last sequence if were in a sequence at last lunation.

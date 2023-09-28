@@ -3,7 +3,6 @@ __all__ = ("HealpixComCamSlicer",)
 import warnings
 from functools import wraps
 
-import healpy as hp
 import matplotlib.path as mplPath
 import numpy as np
 

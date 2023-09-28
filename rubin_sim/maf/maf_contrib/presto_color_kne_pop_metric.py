@@ -5,7 +5,6 @@ import pickle
 import warnings
 from itertools import combinations
 
-import healpy as hp
 import numpy as np
 import pandas as pd
 
@@ -101,7 +100,7 @@ def generate_presto_pop_slicer(
     """
 
     def rndm(a, b, g, size=1):
-        """Power-law gen for pdf(x)\propto x^{g-1} for a<=x<=b"""
+        r"""Power-law gen for pdf(x)\propto x^{g-1} for a<=x<=b"""
         r = np.random.random(size=size)
         ag, bg = a**g, b**g
         return (ag + (bg - ag) * r) ** (1.0 / g)
@@ -261,8 +260,8 @@ class PrestoColorKNePopMetric(metrics.BaseMetric):
 
         ind1 = info_dict["BandPairs"].index(band1 + band2)
 
-        d_t1grid = info_dict["dT1s"][abs(d_t1 - info_dict["dT1s"]).argmin()]
-        d_t2grid = info_dict["dT2s"][abs(d_t2 - info_dict["dT2s"]).argmin()]
+        info_dict["dT1s"][abs(d_t1 - info_dict["dT1s"]).argmin()]
+        info_dict["dT2s"][abs(d_t2 - info_dict["dT2s"]).argmin()]
         time_pair_grid = [
             info_dict["dT1s"][abs(d_t1 - info_dict["dT1s"]).argmin()],
             info_dict["dT2s"][abs(d_t2 - info_dict["dT2s"]).argmin()],
@@ -433,7 +432,7 @@ class PrestoColorKNePopMetric(metrics.BaseMetric):
             fil = []
             # Check time gaps and rise or fade rate for each band
             for f in set(filters):
-                if select_red is True and not (f in "izy"):
+                if select_red is True and f not in "izy":
                     continue
                 times_f = t[around_peak][np.where(filters == f)[0]]
                 mags_f = mags[around_peak][np.where(filters == f)[0]]

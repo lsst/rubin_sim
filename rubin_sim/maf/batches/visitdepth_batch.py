@@ -13,7 +13,7 @@ import rubin_sim.maf.slicers as slicers
 import rubin_sim.maf.stackers as stackers
 import rubin_sim.maf.utils as mafUtils
 
-from .col_map_dict import col_map_dict, get_col_map
+from .col_map_dict import col_map_dict
 from .common import filter_list, standard_summary
 
 
@@ -419,7 +419,7 @@ def nvisitsPerSubset(
     metric_bundleDict : `dict` of `rubin_sim.maf.MetricBundle`
     """
     if colmap is None:
-        colmap = get_col_map("FBS")
+        colmap = col_map_dict()
 
     bdict = {}
     bundleList = []

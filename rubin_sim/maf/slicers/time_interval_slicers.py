@@ -8,7 +8,7 @@ __all__ = (
     "TimeIntervalSlicer",
     "BlockIntervalSlicer",
     "VisitIntervalSlicer",
-    "SlicerNotSetup",
+    "SlicerNotSetupError",
 )
 
 from collections import defaultdict
@@ -22,7 +22,7 @@ import pandas as pd
 from .base_slicer import BaseSlicer
 
 
-class SlicerNotSetup(Exception):
+class SlicerNotSetupError(Exception):
     """Thrown when a slicer is not setup for the method called."""
 
 
@@ -120,7 +120,7 @@ class TimeIntervalSlicer(BaseSlicer):
         return True
 
     def _slice_sim_data(self, *args, **kwargs):
-        raise SlicerNotSetup()
+        raise SlicerNotSetupError()
 
 
 class BlockIntervalSlicer(TimeIntervalSlicer):

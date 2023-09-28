@@ -11,14 +11,13 @@
 __all__ = ("TransientAsciiSEDMetric",)
 
 import os
-import warnings
 from copy import deepcopy
 
 import numpy as np
 
 try:
     from sncosmo import Model, TimeSeriesSource, read_griddata_ascii
-except ImportError as error:
+except ImportError:
     pass
 from astropy.cosmology import Planck15 as cosmo
 
@@ -320,7 +319,7 @@ class TransientAsciiSEDMetric(BaseMetric):
 
         # Find the unique number of light curves that passed the required
         # number of conditions
-        self.num_detected += len(np.where(self.transient_detected == True)[0])
+        self.num_detected += len(np.where(self.transient_detected is True)[0])
 
     def evaluate_pre_time_detection_criteria(self, t_id):
         """

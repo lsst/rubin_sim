@@ -242,9 +242,9 @@ class KNePopMetric(BaseMetric):
             fil = []
             # Check time gaps and rise or fade rate for each band
             for f in set(filters):
-                if select_red is True and not (f in "izy"):
+                if select_red is True and f not in "izy":
                     continue
-                elif select_blue is True and not (f in "ugr"):
+                elif select_blue is True and f not in "ugr":
                     continue
                 times_f = t[around_peak][np.where(filters == f)[0]]
                 mags_f = mags[around_peak][np.where(filters == f)[0]]
@@ -446,7 +446,7 @@ def generate_kn_pop_slicer(
     """
 
     def rndm(a, b, g, size=1):
-        """Power-law gen for pdf(x)\propto x^{g-1} for a<=x<=b"""
+        r"""Power-law gen for pdf(x)\propto x^{g-1} for a<=x<=b"""
         r = np.random.random(size=size)
         ag, bg = a**g, b**g
         return (ag + (bg - ag) * r) ** (1.0 / g)

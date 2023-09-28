@@ -1,8 +1,9 @@
 # The base class for all spatial slicers.
 # Slicers are 'data slicers' at heart; spatial slicers slice data by RA/Dec and
-#  return the relevant indices in the sim_data to the metric.
-# The primary things added here are the methods to slice the data (for any spatial slicer)
-#  as this uses a KD-tree built on spatial (RA/Dec type) indexes.
+# return the relevant indices in the sim_data to the metric.
+# The primary things added here are the methods to slice the data
+# (for any spatial slicer) as this uses a KD-tree built on spatial
+# (RA/Dec type) indexes.
 
 __all__ = ("BaseSpatialSlicer",)
 
@@ -27,39 +28,37 @@ def rotate(x, y, rotation_angle_rad):
 
 
 class BaseSpatialSlicer(BaseSlicer):
-    """Base spatial slicer object, contains additional functionality for spatial slicing,
-    including setting up and traversing a kdtree containing the simulated data points.
+    """Base spatial slicer object, contains additional functionality
+    for spatial slicing, including setting up and traversing a kdtree
+    containing the simulated data points.
 
     Parameters
     ----------
     lon_col : `str`, optional
-        Name of the longitude (RA equivalent) column to use from the input data.
-        Default fieldRA
+        Name of the longitude (RA equivalent) column.
     lat_col : `str`, optional
-        Name of the latitude (Dec equivalent) column to use from the input data.
-        Default fieldDec
+        Name of the latitude (Dec equivalent) column.
     rot_sky_pos_col_name : `str`, optional
-        Name of the rotSkyPos column in the input  data. Only used if use_camera is True.
-        Describes the orientation of the camera orientation compared to the sky.
-        Default rotSkyPos.
+        Name of the rotSkyPos column in the input  data.
+        Only used if use_camera is True.
+        Describes the orientation of the camera orientation on the the sky.
     lat_lon_deg : `bool`, optional
-        Flag indicating whether lat and lon values from input data are in degrees (True) or radians (False).
-        Default True.
+        Flag indicating whether lat and lon values from input data are
+        in degrees (True) or radians (False).
     verbose : `bool`, optional
-        Flag to indicate whether or not to write additional information to stdout during runtime.
-        Default True.
+        Verbosity flag - noisy or quiet.
     badval : `float`, optional
-        Bad value flag, relevant for plotting. Default -666.
+        Bad value flag, relevant for plotting.
     leafsize : `int`, optional
-        Leafsize value for kdtree. Default 100.
+        Leafsize value for kdtree.
     radius : `float`, optional
-        Radius for matching in the kdtree. Equivalent to the radius of the FOV. Degrees.
-        Default 1.75.
+        Radius for matching in the kdtree.
+         Equivalent to the radius of the FOV, in degrees.
     use_camera : `bool`, optional
         Flag to indicate whether to use the LSST camera footprint or not.
-        Default True.
     camera_footprint_file : `str`, optional
-        Name of the camera footprint map to use. Can be None, which will use the default.
+        Name of the camera footprint map to use.
+        Can be None, which will use the default file.
     """
 
     def __init__(
@@ -92,7 +91,8 @@ class BaseSpatialSlicer(BaseSlicer):
             "badval": self.badval,
             "use_camera": self.use_camera,
         }
-        # RA and Dec are required slice_point info for any spatial slicer. slice_point RA/Dec are in radians.
+        # RA and Dec are required slice_point info for any spatial slicer.
+        # slice_point RA/Dec are in radians.
         self.slice_points["sid"] = None
         self.slice_points["ra"] = None
         self.slice_points["dec"] = None
@@ -101,16 +101,17 @@ class BaseSpatialSlicer(BaseSlicer):
         self.plot_funcs = [BaseHistogram, BaseSkyMap]
 
     def setup_slicer(self, sim_data, maps=None):
-        """Use sim_data[self.lon_col] and sim_data[self.lat_col] (in radians) to set up KDTree.
+        """Use sim_data[self.lon_col] and sim_data[self.lat_col]
+        (in radians) to set up KDTree.
 
         Parameters
         -----------
         sim_data : `numpy.ndarray`
             The simulated data, including the location of each pointing.
         maps : `list` of `rubin_sim.maf.maps` objects, optional
-            List of maps (such as dust extinction) that will run to build up additional metadata at each
-            slice_point. This additional metadata is available to metrics via the slice_point dictionary.
-            Default None.
+            List of maps (such as dust extinction) that will run to build up
+            additional data at each slice_point. This additional data
+            is available to metrics via the slice_point dictionary.
         """
         if maps is not None:
             if self.cache_size != 0 and len(maps) > 0:
@@ -136,7 +137,8 @@ class BaseSpatialSlicer(BaseSlicer):
         @wraps(self._slice_sim_data)
         def _slice_sim_data(islice):
             """Return indexes for relevant opsim data at slice_point
-            (slice_point=lon_col/lat_col value .. usually ra/dec)."""
+            (slice_point=lon_col/lat_col value .. usually ra/dec).
+            """
 
             # Build dict for slice_point info
             slice_point = {"sid": islice}
@@ -147,7 +149,8 @@ class BaseSpatialSlicer(BaseSlicer):
             indices = self.opsimtree.query_ball_point((sx, sy, sz), self.rad)
 
             if (self.use_camera) & (len(indices) > 0):
-                # Find the indices *of those indices* which fall in the camera footprint
+                # Find the indices *of those indices*
+                # which fall in the camera footprint
                 camera_idx = self.camera(
                     self.slice_points["ra"][islice],
                     self.slice_points["dec"][islice],
@@ -157,10 +160,12 @@ class BaseSpatialSlicer(BaseSlicer):
                 )
                 indices = np.array(indices)[camera_idx]
 
-            # Loop through all the slice_point keys. If the first dimension of slice_point[key] has
-            # the same shape as the slicer, assume it is information per slice_point.
-            # Otherwise, pass the whole slice_point[key] information. Useful for stellar LF maps
-            # where we want to pass only the relevant LF and the bins that go with it.
+            # Loop through all the slice_point keys.
+            # If the first dimension of slice_point[key] has the same shape
+            # as the slicer, assume it is information per slice_point.
+            # Otherwise, pass the whole slice_point[key] information.
+            # Useful for stellar LF maps where we want to pass only the
+            # relevant LF and the bins that go with it.
             for key in self.slice_points:
                 if len(np.shape(self.slice_points[key])) == 0:
                     keyShape = 0
@@ -175,18 +180,19 @@ class BaseSpatialSlicer(BaseSlicer):
         setattr(self, "_slice_sim_data", _slice_sim_data)
 
     def _setupLSSTCamera(self):
-        """If we want to include the camera chip gaps, etc"""
+        """If we want to include the camera chip gaps, etc."""
         self.camera = simsUtils.LsstCameraFootprint(
             units="radians", footprint_file=self.camera_footprint_file
         )
 
     def _build_tree(self, sim_dataRa, sim_dataDec, leafsize=100):
-        """Build KD tree on sim_dataRA/Dec using utility function from mafUtils.
+        """Build KD tree on sim_dataRA/Dec.
 
         sim_dataRA, sim_dataDec = RA and Dec values (in radians).
-        leafsize = the number of Ra/Dec pointings in each leaf node."""
+        leafsize = the number of Ra/Dec pointings in each leaf node.
+        """
         self.opsimtree = simsUtils._build_tree(sim_dataRa, sim_dataDec, leafsize)
 
     def _set_rad(self, radius=1.75):
-        """Set radius (in degrees) for kdtree search using utility function from mafUtils."""
+        """Set radius (in degrees) for kdtree search."""
         self.rad = simsUtils.xyz_angular_radius(radius)

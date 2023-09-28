@@ -323,7 +323,7 @@ class MicrolensingMetric(metrics.BaseMetric):
         )
 
     def run(self, data_slice, slice_point=None):
-        if self.detect == True and self.time_before_peak > 0:
+        if self.detect is True and self.time_before_peak > 0:
             raise Exception("When detect = True, time_before_peak must be zero")
 
         # Generate the lightcurve for this object
@@ -334,7 +334,7 @@ class MicrolensingMetric(metrics.BaseMetric):
         # Try for if a blending factor slice was added if not default to no blending factor
         try:
             try:
-                test = slice_point["apparent_m_no_blend_u"]
+                slice_point["apparent_m_no_blend_u"]
                 amplitudes = np.zeros(len(t))
                 individual_mags = True
             except KeyError:
@@ -366,7 +366,7 @@ class MicrolensingMetric(metrics.BaseMetric):
         for filtername in filters:
             infilt = np.where(data_slice[self.filter_col] == filtername)[0]
 
-            if individual_mags == True:
+            if individual_mags is True:
                 fs = slice_point["apparent_m_no_blend_{}".format(filtername)]
                 fb = slice_point["apparent_m_{}".format(filtername)] - fs
                 amplitudes = microlensing_amplification_fsfb(
@@ -452,7 +452,7 @@ class MicrolensingMetric(metrics.BaseMetric):
                 n_post.append(len(outfilt))
 
             elif self.metric_calc == "Fisher":
-                if individual_mags == True:
+                if individual_mags is True:
                     fs = slice_point["apparent_m_no_blend_{}".format(filtername)]
                     fb = slice_point["apparent_m_{}".format(filtername)] - fs
                 else:
@@ -481,19 +481,17 @@ class MicrolensingMetric(metrics.BaseMetric):
                 try:
                     cov = np.linalg.inv(fis_mat)
                     sigmat_e_t_e = cov[0, 0] ** 0.5 / slice_point["crossing_time"]
-                    sigmau0_u0 = cov[1, 1] ** 0.5 / slice_point["impact_parameter"]
-                    corr_btwn_t_eu0 = cov[0, 1] / (
+                    cov[1, 1] ** 0.5 / slice_point["impact_parameter"]
+                    cov[0, 1] / (
                         slice_point["crossing_time"] * slice_point["impact_parameter"]
                     )
                 except:
                     sigmat_e_t_e = np.inf
-                    sigmau0_u0 = np.inf
-                    corr_btwn_t_eu0 = np.inf
 
         npts = np.sum(n_pre)
         npts_post = np.sum(n_post)
         if self.metric_calc == "detect":
-            if self.detect == True:
+            if self.detect is True:
                 if npts >= self.pts_needed and npts_post >= self.pts_needed:
                     return 1
                 else:

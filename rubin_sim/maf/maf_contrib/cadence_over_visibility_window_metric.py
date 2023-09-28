@@ -2,14 +2,11 @@ from sys import argv
 
 # from astropy.visualization import astropy_mpl_style
 # plt.style.use(astropy_mpl_style)
-import astropy.units as u
-import matplotlib.pylab as plt
 import numpy as np
 from astropy.time import Time, TimeDelta
 
 import rubin_sim.maf.db as db
 import rubin_sim.maf.metricBundles as metricBundles
-import rubin_sim.maf.metrics as metrics
 import rubin_sim.maf.slicers as slicers
 from rubin_sim.maf.metrics import BaseMetric
 

@@ -115,7 +115,7 @@ class SNSNRMetric(metrics.BaseMetric):
         detection rate : float
 
         """
-        time_ref = time.time()
+        time.time()
         good_filters = np.in1d(data_slice["filter"], self.filter_names)
         data_slice = data_slice[good_filters]
         if data_slice.size == 0:
@@ -176,7 +176,7 @@ class SNSNRMetric(metrics.BaseMetric):
         """
 
         self.band = np.unique(sel[self.filter_col])[0]
-        time_ref = time.time()
+        time.time()
         snr_obs = self.snr_slice(sel)  # SNR for observations
         snr_fakes = self.snr_fakes(sel)  # SNR for fakes
         detect_frac = self.detection_rate(snr_obs, snr_fakes)  # Detection rate
@@ -354,7 +354,7 @@ class SNSNRMetric(metrics.BaseMetric):
             season (float) : season num.
         """
 
-        seasons = np.ma.array(season_vals, mask=~flag)
+        np.ma.array(season_vals, mask=~flag)
 
         fluxes_tot = {}
         snr_tab = None
@@ -374,7 +374,7 @@ class SNSNRMetric(metrics.BaseMetric):
                 snr_tab = np.asarray(np.copy(snr_season), dtype=[("SNR_" + name, "f8")])
             else:
                 snr_tab = rf.append_fields(snr_tab, "SNR_" + name, np.copy(snr_season))
-            """    
+            """
             snr_tab = rf.append_fields(
                 snr_tab, 'season', np.mean(seasons, axis=1))
             """
@@ -479,7 +479,7 @@ class SNSNRMetric(metrics.BaseMetric):
         for val in self.info_season:
             cadence = val["cadence"]
             mjd_min = val["MJD_min"]
-            mjd_max = val["MJD_max"]
+            val["MJD_max"]
             season_length = val["season_length"]
             nvisits = val["nvisits"]
             m5 = val["m5"]
@@ -554,7 +554,6 @@ class SNSNRMetric(metrics.BaseMetric):
             date of the display (mjd)
         """
 
-        dir_save = "/home/philippe/LSST/sn_metric_new/Plots"
         import pylab as plt
 
         plt.ion()
@@ -563,7 +562,6 @@ class SNSNRMetric(metrics.BaseMetric):
 
         colors = ["b", "r"]
         myls = ["-", "--"]
-        mfc = ["b", "None"]
         tot_label = []
         fontsize = 12
         mjd_ma = np.ma.array(mjd, mask=~flag)

@@ -1,6 +1,5 @@
 import glob
 import os
-import warnings
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -196,7 +195,6 @@ def plot_fom(results, run_names, run_types, min_t_e, max_t_e, save_folder, figur
     fisher_runs_idx = np.where(run_types == "Fisher")
     run_type_list = [detect_runs_idx, npts_runs_idx, fisher_runs_idx]
 
-    type_run_names = ["Discovery", "Npts", "Fisher"]
 
     for t_e_range in range(len(t_e_range_list)):
         for run_type in range(len(run_type_list)):
@@ -226,7 +224,7 @@ def plot_fom(results, run_names, run_types, min_t_e, max_t_e, save_folder, figur
     ax2.set_xlabel("Avg Number of Points")
 
     ax2.set_xscale("log")
-    ax3.set_xlabel("Characaterization Efficiency \n ($\sigma_{t_E}/t_E$ < 0.1)")
+    ax3.set_xlabel("Characaterization Efficiency \n ($\\sigma_{t_E}/t_E$ < 0.1)")
     plt.savefig(save_folder + "/" + figure_name + ".png", bbox_inches="tight")
 
     return
@@ -274,11 +272,9 @@ def plot_compare(results, run_names, run_types, min_t_e, max_t_e, save_folder, n
     detect_runs_idx = np.where(run_types == "detect")
     npts_runs_idx = np.where(run_types == "Npts")
     fisher_runs_idx = np.where(run_types == "Fisher")
-    run_type_list = [detect_runs_idx, npts_runs_idx, fisher_runs_idx]
 
     run_name_list = np.unique(run_names)
 
-    type_run_names = ["Discovery", "Npts", "Fisher"]
 
     for t_e_range in range(len(t_e_range_list)):
         for run_name in run_name_list:

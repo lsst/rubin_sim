@@ -187,7 +187,7 @@ class ValueAtHMetric(BaseMoMetric):
 
     def __init__(self, h_mark=22, **kwargs):
         metric_name = "Value At H=%.1f" % (h_mark)
-        units = "<= %.1f" % (h_mark)
+        "<= %.1f" % (h_mark)
         super().__init__(metric_name=metric_name, **kwargs)
         self.h_mark = h_mark
 

@@ -316,7 +316,7 @@ class HealpixPowerSpectrum(BasePlotter):
 
         fig = plt.figure(fignum, figsize=plot_dict["figsize"])
         if plot_dict["subplot"] != "111":
-            ax = fig.add_subplot(plot_dict["subplot"])
+            fig.add_subplot(plot_dict["subplot"])
         # If the mask is True everywhere (no data), just plot zeros
         if False not in metric_value.mask:
             return None
@@ -632,7 +632,7 @@ class BaseSkyMap(BasePlotter):
         # Set up valid datapoints and color_min/max values.
         if plot_dict["plotMask"]:
             # Plot all data points.
-            mask = np.ones(len(metric_value), dtype="bool")
+            np.ones(len(metric_value), dtype="bool")
         else:
             # Only plot points which are not masked. Flip numpy ma mask where 'False' == 'good'.
             good = ~metric_value.mask

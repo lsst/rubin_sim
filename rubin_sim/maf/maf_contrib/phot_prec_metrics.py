@@ -1,5 +1,5 @@
 """
-Photometric precision metrics 
+Photometric precision metrics
 Authors: Sergey Koposov, Thomas Collett
 """
 
@@ -47,7 +47,7 @@ class SNMetric(BaseMetric):
         # print 'x'
         npoints = len(data_slice[self.seeingCol])
         seeing = data_slice[self.seeingCol]
-        depth5 = data_slice[self.m5Col]
+        data_slice[self.m5Col]
         # mag = depth5
         mag = self.mag
 
@@ -73,7 +73,7 @@ class SNMetric(BaseMetric):
         ind = data_slice[self.filterCol] == curfilt
         flux0 = source_fluxes
         stack_flux_err = 1.0 / np.sqrt((1 / err_fluxes[ind] ** 2).sum())
-        err_mag = 2.5 / np.log(10) * stack_flux_err / flux0
+        2.5 / np.log(10) * stack_flux_err / flux0
         # return err_mag
         return flux0 / stack_flux_err
         # return (source_fluxes/err_fluxes).mean()

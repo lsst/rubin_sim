@@ -140,7 +140,7 @@ def plot_visibility(ts, target_alts, sun_alts, hrs_visible_per_night, min_alt):
     idx = np.where(target_alts > -1e5)
     ax1.plot((ts - 2450000)[idx], target_alts[idx], "b-", label="Target altitude")
     ax1.set_xlabel("JD")
-    ax1.set_ylabel("Maximum altitude [$^{\circ}$]", color="b")
+    ax1.set_ylabel(r"Maximum altitude [$^{\circ}$]", color="b")
     ax1.xaxis.label.set_fontsize(18)
     ax1.yaxis.label.set_fontsize(18)
     for label in ax1.get_xticklabels():
