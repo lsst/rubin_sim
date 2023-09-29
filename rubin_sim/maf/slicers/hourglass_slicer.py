@@ -1,7 +1,6 @@
 __all__ = ("HourglassSlicer",)
 
 
-
 from rubin_sim.maf.plots import HourglassPlot
 
 from .uni_slicer import UniSlicer

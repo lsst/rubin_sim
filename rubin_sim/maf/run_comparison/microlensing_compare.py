@@ -195,7 +195,6 @@ def plot_fom(results, run_names, run_types, min_t_e, max_t_e, save_folder, figur
     fisher_runs_idx = np.where(run_types == "Fisher")
     run_type_list = [detect_runs_idx, npts_runs_idx, fisher_runs_idx]
 
-
     for t_e_range in range(len(t_e_range_list)):
         for run_type in range(len(run_type_list)):
             # sorted alphabetically according to name of run
@@ -274,7 +273,6 @@ def plot_compare(results, run_names, run_types, min_t_e, max_t_e, save_folder, n
     fisher_runs_idx = np.where(run_types == "Fisher")
 
     run_name_list = np.unique(run_names)
-
 
     for t_e_range in range(len(t_e_range_list)):
         for run_name in run_name_list:

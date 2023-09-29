@@ -6,8 +6,7 @@ from rubin_sim.maf.metrics.base_metric import BaseMetric
 
 
 class UseMetric(BaseMetric):  # pylint: disable=too-few-public-methods
-    """Metric to classify visits by type of visits
-    """
+    """Metric to classify visits by type of visits"""
 
     def __init__(self, note_col="note", **kwargs):
         self.note_col = note_col
