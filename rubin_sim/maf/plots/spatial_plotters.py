@@ -632,7 +632,7 @@ class BaseSkyMap(BasePlotter):
         # Set up valid datapoints and color_min/max values.
         if plot_dict["plotMask"]:
             # Plot all data points.
-            np.ones(len(metric_value), dtype="bool")
+            good = np.ones(len(metric_value), dtype="bool")
         else:
             # Only plot points which are not masked. Flip numpy ma mask where 'False' == 'good'.
             good = ~metric_value.mask

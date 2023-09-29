@@ -62,7 +62,7 @@ class OneDBinnedData(BasePlotter):
                 color=plot_dict["color"],
             )
         else:
-            good = np.where(metric_values.mask is False)
+            good = np.where(metric_values.mask == False)
             x = np.ravel(list(zip(leftedge[good], leftedge[good] + width[good])))
             y = np.ravel(list(zip(metric_values[good], metric_values[good])))
             if plot_dict["log_scale"]:

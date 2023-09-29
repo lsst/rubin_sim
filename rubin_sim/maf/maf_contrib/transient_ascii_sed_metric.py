@@ -319,7 +319,7 @@ class TransientAsciiSEDMetric(BaseMetric):
 
         # Find the unique number of light curves that passed the required
         # number of conditions
-        self.num_detected += len(np.where(self.transient_detected is True)[0])
+        self.num_detected += len(np.where(self.transient_detected == True)[0])
 
     def evaluate_pre_time_detection_criteria(self, t_id):
         """

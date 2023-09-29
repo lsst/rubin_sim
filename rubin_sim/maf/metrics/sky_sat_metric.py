@@ -14,5 +14,5 @@ class SkySaturationMetric(BaseMetric):
     def run(self, data_slice, slice_point):
         # Saturation stacker returns NaN if the sky saturates
         finite = np.isfinite(data_slice["saturation_mag"])
-        result = np.size(np.where(finite is False)[0])
+        result = np.size(np.where(finite == False)[0])
         return result
