@@ -58,25 +58,25 @@ def setupMetrics(colmap, wholesurvey=False):
 
 
 def filtersPerNight(colmap=None, runName="opsim", nights=1, extraSql=None, extraInfoLabel=None):
-    """Generate a set of metrics measuring the number and rate of filter changes over a given span of nights.
+    """Generate a set of metrics measuring the number and rate of filter
+    changes over a given span of nights.
 
     Parameters
     ----------
-    colmap : dict, optional
-        A dictionary with a mapping of column names. Default will use OpsimV4 column names.
-    run_name : str, optional
-        The name of the simulated survey. Default is "opsim".
-    nights : int, optional
-        Size of night bin to use when calculating metrics.  Default is 1.
-    extraSql : str, optional
-        Additional constraint to add to any sql constraints (e.g. 'propId=1' or 'fieldID=522').
-        Default None, for no additional constraints.
-    extraInfoLabel : str, optional
-        Additional info_label to add before any below (i.e. "WFD").  Default is None.
+    colmap : `dict`, optional
+        A dictionary with a mapping of column names.
+    run_name : `str`, optional
+        The name of the simulated survey.
+    nights : `int`, optional
+        Size of night bin to use when calculating metrics.
+    extraSql : `str`, optional
+        Additional constraint to add to any sql constraints.
+    extraInfoLabel : `str`, optional
+        Additional info_label to add before any below (i.e. "WFD").
 
     Returns
     -------
-    metric_bundleDict
+    metric_bundleDict : `dict` of `maf.MetricBundle`
     """
 
     if colmap is None:
@@ -125,23 +125,23 @@ def filtersPerNight(colmap=None, runName="opsim", nights=1, extraSql=None, extra
 
 
 def filtersWholeSurvey(colmap=None, runName="opsim", extraSql=None, extraInfoLabel=None):
-    """Generate a set of metrics measuring the number and rate of filter changes over the entire survey.
+    """Generate a set of metrics measuring the number and rate of filter
+    changes over the entire survey.
 
     Parameters
     ----------
-    colmap : dict, optional
-        A dictionary with a mapping of column names. Default will use OpsimV4 column names.
-    run_name : str, optional
-        The name of the simulated survey. Default is "opsim".
-    extraSql : str, optional
-        Additional constraint to add to any sql constraints (e.g. 'propId=1' or 'fieldID=522').
-        Default None, for no additional constraints.
-    extraInfoLabel : str, optional
-        Additional info_label to add before any below (i.e. "WFD").  Default is None.
+    colmap : `dict`, optional
+        A dictionary with a mapping of column names.
+    run_name : `str`, optional
+        The name of the simulated survey.
+    extraSql : `str`, optional
+        Additional constraint to add to any sql constraints.
+    extraInfoLabel : `str`, optional
+        Additional info_label to add before any below (i.e. "WFD").
 
     Returns
     -------
-    metric_bundleDict
+    metric_bundleDict : `dict` of `maf.MetricBundle`
     """
     if colmap is None:
         colmap = col_map_dict()

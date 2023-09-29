@@ -19,7 +19,7 @@ def get_kne_filename(inj_params_list=None):
 
     Parameters
     ----------
-    inj_params_list : list of dict
+    inj_params_list : `list` [`dict`]
         parameters for the kilonova model such as
         mass of the dynamical ejecta (mej_dyn), mass of the disk wind ejecta
         (mej_wind), semi opening angle of the cylindrically-symmetric ejecta
@@ -37,7 +37,8 @@ def get_kne_filename(inj_params_list=None):
     if inj_params_list is None or len(inj_params_list) == 0:
         return file_list
 
-    # Otherwise find the parameters for each file and then find the relevant matches.
+    # Otherwise find the parameters for each file and
+    # then find the relevant matches.
     params = {}
     matched_files = []
     for filename in file_list:
@@ -84,7 +85,7 @@ class KnLc:
 
     Parameters
     ----------
-    file_list : list of str (None)
+    file_list : `list` [`str`] or None
         List of file paths to load. If None, loads up all the files
         from data/bns/
     """
@@ -113,12 +114,17 @@ class KnLc:
 
         Parameters
         ----------
-        t : array of floats
+        t : `np.ndarray`, (N,)
             The times to interpolate the light curve to.
-        filtername : str
+        filtername : `str`
             The filter. one of ugrizy
-        lc_index : int (0)
-            Which file to use.
+        lc_index : `int`, optional
+            Which file to use.
+
+        Returns
+        -------
+        result : `np.ndarray`, (N,)
+            Array of lightcurve brightnesses at the times of t.=
         """
 
         result = np.interp(
@@ -172,8 +178,8 @@ class KNePopMetric(BaseMetric):
         )
 
     def _multi_detect(self, around_peak):
-        """
-        Simple detection criteria: detect at least a certain number of times
+        """Simple detection criteria:
+        detect at least a certain number of times
         """
         result = 1
         # Detected data points
@@ -195,30 +201,29 @@ class KNePopMetric(BaseMetric):
         select_red=False,
         select_blue=False,
     ):
-        """
-        Selection criteria based on rise or decay rate; simplified version of
-        the methods employed by the ZTFReST project
+        """Selection criteria based on rise or decay rate;
+        simplified version of the methods employed by the ZTFReST project
         (Andreoni & Coughlin et al., 2021)
 
         Parameters
         ----------
-        around_peak : array
+        around_peak : `np.ndarray`, (N,)
             indexes corresponding to 5sigma detections
-        mags : array
+        mags : `np.ndarray`, (N,)
             magnitudes obtained interpolating models on the data_slice
-        t : array
+        t : `np.ndarray`, (N,)
             relative times
-        filters : array
+        filters : `np.ndarray`, (N,)
             filters in which detections happened
-        min_dt : float
+        min_dt : `float`
             minimum time gap between first and last detection in a given band
-        min_fade : float
+        min_fade : `float`
             fade rate threshold (positive, mag/day)
-        max_rise : float
+        max_rise : `float`
             rise rate threshold (negative, mag/day)
-        select_red : bool
+        select_red : `bool`
             if True, only red 'izy' filters will be considered
-        select_blue : bool
+        select_blue : `bool`
             if True, only blue 'ugr' filters will be considered
 
         Examples
@@ -242,9 +247,9 @@ class KNePopMetric(BaseMetric):
             fil = []
             # Check time gaps and rise or fade rate for each band
             for f in set(filters):
-                if select_red is True and not (f in "izy"):
+                if select_red is True and f not in "izy":
                     continue
-                elif select_blue is True and not (f in "ugr"):
+                elif select_blue is True and f not in "ugr":
                     continue
                 times_f = t[around_peak][np.where(filters == f)[0]]
                 mags_f = mags[around_peak][np.where(filters == f)[0]]
@@ -278,9 +283,8 @@ class KNePopMetric(BaseMetric):
         return result
 
     def _multi_color_detect(self, filters):
-        """
-        Color-based simple detection criteria: detect at least twice,
-        with at least two filters
+        """Color-based simple detection criteria:
+        detect at least twice, with at least two filters
         """
         result = 1
         # detected in at least two filters
@@ -290,14 +294,13 @@ class KNePopMetric(BaseMetric):
         return result
 
     def _red_color_detect(self, filters, min_det=4):
-        """
-        Detected at least min_det times in either izy colors
+        """Detected at least min_det times in either izy colors
 
         Parameters
         ----------
-        filters : array
+        filters : `np.ndarray`, (N,)
             filters in which detections happened
-        min_det : float or int
+        min_det : `float` or `int`
             minimum number of detections required in izy bands
         """
         result = 1
@@ -314,14 +317,13 @@ class KNePopMetric(BaseMetric):
         return result
 
     def _blue_color_detect(self, filters, min_det=4):
-        """
-        Detected at least min_det times in either ugr colors
+        """Detected at least min_det times in either ugr colors
 
         Parameters
         ----------
-        filters : array
+        filters : `np.ndarray`, (N,)
             filters in which detections happened
-        min_det : float or int
+        min_det : `float` or `int`
             minimum number of detections required in ugr bands
         """
         result = 1
@@ -426,27 +428,27 @@ def generate_kn_pop_slicer(
 
     Parameters
     ----------
-    t_start : float (1)
+    t_start : `float`, optional
         The night to start kilonova events on (days)
-    t_end : float (3652)
+    t_end : `float`, optional
         The final night of kilonova events
-    n_events : int (10000)
+    n_events : `int`, optional
         The number of kilonova events to generate
-    seed : float
+    seed : `float`, optional
         The seed passed to np.random
-    n_files : int (308)
+    n_files : `int`, optional
         The number of different kilonova lightcurves to use
         This should match the length of the filenames list passed to the KNePopMetric directly.
-    d_min : float or int (10)
+    d_min : `float` or `int`, optional
         Minimum luminosity distance (Mpc)
-    d_max : float or int (300)
+    d_max : `float` or `int`, optional
         Maximum luminosity distance (Mpc)
-    ra, dec : np.array (None)
+    ra, dec : `np.ndarray`, (N,) or None
         The ra and dec to use for event positions. Generates uniformly on the spehere if None. (degrees)
     """
 
     def rndm(a, b, g, size=1):
-        """Power-law gen for pdf(x)\propto x^{g-1} for a<=x<=b"""
+        """Power-law gen for pdf(x) \propto x^{g-1} for a<=x<=b"""
         r = np.random.random(size=size)
         ag, bg = a**g, b**g
         return (ag + (bg - ag) * r) ** (1.0 / g)

@@ -14,8 +14,7 @@ from .base_metric import BaseMetric
 
 
 class NChangesMetric(BaseMetric):
-    """
-    Compute the number of times a column value changes.
+    """Compute the number of times a column value changes.
     (useful for filter changes in particular).
     """
 
@@ -31,10 +30,16 @@ class NChangesMetric(BaseMetric):
 
 
 class MinTimeBetweenStatesMetric(BaseMetric):
-    """
-    Compute the minimum time between changes of state in a column value.
+    """Compute the minimum time between changes of state in a column value.
     (useful for calculating fastest time between filter changes in particular).
     Returns delta time in minutes!
+
+    Parameters
+    ----------
+    change_col : `str`
+        Column that we are tracking changes in.
+    time_col : str
+        Column with the time of each visit
     """
 
     def __init__(
@@ -44,10 +49,6 @@ class MinTimeBetweenStatesMetric(BaseMetric):
         metric_name=None,
         **kwargs,
     ):
-        """
-        change_col = column that changes state
-        time_col = column tracking time of each visit
-        """
         self.change_col = change_col
         self.time_col = time_col
         if metric_name is None:
@@ -57,7 +58,7 @@ class MinTimeBetweenStatesMetric(BaseMetric):
         )
 
     def run(self, data_slice, slice_point=None):
-        # Sort on time, to be sure we've got filter (or other col) changes in the right order.
+        # Sort on time, to be sure we've got changes in the right order.
         idxs = np.argsort(data_slice[self.time_col])
         changes = data_slice[self.change_col][idxs][1:] != data_slice[self.change_col][idxs][:-1]
         condition = np.where(changes == True)[0]
@@ -79,7 +80,15 @@ class NStateChangesFasterThanMetric(BaseMetric):
     """
     Compute the number of changes of state that happen faster than 'cutoff'.
     (useful for calculating time between filter changes in particular).
-    'cutoff' should be in minutes.
+
+    Parameters
+    ----------
+    change_col : `str`
+        Column that we are tracking changes in.
+    time_col : str
+        Column with the time of each visit
+    cutoff : `float`
+        The cutoff value for the time between changes (in minutes).
     """
 
     def __init__(
@@ -90,11 +99,6 @@ class NStateChangesFasterThanMetric(BaseMetric):
         cutoff=20,
         **kwargs,
     ):
-        """
-        col = column tracking changes in
-        time_col = column keeping the time of each visit
-        cutoff = the cutoff value for the reduce method 'NBelow'
-        """
         if metric_name is None:
             metric_name = "Number of %s changes faster than <%.1f minutes" % (
                 change_col,
@@ -102,13 +106,14 @@ class NStateChangesFasterThanMetric(BaseMetric):
             )
         self.change_col = change_col
         self.time_col = time_col
-        self.cutoff = cutoff / 24.0 / 60.0  # Convert cutoff from minutes to days.
+        # Convert cutoff from minutes to days.
+        self.cutoff = cutoff / 24.0 / 60.0
         super(NStateChangesFasterThanMetric, self).__init__(
             col=[change_col, time_col], metric_name=metric_name, units="#", **kwargs
         )
 
     def run(self, data_slice, slice_point=None):
-        # Sort on time, to be sure we've got filter (or other col) changes in the right order.
+        # Sort on time, to be sure we've got changes in the right order.
         idxs = np.argsort(data_slice[self.time_col])
         changes = data_slice[self.change_col][idxs][1:] != data_slice[self.change_col][idxs][:-1]
         condition = np.where(changes == True)[0]
@@ -124,10 +129,18 @@ class NStateChangesFasterThanMetric(BaseMetric):
 
 
 class MaxStateChangesWithinMetric(BaseMetric):
-    """
-    Compute the maximum number of changes of state that occur within a given timespan.
+    """Compute the maximum number of changes of state that occur
+    within a given timespan.
     (useful for calculating time between filter changes in particular).
-    'timespan' should be in minutes.
+
+    Parameters
+    ----------
+    change_col : `str`
+        Column that we are tracking changes in.
+    time_col : str
+        Column with the time of each visit
+    timespan : `float`
+        The timespan to count the number of changes within (in minutes).
     """
 
     def __init__(
@@ -138,11 +151,6 @@ class MaxStateChangesWithinMetric(BaseMetric):
         timespan=20,
         **kwargs,
     ):
-        """
-        col = column tracking changes in
-        time_col = column keeping the time of each visit
-        timespan = the timespan to count the number of changes within (in minutes)
-        """
         if metric_name is None:
             metric_name = "Max number of %s changes within %.1f minutes" % (
                 change_col,
@@ -156,12 +164,13 @@ class MaxStateChangesWithinMetric(BaseMetric):
         )
 
     def run(self, data_slice, slice_point=None):
-        # This operates slightly differently from the metrics above; those calculate only successive times
-        # between changes, but here we must calculate the actual times of each change.
+        # This operates slightly differently from the metrics above;
+        # those calculate only successive times between changes, but here
+        # we must calculate the actual times of each change.
         # Check if there was only one observation (and return 0 if so).
         if data_slice[self.change_col].size == 1:
             return 0
-        # Sort on time, to be sure we've got filter (or other col) changes in the right order.
+        # Sort on time, to be sure we've got changes in the right order.
         idxs = np.argsort(data_slice[self.time_col])
         changes = data_slice[self.change_col][idxs][:-1] != data_slice[self.change_col][idxs][1:]
         condition = np.where(changes == True)[0]
@@ -245,14 +254,15 @@ class TeffMetric(BaseMetric):
             teff += (10.0 ** (0.8 * (data_slice[self.m5_col][match] - self.depth[f]))).sum()
         teff *= self.teff_base
         if self.normed:
-            # Normalize by the t_eff if each observation was at the fiducial depth.
+            # Normalize by the t_eff equivalent if each observation
+            # was at the fiducial depth.
             teff = teff / (self.teff_base * data_slice[self.m5_col].size)
         return teff
 
 
 class OpenShutterFractionMetric(BaseMetric):
-    """
-    Compute the fraction of time the shutter is open compared to the total time spent observing.
+    """Compute the fraction of time the shutter is open
+    compared to the total time spent observing.
     """
 
     def __init__(
@@ -287,9 +297,24 @@ class OpenShutterFractionMetric(BaseMetric):
 
 class BruteOSFMetric(BaseMetric):
     """Assume I can't trust the slewtime or visittime colums.
-    This computes the fraction of time the shutter is open, with no penalty for the first exposure
-    after a long gap (e.g., 1st exposure of the night). Presumably, the telescope will need to focus,
-    so there's not much a scheduler could do to optimize keeping the shutter open after a closure.
+    This computes the fraction of time the shutter is open,
+    with no penalty for the first exposure after a long gap
+    (e.g., 1st exposure of the night).
+    Presumably, the telescope will need to focus, so there's not much a
+    scheduler could do to optimize keeping the shutter open after a closure.
+
+    Parameters
+    ----------
+    maxgap : `float`
+        The maximum gap between observations, in minutes.
+        Assume anything longer the dome has closed.
+    fudge : `float`
+        Fudge factor if a constant has to be added to the exposure time values.
+        This time (in seconds) is added to the exposure time.
+    exp_time_col : `str`
+        The name of the exposure time column. Assumed to be in seconds.
+    mjd_col : `str`
+        The name of the start of the exposures. Assumed to be in units of days.
     """
 
     def __init__(
@@ -301,18 +326,6 @@ class BruteOSFMetric(BaseMetric):
         fudge=0.0,
         **kwargs,
     ):
-        """
-        Parameters
-        ----------
-        maxgap : float (10.)
-            The maximum gap between observations. Assume anything longer the dome has closed.
-        fudge : float (0.)
-            Fudge factor if a constant has to be added to the exposure time values (like in OpSim 3.61).
-        exp_time_col : str ('expTime')
-            The name of the exposure time column. Assumed to be in seconds.
-        mjd_col : str ('observationStartMJD')
-            The name of the start of the exposures. Assumed to be in units of days.
-        """
         self.exp_time_col = exp_time_col
         self.maxgap = maxgap / 60.0 / 24.0  # convert from min to days
         self.mjd_col = mjd_col

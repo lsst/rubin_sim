@@ -2,7 +2,7 @@ __all__ = ("NightPointingMetric",)
 
 import numpy as np
 from astropy import units as u
-from astropy.coordinates import AltAz, EarthLocation, SkyCoord, get_body, get_sun
+from astropy.coordinates import AltAz, EarthLocation, get_body, get_sun
 from astropy.time import Time
 
 from rubin_sim.utils import Site

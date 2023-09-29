@@ -1,9 +1,5 @@
 __all__ = ("HourglassSlicer",)
 
-import warnings
-
-import matplotlib.pyplot as plt
-import numpy as np
 
 from rubin_sim.maf.plots import HourglassPlot
 

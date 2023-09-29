@@ -1,6 +1,5 @@
 __all__ = ("SNNSNMetric",)
 
-import os
 
 import healpy as hp
 import numpy as np
@@ -8,7 +7,6 @@ import numpy.lib.recfunctions as nlr
 import pandas as pd
 from scipy.interpolate import interp1d
 
-from rubin_sim.data import get_data_dir
 from rubin_sim.maf.metrics import BaseMetric
 from rubin_sim.maf.utils.sn_n_sn_utils import LcfastNew, SnRate, load_sne_cached
 from rubin_sim.phot_utils import DustValues

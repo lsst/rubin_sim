@@ -33,20 +33,21 @@ def fOBatch(
     Parameters
     ----------
     colmap : `dict` or None, optional
-        A dictionary with a mapping of column names. Default will use OpsimV4 column names.
+        A dictionary with a mapping of column names.
     runName : `str`, optional
-        The name of the simulated survey. Default is "opsim".
+        The name of the simulated survey.
     extraSql : `str` or None, optional
         Additional sql constraint to apply to all metrics.
     extraInfoLabel : `str` or None, optional
         Additional info_label to apply to all results.
     slicer : `rubin_sim.maf.slicer.HealpixSlicer` or None, optional
-         This must be a HealpixSlicer or some kind, although could be a HealpixSubsetSlicer.
-         Default is a HealpixSlicer with nside=64.
+         This must be a HealpixSlicer or some kind,
+         although could be a HealpixSubsetSlicer.
+         None will default to HealpixSlicer with nside=64.
 
     Returns
     -------
-    metric_bundleDict
+    metric_bundleDict : `dict` of `maf.MetricBundle`
     """
     if colmap is None:
         colmap = col_map_dict()
@@ -55,7 +56,7 @@ def fOBatch(
 
     sql = ""
     info_label = "All visits"
-    # Add additional sql constraint (such as wfdWhere) and info_label, if provided.
+    # Add additional sql constraint (such as wfdWhere) and info_label
     if (extraSql is not None) and (len(extraSql) > 0):
         sql = extraSql
         if extraInfoLabel is None:
@@ -168,9 +169,9 @@ def astrometryBatch(
     Parameters
     ----------
     colmap : `dict` or None, optional
-        A dictionary with a mapping of column names. Default will use OpsimV4 column names.
+        A dictionary with a mapping of column names.
     runName : `str`, optional
-        The name of the simulated survey. Default is "opsim".
+        The name of the simulated survey.
     extraSql : `str` or None, optional
         Additional sql constraint to apply to all metrics.
     extraInfoLabel : `str` or None, optional
@@ -180,7 +181,7 @@ def astrometryBatch(
 
     Returns
     -------
-    metric_bundleDict
+    metric_bundleDict : `dict` of `maf.MetricBundle`
     """
     if colmap is None:
         colmap = col_map_dict()
@@ -188,7 +189,7 @@ def astrometryBatch(
 
     sql = ""
     info_label = "All visits"
-    # Add additional sql constraint (such as wfdWhere) and info_label, if provided.
+    # Add additional sql constraint (such as wfdWhere) and info_label
     if (extraSql is not None) and (len(extraSql) > 0):
         sql = extraSql
         if extraInfoLabel is None:
@@ -273,7 +274,7 @@ def astrometryBatch(
         bundleList.append(bundle)
         displayDict["order"] += 1
 
-    # Parallax normalized to 'best possible' if all visits separated by 6 months.
+    # Parallax normalized to 'best possible'
     # This separates the effect of cadence from depth.
     for rmag in rmags_para:
         metric = metrics.ParallaxMetric(
@@ -318,7 +319,8 @@ def astrometryBatch(
         )
         bundleList.append(bundle)
         displayDict["order"] += 1
-    # Parallax problems can be caused by HA and DCR degeneracies. Check their correlation.
+    # Parallax problems can be caused by HA and DCR degeneracies.
+    # Check their correlation.
     for rmag in rmags_para:
         metric = metrics.ParallaxDcrDegenMetric(
             metric_name="Parallax-DCR degeneracy @ %.1f" % (rmag),
@@ -479,19 +481,20 @@ def rapidRevisitBatch(
     Parameters
     ----------
     colmap : `dict` or None, optional
-        A dictionary with a mapping of column names. Default will use OpsimV4 column names.
+        A dictionary with a mapping of column names.
     runName : `str`, optional
-        The name of the simulated survey. Default is "opsim".
+        The name of the simulated survey.
     extraSql : `str` or None, optional
         Additional sql constraint to apply to all metrics.
     extraInfoLabel : `str` or None, optional
         Additional info_label to apply to all results.
     slicer : `rubin_sim_maf.slicers.HealpixSlicer` or None, optional
-        Optionally, specify something other than an nside=64 healpix slicer. (must be a healpix slicer)
+        Optionally, specify something other than an nside=64 healpix slicer.
+        (must be a healpix slicer)
 
     Returns
     -------
-    metric_bundleDict
+    metric_bundleDict : `dict` of `maf.MetricBundle`
     """
     if colmap is None:
         colmap = col_map_dict()
@@ -499,7 +502,7 @@ def rapidRevisitBatch(
 
     sql = ""
     info_label = "All visits"
-    # Add additional sql constraint (such as wfdWhere) and info_label, if provided.
+    # Add additional sql constraint (such as wfdWhere) and info_label.
     if (extraSql is not None) and (len(extraSql) > 0):
         sql = extraSql
         if extraInfoLabel is None:
@@ -554,15 +557,17 @@ def rapidRevisitBatch(
         plot_funcs=subsetPlots,
         info_label=info_label,
         display_dict=displayDict,
-        summary_metrics=standard_summary(withCount=False),
+        summary_metrics=standard_summary(with_count=False),
     )
     bundleList.append(bundle)
     displayDict["order"] += 1
 
-    # Better version of the rapid revisit requirements: require a minimum number of visits between
-    # dtMin and dtMax, but also a minimum number of visits between dtMin and dtPair (the typical pair time).
+    # Better version of the rapid revisit requirements:
+    # require a minimum number of visits between
+    # dtMin and dtMax, but also a minimum number of visits
+    # between dtMin and dtPair (the typical pair time).
     # 1 means the healpix met the requirements (0 means did not).
-    dTmin = 40.0 / 60.0  # (minutes) 40s minumum for rapid revisit range
+    dTmin = 40.0 / 60.0  # (minutes) 40s minimum for rapid revisit range
     dTpairs = 20.0  # minutes (time when pairs should start kicking in)
     dTmax = 30.0  # 30 minute maximum for rapid revisit range
     nOne = 82  # Number of revisits between 40s-30m required

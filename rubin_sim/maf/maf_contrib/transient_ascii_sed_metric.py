@@ -11,14 +11,13 @@
 __all__ = ("TransientAsciiSEDMetric",)
 
 import os
-import warnings
 from copy import deepcopy
 
 import numpy as np
 
 try:
     from sncosmo import Model, TimeSeriesSource, read_griddata_ascii
-except ImportError as error:
+except ImportError:
     pass
 from astropy.cosmology import Planck15 as cosmo
 

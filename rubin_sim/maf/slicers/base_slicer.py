@@ -9,7 +9,6 @@ from io import StringIO
 
 import numpy as np
 import numpy.ma as ma
-from six import with_metaclass
 
 from rubin_sim.maf.utils import get_date_version
 
@@ -44,7 +43,7 @@ class SlicerRegistry(type):
                 print(inspect.getdoc(cls.registry[slicername]))
 
 
-class BaseSlicer(with_metaclass(SlicerRegistry, object)):
+class BaseSlicer(metaclass=SlicerRegistry):
     """
     Base class for all slicers: sets required methods and
     implements common functionality.
@@ -331,7 +330,9 @@ class BaseSlicer(with_metaclass(SlicerRegistry, object)):
         # If metric values is a masked array.
         if hasattr(metric_values, "mask"):
             if "ra" in self.slice_points:
-                # Spatial slicer. Translate ra/dec to lon/lat in degrees and output with metric value.
+                # Spatial slicer.
+                # Translate ra/dec to lon/lat in degrees and
+                # output with metric value.
                 for ra, dec, value, mask in zip(
                     self.slice_points["ra"],
                     self.slice_points["dec"],
@@ -343,7 +344,8 @@ class BaseSlicer(with_metaclass(SlicerRegistry, object)):
                         lat = dec * 180.0 / np.pi
                         metric.append([lon, lat, value])
             elif "bins" in self.slice_points:
-                # OneD slicer. Translate bins into bin/left and output with metric value.
+                # OneD slicer. Translate bins into bin/left and
+                # output with metric value.
                 for i in range(len(metric_values)):
                     bin_left = self.slice_points["bins"][i]
                     value = metric_values.data[i]
@@ -436,7 +438,8 @@ class BaseSlicer(with_metaclass(SlicerRegistry, object)):
 
     def read_backwards_compatible(self, restored, infilename):
         """Read pre v1.0 metric files."""
-        # Backwards compatibility for pre-v1.0 metric outputs. To be deprecated at a future release.
+        # Backwards compatibility for pre-v1.0 metric outputs.
+        # To be deprecated at a future release.
         warnings.warn(
             "Reading pre-v1.0 metric data. To be deprecated in a future release.",
             FutureWarning,
@@ -475,7 +478,8 @@ class BaseSlicer(with_metaclass(SlicerRegistry, object)):
             if o in slicer_init:
                 slicer_init[n] = slicer_init[o]
                 del slicer_init[o]
-        # An earlier backwards compatibility issue - map 'spatialkey1/spatialkey2' to 'lon_col/lat_col'.
+        # An earlier backwards compatibility issue -
+        # map 'spatialkey1/spatialkey2' to 'lon_col/lat_col'.
         if "spatialkey1" in slicer_init:
             slicer_init["lon_col"] = slicer_init["spatialkey1"]
             del slicer_init["spatialkey1"]

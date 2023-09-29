@@ -26,6 +26,11 @@ class TestPyOrbEphemerides(unittest.TestCase):
         del self.orbits_kep
         del self.ephems
 
+    def test_which_pyoorb(self):
+        import pyoorb
+
+        print(pyoorb.__file__)
+
     def test_set_orbits(self):
         # Test that we can set orbits.
         self.ephems.set_orbits(self.orbits)

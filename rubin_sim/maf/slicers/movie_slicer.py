@@ -251,7 +251,7 @@ class MovieSlicer(BaseSlicer):
         ]
         print("Attempting to call ffmpeg with:")
         print(" ".join(callList))
-        p = subprocess.check_call(callList)
+        subprocess.check_call(callList)
         # make thumbnail gif
         callList = [
             "ffmpeg",
@@ -273,4 +273,4 @@ class MovieSlicer(BaseSlicer):
         ]
         print("converting to animated gif with:")
         print(" ".join(callList))
-        p2 = subprocess.check_call(callList)
+        subprocess.check_call(callList)

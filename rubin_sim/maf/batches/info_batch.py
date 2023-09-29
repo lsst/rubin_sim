@@ -1,11 +1,11 @@
-__all__ = ("metadata_bundle_dicts",)
+__all__ = ("info_bundle_dicts",)
 
 import numpy as np
 
 import rubin_sim.maf.batches as batches
 
 
-def metadata_bundle_dicts(allsky_slicer, wfd_slicer, opsim="opsim", colmap=batches.col_map_dict()):
+def info_bundle_dicts(allsky_slicer, wfd_slicer, opsim="opsim", colmap=batches.col_map_dict()):
     # Set up the bundle dicts
     # Some of these metrics are reproduced in other scripts - srd and cadence
     bdict = {}
@@ -47,7 +47,7 @@ def metadata_bundle_dicts(allsky_slicer, wfd_slicer, opsim="opsim", colmap=batch
         bdict.update(batches.nvisitsM5Maps(colmap, opsim, slicer=slicer, extraInfoLabel=tag))
         bdict.update(batches.tEffMetrics(colmap, opsim, slicer=slicer, extraInfoLabel=tag))
 
-    # And number of visits for the first year and then halfway through the survey
+    # And number of visits for the first year and halfway through the survey
     bdict.update(
         batches.nvisitsM5Maps(
             colmap,

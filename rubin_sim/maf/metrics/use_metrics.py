@@ -17,16 +17,14 @@ class UseMetric(BaseMetric):  # pylint: disable=too-few-public-methods
 
         Parameters
         ----------
-        data_slice : numpy.NDarray
-           Values passed to metric by the slicer, which the metric will use to calculate
-           metric values at each slice_point.
-        slice_point : Dict
+        data_slice : `np.ndarray`, (N,)`
+        slice_point : `dict`
            Dictionary of slice_point metadata passed to each metric.
-           E.g. the ra/dec of the healpix pixel or opsim fieldId.
+           E.g. the ra/dec of the healpix pixel.
 
         Returns
         -------
-        str
+        use_name : `str`
             use at each slice_point.
         """
         use_name = None

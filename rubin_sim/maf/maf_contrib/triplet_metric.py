@@ -31,8 +31,6 @@ class TripletMetric(BaseMetric):
         times = times - 49378  # change times to smaller numbers
         delmax = self.delmax
         delmin = self.delmin
-        ratiomax = self.ratiomax
-        ratiomin = self.ratiomin
         total = 0
         # iterate over every exposure time
         for counter, time in enumerate(times):

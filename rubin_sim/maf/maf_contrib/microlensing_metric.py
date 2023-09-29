@@ -27,15 +27,15 @@ def microlensing_amplification(t, impact_parameter=1, crossing_time=1825.0, peak
 
     Parameters
     ----------
-    t : float
+    t : `float`
         The time of observation (days)
-    impact_parameter : float (1)
+    impact_parameter : `float`
         The impact paramter (0 means big amplification)
-    crossing_time : float (1825)
+    crossing_time : `float`
         Einstein crossing time (days)
-    peak_time : float (100)
+    peak_time : `float`
         The peak time (days)
-    blending_factor: float (1)
+    blending_factor: `float`
         The blending factor where 1 is unblended
     """
 
@@ -48,18 +48,17 @@ def microlensing_amplification(t, impact_parameter=1, crossing_time=1825.0, peak
 
 
 def microlensing_amplification_fsfb(t, impact_parameter=1, crossing_time=1825.0, peak_time=100, fs=20, fb=20):
-    """The microlensing amplification
-    in terms of source flux and blend flux
+    """The microlensing amplification in terms of source flux and blend flux
 
     Parameters
     ----------
-    t : float
+    t : `float`
         The time of observation (days)
-    impact_parameter : float (1)
+    impact_parameter : `float`
         The impact paramter (0 means big amplification)
-    crossing_time : float (1825)
+    crossing_time : `float`
         Einstein crossing time (days)
-    peak_time : float (100)
+    peak_time : `float`
         The peak time (days)
     """
 
@@ -80,9 +79,9 @@ def info_peak_before_t0(impact_parameter=1, crossing_time=100.0):
 
     Parameters
     ----------
-    impact_parameter : float (1)
+    impact_parameter : `float`
         The impact paramter (0 means big amplification)
-    crossing_time : float (1825)
+    crossing_time : `float`
         Einstein crossing time (days)
     """
 
@@ -103,18 +102,18 @@ def coefficients_pspl(t, t0, te, u0, fs, fb):
 
     Parameters
     ----------
-    t : float
+    t : `float`
         The time of observation (days usually as JD or HJD)
-    u0 : float
+    u0 : `float`
         The impact parameter (0 means high magnification)
-    te : float
+    te : `float`
         Einstein crossing time (days)
-    t0 : float
+    t0 : `float`
         Time of peak (days usually as JD or HJD)
-    fs : float
+    fs : `float`
         Source flux (counts/s but here fs = 10.**(-0.4*mag_source)
         in the respective passband)
-    fb : float
+    fb : `float`
         Blend flux (counts/s but here fs = 10.**(-0.4*mag_blend)
         in the respective passband)
     """
@@ -150,18 +149,18 @@ def coefficients_fsfb(t, t0, te, u0, fs, fb):
 
     Parameters
     ----------
-    t : float
+    t : `float`
         The time of observation (days usually as JD or HJD)
-    u0 : float
+    u0 : `float`
         The impact parameter (0 means high magnification)
-    te : float
+    te : `float`
         Einstein crossing time (days)
-    t0 : float
+    t0 : `float`
         Time of peak (days usually as JD or HJD)
-    fs : float
+    fs : `float`
         Source flux (counts/s but here fs = 10.**(-0.4*mag_source)
         in the respective passband)
-    fb : float
+    fb : `float`
         Blend flux (counts/s but here fs = 10.**(-0.4*mag_blend)
         in the respective passband)
     """
@@ -172,34 +171,35 @@ def coefficients_fsfb(t, t0, te, u0, fs, fb):
 
 
 def fisher_matrix(t, t0, te, u0, fs, fb, snr, filters="ugriz", filter_name="i"):
-    """The Fisher (information) matrix relying on first derivatives wrt t0,te,u0,fs,fb
-    relying on with cse optimized coefficents. This implementation for
-    the non-linear magnification is subject to the respective underlying
-    assumptions, i.e. relatively small uncertainties. NB the Fisher matrix
-    is using first derivatives, alternatively one could consider second derivatives
-    the resulting covariance matrix as inverse of the Fisher matrix is a
-    Cramer Rao lower bound of the respective uncertainty. The function returns
-    the full information matrix for all t.
+    """The Fisher (information) matrix relying on first derivatives
+    wrt t0,te,u0,fs,fb, relying on with cse optimized coefficents.
+    This implementation for the non-linear magnification is subject to the
+    respective underlying assumptions, i.e. relatively small uncertainties.
+    NB the Fisher matrix is using first derivatives, alternatively one
+    could consider second derivatives the resulting covariance matrix as
+    inverse of the Fisher matrix is a Cramer Rao lower bound of the
+    respective uncertainty.
+    The function returns the full information matrix for all t.
 
     via Markus Hundertmark markus.hundertmark@uni-heidelberg.de
 
     Parameters
     ----------
-    t : float
+    t : `float`
         The time of observation (days usually as JD or HJD)
-    u0 : float
+    u0 : `float`
         The impact parameter (0 means high magnification)
-    te : float
+    te : `float`
         Einstein crossing time (days)
-    t0 : float
+    t0 : `float`
         Time of peak (days usually as JD or HJD)
-    fs : float
+    fs : `float`
         Source flux (counts/s but here fs = 10.**(-0.4*mag_source)
         in the respective passband)
-    fb : float
+    fb : `float`
         Blend flux (counts/s but here fs = 10.**(-0.4*mag_blend)
         in the respective passband)
-    snr : float
+    snr : `float`
         Signal to noise ratio in order to infer the flux uncertainty
     """
     # indices are 0:te, 1:u0, 2:t0
@@ -228,7 +228,8 @@ def fisher_matrix(t, t0, te, u0, fs, fb, snr, filters="ugriz", filter_name="i"):
         # microlenisng_amplification function to replace
         usqr = (t_value - t0) ** 2 / te**2 + u0**2
         mu = (usqr + 2.0) / (usqr * (usqr + 4)) ** 0.5
-        flux_err = (fs * mu + fb) / snr[i]  # may need to check shape of snr and t
+        # may need to check shape of snr and t
+        flux_err = (fs * mu + fb) / snr[i]
 
         matrix = matrix / (flux_err**2)
         fis_mat = fis_mat + matrix
@@ -238,30 +239,28 @@ def fisher_matrix(t, t0, te, u0, fs, fb, snr, filters="ugriz", filter_name="i"):
 class MicrolensingMetric(metrics.BaseMetric):
     """
     Quantifies detectability of Microlensing events.
-    Can also return the number of datapoints within two crossing times of the peak of event.
+    Can also return the number of datapoints within two crossing times
+    of the peak of event.
 
     Parameters
     ----------
-    metric_calc: str
-        Type of metric. If metric_calc == 'detect', returns the number of microlensing events
-        detected within certain parameters. If metric_calc == 'Npts', returns the number of points
+    metric_calc : `str`
+        Type of metric.
+        If metric_calc == 'detect', returns the number of microlensing events
+        detected within certain parameters.
+        If metric_calc == 'Npts', returns the number of points
         within two crossing times of the peak of the vent.
-        Default is 'detect'
-
-    pts_needed : int
-        Number of an object's lightcurve points required to be above the 5-sigma limiting depth
-        before it is considered detected.
-
-    time_before_peak: int or str
+    pts_needed : `int`
+        Number of an object's lightcurve points required to be above the
+        5-sigma limiting depth before it is considered detected.
+    time_before_peak: `int` or `str`
         Number of days before lightcurve peak to qualify event as triggered.
-        If time_before_peak == 'optimal', the number of days before the lightcurve peak
-        is the time of maximal information.
-        Default is 0.
-
-    detect: bool
-        By default we trigger which only looks at points before the peak of the lightcurve.
-        When detect = True, observations on either side of the lightcurve are considered.
-        Default is False.
+        If time_before_peak == 'optimal', the number of days before the
+        lightcurve peak is the time of maximal information.
+    detect: `bool`
+        By default we trigger which only looks at points before the peak
+        of the lightcurve. When detect = True, observations on either side
+        of the lightcurve are considered.
 
     Notes
     -----
@@ -270,7 +269,6 @@ class MicrolensingMetric(metrics.BaseMetric):
         crossing_time : float (days)
         impact_parameter : float (positive)
         blending_factors (optional): float (between 0 and 1)
-
     """
 
     def __init__(
@@ -323,7 +321,7 @@ class MicrolensingMetric(metrics.BaseMetric):
         )
 
     def run(self, data_slice, slice_point=None):
-        if self.detect == True and self.time_before_peak > 0:
+        if self.detect is True and self.time_before_peak > 0:
             raise Exception("When detect = True, time_before_peak must be zero")
 
         # Generate the lightcurve for this object
@@ -331,13 +329,13 @@ class MicrolensingMetric(metrics.BaseMetric):
         t = data_slice[self.mjd_col] - np.min(data_slice[self.night_col])
         t = t - t.min()
 
-        # Try for if a blending factor slice was added if not default to no blending factor
-        try:
-            try:
-                test = slice_point["apparent_m_no_blend_u"]
-                amplitudes = np.zeros(len(t))
-                individual_mags = True
-            except KeyError:
+        #
+        # Try for if a blending factor slice was added
+        if "apparent_m_no_blend_u" in slice_point:
+            amplitudes = np.zeros(len(t))
+            individual_mags = True
+        else:
+            if "blending_factor" in slice_point:
                 amplitudes = microlensing_amplification(
                     t,
                     impact_parameter=slice_point["impact_parameter"],
@@ -346,15 +344,14 @@ class MicrolensingMetric(metrics.BaseMetric):
                     blending_factor=slice_point["blending_factor"],
                 )
                 individual_mags = False
-
-        except KeyError:
-            amplitudes = microlensing_amplification(
-                t,
-                impact_parameter=slice_point["impact_parameter"],
-                crossing_time=slice_point["crossing_time"],
-                peak_time=slice_point["peak_time"],
-            )
-            individual_mags = False
+            else:
+                amplitudes = microlensing_amplification(
+                    t,
+                    impact_parameter=slice_point["impact_parameter"],
+                    crossing_time=slice_point["crossing_time"],
+                    peak_time=slice_point["peak_time"],
+                )
+                individual_mags = False
 
         filters = np.unique(data_slice[self.filter_col])
         amplified_mags = amplitudes * 0
@@ -366,7 +363,7 @@ class MicrolensingMetric(metrics.BaseMetric):
         for filtername in filters:
             infilt = np.where(data_slice[self.filter_col] == filtername)[0]
 
-            if individual_mags == True:
+            if individual_mags is True:
                 fs = slice_point["apparent_m_no_blend_{}".format(filtername)]
                 fb = slice_point["apparent_m_{}".format(filtername)] - fs
                 amplitudes = microlensing_amplification_fsfb(
@@ -452,12 +449,14 @@ class MicrolensingMetric(metrics.BaseMetric):
                 n_post.append(len(outfilt))
 
             elif self.metric_calc == "Fisher":
-                if individual_mags == True:
+                if individual_mags is True:
                     fs = slice_point["apparent_m_no_blend_{}".format(filtername)]
                     fb = slice_point["apparent_m_{}".format(filtername)] - fs
                 else:
                     fs = self.mags[filtername]
-                    fb = fs  # assuming that in populated areas of the galaxy the blend fraction is 0.5
+                    # assuming that in populated areas of the galaxy
+                    # the blend fraction is 0.5
+                    fb = fs
 
                 fis_mat = fis_mat_wzeros + fisher_matrix(
                     t[infilt],
@@ -481,19 +480,20 @@ class MicrolensingMetric(metrics.BaseMetric):
                 try:
                     cov = np.linalg.inv(fis_mat)
                     sigmat_e_t_e = cov[0, 0] ** 0.5 / slice_point["crossing_time"]
-                    sigmau0_u0 = cov[1, 1] ** 0.5 / slice_point["impact_parameter"]
-                    corr_btwn_t_eu0 = cov[0, 1] / (
-                        slice_point["crossing_time"] * slice_point["impact_parameter"]
-                    )
-                except:
+                    # sigmau0_u0 = cov[1, 1] ** 0.5
+                    #             / slice_point["impact_parameter"]
+                    # corr_btwn_t_eu0 = cov[0, 1] /
+                    #    (slice_point["crossing_time"]
+                    #    * slice_point["impact_parameter"])
+                except np.linalg.LinAlgError:
                     sigmat_e_t_e = np.inf
-                    sigmau0_u0 = np.inf
-                    corr_btwn_t_eu0 = np.inf
+                    # sigmau0_u0 = np.inf
+                    # corr_btwn_t_eu0 = np.inf
 
         npts = np.sum(n_pre)
         npts_post = np.sum(n_post)
         if self.metric_calc == "detect":
-            if self.detect == True:
+            if self.detect is True:
                 if npts >= self.pts_needed and npts_post >= self.pts_needed:
                     return 1
                 else:
@@ -522,34 +522,39 @@ def generate_microlensing_slicer(
     nside=128,
     filtername="r",
 ):
-    """
-    Generate a UserPointSlicer with a population of microlensing events. To be used with
-    MicrolensingMetric
+    """Generate a UserPointSlicer with a population of microlensing events.
+    To be used with MicrolensingMetric
 
     Parameters
     ----------
-    min_crossing_time : float (1)
+    min_crossing_time : `float`
         The minimum crossing time for the events generated (days)
-    max_crossing_time : float (10)
+    max_crossing_time : `float`
         The max crossing time for the events generated (days)
-    t_start : float (1)
+    t_start : `float`
         The night to start generating peaks (days)
-    t_end : float (3652)
+    t_end : `float`
         The night to end generating peaks (days)
-    n_events : int (10000)
+    n_events : `int`
         Number of microlensing events to generate
-    seed : float (42)
+    seed : `float`
         Random number seed
-    nside : int (128)
+    nside : `int`
         HEALpix nside, used to pick which stellar density map to load
-    filtername : str ('r')
+    filtername : `str`
         The filter to use for the stellar density map
-    """
-    np.random.seed(seed)
 
-    crossing_times = np.random.uniform(low=min_crossing_time, high=max_crossing_time, size=n_events)
-    peak_times = np.random.uniform(low=t_start, high=t_end, size=n_events)
-    impact_paramters = np.random.uniform(low=0, high=1, size=n_events)
+    Returns
+    -------
+    slicer : `maf.UserPointsSlicer`
+        A slicer populated by microlensing events
+        (each slice_point is a different event)
+    """
+    # Seed the random number generator and generate random parameters
+    rng = np.random.default_rng(seed)
+    crossing_times = rng.uniform(low=min_crossing_time, high=max_crossing_time, size=n_events)
+    peak_times = rng.uniform(low=t_start, high=t_end, size=n_events)
+    impact_paramters = rng.uniform(low=0, high=1, size=n_events)
 
     map_dir = os.path.join(get_data_dir(), "maps", "TriMaps")
     data = np.load(os.path.join(map_dir, "TRIstarDensity_%s_nside_%i.npz" % (filtername, nside)))
@@ -562,14 +567,15 @@ def generate_microlensing_slicer(
     bin_indx = np.where(bins[1:] >= star_mag)[0].min()
     density_used = star_density[:, bin_indx].ravel()
     order = np.argsort(density_used)
-    # I think the model might have a few outliers at the extreme, let's truncate it a bit
+    # I think the model might have a few outliers at the extreme,
+    # let's truncate it a bit
     density_used[order[-10:]] = density_used[order[-11]]
 
     # now, let's draw N from that distribution squared
     dist = density_used[order] ** 2
     cumm_dist = np.cumsum(dist)
     cumm_dist = cumm_dist / np.max(cumm_dist)
-    uniform_draw = np.random.uniform(size=n_events)
+    uniform_draw = rng.uniform(size=n_events)
     indexes = np.floor(np.interp(uniform_draw, cumm_dist, np.arange(cumm_dist.size)))
     hp_ids = order[indexes.astype(int)]
     gal_l, gal_b = hpid2_ra_dec(nside, hp_ids, nest=True)

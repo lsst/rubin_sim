@@ -14,16 +14,20 @@ def hourglassPlots(colmap=None, runName="opsim", nyears=10, extraSql=None, extra
 
     Parameters
     ----------
-    colmap : dict, optional
-        A dictionary with a mapping of column names. Default will use OpsimV4 column names.
-    run_name : str, optional
-        The name of the simulated survey. Default is "opsim".
-    nyears : int (10), optional
-        How many years to attempt to make hourglass plots for. Default is 10.
-    extraSql : str, optional
-        Add an extra sql constraint before running metrics. Default None.
-    extraInfoLabel : str, optional
-        Add an extra piece of info_label before running metrics. Default None.
+    colmap : `dict`, optional
+        A dictionary with a mapping of column names.
+    run_name : `str`, optional
+        The name of the simulated survey.
+    nyears : `int`, optional
+        How many years to attempt to make hourglass plots for.
+    extraSql : `str`, optional
+        Add an extra sql constraint before running metrics.
+    extraInfoLabel : `str`, optional
+        Add an extra piece of info_label before running metrics.
+
+    Returns
+    -------
+    metric_bundleDict : `dict` of `maf.MetricBundle`
     """
     if colmap is None:
         colmap = col_map_dict()
@@ -31,7 +35,7 @@ def hourglassPlots(colmap=None, runName="opsim", nyears=10, extraSql=None, extra
 
     sql = ""
     info_label = ""
-    # Add additional sql constraint (such as wfdWhere) and info_label, if provided.
+    # Add additional sql constraint (such as wfdWhere) and info_label
     if (extraSql is not None) and (len(extraSql) > 0):
         sql = extraSql
         if extraInfoLabel is None:

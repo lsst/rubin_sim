@@ -4,7 +4,6 @@ import numpy as np
 
 from .base_metric import BaseMetric
 from .exgal_m5 import ExgalM5
-from .vector_metrics import VectorMetric
 
 
 class ExgalM5WithCuts(BaseMetric):

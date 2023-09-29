@@ -2,14 +2,12 @@
 
 __all__ = ("HealpixSubsetSlicer",)
 
-import warnings
 from functools import wraps
 
 import healpy as hp
 import numpy as np
 
 import rubin_sim.utils as simsUtils
-from rubin_sim.maf.plots.spatial_plotters import HealpixHistogram, HealpixPowerSpectrum, HealpixSkyMap
 
 from .healpix_slicer import HealpixSlicer
 

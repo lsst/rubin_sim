@@ -86,7 +86,7 @@ class SFUncertMetric(BaseMetric):
 
         df = np.unique(data_slice[self.filter_col])
         if np.size(df) > 1:
-            msg = """Running structure function on multiple filters simultaneously. 
+            msg = """Running structure function on multiple filters simultaneously.
                      Should probably change your SQL query to limit to a single filter."""
             warnings.warn(msg)
         if self.dust:

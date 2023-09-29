@@ -2,8 +2,6 @@ __all__ = ("MapsRegistry", "BaseMap")
 
 import inspect
 
-from six import with_metaclass
-
 
 class MapsRegistry(type):
     """
@@ -42,7 +40,7 @@ class MapsRegistry(type):
                 print(" added to slice_point: ", ",".join(maps.keynames))
 
 
-class BaseMap(with_metaclass(MapsRegistry, object)):
+class BaseMap(metaclass=MapsRegistry):
     """ """
 
     def __init__(self, **kwargs):

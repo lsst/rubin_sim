@@ -26,33 +26,34 @@ def glanceBatch(
     sql_constraint=None,
     slicer_camera="LSST",
 ):
-    """Generate a handy set of metrics that give a quick overview of how well a survey performed.
+    """Generate a handy set of metrics that give a quick overview
+    of how well a survey performed.
     This is a meta-set of other batches, to some extent.
 
     Parameters
     ----------
-    colmap : dict, optional
-        A dictionary with a mapping of column names. Default will use OpsimV4 column names.
-    run_name : str, optional
-        The name of the simulated survey. Default is "opsim".
-    nside : int, optional
-        The nside for the healpix slicers. Default 64.
-    filternames : list of str, optional
+    colmap : `dict`, optional
+        A dictionary with a mapping of column names.
+    run_name : `str`, optional
+        The name of the simulated survey.
+    nside : `int`, optional
+        The nside for the healpix slicers.
+    filternames : `list` of `str`, optional
         The list of individual filters to use when running metrics.
-        Default is ('u', 'g', 'r', 'i', 'z', 'y').
         There is always an all-visits version of the metrics run as well.
-    nyears : int (10)
+    nyears : `int`, optional
         How many years to attempt to make hourglass plots for
-    pairnside : int (32)
-        nside to use for the pair fraction metric (it's slow, so nice to use lower resolution)
-    sql_constraint : str or None, optional
+    pairnside : `int`, optional
+        nside to use for the pair fraction metric
+        (it's slow, so nice to use lower resolution)
+    sql_constraint : `str` or None, optional
         Additional SQL constraint to apply to all metrics.
-    slicer_camera : str ('LSST')
+    slicer_camera : `str`
         Sets which spatial slicer to use. options are 'LSST' and 'ComCam'
 
     Returns
     -------
-    metric_bundleDict
+    metric_bundleDict : `dict` of `maf.MetricBundle`
     """
     if isinstance(colmap, str):
         raise ValueError("colmap must be a dictionary, not a string")
@@ -290,7 +291,6 @@ def glanceBatch(
         metrics.AreaSummaryMetric(decreasing=False, metric_name="best18k"),
         metrics.PercentileMetric(col="metricdata", percentile=90),
     ]
-    # Maybe parallax and proper motion, fraction of visits in a good pair for SS
     displayDict["caption"] = r"Parallax precision of an $r=20$ flat SED star"
     metric = metrics.ParallaxMetric(
         m5_col=colmap["fiveSigmaDepth"],

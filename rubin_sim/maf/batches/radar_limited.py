@@ -23,12 +23,12 @@ def radar_limited(
     srd_only=False,
     mjd0=None,
 ):
-    """A batch of metrics for looking at survey performance relative to the SRD and the main
-    science drivers of LSST.
+    """A batch of metrics for looking at survey performance
+    relative to the SRD and the main science drivers of LSST.
 
     Parameters
     ----------
-    run_name : `str`, optional
+    runName : `str`, optional
         The simulation run name that should appear as plot titles.
     benchmarkArea : `float`, optional
         The area to use for SRD metrics (sq degrees)
@@ -37,11 +37,16 @@ def radar_limited(
     minNvisits : `int`, optional
         The minimum number of visits to use for SRD metrics.
     long_microlensing : `bool`, optional
-        Add the longer running microlensing metrics to the batch (subset of crossing times only)
+        Add the longer running microlensing metrics to the batch
+        (a subset of crossing times only)
     srd_only : `bool`, optional
         Only return the SRD metrics
     mjd0 : float, optional
         The modified Julian date start date of the survey.
+
+    Returns
+    -------
+    metric_bundleDict : `dict` of `maf.MetricBundle`
     """
 
     bundleList = []
@@ -55,9 +60,10 @@ def radar_limited(
         allfilterinfo_label,
     ) = filter_list(all=True)
 
-    standardStats = standard_summary(withCount=False)
+    standardStats = standard_summary(with_count=False)
 
-    # This is the default slicer for most purposes in this batch. Note that the cache is off -
+    # This is the default slicer for most purposes in this batch.
+    # Note that the cache is on -
     # if the metric requires a dust map, this is not the right slicer to use.
     healpixslicer = slicers.HealpixSlicer(nside=nside, use_cache=True)
     subsetPlots = [plots.HealpixSkyMap(), plots.HealpixHistogram()]
@@ -219,7 +225,7 @@ def radar_limited(
         bundleList.append(bundle)
         displayDict["order"] += 1
 
-    # Parallax normalized to 'best possible' if all visits separated by 6 months.
+    # Parallax normalized to 'best possible'.
     # This separates the effect of cadence from depth.
     for rmag in rmags_para:
         metric = metrics.ParallaxMetric(
@@ -252,7 +258,8 @@ def radar_limited(
         )
         bundleList.append(bundle)
         displayDict["order"] += 1
-    # Parallax problems can be caused by HA and DCR degeneracies. Check their correlation.
+    # Parallax problems can be caused by HA and DCR degeneracies.
+    # Check their correlation.
     for rmag in rmags_para:
         metric = metrics.ParallaxDcrDegenMetric(
             metric_name="Parallax-DCR degeneracy @ %.1f" % (rmag), rmag=rmag
@@ -334,7 +341,7 @@ def radar_limited(
         plot_dict=plotDict,
         plot_funcs=subsetPlots,
         display_dict=displayDict,
-        summary_metrics=standard_summary(withCount=False),
+        summary_metrics=standard_summary(with_count=False),
     )
     bundleList.append(bundle)
 
@@ -355,15 +362,17 @@ def radar_limited(
         plot_dict=plotDict,
         plot_funcs=subsetPlots,
         display_dict=displayDict,
-        summary_metrics=standard_summary(withCount=False),
+        summary_metrics=standard_summary(with_count=False),
     )
     bundleList.append(bundle)
     displayDict["order"] += 1
 
-    # Better version of the rapid revisit requirements: require a minimum number of visits between
-    # dtMin and dtMax, but also a minimum number of visits between dtMin and dtPair (the typical pair time).
+    # Better version of the rapid revisit requirements:
+    # require a minimum number of visits between
+    # dtMin and dtMax, but also a minimum number of visits
+    # between dtMin and dtPair (the typical pair time).
     # 1 means the healpix met the requirements (0 means did not).
-    dTmin = 40.0 / 60.0  # (minutes) 40s minumum for rapid revisit range
+    dTmin = 40.0 / 60.0  # (minutes) 40s minimum for rapid revisit range
     dTpairs = 20.0  # minutes (time when pairs should start kicking in)
     dTmax = 30.0  # 30 minute maximum for rapid revisit range
     nOne = 82  # Number of revisits between 40s-30m required
@@ -454,7 +463,8 @@ def radar_limited(
     #########################
     #########################
 
-    # Run this per filter, to look at variations in counts of galaxies in blue bands?
+    # Run this per filter, to look at variations in
+    # counts of galaxies in blue bands?
     displayDict = {
         "group": "Galaxies",
         "subgroup": "Galaxy Counts",
@@ -502,7 +512,8 @@ def radar_limited(
 
     displayDict["subgroup"] = f"{subgroupCount}: Static Science"
     ## Static Science
-    # Calculate the static science metrics - effective survey area, mean/median coadded depth, stdev of
+    # Calculate the static science metrics - effective survey area,
+    # mean/median coadded depth, stdev of
     # coadded depth and the 3x2ptFoM emulator.
 
     dustmap = maps.DustMap(nside=nside, interp=False)
@@ -555,7 +566,8 @@ def radar_limited(
         bundleList.append(bundle)
 
     ## LSS Science
-    # The only metric we have from LSS is the NGals metric - which is similar to the GalaxyCountsExtended
+    # The only metric we have from LSS is the NGals metric -
+    # which is similar to the GalaxyCountsExtended
     # metric, but evaluated only on the depth/dust cuts footprint.
     subgroupCount += 1
     displayDict["subgroup"] = f"{subgroupCount}: LSS"
@@ -563,7 +575,8 @@ def radar_limited(
     plotDict = {"n_ticks": 5}
 
     ## WL metrics
-    # Calculates the number of visits per pointing, after removing parts of the footprint due to dust/depth
+    # Calculates the number of visits per pointing, after removing
+    # parts of the footprint due to dust/depth
     # Count visits in gri bands.
     subgroupCount += 1
     displayDict["subgroup"] = f"{subgroupCount}: WL"
@@ -893,14 +906,13 @@ def radar_limited(
     displayDict["group"] = "Variables/Transients"
     displayDict["subgroup"] = "KNe"
     n_events = 10000
-    displayDict[
-        "caption"
-    ] = f"KNe metric, injecting {n_events} lightcurves over the entire sky, GW170817-like only. Ignoring DDF observations."
+    caption = f"KNe metric, injecting {n_events} lightcurves over the entire sky, GW170817-like only."
+    caption += " Ignoring DDF observations."
+    displayDict["caption"] = caption
     displayDict["order"] = 0
     # Kilonova parameters
     inj_params_list = [
         {"mej_dyn": 0.005, "mej_wind": 0.050, "phi": 30, "theta": 25.8},
-        # {"mej_dyn": 0.005, "mej_wind": 0.050, "phi": 30, "theta": 0.0}, # no longer preferred
     ]
     filename = maf.get_kne_filename(inj_params_list)
     kneslicer = maf.generate_kn_pop_slicer(n_events=n_events, n_files=len(filename), d_min=10, d_max=600)
@@ -922,9 +934,9 @@ def radar_limited(
     bundleList.append(bundle)
 
     n_events = 10000
-    displayDict[
-        "caption"
-    ] = f"KNe metric, injecting {n_events} lightcurves over the entire sky, entire model population. Ignoring DDF observations."
+    caption = f"KNe metric, injecting {n_events} lightcurves over the entire sky, entire model population."
+    caption += " Ignoring DDF observations."
+    displayDict["caption"] = caption
     displayDict["order"] = 1
     # Kilonova parameters
     filename = maf.get_kne_filename(None)

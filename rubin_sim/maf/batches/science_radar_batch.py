@@ -24,15 +24,33 @@ def science_radar_batch(
     srd_only=False,
     mjd0=None,
 ):
-    """A batch of metrics for looking at survey performance relative to the SRD and the main
-    science drivers of LSST.
+    """A batch of metrics for looking at survey performance relative to the
+    SRD and the main science drivers of LSST.
 
     Parameters
     ----------
-    long_microlensing : `bool` (True)
-        Add the longer running microlensing metrics to the batch (subset of crossing times only)
-    srd_only : `bool` (False)
+    runName : `str`, optional
+        The name of the opsim run.
+    nside : `int`, optional
+        The nside to use for the HealpixSlicer (where relevant).
+    benchmarkArea : `float`, optional
+        The benchmark value to use for fO_Area comparison.
+    benchmarkNvisits : `float`, optional
+        The benchmark value to use for fO_Nvisits comparisons.
+    minNvisits : `float`, optional
+        The value to use to establish the area covered by at least minNvis.
+    long_microlensing : `bool`, optional
+        Add the longer running microlensing metrics to the batch
+        (at a subset of crossing times only)
+    srd_only : `bool` , optional
         Only return the SRD metrics
+    mjd0 : `float`, optional
+        Set the start time for the survey, for metrics which need
+        this information.
+
+    Returns
+    -------
+    metric_bundleDict : `dict` of `maf.MetricBundle`
     """
 
     bundleList = []
@@ -46,10 +64,11 @@ def science_radar_batch(
         allfilterinfo_label,
     ) = filter_list(all=True)
 
-    standardStats = standard_summary(withCount=False)
+    standardStats = standard_summary(with_count=False)
 
-    # This is the default slicer for most purposes in this batch. Note that the cache is off -
-    # if the metric requires a dust map, this is not the right slicer to use.
+    # This is the default slicer for most purposes in this batch.
+    # Note that the cache is on - if the metric requires a dust map,
+    # this is not the right slicer to use.
     healpixslicer = slicers.HealpixSlicer(nside=nside, use_cache=True)
     subsetPlots = [plots.HealpixSkyMap(), plots.HealpixHistogram()]
 
@@ -210,7 +229,7 @@ def science_radar_batch(
         bundleList.append(bundle)
         displayDict["order"] += 1
 
-    # Parallax normalized to 'best possible' if all visits separated by 6 months.
+    # Parallax normalized to 'best possible'.
     # This separates the effect of cadence from depth.
     for rmag in rmags_para:
         metric = metrics.ParallaxMetric(
@@ -243,7 +262,8 @@ def science_radar_batch(
         )
         bundleList.append(bundle)
         displayDict["order"] += 1
-    # Parallax problems can be caused by HA and DCR degeneracies. Check their correlation.
+    # Parallax problems can be caused by HA and DCR degeneracies.
+    # Check their correlation.
     for rmag in rmags_para:
         metric = metrics.ParallaxDcrDegenMetric(
             metric_name="Parallax-DCR degeneracy @ %.1f" % (rmag), rmag=rmag
@@ -325,7 +345,7 @@ def science_radar_batch(
         plot_dict=plotDict,
         plot_funcs=subsetPlots,
         display_dict=displayDict,
-        summary_metrics=standard_summary(withCount=False),
+        summary_metrics=standard_summary(with_count=False),
     )
     bundleList.append(bundle)
 
@@ -346,15 +366,17 @@ def science_radar_batch(
         plot_dict=plotDict,
         plot_funcs=subsetPlots,
         display_dict=displayDict,
-        summary_metrics=standard_summary(withCount=False),
+        summary_metrics=standard_summary(with_count=False),
     )
     bundleList.append(bundle)
     displayDict["order"] += 1
 
-    # Better version of the rapid revisit requirements: require a minimum number of visits between
-    # dtMin and dtMax, but also a minimum number of visits between dtMin and dtPair (the typical pair time).
+    # Better version of the rapid revisit requirements:
+    # require a minimum number of visits between
+    # dtMin and dtMax, but also a minimum number of visits
+    # between dtMin and dtPair (the typical pair time).
     # 1 means the healpix met the requirements (0 means did not).
-    dTmin = 40.0 / 60.0  # (minutes) 40s minumum for rapid revisit range
+    dTmin = 40.0 / 60.0  # (minutes) 40s minimum for rapid revisit range
     dTpairs = 20.0  # minutes (time when pairs should start kicking in)
     dTmax = 30.0  # 30 minute maximum for rapid revisit range
     nOne = 82  # Number of revisits between 40s-30m required
@@ -445,7 +467,8 @@ def science_radar_batch(
     #########################
     #########################
 
-    # Run this per filter, to look at variations in counts of galaxies in blue bands?
+    # Run this per filter, to look at variations in counts
+    # of galaxies in blue bands?
     displayDict = {
         "group": "Galaxies",
         "subgroup": "Galaxy Counts",
@@ -528,8 +551,9 @@ def science_radar_batch(
 
     displayDict["subgroup"] = f"{subgroupCount}: Static Science"
     ## Static Science
-    # Calculate the static science metrics - effective survey area, mean/median coadded depth, stdev of
-    # coadded depth and the 3x2ptFoM emulator.
+    # Calculate the static science metrics - effective survey area,
+    # mean/median coadded depth, stdev of coadded depth and
+    # the 3x2ptFoM emulator.
 
     dustmap = maps.DustMap(nside=nside, interp=False)
     pix_area = hp.nside2pixarea(nside, degrees=True)
@@ -581,13 +605,14 @@ def science_radar_batch(
         bundleList.append(bundle)
 
     ## LSS Science
-    # The only metric we have from LSS is the NGals metric - which is similar to the GalaxyCountsExtended
+    # The only metric we have from LSS is the NGals metric -
+    # which is similar to the GalaxyCountsExtended
     # metric, but evaluated only on the depth/dust cuts footprint.
     subgroupCount += 1
     displayDict["subgroup"] = f"{subgroupCount}: LSS"
     displayDict["order"] = 0
     plotDict = {"n_ticks": 5}
-    # Have to include all filters in query, so that we check for all-band coverage.
+    # Have to include all filters in query to check for filter coverage.
     # Galaxy numbers calculated using 'bandpass' images only though.
     sqlconstraint = 'note not like "DD%"'
     info_label = f"{bandpass} band galaxies non-DD"
@@ -623,7 +648,8 @@ def science_radar_batch(
     bundleList.append(bundle)
 
     ## WL metrics
-    # Calculates the number of visits per pointing, after removing parts of the footprint due to dust/depth
+    # Calculates the number of visits per pointing,
+    # after removing parts of the footprint due to dust/depth.
     # Count visits in gri bands.
     subgroupCount += 1
     displayDict["subgroup"] = f"{subgroupCount}: WL"
@@ -866,7 +892,8 @@ def science_radar_batch(
         )
 
     # Calculate the expected AGN structure function error
-    # These agn test magnitude values are determined by looking at the baseline median m5 depths
+    # These agn test magnitude values are determined by
+    # looking at the baseline median m5 depths
     # For v1.7.1 these values are:
     agn_m5 = {"u": 22.89, "g": 23.94, "r": 23.5, "i": 22.93, "z": 22.28, "y": 21.5}
     # And the expected medians SF error at those values is about 0.04
@@ -984,7 +1011,8 @@ def science_radar_batch(
     tdc_plots = [plots.HealpixSkyMap(), plots.HealpixHistogram()]
     plotDict = {"x_min": 0.01, "color_min": 0.01, "percentile_clip": 70, "n_ticks": 5}
     tdc_summary = [metrics.MeanMetric(), metrics.MedianMetric(), metrics.RmsMetric()]
-    # Ideally need a way to do better on calculating the summary metrics for the high accuracy area.
+    # Ideally need a way to do better on calculating the summary metrics
+    # for the high accuracy area.
     slicer = slicers.HealpixSlicer(nside=nside_tdc, use_cache=False)
     tdcMetric = metrics.TdcMetric(metric_name="TDC")
     dustmap = maps.DustMap(nside=nside_tdc, interp=False)
@@ -1312,14 +1340,13 @@ def science_radar_batch(
     displayDict["group"] = "Variables/Transients"
     displayDict["subgroup"] = "KNe"
     n_events = 500000
-    displayDict[
-        "caption"
-    ] = f"KNe metric, injecting {n_events} lightcurves over the entire sky, GW170817-like only. Ignoring DDF observations."
+    caption = f"KNe metric, injecting {n_events} lightcurves over the entire sky, GW170817-like only."
+    caption += " Ignoring DDF observations."
+    displayDict["caption"] = caption
     displayDict["order"] = 0
     # Kilonova parameters
     inj_params_list = [
         {"mej_dyn": 0.005, "mej_wind": 0.050, "phi": 30, "theta": 25.8},
-        # {"mej_dyn": 0.005, "mej_wind": 0.050, "phi": 30, "theta": 0.0}, # no longer preferred
     ]
     filename = maf.get_kne_filename(inj_params_list)
     kneslicer = maf.generate_kn_pop_slicer(n_events=n_events, n_files=len(filename), d_min=10, d_max=600)
@@ -1341,9 +1368,9 @@ def science_radar_batch(
     bundleList.append(bundle)
 
     n_events = 500000
-    displayDict[
-        "caption"
-    ] = f"KNe metric, injecting {n_events} lightcurves over the entire sky, entire model population. Ignoring DDF observations."
+    caption = f"KNe metric, injecting {n_events} lightcurves over the entire sky, entire model population."
+    caption += " Ignoring DDF observations."
+    displayDict["caption"] = caption
     displayDict["order"] = 1
     # Kilonova parameters
     filename = maf.get_kne_filename(None)
@@ -1626,7 +1653,8 @@ def science_radar_batch(
             "Number of stars in %s band with an measurement uncertainty due to crowding "
             "of less than 0.2 mag" % f
         )
-        # Configure the NstarsMetric - note 'filtername' refers to the filter in which to evaluate crowding
+        # Configure the NstarsMetric - note 'filtername' refers to the
+        # filter in which to evaluate crowding
         metric = metrics.NstarsMetric(
             crowding_error=0.2,
             filtername=f,
@@ -1656,7 +1684,8 @@ def science_radar_batch(
             "Number of stars in %s band with an measurement uncertainty "
             "of less than 0.2 mag, not considering crowding" % f
         )
-        # Configure the NstarsMetric - note 'filtername' refers to the filter in which to evaluate crowding
+        # Configure the NstarsMetric - note 'filtername' refers to the
+        # filter in which to evaluate crowding
         metric = metrics.NstarsMetric(
             crowding_error=0.2,
             filtername=f,

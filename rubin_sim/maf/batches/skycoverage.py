@@ -16,15 +16,18 @@ def meanRADec(colmap=None, runName="opsim", extraSql=None, extraInfoLabel=None):
 
     Parameters
     ----------
-    colmap : dict, optional
-        A dictionary with a mapping of column names. Default will use OpsimV4 column names.
-    runName : str, optional
-        The name of the simulated survey. Default is "opsim".
-    extraSql : str, optional
+    colmap : `dict`, optional
+        A dictionary with a mapping of column names.
+    runName : `str`, optional
+        The name of the simulated survey.
+    extraSql : `str`, optional
         Additional constraint to add to any sql constraints (e.g. 'night<365')
-        Default None, for no additional constraints.
-    extraInfoLabel : str, optional
-        Additional info_label to add before any below (i.e. "WFD").  Default is None.
+    extraInfoLabel : `str`, optional
+        Additional info_label to add before any below (i.e. "WFD").
+
+    Returns
+    -------
+    metric_bundleDict : `dict` of `maf.MetricBundle`
     """
     if colmap is None:
         colmap = col_map_dict()
@@ -79,15 +82,18 @@ def eastWestBias(colmap=None, runName="opsim", extraSql=None, extraInfoLabel=Non
 
     Parameters
     ----------
-    colmap : dict, optional
-        A dictionary with a mapping of column names. Default will use OpsimV4 column names.
-    runName : str, optional
-        The name of the simulated survey. Default is "opsim".
-    extraSql : str, optional
+    colmap : `dict`, optional
+        A dictionary with a mapping of column names.
+    runName : `str`, optional
+        The name of the simulated survey.
+    extraSql : `str`, optional
         Additional constraint to add to any sql constraints (e.g. 'night<365')
-        Default None, for no additional constraints.
-    extraInfoLabel : str, optional
-        Additional info_label to add before any below (i.e. "WFD").  Default is None.
+    extraInfoLabel : `str`, optional
+        Additional info_label to add before any below (i.e. "WFD").
+
+    Returns
+    -------
+    metric_bundleDict : `dict` of `maf.MetricBundle`
     """
     if colmap is None:
         colmap = col_map_dict()

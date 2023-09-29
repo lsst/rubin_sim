@@ -14,20 +14,19 @@ from .common import standard_metrics
 
 def slewBasics(colmap=None, run_name="opsim", sql_constraint=None):
     """Generate a simple set of statistics about the slew times and distances.
-    These slew statistics can be run on the summary or default tables.
 
     Parameters
     ----------
-    colmap : dict or None, optional
-        A dictionary with a mapping of column names. Default will use OpsimV4 column names.
-    runName : str, optional
-        The name of the simulated survey. Default is "opsim".
-    sqlConstraint : str or None, optional
-        SQL constraint to add to metrics. (note this runs on summary table).
+    colmap : `dict` or None, optional
+        A dictionary with a mapping of column names.
+    runName : `str`, optional
+        The name of the simulated survey.
+    sqlConstraint : `str` or None, optional
+        SQL constraint to add to metrics.
 
     Returns
     -------
-    metric_bundleDict
+    metric_bundleDict : `dict` of `maf.MetricBundle`
     """
 
     if colmap is None:
@@ -49,7 +48,7 @@ def slewBasics(colmap=None, run_name="opsim", sql_constraint=None):
     }
     # Add total number of slews.
     metric = metrics.CountMetric(colmap["slewtime"], metric_name="Slew Count")
-    displayDict["caption"] = "Total number of slews recorded in summary table."
+    displayDict["caption"] = "Total number of slews recorded."
     displayDict["order"] += 1
     bundle = mb.MetricBundle(metric, slicer, sql_constraint, info_label=info_label, display_dict=displayDict)
     bundleList.append(bundle)

@@ -127,7 +127,6 @@ def rs_download_data():
         dirs = [key for key in dirs if "orbits_precompute" not in key]
 
     # See if base URL is alive
-    s = requests.Session()
     url_base = args.url_base
     try:
         r = requests.get(url_base)

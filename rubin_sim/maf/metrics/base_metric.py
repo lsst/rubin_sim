@@ -12,7 +12,6 @@ import inspect
 import warnings
 
 import numpy as np
-from six import with_metaclass
 
 from rubin_sim.maf.stackers.get_col_info import ColInfo
 
@@ -103,7 +102,7 @@ class ColRegistry:
                         self.stacker_dict[col] = source
 
 
-class BaseMetric(with_metaclass(MetricRegistry, object)):
+class BaseMetric(metaclass=MetricRegistry):
     """
     Base class for the metrics.
     Sets up some basic functionality for the MAF framework:

@@ -157,7 +157,6 @@ class GRBTransientMetric(metrics.BaseMetric):
         # Total number of transients that could go off back-to-back
         n_trans_max = np.floor(self.survey_duration / (self.trans_duration / 365.25))
         tshifts = np.arange(self.n_phase_check) * self.trans_duration / float(self.n_phase_check)
-        n_detected = 0
         n_trans_max = 0
         for tshift in tshifts:
             # Compute the total number of back-to-back transients are possible to detect

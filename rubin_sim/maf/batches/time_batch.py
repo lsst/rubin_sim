@@ -23,26 +23,27 @@ def intraNight(
     display_group="IntraNight",
     subgroup="Pairs",
 ):
-    """Generate a set of statistics about the pair/triplet/etc. rate within a night.
+    """Generate a set of statistics about the pair/triplet/etc. rate
+    within a night.
 
     Parameters
     ----------
-    colmap : dict or None, optional
-        A dictionary with a mapping of column names. Default will use OpsimV4 column names.
-    runName : str, optional
-        The name of the simulated survey. Default is "opsim".
-    nside : int, optional
-        Nside for the healpix slicer. Default 64.
-    extraSql : str or None, optional
+    colmap : `dict` or None, optional
+        A dictionary with a mapping of column names.
+    runName : `str`, optional
+        The name of the simulated survey.
+    nside : `int`, optional
+        Nside for the healpix slicer.
+    extraSql : `str` or None, optional
         Additional sql constraint to apply to all metrics.
-    extraInfoLabel : str or None, optional
+    extraInfoLabel : `str` or None, optional
         Additional info_label to apply to all results.
-    slicer : slicer object (None)
+    slicer : `maf.BaseSlicer` or None
         Optionally use something other than a HealpixSlicer
 
     Returns
     -------
-    metric_bundleDict
+    metric_bundleDict : `dict` of `maf.MetricBundle`
     """
 
     if colmap is None:
@@ -63,7 +64,8 @@ def intraNight(
     if slicer is None:
         slicer = slicers.HealpixSlicer(nside=nside, lat_col=decCol, lon_col=raCol, lat_lon_deg=degrees)
 
-    # Look for the fraction of visits in gri where there are pairs within dtMin/dtMax.
+    # Look for the fraction of visits in gri where there are pairs
+    # within dtMin/dtMax.
     displayDict = {
         "group": display_group,
         "subgroup": subgroup,
@@ -131,7 +133,7 @@ def intraNight(
     )
     bundleList.append(bundle)
 
-    # Look at the fraction of visits which have another visit within dtMax, gri.
+    # Look at the fraction of visits which have another visit within dtMax gri.
     dtMax = 60.0
     metric = metrics.NRevisitsMetric(
         mjd_col=colmap["mjd"],
@@ -180,7 +182,8 @@ def intraNight(
     bundleList.append(bundle)
 
     # Max Timespans (in each night)
-    # Run in all filters, u+g, g+r, r+i, i+z and z+y filters, and individual filters
+    # Run in all filters, u+g, g+r, r+i, i+z and z+y filters,
+    # and individual filters
 
     metric = metrics.NightTimespanMetric(percentile=75, night_col=colmap["night"], mjd_col=colmap["mjd"])
     displayDict["caption"] = "75th percentile value of the maximum intra-night timespan, on each night"
@@ -315,26 +318,27 @@ def interNight(
     display_group="InterNight",
     subgroup="Night gaps",
 ):
-    """Generate a set of statistics about the spacing between nights with observations.
+    """Generate a set of statistics about the spacing between nights
+    with observations.
 
     Parameters
     ----------
-    colmap : dict or None, optional
-        A dictionary with a mapping of column names. Default will use OpsimV4 column names.
-    runName : str, optional
-        The name of the simulated survey. Default is "opsim".
-    nside : int, optional
-        Nside for the healpix slicer. Default 64.
-    extraSql : str or None, optional
+    colmap : `dict` or None, optional
+        A dictionary with a mapping of column names.
+    runName : `str`, optional
+        The name of the simulated survey.
+    nside : `int`, optional
+        Nside for the healpix slicer.
+    extraSql : `str` or None, optional
         Additional sql constraint to apply to all metrics.
-    extraInfoLabel : str or None, optional
+    extraInfoLabel : `str` or None, optional
         Additional info_label to use for all outputs.
-    slicer : slicer object (None)
+    slicer : `maf.BaseSlicer` or None
         Optionally use something other than a HealpixSlicer
 
     Returns
     -------
-    metric_bundleDict
+    metric_bundleDict : `dict` of `maf.MetricBundle`
     """
 
     if colmap is None:
@@ -420,7 +424,8 @@ def interNight(
         )
         bundleList.append(bundle)
 
-    # 20th percentile inter-night gap (each and all filters) - aimed at active rolling years
+    # 20th percentile inter-night gap (each and all filters) -
+    # aimed at active rolling years
     def rfunc(simdata):
         return np.percentile(simdata, 20)
 
@@ -479,16 +484,17 @@ def timeGaps(
     display_group="Time Coverage",
     subgroup=None,
 ):
-    """Generate a set of statistics about the spacing between nights with observations.
+    """Generate a set of statistics about the spacing
+    between nights with observations.
 
     Parameters
     ----------
     colmap : `dict`, optional
-        A dictionary with a mapping of column names. Default will use FBS column names.
+        A dictionary with a mapping of column names.
     runName : `str`, optional
-        The name of the simulated survey. Default is "opsim".
+        The name of the simulated survey.
     nside : `int`, optional
-        Nside for the healpix slicer. Default 64.
+        Nside for the healpix slicer.
     extraSql : `str`, optional
         Additional sql constraint to apply to all metrics.
     extraInfoLabel : `str`, optional
@@ -498,7 +504,7 @@ def timeGaps(
 
     Returns
     -------
-    bundle_dict: `dict` of `rubin_sim.maf.MetricBundle`
+    bundle_dict : `dict` of `rubin_sim.maf.MetricBundle`
     """
 
     if colmap is None:
@@ -612,22 +618,22 @@ def seasons(
 
     Parameters
     ----------
-    colmap : dict or None, optional
-        A dictionary with a mapping of column names. Default will use OpsimV4 column names.
-    runName : str, optional
-        The name of the simulated survey. Default is "opsim".
-    nside : int, optional
-        Nside for the healpix slicer. Default 64.
-    extraSql : str or None, optional
+    colmap : `dict` or None, optional
+        A dictionary with a mapping of column names.
+    runName : `str`, optional
+        The name of the simulated survey.
+    nside : `int`, optional
+        Nside for the healpix slicer.
+    extraSql : `str` or None, optional
         Additional sql constraint to apply to all metrics.
-    extraInfoLabel : str or None, optional
+    extraInfoLabel : `str` or None, optional
         Additional info_label to use for all outputs.
-    slicer : slicer object (None)
+    slicer : `maf.BaseSlicer` or None`
          Optionally use something other than a HealpixSlicer
 
     Returns
     -------
-    metric_bundleDict
+    metric_bundleDict : `dict` of `maf.MetricBundle`
     """
 
     if colmap is None:
@@ -684,7 +690,8 @@ def seasons(
         )
         bundleList.append(bundle)
 
-    # 80th percentile season length - aimed at finding season length during rolling or long years
+    # 80th percentile season length -
+    # aimed at finding season length during rolling or long years
     def rfunc(simdata):
         return np.percentile(simdata, 80)
 

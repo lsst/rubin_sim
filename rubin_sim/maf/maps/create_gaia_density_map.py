@@ -15,7 +15,7 @@ import numpy as np
 if __name__ == "__main__":
     # Hide imports here so documentation builds
     from rubin_sim.catalogs.db import DBObject
-    from rubin_sim.utils import angular_separation, halfSpaceFromRaDec, levelFromHtmid, raDec2Hpid
+    from rubin_sim.utils import angular_separation, halfSpaceFromRaDec
 
     # from rubin_sim.catalogs.generation.db import CatalogDBObject
     # Import the bits needed to get the catalog to work

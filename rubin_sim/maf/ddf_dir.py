@@ -33,7 +33,6 @@ def ddf_dir():
     for filename, name in zip(db_files, run_names):
         if os.path.isdir(name + "_ddf"):
             shutil.rmtree(name + "_ddf")
-        colmap = batches.col_map_dict()
 
         bdict = {}
         bdict.update(batches.ddfBatch(run_name=name, nside=args.nside))
