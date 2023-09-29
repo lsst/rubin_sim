@@ -20,16 +20,16 @@ class RelRmsMetric(BaseMetric):
 
 
 class SNMetric(BaseMetric):
-    """Calculate the signal to noise metric in a given filter for an object of a given magnitude.
-    We assume point source aperture photometry and assume that we do
-    the measurement over the stack
+    """Calculate the signal to noise in a given filter for an object of a
+    given magnitude. We assume point source aperture photometry
+    and assume that we do the measurement over the stack
     """
 
     def __init__(
         self,
         m5_col="fiveSigmaDepth",
-        seeing_col="finSeeing",
-        sky_b_col="filtSkyBrightness",
+        seeing_col="fwhmSeeingEff",
+        sky_b_col="skyBrightness",
         exp_t_col="visitExpTime",
         filter_col="filter",
         metric_name="SNMetric",
@@ -47,7 +47,6 @@ class SNMetric(BaseMetric):
         # print 'x'
         npoints = len(data_slice[self.seeingCol])
         seeing = data_slice[self.seeingCol]
-        data_slice[self.m5Col]
         # mag = depth5
         mag = self.mag
 

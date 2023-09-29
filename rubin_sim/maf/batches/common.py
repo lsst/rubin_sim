@@ -44,11 +44,11 @@ def filter_list(all=True, extra_sql=None, extra_info_label=None):
 
     Returns
     -------
-    filterlist : `list` of `str
-    colors : `dict` of {`str`: `str`}
-    orders : `dict` of {`str`: int}
-    sqls : `dict` of {`str`: `str`}
-    info_labels : `dict` of {`str`: `str}
+    filterlist : `list` [`str]
+    colors : `dict` {`str`: `str`}
+    orders : `dict` {`str`: int}
+    sqls : `dict` {`str`: `str`}
+    info_labels : `dict` {`str`: `str}
     """
     if all:
         filterlist = ("all", "u", "g", "r", "i", "z", "y")
@@ -95,7 +95,7 @@ def standard_summary(with_count=True):
 
     Returns
     -------
-    standardSummary : `list` of `maf.BaseMetric`
+    standardSummary : `list` [`maf.BaseMetric`]
         List of metrics appropriate to use to summarize the results from
         another metric.
     """
@@ -119,7 +119,7 @@ def extended_summary():
 
     Returns
     --------
-    extendedSummary : `list` of `maf.BaseMetric`
+    extendedSummary : `list` [`maf.BaseMetric`]
         List of metrics appropriate to use to summarize the results
         from another metric.
     """
@@ -144,22 +144,22 @@ def lightcurve_summary():
 
 def standard_metrics(colname, replace_colname=None):
     """A set of standard simple metrics for some quantity.
-     Typically would be applied with unislicer.
+    Typically would be applied with unislicer.
 
-     Parameters
-     ----------
-     colname : `str`
-         The column name to apply the metrics to.
-     replace_colname: `str` or None, optional
-         Value to replace colname with in the metric_name.
-         i.e. if replace_colname='' then metric name is Mean,
-         instead of Mean Airmass, or
-         if replace_colname='seeingGeom', then metric name is
-         Mean seeingGeom instead of Mean seeingFwhmGeom.
+    Parameters
+    ----------
+    colname : `str`
+        The column name to apply the metrics to.
+    replace_colname: `str` or None, optional
+        Value to replace colname with in the metric_name.
+        i.e. if replace_colname='' then metric name is Mean,
+        instead of Mean Airmass, or
+        if replace_colname='seeingGeom', then metric name is
+        Mean seeingGeom instead of Mean seeingFwhmGeom.
 
-     Returns
-     -------
-    standardMetrics : `list` of `maf.BaseMetric`
+    Returns
+    -------
+    standardMetrics : `list` [`maf.BaseMetric`]
         List of appropriate MAF metrics to evaluate a distribution.
     """
     standardMetrics = [
@@ -194,7 +194,7 @@ def extended_metrics(colname, replace_colname=None):
 
     Returns
     -------
-    extendedMetrics : `list` of `maf.BaseMetric`
+    extendedMetrics : `list` [`maf.BaseMetric`]
         List of appropriate MAF metrics to evaluate a distribution.
     """
     extendedMetrics = standard_metrics(colname, replace_colname=None)
@@ -231,7 +231,7 @@ def standard_angle_metrics(colname, replace_colname=None):
 
     Returns
     -------
-    standardAngleMetrics : `list` of `maf.BaseMetric`
+    standardAngleMetrics : `list` [`maf.BaseMetric`]
         List of appropriate MAF metrics for angle distributions.
     """
     standardAngleMetrics = [
@@ -258,7 +258,7 @@ def summary_completeness_at_time(times, h_val, h_index=0.33):
 
     Parameters
     ----------
-    times : `np.ndarray `or list` of `float`
+    times : `np.ndarray `or list` [`float`]
         The times at which to evaluate the completeness @ Hval.
     h_val : `float`
         The H value at which to evaluate the completeness
@@ -269,7 +269,7 @@ def summary_completeness_at_time(times, h_val, h_index=0.33):
 
     Returns
     -------
-    summaryMetrics : `list` of `maf.MoCompletenessAtTimeMetric`
+    summaryMetrics : `list` [`maf.MoCompletenessAtTimeMetric`]
         List of completeness metrics to be evaluated at the specified times.
     """
     summaryMetrics = [
@@ -294,7 +294,7 @@ def summary_completeness_over_h(requiredChances=1, Hindex=0.33):
 
     Returns
     -------
-    summaryMetrics : `list` of `maf.MoCompletenessMetric`
+    summaryMetrics : `list` [`maf.MoCompletenessMetric`]
         List of moving object MoCompleteness metrics
         (cumulative and differential)
     """
@@ -312,17 +312,17 @@ def fraction_population_at_threshold(thresholds, optnames=None):
 
     Parameters
     ----------
-    thresholds : `list` of `float`
+    thresholds : `list` [`float`]
         The thresholds at which to calculate what fraction of the population
         exceeds these values.
-    optnames : `list` of `str`, optional
+    optnames : `list` [`str`], optional
         If provided, these names will be used instead of the threshold values
         when constructing the metric names.
         This allows more descriptive summary statistic names.
 
     Returns
     -------
-    fracMetrics : `list` of `maf.MoCompletenessMetric`
+    fracMetrics : `list` [`maf.MoCompletenessMetric`]
         List of moving object MoCompleteness metrics
         (differential fractions of the population).
     """
@@ -355,7 +355,7 @@ def microlensing_summary(metric_type, npts_required=10, Fisher_sigmatE_tE_cutoff
 
     Returns
     -------
-    microlensingSummary : `list` of `maf.BaseMetric`
+    microlensingSummary : `list` [`maf.BaseMetric`]
         List of appropriate MAF metrics for this type of microlensing
         metric with the specified threshold values.
     """

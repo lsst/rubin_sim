@@ -44,8 +44,9 @@ class Bandpass:
     sb : `np.ndarray`, (N,)
         Throughput array (fraction, 0-1).
     sampling_warning : `float`
-        If wavelength sampling lower than this, throw a warning because it might not
-        work well with Sed (nm).
+        If wavelength sampling lower than this,
+        throw a warning because it might provide accurate magnitudes
+        due to how magnitudes are calculated in Sed (nm).
     """
 
     def __init__(self, wavelen=None, sb=None, sampling_warning=0.2):
@@ -103,9 +104,9 @@ class Bandpass:
 
     def imsim_bandpass(self, imsimwavelen=500.0, wavelen_min=300, wavelen_max=1150, wavelen_step=0.1):
         """
-        Populate bandpass data with sb=0 everywhere except sb=1 at imsimwavelen.
+        Populate bandpass data with sb=0 everywhere except at imsimwavelen.
 
-        Sets wavelen/sb, with grid min/max/step as Parameters. Does NOT set phi.
+        Sets wavelen/sb, with grid min/max/step as Parameters.
         """
         # Set up arrays.
         self.wavelen = np.arange(
@@ -132,7 +133,8 @@ class Bandpass:
         self.phi = None
         self.sb = None
         # Check for filename error.
-        # If given list of filenames, pass to (and return from) read_throughputList.
+        # If given list of filenames,
+        # pass to (and return from) read_throughputList.
         if isinstance(filename, list):
             warnings.warn(
                 "Was given list of files, instead of a single file. Using read_throughputList instead"
@@ -152,7 +154,7 @@ class Bandpass:
                     f = gzip.open(filename + ".gz", "rt")
             except IOError:
                 raise IOError("The throughput file %s does not exist" % (filename))
-        # The throughput file should have wavelength(A), throughput(Sb) as first two columns.
+        # The throughput file should have [wavelength(A), throughput(Sb)]
         wavelen = []
         sb = []
         for line in f:
@@ -170,7 +172,8 @@ class Bandpass:
         # Set up wavelen/sb.
         self.wavelen = np.array(wavelen, dtype="float")
         self.sb = np.array(sb, dtype="float")
-        # Check that wavelength is monotonic increasing and non-repeating in wavelength. (Sort on wavelength).
+        # Check that wavelength is monotonic increasing and
+        # non-repeating in wavelength. (Sort on wavelength).
         if len(self.wavelen) != len(np.unique(self.wavelen)):
             raise ValueError("The wavelength values in file %s are non-unique." % (filename))
         # Sort values.
@@ -197,15 +200,19 @@ class Bandpass:
         wavelen_step=0.1,
     ):
         """
-        Populate bandpass data by reading from a series of files with wavelen/Sb data.
+        Populate bandpass data by reading from a series of files
+        containing wavelen/Sb data.
 
-        Multiplies throughputs (sb) from each file to give a final bandpass throughput.
-        Sets wavelen/sb, with grid min/max/step as Parameters.  Does NOT set phi.
+        Multiplies throughputs (sb) from each file to give a final
+        bandpass throughput.
+        Sets wavelen/sb, with grid min/max/step as Parameters.
+        Does NOT set phi.
         """
         # ComponentList = names of files in that directory.
-        # A typical component list of all files to build final component list, including filter, might be:
-        #   component_list=['detector.dat', 'lens1.dat', 'lens2.dat', 'lens3.dat',
-        #                 'm1.dat', 'm2.dat', 'm3.dat', 'atmos_std.dat', 'ideal_g.dat']
+        # A typical component list of all files to build final component list,
+        # including filter, might be:
+        # ['detector.dat', 'lens1.dat', 'lens2.dat', 'lens3.dat',
+        #  'm1.dat', 'm2.dat', 'm3.dat', 'atmos_std.dat', 'ideal_g.dat']
         #
         # Set up wavelen/sb on grid.
         self.wavelen = np.arange(
@@ -242,7 +249,8 @@ class Bandpass:
 
     def check_use_self(self, wavelen, sb):
         """
-        Simple utility to check if should be using self.wavelen/sb or passed arrays.
+        Simple utility to check if should be using self.wavelen/sb
+        or passed arrays.
 
         Useful for other methods in this class.
         Also does data integrity check on wavelen/sb if not self.
@@ -272,16 +280,17 @@ class Bandpass:
         wavelen_step=0.1,
     ):
         """
-        Resamples wavelen/sb (or self.wavelen/sb) onto grid defined by min/max/step.
+        Resamples wavelen/sb (or self.wavelen/sb) onto grid
+        defined by min/max/step.
 
-        Either returns wavelen/sb (if given those arrays) or updates wavelen / Sb in self.
-        If updating self, resets phi to None.
+        Either returns wavelen/sb (if given those arrays) or
+        updates wavelen / Sb in self.  If updating self, resets phi to None.
         """
         # Check wavelength limits.
         wavelen_min = wavelen_min
         wavelen_max = wavelen_max
         wavelen_step = wavelen_step
-        # Is method acting on self.wavelen/sb or passed in wavelen/sb? Sort it out.
+        # Is method acting on self.wavelen/sb or passed in wavelen/sb?
         update_self = (wavelen is None) & (sb is None)
         if update_self:
             wavelen = self.wavelen
@@ -291,7 +300,8 @@ class Bandpass:
             raise Exception("No overlap between known wavelength range and desired wavelength range.")
         # Set up gridded wavelength.
         wavelen_grid = np.arange(wavelen_min, wavelen_max + wavelen_step / 2.0, wavelen_step, dtype="float")
-        # Do the interpolation of wavelen/sb onto the grid. (note wavelen/sb type failures will die here).
+        # Do the interpolation of wavelen/sb onto the grid.
+        # (note wavelen/sb type failures will die here).
         f = interpolate.interp1d(wavelen, sb, fill_value=0, bounds_error=False)
         sb_grid = f(wavelen_grid)
         # Update self values if necessary.
@@ -350,16 +360,18 @@ class Bandpass:
             Details about the photometric response of the telescope.
             Defaults to LSST values.
         """
-        # ZP_t is the magnitude of a (F_nu flat) source which produced 1 count per second.
+        # ZP_t is the magnitude of a (F_nu flat) source which produced
+        # 1 count per second.
         # This is often also known as the 'instrumental zeropoint'.
         # Set gain to 1 if want to explore photo-electrons rather than adu.
-        # The typical LSST exposure time is 15s and this is default here, but typical zp_t definition is for 1s.
+        # The typical LSST exposure time is 15s and this is default here,
+        # but typical zp_t definition is for 1s.
         # SED class uses flambda in ergs/cm^2/s/nm, so need effarea in cm^2.
         #
         # Check dlambda value for integral.
         self.wavelen[1] - self.wavelen[0]
         # Set up flat source of arbitrary brightness,
-        #   but where the units of fnu are Jansky (for AB mag zeropoint = -8.9).
+        # but where the units of fnu are Jansky (for AB mag zeropoint = -8.9).
         flatsource = Sed()
         flatsource.set_flat_sed()
         adu = flatsource.calc_adu(self, phot_params=photometric_parameters)
@@ -387,7 +399,8 @@ class Bandpass:
         """
         Write throughput to a file.
         """
-        # Useful if you build a throughput up from components and need to record the combined value.
+        # Useful if you build a throughput up from components
+        # and need to record the combined value.
         f = open(filename, "w")
         # Print header.
         if print_header is not None:
