@@ -8,9 +8,9 @@ class TestCommon(unittest.TestCase):
         colmap = batches.col_map_dict("opsimv4")
         self.assertEqual(colmap["raDecDeg"], True)
         self.assertEqual(colmap["ra"], "fieldRA")
-        colmap = batches.get_col_map("_temp")
+        colmap = batches.col_map_dict("fbs")
         self.assertEqual(colmap["raDecDeg"], True)
-        self.assertEqual(colmap["ra"], "fieldRA")
+        self.assertEqual(colmap["skyBrightness"], "skyBrightness")
 
     def test_filter_list(self):
         filterlist, colors, orders, sqls, info_label = batches.common.filter_list(all=False, extra_sql=None)
