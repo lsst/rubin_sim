@@ -6,6 +6,7 @@ on:
       - main
     tags:
       - "*"
+  workflow_dispatch:
 
 jobs:
   tests:
@@ -41,6 +42,13 @@ jobs:
           echo `pwd`
           python -m pip install .
 
+      - name: download rubin_sim_data components needed for unit tests
+        shell: bash -l {0}
+        run: |
+          export RUBIN_SIM_DATA_DIR=${{ github.workspace }}/data_dir
+          rs_download_data --tdqm_disable -d 'site_models,throughputs,skybrightness,skybrightness_pre'
+          rs_download_data --tdqm_disable -d tests --force
+
       - name: conda list
         shell: bash -l {0}
         run: conda list
@@ -48,6 +56,7 @@ jobs:
       - name: run unit tests
         shell: bash -l {0}
         run: |
+          export RUBIN_SIM_DATA_DIR=${{ github.workspace }}/data_dir
           pytest -r a -v --cov=rubin_sim --cov=tests --cov-report=xml --cov-report=term --cov-branch
 
       - name: Upload coverage to codecov
