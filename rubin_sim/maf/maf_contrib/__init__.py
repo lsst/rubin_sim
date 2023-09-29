@@ -12,7 +12,6 @@ from .microlensing_metric import *
 from .periodic_metric import *
 from .periodic_star_metric import *
 from .periodic_star_modulation_metric import *
-from .phot_prec_metrics import *
 from .presto_color_kne_pop_metric import *
 from .star_count_mass_metric import *
 from .star_count_metric import *
