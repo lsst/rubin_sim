@@ -1,5 +1,5 @@
 import numpy as np
-from astropy.coordinates import AltAz, EarthLocation, get_body, solar_system_ephemeris
+from astropy.coordinates import EarthLocation, get_body, solar_system_ephemeris
 from astropy.time import Time
 
 from rubin_sim.utils import Site
