@@ -6,7 +6,7 @@ from rubin_sim.utils import Site
 
 if __name__ == "__main__":
     mjd_start = 59853.5 - 3.0 * 365.25
-    duration = 25.0 * 365.25
+    duration = 30.0 * 365.25
     pad_around = 40
     t_step = 1.0 / 24.0  # Start with 1-hour timesteps.
 
