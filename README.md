@@ -25,7 +25,7 @@ Note that this is not the best option for developers working on their own metric
 ### Pip installation ###
 
 ```
-pip install rubin_sim
+pip install rubin-sim
 ```
 
 Please note that the pip installation of pyoorb does not come with the necessary data files. 
@@ -41,11 +41,11 @@ more up-to-date compared to the conda-forge version of `openorb`. For the purpos
 
 ### Developer Installation ###
 
-To install `rubin_sim` from source using pip, with all required dependencies:
+To install `rubin_sim` from source using pip, with all dependencies (including jupyter):
 ```
 git clone https://github.com/lsst/rubin_sim.git ; cd rubin_sim  ## clone and cd into repo
-conda create -n rubin-sim ; conda activate rubin-sim   ## optional (but recommended) new conda env
-conda install -c conda-forge --file=all_req.txt   ## substitute mamba for conda if you like
+conda create -n rubin-sim --file=all_req.txt   ## optional (but recommended) new conda env
+conda activate rubin-sim   ## substitute mamba for conda if you like
 pip install -e .
 rs_download_data  ## Downloads a few GB of data to $RUBIN_SIM_DATA_DIR (~/rubin_sim_data if unset)
 ```
