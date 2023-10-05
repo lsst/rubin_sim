@@ -30,7 +30,7 @@ class SpatialBoundsMetaClass(type):
         return super(SpatialBoundsMetaClass, cls).__init__(name, bases, dct)
 
 
-class SpatialBounds(metaclass=SpatialBoundsMetaClass:
+class SpatialBounds(metaclass=SpatialBoundsMetaClass):
     """
     Classes inheriting from this class define spatial bounds on the objects
     contained within a catalog.  They also translate those bounds into
