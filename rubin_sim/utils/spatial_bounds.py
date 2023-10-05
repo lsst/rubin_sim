@@ -9,7 +9,6 @@ its field of view (i.e. is it a box in RA, Dec, is it a circle in RA, Dec....?)
 __all__ = ("SpatialBounds", "CircleBounds", "BoxBounds")
 
 import numpy as np
-from six import with_metaclass
 
 
 class SpatialBoundsMetaClass(type):
@@ -31,7 +30,7 @@ class SpatialBoundsMetaClass(type):
         return super(SpatialBoundsMetaClass, cls).__init__(name, bases, dct)
 
 
-class SpatialBounds(with_metaclass(SpatialBoundsMetaClass, object)):
+class SpatialBounds(metaclass=SpatialBoundsMetaClass:
     """
     Classes inheriting from this class define spatial bounds on the objects
     contained within a catalog.  They also translate those bounds into
