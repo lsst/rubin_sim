@@ -1,7 +1,8 @@
-__all__ = ("SeeingData",)
+__all__ = ("SeeingData", "ConstantSeeingData")
 
 import os
 import sqlite3
+from dataclasses import dataclass
 
 import numpy as np
 from astropy.time import Time
@@ -119,3 +120,25 @@ class SeeingData:
         config_info["Start time for db"] = self.start_time
         config_info["Seeing database"] = self.seeing_db
         return config_info
+
+
+@dataclass
+class ConstantSeeingData:
+    fwhm_500: float = 0.7
+
+    def __call__(self, time):
+        """A constant FWHM_500 value
+
+        Parameters
+        ----------
+        time : `astropy.time.Time`
+            It principle the time for which the seeing is returned,
+            in practice this argumnet is ignored, and included for
+            compatibility.
+
+        Returns
+        -------
+        fwhm_500 : `float`
+            The FWHM at 500nm, in arcseconds.
+        """
+        return self.fwhm_500
