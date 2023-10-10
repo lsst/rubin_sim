@@ -30,20 +30,9 @@ from rubin_sim.utils import (
     survey_start_mjd,
 )
 
-
-class NoClouds:
-    """Dummy class that will always say there are no clouds"""
-
-    def __call__(self, mjd):
-        return 0
-
-
-class NominalSeeing:
-    """Dummy class to always return nominal seeing"""
-
-    def __call__(self, mjd):
-        fwhm_500 = 0.7
-        return fwhm_500
+# For backwards compatibility
+from rubin_sim.site_models import ConstantCloudData as NoClouds
+from rubin_sim.site_models import ConstantSeeingData as NominalSeeing
 
 
 class ModelObservatory:
@@ -68,6 +57,7 @@ class ModelObservatory:
         seeing_data=None,
         downtimes=None,
         no_sky=False,
+        wind_data=None,
     ):
         """
         Parameters
@@ -112,11 +102,18 @@ class ModelObservatory:
         no_sky : bool
             Don't bother loading sky files. Handy if one wants a well filled out Conditions object,
             but doesn't need the sky since that can be slower to load. Default False.
+        wind_data : None
+            If one wants to replace the default wind_data object. Should be an
+            object with a __call__ method that takes the time and returns a
+            tuple with the wind speed (m/s) and originating direction (radians
+            east of north)
         """
 
         if nside is None:
             nside = set_default_nside()
         self.nside = nside
+
+        self.wind_data = wind_data
 
         self.cloud_limit = cloud_limit
         self.no_sky = no_sky
@@ -366,6 +363,11 @@ class ModelObservatory:
             toos = self.sim__to_o(self.mjd)
             if toos is not None:
                 self.conditions.targets_of_opportunity = toos
+
+        if self.wind_data is not None:
+            wind_speed, wind_direction = self.wind_data(current_time)
+            self.conditions.wind_speed = wind_speed
+            self.conditions.wind_direction = wind_direction
 
         return self.conditions
 

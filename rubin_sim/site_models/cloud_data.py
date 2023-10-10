@@ -1,7 +1,8 @@
-__all__ = ("CloudData",)
+__all__ = ("CloudData", "ConstantCloudData")
 
 import os
 import sqlite3
+from dataclasses import dataclass
 
 import numpy as np
 from astropy.time import Time
@@ -112,3 +113,32 @@ class CloudData:
         if self.scale is not None:
             self.cloud_dates = np.round(self.cloud_dates * self.scale).astype(int)
         self.cloud_values = self.cloud_values[ordidx]
+
+
+@dataclass
+class ConstantCloudData:
+    """Generate constant cloud information.
+
+    Parameters
+    ----------
+    cloud_fraction : `float`
+        The fraction of the sky that is cloudy.
+    """
+
+    cloud_fraction: float = 0.0
+
+    def __call__(self, time):
+        """Get the cloud for the specified time.
+
+        Parameters
+        ----------
+        time : `astropy.time.Time`
+            In principle, the time in the simulation for which to find the
+            current cloud coverage. In practice, this argument is ignored.
+
+        Returns
+        -------
+        cloud_faction : `float`
+            The fraction of the sky that is cloudy.
+        """
+        return self.cloud_fraction
