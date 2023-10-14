@@ -1,7 +1,6 @@
 __all__ = ("CoreScheduler",)
 
 import logging
-import reprlib
 import time
 from collections import OrderedDict
 from copy import deepcopy
@@ -17,22 +16,29 @@ from rubin_sim.utils import _approx_altaz2pa, _approx_ra_dec2_alt_az, _hpid2_ra_
 
 
 class CoreScheduler:
-    """Core scheduler that takes completed observations and observatory status and requests observations
+    """Core scheduler that takes requests observations, reports observatory
+    status and provides completed observations.
 
     Parameters
     ----------
     surveys : list (or list of lists) of rubin_sim.scheduler.survey objects
-        A list of surveys to consider. If multiple surveys return the same highest
-        reward value, the survey at the earliest position in the list will be selected.
-        Can also be a list of lists to make heirarchical priorities.
-    nside : int
+        A list of surveys to consider.
+        If multiple surveys return the same highest reward value, the survey
+        at the earliest position in the list will be selected.
+        Can also be a list of lists to make heirarchical priorities ('tiers').
+    nside : `int`
         A HEALpix nside value.
-    camera : str ('LSST')
-        Which camera to use for computing overlapping HEALpixels for an observation.
-        Can be 'LSST' or 'comcam'
-    conditions : a rubin_sim.scheduler.features.Conditions object (None)
-        An object that hold the current conditions and derived values (e.g., 5-sigma depth). Will
-        generate a default if set to None.
+    camera : `str`
+        Which camera to use to compute the correspondence between
+        visits and HEALpixels when recording observations.
+        Can be 'LSST' or 'comcam'.
+    rotator_limits : `list` [`float`, `float`]
+        Limits for the camera rotator.
+    log : `logging.Logger`
+        If None, a new logger is created.
+    keep_rewards : `bool`
+        Flag as to whether to record the rewards and basis function values
+        (this can be useful for schedview).
     """
 
     def __init__(
@@ -44,22 +50,6 @@ class CoreScheduler:
         log=None,
         keep_rewards=False,
     ):
-        """
-        Parameters
-        ----------
-        surveys : list (or list of lists) of rubin_sim.scheduler.survey objects
-            A list of surveys to consider. If multiple surveys return the same highest
-            reward value, the survey at the earliest position in the list will be selected.
-            Can also be a list of lists to make heirarchical priorities.
-        nside : int
-            A HEALpix nside value.
-        camera : str ('LSST')
-            Which camera to use for computing overlapping HEALpixels for an observation.
-            Can be 'LSST' or 'comcam'
-        rotator_limits : sequence of floats
-        keep_rewards : `bool`
-            Keep records of rewards and basis funciton values
-        """
         self.keep_rewards = keep_rewards
         # Use integer ns just to be sure there are no rounding issues.
         self.mjd_perf_counter_offset = np.int64(Time.now().mjd * 86400000000000) - time.perf_counter_ns()
@@ -74,7 +64,8 @@ class CoreScheduler:
 
         # initialize a queue of observations to request
         self.queue = []
-        # The indices of self.survey_lists that provided the last addition(s) to the queue
+        # The indices of self.survey_lists that provided
+        # the last addition(s) to the queue
         self.survey_index = [None, None]
 
         # If we have a list of survey objects, convert to list-of-lists
@@ -85,7 +76,8 @@ class CoreScheduler:
         self.nside = nside
         hpid = np.arange(hp.nside2npix(nside))
         self.ra_grid_rad, self.dec_grid_rad = _hpid2_ra_dec(nside, hpid)
-        # Should just make camera a class that takes a pointing and returns healpix indices
+        # Should just make camera a class that takes a pointing
+        # and returns healpix indices
         if camera == "LSST":
             self.pointing2hpindx = HpInLsstFov(nside=nside)
         elif camera == "comcam":
@@ -106,7 +98,8 @@ class CoreScheduler:
         """Like add_observation, but for passing many observations at once.
 
         Assigns overlapping HEALpix IDs to each observation, then passes
-        the observation array and constructed observations + healpix id to each survey.
+        the observation array and constructed observations + healpix id
+        to each survey.
         """
         obs.sort(order="mjd")
         # Generate list-of-lists for HEALPix IDs for each pointing
@@ -142,7 +135,8 @@ class CoreScheduler:
         ----------
         observation : dict-like
             An object that contains the relevant information about a
-            completed observation (e.g., mjd, ra, dec, filter, rotation angle, etc)
+            completed observation
+            (e.g., mjd, ra, dec, filter, rotation angle, etc)
         """
 
         # Find the healpixel centers that are included in an observation
@@ -156,17 +150,20 @@ class CoreScheduler:
         Parameters
         ----------
         conditions : dict-like
-            The current conditions of the telescope (pointing position, loaded filters, cloud-mask, etc)
+            The current conditions of the telescope (pointing position,
+            loaded filters, cloud-mask, etc)
         """
         # Add the current queue and scheduled queue to the conditions
         self.conditions = conditions_in
         # put the local queue in the conditions
         self.conditions.queue = self.queue
 
-        # Check if any surveys have upcomming scheduled observations. Note that we are accumulating
-        # all of the possible scheduled observations, so it's up to the user to make sure things don't
-        # collide. The ideal implementation would be to have all the scheduled observations in a
-        # single survey objects, presumably at the highest tier of priority.
+        # Check if any surveys have upcomming scheduled observations.
+        # Note that we are accumulating all of the possible scheduled
+        # observations, so it's up to the user to make sure things don't
+        # collide. The ideal implementation would be to have all the
+        # scheduled observations in a single survey objects,
+        # presumably at the highest tier of priority.
 
         all_scheduled = []
         for sl in self.survey_lists:
@@ -184,9 +181,10 @@ class CoreScheduler:
 
     def _check_queue_mjd_only(self, mjd):
         """
-        Check if there are things in the queue that can be executed using only MJD and not full conditions.
-        This is primarly used by sim_runner to reduce calls calculating updated conditions when they are not
-        needed.
+        Check if there are things in the queue that can be executed
+        using only MJD and not full conditions.
+        This is primarily used by sim_runner to reduce calls calculating
+        updated conditions when they are not needed.
         """
         result = False
         if len(self.queue) > 0:
@@ -198,18 +196,19 @@ class CoreScheduler:
 
     def request_observation(self, mjd=None):
         """
-        Ask the scheduler what it wants to observe next
+         Ask the scheduler what it wants to observe next
 
-        Parameters
-        ----------
-        mjd : float (None)
-            The Modified Julian Date. If None, it uses the MJD from the conditions from the
-            last conditions update.
+         Parameters
+         ----------
+         mjd : float (None)
+             The Modified Julian Date.
+             If None, it uses the MJD from the conditions from the
+             last conditions update.
 
-        Returns
-        -------
-        observation object (ra,dec,filter,rotangle)
-        Returns None if the queue fails to fill
+         Returns
+         -------
+        observations :  observation object (ra,dec,filter,rotangle)
+         Returns None if the queue fails to fill
         """
         if mjd is None:
             mjd = self.conditions.mjd
@@ -219,7 +218,8 @@ class CoreScheduler:
         if len(self.queue) == 0:
             return None
         else:
-            # If the queue has gone stale, flush and refill. Zero means no flush_by was set.
+            # If the queue has gone stale, flush and refill.
+            # Zero means no flush_by was set.
             if (IntRounded(mjd) > IntRounded(self.queue[0]["flush_by_mjd"])) & (
                 self.queue[0]["flush_by_mjd"] != 0
             ):
@@ -250,8 +250,8 @@ class CoreScheduler:
 
     def _fill_queue(self):
         """
-        Compute reward function for each survey and fill the observing queue with the
-        observations from the highest reward survey.
+        Compute reward function for each survey and fill the observing queue
+        with the observations from the highest reward survey.
         """
 
         # If we loaded the scheduler from a pickle, self.keep_rewards
@@ -286,8 +286,8 @@ class CoreScheduler:
         else:
             to_fix = np.where(np.isnan(rewards) == True)
             rewards[to_fix] = -np.inf
-            # Take a min here, so the surveys will be executed in the order they are
-            # entered if there is a tie.
+            # Take a min here, so the surveys will be executed in the order
+            # they are entered if there is a tie.
             self.survey_index[1] = np.min(np.where(rewards == np.nanmax(rewards)))
             # Survey return list of observations
             result = self.survey_lists[self.survey_index[0]][self.survey_index[1]].generate_observations(
@@ -300,23 +300,26 @@ class CoreScheduler:
             self.log.warning(f"Failed to fill queue at time {self.conditions.mjd}")
 
     def get_basis_functions(self, survey_index=None, conditions=None):
-        """Get the basis functions for a specific survey, in provided conditions.
+        """Get the basis functions for a specific survey,
+        in provided conditions.
 
         Parameters
         ----------
-        survey_index : `List` [`int`], optional
-            A list with two elements: the survey list and the element within that
-            survey list for which the basis function should be retrieved. If ``None``,
-            use the latest survey to make an addition to the queue.
-        conditions : `rubin_sim.scheduler.features.conditions.Conditions`, optional
-            The conditions for which to return the basis functions. If ``None``, use
-            the conditions associated with this sceduler. By default None.
+        survey_index : `List` [`int`]
+            A list with two elements: the survey list and the element
+            within that survey list for which the basis function should be
+            retrieved. If ``None``, use the latest survey to make an addition
+            to the queue.
+        conditions : `rubin_sim.scheduler.features.conditions.Conditions`
+            The conditions for which to return the basis functions.
+            If ``None``, use the conditions associated with this scheduler.
 
         Returns
         -------
-        basis_funcs : `OrderedDict` ['str`, `rubin_sim.scheduler.basis_functions.basis_functions.Base_basis_function`]
-            A dictionary of the basis functions, where the keys are names for the basis functions and the values
-            are the functions themselves.
+        basis_funcs : `OrderedDict` ['str`,
+        `rubin_sim.scheduler.basis_functions.basis_functions.Base_basis_function`]
+            A dictionary of the basis functions, where the keys are names for
+            the basis functions and the values are the functions themselves.
         """
 
         if survey_index is None:
@@ -340,19 +343,19 @@ class CoreScheduler:
 
         Parameters
         ----------
-        survey_index : `List` [`int`], optional
-            A list with two elements: the survey list and the element within that
-            survey list for which the maps that should be retrieved. If ``None``,
-            use the latest survey to make an addition to the queue.
-        conditions : `rubin_sim.scheduler.features.conditions.Conditions`, optional
+        survey_index : `List` [`int`], opt
+            A list with two elements: the survey list and the element within
+            that survey list for which the maps that should be retrieved.
+            If ``None``, use the latest survey which added to the queue.
+        conditions : `rubin_sim.scheduler.features.conditions.Conditions`, opt
             The conditions for the maps to be returned. If ``None``, use
             the conditions associated with this sceduler. By default None.
 
         Returns
         -------
         basis_funcs : `OrderedDict` ['str`, `numpy.ndarray`]
-            A dictionary of the maps, where the keys are names for the maps and
-            values are the numpy arrays as used by ``healpy``.
+            A dictionary of the maps, where the keys are names for the maps
+            and values are the numpy arrays as used by ``healpy``.
         """
 
         if survey_index is None:
@@ -467,7 +470,7 @@ class CoreScheduler:
         return str(self)
 
     def surveys_df(self, tier):
-        """Create a pandas.DataFrame describing rewards from surveys in one list.
+        """Create a pandas.DataFrame describing rewards from surveys.
 
         Parameters
         ----------
