@@ -1,13 +1,11 @@
-__all__ = ("example_scheduler",)
+__all__ = ("example_scheduler", "sched_argparser", "set_run_info")
 
 import argparse
 import os
 import subprocess
 import sys
-import warnings
 
 import healpy as hp
-import matplotlib.pylab as plt
 import numpy as np
 from astropy import units as u
 from astropy.coordinates import SkyCoord
@@ -35,6 +33,20 @@ from rubin_sim.utils import _hpid2_ra_dec
 iers.conf.auto_download = False
 
 
+def example_scheduler():
+    parser = sched_argparser()
+    args = parser.parse_args()
+    args.setup_only = True
+    args.dbroot = "example_"
+    args.outDir = "."
+    scheduler = main(args)
+    return scheduler
+
+
+### From here down should match updated baseline survey files
+### TODO - add sched_argparser / setup_only to new baseline files
+
+
 def standard_bf(
     nside,
     filtername="g",
@@ -52,6 +64,7 @@ def standard_bf(
     season_start_hour=-4.0,
     season_end_hour=2.0,
     moon_distance=30.0,
+    strict=True,
 ):
     """Generate the standard basis functions that are shared by blob surveys
 
@@ -67,14 +80,16 @@ def standard_bf(
         The filternames for the first set
     filtername2 : list of str
         The filter names for the second in the pair (None if unpaired)
-    n_obs_template : int (5)
+    n_obs_template : dict (None)
         The number of observations to take every season in each filter
     season : float (300)
         The length of season (i.e., how long before templates expire) (days)
     season_start_hour : float (-4.)
-        For weighting how strongly a template image needs to be observed (hours)
+        For weighting how strongly a template image needs to be observed
+        (hours)
     sesason_end_hour : float (2.)
-        For weighting how strongly a template image needs to be observed (hours)
+        For weighting how strongly a template image needs to be observed
+        (hours)
     moon_distance : float (30.)
         The mask radius to apply around the moon (degrees)
     m5_weight : float (3.)
@@ -89,12 +104,12 @@ def standard_bf(
         The weight to place on getting image templates every season
     u_template_weight : float (24.)
         The weight to place on getting image templates in u-band. Since there
-        are so few u-visits, it can be helpful to turn this up a little higher than
-        the standard template_weight kwarg.
+        are so few u-visits, it can be helpful to turn this up a little higher
+        than the standard template_weight kwarg.
     g_template_weight : float (24.)
         The weight to place on getting image templates in g-band. Since there
-        are so few g-visits, it can be helpful to turn this up a little higher than
-        the standard template_weight kwarg.
+        are so few g-visits, it can be helpful to turn this up a little higher
+        than the standard template_weight kwarg.
 
     Returns
     -------
@@ -173,7 +188,10 @@ def standard_bf(
             slewtime_weight,
         )
     )
-    bfs.append((bf.StrictFilterBasisFunction(filtername=filtername), stayfilter_weight))
+    if strict:
+        bfs.append((bf.StrictFilterBasisFunction(filtername=filtername), stayfilter_weight))
+    else:
+        bfs.append((bf.FilterChangeBasisFunction(filtername=filtername), stayfilter_weight))
 
     if n_obs_template is not None:
         if filtername2 is not None:
@@ -285,14 +303,17 @@ def blob_for_long(
         The ideal time between pairs (minutes)
     camera_rot_limits : list of float ([-80., 80.])
         The limits to impose when rotationally dithering the camera (degrees).
-    n_obs_template : int (5)
-        The number of observations to take every season in each filter
+    n_obs_template : dict (None)
+        The number of observations to take every season in each filter.
+        If None, sets to 3 each.
     season : float (300)
         The length of season (i.e., how long before templates expire) (days)
     season_start_hour : float (-4.)
-        For weighting how strongly a template image needs to be observed (hours)
+        For weighting how strongly a template image needs to be observed
+        (hours)
     sesason_end_hour : float (2.)
-        For weighting how strongly a template image needs to be observed (hours)
+        For weighting how strongly a template image needs to be observed
+        (hours)
     shadow_minutes : float (60.)
         Used to mask regions around zenith (minutes)
     max_alt : float (76.
@@ -313,10 +334,11 @@ def blob_for_long(
         The weight to place on getting image templates every season
     u_template_weight : float (24.)
         The weight to place on getting image templates in u-band. Since there
-        are so few u-visits, it can be helpful to turn this up a little higher than
-        the standard template_weight kwarg.
+        are so few u-visits, it can be helpful to turn this up a little higher
+        than the standard template_weight kwarg.
     u_nexp1 : bool (True)
-        Add a detailer to make sure the number of expossures in a visit is always 1 for u observations.
+        Add a detailer to make sure the number of expossures in a visit is
+        always 1 for u observations.
     """
 
     BlobSurvey_params = {
@@ -485,17 +507,17 @@ def gen_greedy_surveys(
     m5_weight=3.0,
     footprint_weight=0.75,
     slewtime_weight=3.0,
-    stayfilter_weight=3.0,
+    stayfilter_weight=100.0,
     repeat_weight=-1.0,
     footprints=None,
 ):
     """
     Make a quick set of greedy surveys
 
-    This is a convienence function to generate a list of survey objects that can be used with
-    rubin_sim.scheduler.schedulers.Core_scheduler.
-    To ensure we are robust against changes in the sims_featureScheduler codebase, all kwargs are
-    explicitly set.
+    This is a convenience function to generate a list of survey objects
+    that can be used with rubin_sim.scheduler.schedulers.Core_scheduler.
+    To ensure we are robust against changes in the sims_featureScheduler
+    codebase, all kwargs are explicitly set.
 
     Parameters
     ----------
@@ -559,6 +581,7 @@ def gen_greedy_surveys(
                 g_template_weight=0,
                 footprints=footprints,
                 n_obs_template=None,
+                strict=False,
             )
         )
 
@@ -646,14 +669,17 @@ def generate_blobs(
         The ideal time between pairs (minutes)
     camera_rot_limits : list of float ([-80., 80.])
         The limits to impose when rotationally dithering the camera (degrees).
-    n_obs_template : int (3)
-        The number of observations to take every season in each filter
+    n_obs_template : Dict (None)
+        The number of observations to take every season in each filter.
+        If None, sets to 3 each.
     season : float (300)
         The length of season (i.e., how long before templates expire) (days)
     season_start_hour : float (-4.)
-        For weighting how strongly a template image needs to be observed (hours)
+        For weighting how strongly a template image needs to be observed
+        (hours)
     sesason_end_hour : float (2.)
-        For weighting how strongly a template image needs to be observed (hours)
+        For weighting how strongly a template image needs to be observed
+        (hours)
     shadow_minutes : float (60.)
         Used to mask regions around zenith (minutes)
     max_alt : float (76.
@@ -674,12 +700,14 @@ def generate_blobs(
         The weight to place on getting image templates every season
     u_template_weight : float (24.)
         The weight to place on getting image templates in u-band. Since there
-        are so few u-visits, it can be helpful to turn this up a little higher than
-        the standard template_weight kwarg.
+        are so few u-visits, it can be helpful to turn this up a little higher
+        than the standard template_weight kwarg.
     u_nexp1 : bool (True)
-        Add a detailer to make sure the number of expossures in a visit is always 1 for u observations.
+        Add a detailer to make sure the number of expossures in a visit is
+        always 1 for u observations.
     scheduled_respect : float (45)
-        How much time to require there be before a pre-scheduled observation (minutes)
+        How much time to require there be before a pre-scheduled observation
+        (minutes)
     """
 
     BlobSurvey_params = {
@@ -886,14 +914,17 @@ def generate_twi_blobs(
         The ideal time between pairs (minutes)
     camera_rot_limits : list of float ([-80., 80.])
         The limits to impose when rotationally dithering the camera (degrees).
-    n_obs_template : int (3)
-        The number of observations to take every season in each filter
+    n_obs_template : dict (None)
+        The number of observations to take every season in each filter.
+        If None, sets to 3 each.
     season : float (300)
         The length of season (i.e., how long before templates expire) (days)
     season_start_hour : float (-4.)
-        For weighting how strongly a template image needs to be observed (hours)
+        For weighting how strongly a template image needs to be observed
+        (hours)
     sesason_end_hour : float (2.)
-        For weighting how strongly a template image needs to be observed (hours)
+        For weighting how strongly a template image needs to be observed
+        (hours)
     shadow_minutes : float (60.)
         Used to mask regions around zenith (minutes)
     max_alt : float (76.
@@ -914,8 +945,8 @@ def generate_twi_blobs(
         The weight to place on getting image templates every season
     u_template_weight : float (24.)
         The weight to place on getting image templates in u-band. Since there
-        are so few u-visits, it can be helpful to turn this up a little higher than
-        the standard template_weight kwarg.
+        are so few u-visits, it can be helpful to turn this up a little higher
+        than the standard template_weight kwarg.
     """
 
     BlobSurvey_params = {
@@ -1075,7 +1106,8 @@ def ecliptic_target(nside=32, dist_to_eclip=40.0, dec_max=30.0, mask=None):
     dec_max : float (30)
         The max declination to alow (degrees).
     mask : np.array (None)
-        Any additional mask to apply, should be a HEALpix mask with matching nside.
+        Any additional mask to apply, should be a HEALpix mask with
+        matching nside.
     """
 
     ra, dec = _hpid2_ra_dec(nside, np.arange(hp.nside2npix(nside)))
@@ -1114,14 +1146,18 @@ def generate_twilight_near_sun(
     max_alt=76.0,
     max_elong=60.0,
     az_range=180.0,
+    ignore_obs=["DD", "pair", "long", "blob", "greedy"],
+    filter_dist_weight=0.3,
+    time_to_12deg=25.0,
 ):
     """Generate a survey for observing NEO objects in twilight
 
     Parameters
     ----------
     night_pattern : list of bool (None)
-        A list of bools that set when the survey will be active. e.g., [True, False]
-        for every-other night, [True, False, False] for every third night.
+        A list of bools that set when the survey will be active. e.g.,
+        [True, False] for every-other night,
+        [True, False, False] for every third night.
     nexp : int (1)
         Number of snaps in a visit
     exptime : float (15)
@@ -1133,7 +1169,8 @@ def generate_twilight_near_sun(
     camera_rot_limits : list of float ([-80, 80])
         The camera rotation limits to use (degrees).
     time_needed : float (10)
-        How much time should be available (e.g., before twilight ends) (minutes).
+        How much time should be available (e.g., before twilight ends)
+        (minutes).
     footprint_mask : np.array (None)
         Mask to apply to the constructed ecliptic target mask (None).
     footprint_weight : float (0.1)
@@ -1143,7 +1180,8 @@ def generate_twilight_near_sun(
     stayfilter_weight : float (3.)
         Weight for staying in the same filter basis function
     area_required : float (None)
-        The area that needs to be available before the survey will return observations (sq degrees?)
+        The area that needs to be available before the survey will return
+        observations (sq degrees?)
     filters : str ('riz')
         The filters to use, default 'riz'
     n_repeat : int (4)
@@ -1151,11 +1189,14 @@ def generate_twilight_near_sun(
     sun_alt_limit : float (-14.8)
         Do not start unless sun is higher than this limit (degrees)
     slew_estimate : float (4.5)
-        An estimate of how long it takes to slew between neighboring fields (seconds).
+        An estimate of how long it takes to slew between neighboring
+        fields (seconds).
+    time_to_sunrise : float (25.)
+        Do not execute if time to sunrise is greater than (minutes).
     """
     survey_name = "twilight_near_sun"
     footprint = ecliptic_target(nside=nside, mask=footprint_mask)
-    constant_fp = ConstantFootprint(nside=nside)
+    constant_fp = ConstantFootprint()
     for filtername in filters:
         constant_fp.set_footprint(filtername, footprint)
 
@@ -1189,7 +1230,9 @@ def generate_twilight_near_sun(
             )
         )
         bfs.append((bf.StrictFilterBasisFunction(filtername=filtername), stayfilter_weight))
-        # Need a toward the sun, reward high airmass, with an airmass cutoff basis function.
+        bfs.append((bf.FilterDistBasisFunction(filtername=filtername), filter_dist_weight))
+        # Need a toward the sun, reward high airmass,
+        # with an airmass cutoff basis function.
         bfs.append((bf.NearSunTwilightBasisFunction(nside=nside, max_airmass=max_airmass), 0))
         bfs.append(
             (
@@ -1209,13 +1252,19 @@ def generate_twilight_near_sun(
 
         bfs.append((bf.NightModuloBasisFunction(pattern=night_pattern), 0))
         # Do not attempt unless the sun is getting high
-        bfs.append(((bf.SunAltHighLimitBasisFunction(alt_limit=sun_alt_limit)), 0))
+        bfs.append(
+            (
+                (bf.SunHighLimitBasisFunction(sun_alt_limit=sun_alt_limit, time_to_12deg=time_to_12deg)),
+                0,
+            )
+        )
 
         # unpack the basis functions and weights
         weights = [val[1] for val in bfs]
         basis_functions = [val[0] for val in bfs]
 
-        # Set huge ideal pair time and use the detailer to cut down the list of observations to fit twilight?
+        # Set huge ideal pair time and use the detailer to cut down the
+        # list of observations to fit twilight?
         surveys.append(
             BlobSurvey(
                 basis_functions,
@@ -1226,7 +1275,7 @@ def generate_twilight_near_sun(
                 nside=nside,
                 exptime=exptime,
                 survey_note=survey_name,
-                ignore_obs=["DD", "greedy", "blob", "pair"],
+                ignore_obs=ignore_obs,
                 dither=True,
                 nexp=nexp,
                 detailers=detailer_list,
@@ -1238,95 +1287,51 @@ def generate_twilight_near_sun(
     return surveys
 
 
-def run_sched(
-    surveys,
-    survey_length=365.25,
-    nside=32,
-    fileroot="baseline_",
-    verbose=False,
-    extra_info=None,
-    illum_limit=40.0,
-    mjd_start=60796.0,
-):
-    years = np.round(survey_length / 365.25)
-    scheduler = CoreScheduler(surveys, nside=nside)
-    n_visit_limit = None
-    fs = FilterSchedUzy(illum_limit=illum_limit)
-    observatory = ModelObservatory(nside=nside, mjd_start=mjd_start)
-    observatory, scheduler, observations = sim_runner(
-        observatory,
-        scheduler,
-        survey_length=survey_length,
-        filename=fileroot + "%iyrs.db" % years,
-        delete_past=True,
-        n_visit_limit=n_visit_limit,
-        verbose=verbose,
-        extra_info=extra_info,
-        filter_scheduler=fs,
-    )
+def main(args):
+    survey_length = args.survey_length  # Days
+    outDir = args.outDir
+    verbose = args.verbose
+    max_dither = args.maxDither
+    illum_limit = args.moon_illum_limit
+    nexp = args.nexp
+    nslice = args.rolling_nslice
+    rolling_scale = args.rolling_strength
+    dbroot = args.dbroot
+    nights_off = args.nights_off
+    neo_night_pattern = args.neo_night_pattern
+    neo_filters = args.neo_filters
+    neo_repeat = args.neo_repeat
+    ddf_season_frac = args.ddf_season_frac
+    neo_am = args.neo_am
+    neo_elong_req = args.neo_elong_req
+    neo_area_req = args.neo_area_req
+    nside = args.nside
 
-    return observatory, scheduler, observations
+    # Be sure to also update and regenerate DDF grid save file
+    # if changing mjd_start
+    mjd_start = 60796.0
+    per_night = True  # Dither DDF per night
 
+    camera_ddf_rot_limit = 75.0  # degrees
 
-def example_scheduler(
-    nside=32,
-    nexp=2,
-    mjd_start=60796.0,
-    per_night=True,
-    camera_ddf_rot_limit=75.0,
-    neo_night_pattern=[True, False, False, False],
-    nslice=2,
-    rolling_scale=0.9,
-    nights_off=3,
-    max_dither=0.7,
-    ddf_season_frac=0.2,
-    neo_filters="riz",
-    neo_repeat=4,
-    neo_am=2.5,
-    neo_elong_req=45.0,
-    neo_area_req=0.0,
-):
-    """Make an example scheduler
+    fileroot, extra_info = set_run_info(dbroot=dbroot, file_end="v3.3_", out_dir=outDir)
 
-    Parameters
-    ----------
-    max_dither : float (0.7)
-        The maximum amount to spacially dither the DDF fields (degrees)
-    nexp : int (2)
-        Number of snaps to split each visit into (default 2). Does not apply to u-band.
-    nslice : int (2)
-        Fraction of sky to divide for rolling (default 2).
-    rolling_scale : float (0.9)
-        The strength of rolling (between 0-1). Default 0.9.
-    nights_off : int (3)
-        How many nights to take off between nights with long-gap observations (days).
-    neo_night_pattern : list of bool ([True, False, False, False])
-        The pattern of observations to use for twilight NEO observations,
-        default [True, False, False, False].
-    neo_filters : str ('riz')
-        Which filters to use for twilight NEO observations ('riz').
-    neo_repeat : int (4)
-        How many times a pointing should be repeated when taking NEO observations.
-        Default 4.
-    ddf_season_frac : (0.2)
-        Fraction of the season where the DDF should be considered unobservable. Applied to start
-        and end of season.
-    mjd_start : float (60676.0)
-        The MJD to start the survey on (60676.0)
-    nside : int (32)
-        The HEALpix nside to use. Default 32.
-    per_night : bool (True)
-        Dither the DDFs on a per-night basis. Default True.
-    camera_ddf_rot_limit : float (75)
-        Limit for how far to rotationally dither DDF fields (degrees)
-    """
-    if nside < 32:
-        warnings.warn("nside < 32 is lower resolution than the field of view, scheduler may perform poorly.")
-
+    pattern_dict = {
+        1: [True],
+        2: [True, False],
+        3: [True, False, False],
+        4: [True, False, False, False],
+        # 4 on, 4 off
+        5: [True, True, True, True, False, False, False, False],
+        # 3 on 4 off
+        6: [True, True, True, False, False, False, False],
+        7: [True, True, False, False, False, False],
+    }
+    neo_night_pattern = pattern_dict[neo_night_pattern]
     reverse_neo_night_pattern = [not val for val in neo_night_pattern]
 
-    # Modify the footprint
-    sky = EuclidOverlapFootprint(nside=nside, smc_radius=4, lmc_radius=6)
+    # Generate the rolling footprint for this start of survey
+    sky = EuclidOverlapFootprint(nside=nside)
     footprints_hp_array, labels = sky.return_maps()
 
     wfd_indx = np.where((labels == "lowdust") | (labels == "LMC_SMC") | (labels == "virgo"))[0]
@@ -1342,6 +1347,7 @@ def example_scheduler(
 
     repeat_night_weight = None
 
+    # Use the Almanac to find the position of the sun at the start of survey
     almanac = Almanac(mjd_start=mjd_start)
     sun_moon_info = almanac.get_sun_moon_positions(mjd_start)
     sun_ra_start = sun_moon_info["sun_RA"].copy()
@@ -1404,6 +1410,7 @@ def example_scheduler(
         footprints=footprints,
         mjd_start=mjd_start,
     )
+
     twi_blobs = generate_twi_blobs(
         nside,
         nexp=nexp,
@@ -1413,38 +1420,58 @@ def example_scheduler(
         night_pattern=reverse_neo_night_pattern,
     )
     surveys = [ddfs, long_gaps, blobs, twi_blobs, neo, greedy]
+    if args.setup_only:
+        scheduler = CoreScheduler(surveys, nside=nside)
+        return scheduler
 
-    scheduler = CoreScheduler(surveys, nside=nside)
+    else:
+        observatory, scheduler, observations = run_sched(
+            surveys,
+            survey_length=survey_length,
+            verbose=verbose,
+            fileroot=fileroot,
+            extra_info=extra_info,
+            nside=nside,
+            illum_limit=illum_limit,
+            mjd_start=mjd_start,
+        )
 
-    return scheduler
+        return observatory, scheduler, observations
 
 
-def main(args):
-    survey_length = args.survey_length  # Days
-    outDir = args.outDir
-    verbose = args.verbose
-    max_dither = args.maxDither
-    illum_limit = args.moon_illum_limit
-    nexp = args.nexp
-    nslice = args.rolling_nslice
-    rolling_scale = args.rolling_strength
-    dbroot = args.dbroot
-    nights_off = args.nights_off
-    neo_night_pattern = args.neo_night_pattern
-    neo_filters = args.neo_filters
-    neo_repeat = args.neo_repeat
-    ddf_season_frac = args.ddf_season_frac
-    neo_am = args.neo_am
-    neo_elong_req = args.neo_elong_req
-    neo_area_req = args.neo_area_req
+def sched_argparser():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--verbose", dest="verbose", action="store_true")
+    parser.set_defaults(verbose=False)
+    parser.add_argument("--survey_length", type=float, default=365.25 * 10)
+    parser.add_argument("--outDir", type=str, default="")
+    parser.add_argument("--maxDither", type=float, default=0.7, help="Dither size for DDFs (deg)")
+    parser.add_argument(
+        "--moon_illum_limit",
+        type=float,
+        default=40.0,
+        help="illumination limit to remove u-band",
+    )
+    parser.add_argument("--nexp", type=int, default=2)
+    parser.add_argument("--rolling_nslice", type=int, default=2)
+    parser.add_argument("--rolling_strength", type=float, default=0.9)
+    parser.add_argument("--dbroot", type=str, default=None)
+    parser.add_argument("--ddf_season_frac", type=float, default=0.2)
+    parser.add_argument("--nights_off", type=int, default=3, help="For long gaps")
+    parser.add_argument("--neo_night_pattern", type=int, default=4)
+    parser.add_argument("--neo_filters", type=str, default="riz")
+    parser.add_argument("--neo_repeat", type=int, default=4)
+    parser.add_argument("--neo_am", type=float, default=2.5, help="airmass limit for twilight NEO visits")
+    parser.add_argument("--neo_elong_req", type=float, default=45.0)
+    parser.add_argument("--neo_area_req", type=float, default=0.0)
+    parser.add_argument("--setup_only", dest="setup-only", default=False, action="store_true")
+    parser.add_argument(
+        "--nside", type=int, default=32, help="Nside should be set to default (32) except for tests."
+    )
+    return parser
 
-    # Be sure to also update and regenerate DDF grid save file if changing mjd_start
-    mjd_start = 60796.0
-    nside = 32
-    per_night = True  # Dither DDF per night
 
-    camera_ddf_rot_limit = 75.0  # degrees
-
+def set_run_info(dbroot=None, file_end="v3.3_", out_dir="."):
     extra_info = {}
     exec_command = ""
     for arg in sys.argv:
@@ -1468,148 +1495,41 @@ def main(args):
         fileroot = os.path.basename(sys.argv[0]).replace(".py", "") + "_"
     else:
         fileroot = dbroot + "_"
-    file_end = "v3.2_"
+    fileroot = os.path.join(out_dir, fileroot + file_end)
+    return fileroot, extra_info
 
-    pattern_dict = {
-        1: [True],
-        2: [True, False],
-        3: [True, False, False],
-        4: [True, False, False, False],
-        # 4 on, 4 off
-        5: [True, True, True, True, False, False, False, False],
-        # 3 on 4 off
-        6: [True, True, True, False, False, False, False],
-        7: [True, True, False, False, False, False],
-    }
-    neo_night_pattern = pattern_dict[neo_night_pattern]
-    reverse_neo_night_pattern = [not val for val in neo_night_pattern]
 
-    # Modify the footprint
-    sky = EuclidOverlapFootprint(nside=nside, smc_radius=4, lmc_radius=6)
-    footprints_hp_array, labels = sky.return_maps()
-
-    wfd_indx = np.where((labels == "lowdust") | (labels == "LMC_SMC") | (labels == "virgo"))[0]
-    wfd_footprint = footprints_hp_array["r"] * 0
-    wfd_footprint[wfd_indx] = 1
-
-    footprints_hp = {}
-    for key in footprints_hp_array.dtype.names:
-        footprints_hp[key] = footprints_hp_array[key]
-
-    footprint_mask = footprints_hp["r"] * 0
-    footprint_mask[np.where(footprints_hp["r"] > 0)] = 1
-
-    repeat_night_weight = None
-
+def run_sched(
+    surveys,
+    survey_length=365.25,
+    nside=32,
+    fileroot="baseline_",
+    verbose=False,
+    extra_info=None,
+    illum_limit=40.0,
+    mjd_start=60796.0,
+):
+    years = np.round(survey_length / 365.25)
+    scheduler = CoreScheduler(surveys, nside=nside)
+    n_visit_limit = None
+    fs = FilterSchedUzy(illum_limit=illum_limit)
     observatory = ModelObservatory(nside=nside, mjd_start=mjd_start)
-    conditions = observatory.return_conditions()
-
-    footprints = make_rolling_footprints(
-        fp_hp=footprints_hp,
-        mjd_start=conditions.mjd_start,
-        sun_ra_start=conditions.sun_ra_start,
-        nslice=nslice,
-        scale=rolling_scale,
-        nside=nside,
-        wfd_indx=wfd_indx,
-        order_roll=1,
-        n_cycles=4,
-    )
-
-    gaps_night_pattern = [True] + [False] * nights_off
-
-    long_gaps = gen_long_gaps_survey(
-        nside=nside,
-        footprints=footprints,
-        night_pattern=gaps_night_pattern,
-    )
-
-    # Set up the DDF surveys to dither
-    u_detailer = detailers.FilterNexp(filtername="u", nexp=1)
-    dither_detailer = detailers.DitherDetailer(per_night=per_night, max_dither=max_dither)
-    details = [
-        detailers.CameraRotDetailer(min_rot=-camera_ddf_rot_limit, max_rot=camera_ddf_rot_limit),
-        dither_detailer,
-        u_detailer,
-        detailers.Rottep2RotspDesiredDetailer(),
-    ]
-    euclid_detailers = [
-        detailers.CameraRotDetailer(min_rot=-camera_ddf_rot_limit, max_rot=camera_ddf_rot_limit),
-        detailers.EuclidDitherDetailer(),
-        u_detailer,
-        detailers.Rottep2RotspDesiredDetailer(),
-    ]
-    ddfs = ddf_surveys(
-        detailers=details,
-        season_unobs_frac=ddf_season_frac,
-        euclid_detailers=euclid_detailers,
-    )
-
-    greedy = gen_greedy_surveys(nside, nexp=nexp, footprints=footprints)
-    neo = generate_twilight_near_sun(
-        nside,
-        night_pattern=neo_night_pattern,
-        filters=neo_filters,
-        n_repeat=neo_repeat,
-        footprint_mask=footprint_mask,
-        max_airmass=neo_am,
-        max_elong=neo_elong_req,
-        area_required=neo_area_req,
-    )
-    blobs = generate_blobs(
-        nside,
-        nexp=nexp,
-        footprints=footprints,
-        mjd_start=conditions.mjd_start,
-    )
-    twi_blobs = generate_twi_blobs(
-        nside,
-        nexp=nexp,
-        footprints=footprints,
-        wfd_footprint=wfd_footprint,
-        repeat_night_weight=repeat_night_weight,
-        night_pattern=reverse_neo_night_pattern,
-    )
-    surveys = [ddfs, long_gaps, blobs, twi_blobs, neo, greedy]
-    observatory, scheduler, observations = run_sched(
-        surveys,
+    observatory, scheduler, observations = sim_runner(
+        observatory,
+        scheduler,
         survey_length=survey_length,
+        filename=fileroot + "%iyrs.db" % years,
+        delete_past=True,
+        n_visit_limit=n_visit_limit,
         verbose=verbose,
-        fileroot=os.path.join(outDir, fileroot + file_end),
         extra_info=extra_info,
-        nside=nside,
-        illum_limit=illum_limit,
-        mjd_start=mjd_start,
+        filter_scheduler=fs,
     )
 
     return observatory, scheduler, observations
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--verbose", dest="verbose", action="store_true")
-    parser.set_defaults(verbose=False)
-    parser.add_argument("--survey_length", type=float, default=365.25 * 10)
-    parser.add_argument("--outDir", type=str, default="")
-    parser.add_argument("--maxDither", type=float, default=0.7, help="Dither size for DDFs (deg)")
-    parser.add_argument(
-        "--moon_illum_limit",
-        type=float,
-        default=40.0,
-        help="illumination limit to remove u-band",
-    )
-    parser.add_argument("--nexp", type=int, default=2)
-    parser.add_argument("--rolling_nslice", type=int, default=2)
-    parser.add_argument("--rolling_strength", type=float, default=0.9)
-    parser.add_argument("--dbroot", type=str)
-    parser.add_argument("--ddf_season_frac", type=float, default=0.2)
-    parser.add_argument("--nights_off", type=int, default=3, help="For long gaps")
-    parser.add_argument("--neo_night_pattern", type=int, default=4)
-    parser.add_argument("--neo_filters", type=str, default="riz")
-    parser.add_argument("--neo_repeat", type=int, default=4)
-    parser.add_argument("--neo_am", type=float, default=2.5)
-    parser.add_argument("--neo_elong_req", type=float, default=45.0)
-    parser.add_argument("--neo_area_req", type=float, default=0.0)
-
+    parser = sched_argparser()
     args = parser.parse_args()
     main(args)
