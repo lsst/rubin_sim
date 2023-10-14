@@ -1,7 +1,7 @@
 __all__ = ("ConstantWindData",)
 
-from dataclasses import dataclass
 from collections import namedtuple
+from dataclasses import dataclass
 
 import astropy.time
 

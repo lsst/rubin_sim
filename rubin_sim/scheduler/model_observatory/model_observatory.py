@@ -11,14 +11,12 @@ from rubin_sim.data import data_versions
 from rubin_sim.scheduler.features import Conditions
 from rubin_sim.scheduler.model_observatory import KinemModel
 from rubin_sim.scheduler.utils import create_season_offset, set_default_nside
-from rubin_sim.site_models import (
-    Almanac,
-    CloudData,
-    ScheduledDowntimeData,
-    SeeingData,
-    SeeingModel,
-    UnscheduledDowntimeData,
-)
+
+# For backwards compatibility
+from rubin_sim.site_models import Almanac, CloudData
+from rubin_sim.site_models import ConstantCloudData as NoClouds
+from rubin_sim.site_models import ConstantSeeingData as NominalSeeing
+from rubin_sim.site_models import ScheduledDowntimeData, SeeingData, SeeingModel, UnscheduledDowntimeData
 from rubin_sim.utils import (
     Site,
     _angular_separation,
@@ -29,10 +27,6 @@ from rubin_sim.utils import (
     m5_flat_sed,
     survey_start_mjd,
 )
-
-# For backwards compatibility
-from rubin_sim.site_models import ConstantCloudData as NoClouds
-from rubin_sim.site_models import ConstantSeeingData as NominalSeeing
 
 
 class ModelObservatory:
