@@ -1,6 +1,8 @@
 import unittest
+
 import numpy as np
-from rubin_sim.scheduler.utils import SkyAreaGenerator, SkyAreaGeneratorGalplane, EuclidOverlapFootprint
+
+from rubin_sim.scheduler.utils import EuclidOverlapFootprint, SkyAreaGenerator, SkyAreaGeneratorGalplane
 
 
 class TestSkyArea(unittest.TestCase):

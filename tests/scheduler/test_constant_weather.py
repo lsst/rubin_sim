@@ -1,8 +1,9 @@
 import unittest
-from rubin_sim.scheduler.model_observatory import ModelObservatory
+
 import numpy as np
 
 import rubin_sim.site_models
+from rubin_sim.scheduler.model_observatory import ModelObservatory
 
 
 class TestConstantWeather(unittest.TestCase):

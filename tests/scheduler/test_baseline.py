@@ -114,7 +114,7 @@ def gen_blob_surveys(nside):
 
         weights = np.array([3.0, 3.0, 0.3, 0.3, 3.0, 3.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
         if filtername2 is None:
-            # Need to scale weights up so filter balancing still works properly.
+            # Need to scale weights up so filter balancing works properly.
             weights = np.array([6.0, 0.6, 3.0, 3.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
         if filtername2 is None:
             survey_name = "blob, %s" % filtername
@@ -163,7 +163,8 @@ class TestFeatures(unittest.TestCase):
     @unittest.skipUnless(os.path.isfile(SAMPLE_BIG_DATA_FILE), "Test data not available.")
     def test_greedy(self):
         """
-        Set up a greedy survey and run for a few days. A crude way to touch lots of code.
+        Set up a greedy survey and run for a few days.
+        A crude way to touch lots of code.
         """
         mjd_start = utils.survey_start_mjd()
         nside = 32

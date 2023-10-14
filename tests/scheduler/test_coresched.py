@@ -49,8 +49,8 @@ class TestCoreSched(unittest.TestCase):
         self.assertIsInstance(str(scheduler), str)
 
         # Check access methods
-        these_basis_functions = scheduler.get_basis_functions([0, 0])
-        healpix_maps = scheduler.get_healpix_maps([0, 0])
+        _ = scheduler.get_basis_functions([0, 0])
+        _ = scheduler.get_healpix_maps([0, 0])
 
         # Check survey access methods
         reward_df = scheduler.make_reward_df(observatory.return_conditions())

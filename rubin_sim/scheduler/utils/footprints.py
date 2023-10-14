@@ -1,52 +1,30 @@
-"""Footprints: Some relevant LSST footprints, including utilities to build them.
-
-The goal here is to make it easy to build typical target maps and then their associated combined
-survey inputs (maps in each filter, including scaling between filters; the associated cloud and
-sky brightness maps that would have limits for WFD, etc.).
-
-For generic use for defining footprints from scratch, there is also a utility that simply generates
-the healpix points across the sky, along with their corresponding RA/Dec/Galactic l,b/Ecliptic l,b values.
+"""Footprints: Take sky area maps and turn them into dynamic `footprint`
+objects which understand seasons and time, in order to weight area on sky
+appropriately for a given time.
 """
 __all__ = (
     "ra_dec_hp_map",
-    "generate_all_sky",
-    "get_dustmap",
-    "wfd_healpixels",
-    "wfd_no_gp_healpixels",
-    "wfd_bigsky_healpixels",
-    "wfd_no_dust_healpixels",
-    "scp_healpixels",
-    "nes_healpixels",
-    "galactic_plane_healpixels",
-    "magellanic_clouds_healpixels",
-    "ConstantFootprint",
-    "generate_goal_map",
-    "standard_goals",
     "calc_norm_factor",
-    "filter_count_ratios",
     "StepLine",
     "Footprints",
     "Footprint",
     "StepSlopes",
+    "ConstantFootprint",
     "BasePixelEvolution",
-    "combo_dust_fp",
     "slice_wfd_area_quad",
     "slice_wfd_indx",
     "slice_quad_galactic_cut",
     "make_rolling_footprints",
 )
 
-import os
-
 import healpy as hp
 import numpy as np
 from astropy import units as u
 from astropy.coordinates import SkyCoord
 
-from rubin_sim.data import get_data_dir
-from rubin_sim.utils import Site, _angular_separation, _hpid2_ra_dec, angular_separation
+from rubin_sim.utils import _hpid2_ra_dec
 
-from .utils import IntRounded, set_default_nside
+from .utils import set_default_nside
 
 
 def make_rolling_footprints(
@@ -69,26 +47,28 @@ def make_rolling_footprints(
     ----------
     fp_hp : dict-like
         A dict with filtername keys and HEALpix map values
-    mjd_start : float
+    mjd_start : `float`
         The starting date of the survey.
-    sun_ra_start : float
+    sun_ra_start : `float`
         The RA of the sun at the start of the survey
-    nslice : int (2)
+    nslice : `int`
         How much to slice the sky up. Can be 2, 3, 4, or 6.
-    scale : float (0.8)
-        The strength of the rolling, value of 1 is full power rolling, zero is no rolling.
-    wfd_indx : array of ints (none)
+    scale : `float`
+        The strength of the rolling, value of 1 is full power rolling.
+        Zero is no rolling.
+    wfd_indx : array of ints
         The indices of the HEALpix map that are to be included in the rolling.
-    order_roll : int (0)
+    order_roll : `int`
         Change the order of when bands roll. Default 0.
-    n_cycles : int (None)
+    n_cycles : `int`
         Number of complete rolling cycles to attempt. If None, defaults to 3
         full cycles for nslice=2, 2 cycles for nslice=3 or 4, and 1 cycle for
         nslice=6.
-    n_constant_start : int (3)
-        The number of constant non-rolling seasons to start with. Anything less
-        than 3 results in rolling starting before the entire sky has had a constant year.
-    n_constant_end : int (6)
+    n_constant_start : `int`
+        The number of constant non-rolling seasons to start with.
+        Anything less than 3 results in rolling starting before the
+        entire sky has had a constant year.
+    n_constant_end : `int`
         The number of constant seasons to end the survey with. Defaults to 6.
 
     Returns
@@ -127,7 +107,6 @@ def make_rolling_footprints(
     wfd = hp_footprints["r"] * 0
     if wfd_indx is None:
         wfd_indx = np.where(hp_footprints["r"] == 1)[0]
-        non_wfd_indx = np.where(hp_footprints["r"] != 1)[0]
 
     wfd[wfd_indx] = 1
     non_wfd_indx = np.where(wfd == 0)[0]
@@ -181,17 +160,17 @@ def slice_quad_galactic_cut(target_map, nslice=2, wfd_indx=None):
     ----------
     target_map : dict of HEALpix maps
         The final desired footprint as HEALpix maps. Keys are filter names
-    nslice : int (2)
+    nslice : `int`
         The number of slices to make, can be 2 or 3.
     wfd_indx : array of ints
-        The indices of target_map that should be used for rolling. If None, assumes
-        the rolling area should be where target_map['r'] == 1.
+        The indices of target_map that should be used for rolling.
+        If None, assumes the rolling area should be where target_map['r'] == 1.
     """
 
     ra, dec = ra_dec_hp_map(nside=hp.npix2nside(target_map["r"].size))
 
     coord = SkyCoord(ra=ra * u.rad, dec=dec * u.rad)
-    gal_lon, gal_lat = coord.galactic.l.deg, coord.galactic.b.deg
+    _, gal_lat = coord.galactic.l.deg, coord.galactic.b.deg
 
     indx_north = np.intersect1d(np.where(gal_lat >= 0)[0], wfd_indx)
     indx_south = np.intersect1d(np.where(gal_lat < 0)[0], wfd_indx)
@@ -218,11 +197,13 @@ def slice_wfd_area_quad(target_map, nslice=2, wfd_indx=None):
     ----------
     target_map : dict of HEALpix arrays
         The input map to slice
-    nslice : int (2)
-        The number of slices to divide the sky into (gets doubled). Default is 2
-    wfd_indx : array of int (None)
-        The indices of the healpix map to consider as part of the WFD area that will be split. If
-        set to None, the pixels where target_map['r'] == 1 are considered as WFD.
+    nslice : int
+        The number of slices to divide the sky into (gets doubled).
+    wfd_indx : array of int
+        The indices of the healpix map to consider as part of the WFD area
+        that will be split.
+        If set to None, the pixels where target_map['r'] == 1 are
+        considered as WFD.
     """
     nslice2 = nslice * 2
 
@@ -241,7 +222,9 @@ def slice_wfd_area_quad(target_map, nslice=2, wfd_indx=None):
 
 
 class BasePixelEvolution:
-    """Helper class that can be used to describe the time evolution of a HEALpix in a footprint"""
+    """Helper class that can be used to describe the time evolution of a
+    HEALpix in a footprint.
+    """
 
     def __init__(self, period=365.25, rise=1.0, t_start=0.0):
         self.period = period
@@ -256,9 +239,9 @@ class StepLine(BasePixelEvolution):
     """
     Parameters
     ----------
-    period : float (365.25)
+    period : `float`
         The period to use
-    rise : float (1.)
+    rise : `float`
         How much the curve should rise every period
     """
 
@@ -277,8 +260,8 @@ class StepSlopes(BasePixelEvolution):
     """
     Parameters
     ----------
-    period : float (365.25)
-        The period to use
+    period : `float`
+        The period to use - typically should be a year.
     rise : np.array-like
         How much the curve should rise each period.
     """
@@ -331,7 +314,8 @@ class Footprint:
         self.npix = hp.nside2npix(nside)
         self.filters = filters
         self.ra, self.dec = _hpid2_ra_dec(self.nside, np.arange(self.npix))
-        # Set the phase of each healpixel. If RA to sun is zero, we are at phase np.pi/2.
+        # Set the phase of each healpixel.
+        # If RA to sun is zero, we are at phase np.pi/2.
         self.phase = (-self.ra + self.sun_ra_start + np.pi / 2) % (2.0 * np.pi)
         self.phase = self.phase * (self.period / 2.0 / np.pi)
         # Empty footprints to start
@@ -362,7 +346,7 @@ class Footprint:
                     self.current_footprints = self.current_footprints / c_sum
 
     def arr2struc(self, inarr):
-        """take an array and convert it to labled struc array"""
+        """Take an array and convert it to labeled struc array"""
         result = np.empty(self.npix, dtype=self.out_dtype)
         for key in self.filters:
             result[key] = inarr[self.filters[key]]
@@ -378,18 +362,25 @@ class Footprint:
         self.estimate = self.current_footprints * pix_per_visit * nvisits
         return self.arr2struc(self.estimate)
 
-    def __call__(self, mjd, array=False, norm=True):
+    def __call__(self, mjd, norm=True):
         """
+        Parameters
+        ----------
+        mjd : `float`
+            Current MJD.
+        norm : `bool`
+            If normalized, the footprint retains the same range of values
+            over time.
+
         Returns
         -------
-        a numpy array with the normalized number of observations that should be at each HEALpix.
-        Multiply by the number of HEALpix observations (all filters), to convert to the number of observations
-        desired.
+        current_footprints : `np.ndarray`, (6, N)
+            A numpy structured array with the updated normalized number of
+            observations that should be requested at each Healpix.
+            Multiply by the number of HEALpix observations (all filter), to
+            convert to the number of observations desired.
         """
         self._update_mjd(mjd, norm=norm)
-        # if array:
-        #    return self.current_footprints
-        # else:
         return self.arr2struc(self.current_footprints)
 
 
@@ -413,7 +404,8 @@ class Footprints(Footprint):
         self.footprint_list = footprint_list
         self.mjd_current = None
         self.current_footprints = 0
-        # Should probably run a check that all the footprints are compatible (same nside, etc)
+        # Should probably run a check that all the footprints are compatible
+        # (same nside, etc)
         self.npix = footprint_list[0].npix
         self.out_dtype = footprint_list[0].out_dtype
         self.filters = footprint_list[0].filters

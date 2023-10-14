@@ -1,7 +1,6 @@
 import os
 import unittest
 
-import numpy as np
 import pandas as pd
 
 import rubin_sim.scheduler.basis_functions as basis_functions
