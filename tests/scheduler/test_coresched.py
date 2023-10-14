@@ -9,13 +9,15 @@ import rubin_sim.scheduler.surveys as surveys
 from rubin_sim.data import get_data_dir
 from rubin_sim.scheduler.model_observatory import ModelObservatory
 from rubin_sim.scheduler.schedulers import CoreScheduler
-from rubin_sim.scheduler.utils import standard_goals
+from rubin_sim.scheduler.utils import SkyAreaGenerator
 
 
 class TestCoreSched(unittest.TestCase):
     def testsched(self):
-        target_map = standard_goals()["r"]
         nside = 32
+        sky = SkyAreaGenerator(nside=nside)
+        target_maps, labels = sky.return_maps()
+        target_map = target_maps["r"]
 
         bfs = []
         bfs.append(basis_functions.M5DiffBasisFunction(nside=nside))

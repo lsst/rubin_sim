@@ -12,16 +12,17 @@ from rubin_sim.scheduler.example import example_scheduler
 from rubin_sim.scheduler.model_observatory import ModelObservatory
 from rubin_sim.scheduler.schedulers import CoreScheduler
 from rubin_sim.scheduler.surveys import BlobSurvey, GreedySurvey, generate_dd_surveys
-from rubin_sim.scheduler.utils import calc_norm_factor, standard_goals
+from rubin_sim.scheduler.utils import SkyAreaGenerator, calc_norm_factor
 
-SAMPLE_BIG_DATA_FILE = os.path.join(get_data_dir(), "maps/DustMaps/dust_nside_32.npz")
+SAMPLE_BIG_DATA_FILE = os.path.join(get_data_dir(), "scheduler/DustMaps/dust_nside_32.npz")
 
 
 def gen_greedy_surveys(nside):
     """
     Make a quick set of greedy surveys
     """
-    target_map = standard_goals(nside=nside)
+    sky = SkyAreaGenerator(nside=nside)
+    target_map, labels = sky.return_maps()
     filters = ["g", "r", "i", "z", "y"]
     surveys = []
 
@@ -65,7 +66,8 @@ def gen_blob_surveys(nside):
     """
     make a quick set of blob surveys
     """
-    target_map = standard_goals(nside=nside)
+    sky = SkyAreaGenerator(nside=nside)
+    target_map, labels = sky.return_maps()
     norm_factor = calc_norm_factor(target_map)
 
     filter1s = ["g"]  # , 'r', 'i', 'z', 'y']
