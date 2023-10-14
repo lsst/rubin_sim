@@ -18,6 +18,14 @@ class TestSkyArea(unittest.TestCase):
         lowdust = np.where(labels == "lowdust")
         self.assertTrue(np.all(footprints["r"][lowdust] == 1))
 
+    def test_skyareagenerator_nside(self):
+        # Just check two other likely common nsides
+        for nside in (16, 64):
+            s = SkyAreaGenerator(nside=nside)
+            footprints, labels = s.return_maps()
+            lowdust = np.where(labels == "lowdust")
+            self.assertTrue(np.all(footprints["r"][lowdust] == 1))
+
     def test_skyareageneratorgalplane(self):
         # Just test that it sets up and returns maps
         s = SkyAreaGeneratorGalplane(nside=self.nside)
