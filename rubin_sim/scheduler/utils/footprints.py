@@ -458,58 +458,6 @@ def get_dustmap(nside=None):
     return dustmap
 
 
-def generate_all_sky(nside=None, elevation_limit=20, mask=hp.UNSEEN):
-    """Set up a healpix map over the entire sky.
-    Calculate RA & Dec, Galactic l & b, Ecliptic l & b, for all healpixels.
-    Calculate max altitude, to set to  areas which LSST cannot reach (set these to hp.unseen).
-
-    This is intended to be a useful tool to use to set up target maps, beyond the standard maps
-    provided in these utilities. Masking based on RA, Dec, Galactic or Ecliptic lat and lon is easier.
-
-    Parameters
-    ----------
-    nside : int, optional
-        Resolution for the healpix maps.
-        Default None uses rubin_sim.scheduler.utils.set_default_nside to set default (often 32).
-    elevation_limit : float, optional
-        Elevation limit for map.
-        Parts of the sky which do not reach this elevation limit will be set to mask.
-    mask : float, optional
-        Mask value for 'unreachable' parts of the sky, defined as elevation < 20.
-        Note that the actual limits will be set elsewhere, using the observatory model.
-        This limit is for use when understanding what the maps could look like.
-
-    Returns
-    -------
-    dict of np.ndarray
-        Returns map, RA/Dec, Gal l/b, Ecl l/b (each an np.ndarray IN RADIANS) in a dictionary.
-    """
-    if nside is None:
-        nside = set_default_nside()
-
-    # Calculate coordinates of everything.
-    skymap = np.zeros(hp.nside2npix(nside), float)
-    ra, dec = ra_dec_hp_map(nside=nside)
-    coord = SkyCoord(ra=ra * u.rad, dec=dec * u.rad, frame="icrs")
-    eclip_lat = coord.barycentrictrueecliptic.lat.deg
-    eclip_lon = coord.barycentrictrueecliptic.lon.deg
-    gal_lon = coord.galactic.l.deg
-    gal_lat = coord.galactic.b.deg
-
-    # Calculate max altitude (when on meridian).
-    lsst_site = Site("LSST")
-    elev_max = np.pi / 2.0 - np.abs(dec - lsst_site.latitude_rad)
-    skymap = np.where(IntRounded(elev_max) >= IntRounded(np.radians(elevation_limit), skymap, mask))
-
-    return {
-        "map": skymap,
-        "ra": np.degrees(ra),
-        "dec": np.degrees(dec),
-        "eclip_lat": eclip_lat,
-        "eclip_lon": eclip_lon,
-        "gal_lat": gal_lat,
-        "gal_lon": gal_lon,
-    }
 
 
 def wfd_healpixels(nside=None, dec_min=-62.5, dec_max=3.6):
@@ -933,22 +881,6 @@ def calc_norm_factor(goal_dict, radius=1.75):
     norm_val = radius**2 * np.pi / hp_area / all_maps_sum
     return norm_val
 
-
-def filter_count_ratios(target_maps):
-    """Given the goal maps, compute the ratio of observations we want in each filter.
-    This is basically:
-    per filter, sum the number of pixels in each map and return this per filter value, normalized
-    so that the total sum across all filters is 1.
-    """
-    results = {}
-    all_norm = 0.0
-    for key in target_maps:
-        good = target_maps[key] > 0
-        results[key] = np.sum(target_maps[key][good])
-        all_norm += results[key]
-    for key in results:
-        results[key] /= all_norm
-    return results
 
 
 def combo_dust_fp(

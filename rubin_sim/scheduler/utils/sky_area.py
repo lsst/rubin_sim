@@ -1,4 +1,10 @@
-__all__ = ("SkyAreaGenerator", "SkyAreaGeneratorGalplane", "EuclidOverlapFootprint")
+__all__ = (
+    "generate_all_sky",
+    "filter_count_ratios",
+    "SkyAreaGenerator",
+    "SkyAreaGeneratorGalplane",
+    "EuclidOverlapFootprint",
+)
 
 import os
 import warnings
@@ -11,9 +17,89 @@ from numpy.lib import recfunctions as rfn
 from shapely.geometry import Point
 from shapely.geometry.polygon import Polygon
 
-import rubin_sim.utils as rs_utils
 from rubin_sim import data as rs_data
-from rubin_sim.utils import angular_separation
+from rubin_sim.utils import Site, _angular_separation, angular_separation
+
+from .footprints import ra_dec_hp_map
+from .utils import IntRounded, set_default_nside
+
+
+def generate_all_sky(nside=None, elevation_limit=20, mask=hp.UNSEEN):
+    """Set up a healpix map over the entire sky.
+    Calculate RA & Dec, Galactic l & b, Ecliptic l & b, for all healpixels.
+    Calculate max altitude, to define areas which LSST cannot reach.
+
+    This is intended to be a useful tool to use to set up target maps,
+    beyond the standard maps provided in the various SkyArea generator maps.
+    Masking based on RA, Dec, Galactic or Ecliptic lat and lon is easier.
+
+    Parameters
+    ----------
+    nside : `int`, optional
+        Resolution for the healpix maps.
+        Default None uses rubin_sim.scheduler.utils.set_default_nside
+        to set default (often 32).
+    elevation_limit : `float`, optional
+        Elevation limit for map.
+        Parts of the sky which do not reach this elevation limit
+        will be set to `mask.`
+    mask : `float`, optional
+        Mask value for 'unreachable' parts of the sky,
+        defined as elevation < 20.
+
+    Returns
+    -------
+    maps : `dict` {`str`: `np.ndarray`, (N,)}
+        A dictionary of `map` (the skymap healpix array, with `mask` values),
+        `ra`, `dec`, eclip_lat`, `eclip_lon`, `gal_lat`, `gal_lon` values.
+        All coordinates are in radians.
+    """
+    if nside is None:
+        nside = set_default_nside()
+
+    # Calculate coordinates of everything.
+    skymap = np.zeros(hp.nside2npix(nside), float)
+    ra, dec = ra_dec_hp_map(nside=nside)
+    coord = SkyCoord(ra=ra * u.rad, dec=dec * u.rad, frame="icrs")
+    eclip_lat = coord.barycentrictrueecliptic.lat.deg
+    eclip_lon = coord.barycentrictrueecliptic.lon.deg
+    gal_lon = coord.galactic.l.deg
+    gal_lat = coord.galactic.b.deg
+
+    # Calculate max altitude (when on meridian).
+    lsst_site = Site("LSST")
+    elev_max = np.pi / 2.0 - np.abs(dec - lsst_site.latitude_rad)
+    skymap = np.where(IntRounded(elev_max) >= IntRounded(np.radians(elevation_limit), skymap, mask))
+
+    return {
+        "map": skymap,
+        "ra": np.degrees(ra),
+        "dec": np.degrees(dec),
+        "eclip_lat": eclip_lat,
+        "eclip_lon": eclip_lon,
+        "gal_lat": gal_lat,
+        "gal_lon": gal_lon,
+    }
+
+
+def filter_count_ratios(target_maps):
+    """Compute the desired ratio of observations per filter.
+
+    Given a goal map that includes multiple filters, sum the number of
+    pixels in each map and return this per-filter, normalized so the sum
+    across all filters is 1.
+    If the map is constant over all healpixels, this is the
+    ratio of filters at the max/constant value.
+    """
+    results = {}
+    all_norm = 0.0
+    for key in target_maps:
+        good = target_maps[key] > 0
+        results[key] = np.sum(target_maps[key][good])
+        all_norm += results[key]
+    for key in results:
+        results[key] /= all_norm
+    return results
 
 
 class SkyAreaGenerator:
@@ -172,7 +258,7 @@ class SkyAreaGenerator:
         # find the healpixels that cover a circle of radius
         # "radius" around ra/dec center (deg).
         result = np.zeros(len(self.ra))
-        distance = rs_utils._angular_separation(
+        distance = _angular_separation(
             np.radians(ra_center),
             np.radians(dec_center),
             np.radians(self.ra),
