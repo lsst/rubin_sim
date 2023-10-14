@@ -13,7 +13,7 @@ from rubin_sim.utils import survey_start_mjd
 
 class TestUtils(unittest.TestCase):
     @unittest.skipUnless(
-        os.path.isfile(os.path.join(get_data_dir(), "scheduler/DustMaps/dust_nside_32.npz")),
+        os.path.isfile(os.path.join(get_data_dir(), "scheduler/dust_maps/dust_nside_32.npz")),
         "Test data not available.",
     )
     def test_nside(self):
@@ -23,7 +23,7 @@ class TestUtils(unittest.TestCase):
         _ = example_scheduler(mjd_start=mjd_start, nside=8)
 
     @unittest.skipUnless(
-        os.path.isfile(os.path.join(get_data_dir(), "scheduler/DustMaps/dust_nside_32.npz")),
+        os.path.isfile(os.path.join(get_data_dir(), "scheduler/dust_maps/dust_nside_32.npz")),
         "Test data not available.",
     )
     def test_restore(self):
