@@ -12,9 +12,9 @@ from rubin_sim.scheduler.example import example_scheduler
 from rubin_sim.scheduler.model_observatory import ModelObservatory
 from rubin_sim.scheduler.schedulers import CoreScheduler
 from rubin_sim.scheduler.surveys import BlobSurvey, GreedySurvey, generate_dd_surveys
-from rubin_sim.scheduler.utils import SkyAreaGenerator, calc_norm_factor
+from rubin_sim.scheduler.utils import SkyAreaGenerator, calc_norm_factor_array
 
-SAMPLE_BIG_DATA_FILE = os.path.join(get_data_dir(), "scheduler/DustMaps/dust_nside_32.npz")
+SAMPLE_BIG_DATA_FILE = os.path.join(get_data_dir(), "scheduler/dust_maps/dust_nside_32.npz")
 
 
 def gen_greedy_surveys(nside):
@@ -68,7 +68,7 @@ def gen_blob_surveys(nside):
     """
     sky = SkyAreaGenerator(nside=nside)
     target_map, labels = sky.return_maps()
-    norm_factor = calc_norm_factor(target_map)
+    norm_factor = calc_norm_factor_array(target_map)
 
     filter1s = ["g"]  # , 'r', 'i', 'z', 'y']
     filter2s = ["g"]  # , 'r', 'i', None, None]
@@ -171,7 +171,7 @@ class TestFeatures(unittest.TestCase):
         survey_length = 2.0  # days
 
         surveys = gen_greedy_surveys(nside)
-        # Depricating Pairs_survey_scripted
+        # Depreating Pairs_survey_scripted
         # surveys.append(Pairs_survey_scripted(None, ignore_obs='DD'))
 
         # Set up the DD

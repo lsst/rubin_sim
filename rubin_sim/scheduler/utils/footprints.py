@@ -5,6 +5,7 @@ appropriately for a given time.
 __all__ = (
     "ra_dec_hp_map",
     "calc_norm_factor",
+    "calc_norm_factor_array",
     "StepLine",
     "Footprints",
     "Footprint",
@@ -463,6 +464,33 @@ def calc_norm_factor(goal_dict, radius=1.75):
         good = np.where(goal_dict[key] > 0)
         all_maps_sum += goal_dict[key][good].sum()
     nside = hp.npix2nside(goal_dict[key].size)
+    hp_area = hp.nside2pixarea(nside, degrees=True)
+    norm_val = radius**2 * np.pi / hp_area / all_maps_sum
+    return norm_val
+
+
+def calc_norm_factor_array(goal_map, radius=1.75):
+    """Calculate how to normalize a Target_map_basis_function.
+    This is basically:
+    the area of the fov / area of a healpixel  /
+    the sum of all of the weighted-healpix values in the footprint.
+
+    Parameters
+    -----------
+    goal_map : recarray of healpy maps
+        The target goal map(s) being used
+    radius : float
+        Radius of the FoV (degrees)
+
+    Returns
+    -------
+    Value to use as Target_map_basis_function norm_factor kwarg
+    """
+    all_maps_sum = 0
+    for key in goal_map.dtype.names:
+        good = np.where(goal_map[key] > 0)
+        all_maps_sum += goal_map[key][good].sum()
+    nside = hp.npix2nside(goal_map[key].size)
     hp_area = hp.nside2pixarea(nside, degrees=True)
     norm_val = radius**2 * np.pi / hp_area / all_maps_sum
     return norm_val
