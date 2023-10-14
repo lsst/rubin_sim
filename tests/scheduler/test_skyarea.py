@@ -1,14 +1,19 @@
+import os
 import unittest
 
 import numpy as np
 
+from rubin_sim.data import get_data_dir
 from rubin_sim.scheduler.utils import EuclidOverlapFootprint, SkyAreaGenerator, SkyAreaGeneratorGalplane
+
+datadir = os.path.join(get_data_dir(), "scheduler")
 
 
 class TestSkyArea(unittest.TestCase):
     def setUp(self):
         self.nside = 32
 
+    @unittest.skipUnless(os.path.isdir(datadir), "Test data not available.")
     def test_skyareagenerator(self):
         # Just test that it sets up and returns maps
         s = SkyAreaGenerator(nside=self.nside)
@@ -20,6 +25,7 @@ class TestSkyArea(unittest.TestCase):
         lowdust = np.where(labels == "lowdust")
         self.assertTrue(np.all(footprints["r"][lowdust] == 1))
 
+    @unittest.skipUnless(os.path.isdir(datadir), "Test data not available.")
     def test_skyareagenerator_nside(self):
         # Just check two other likely common nsides
         for nside in (16, 64):
@@ -28,6 +34,7 @@ class TestSkyArea(unittest.TestCase):
             lowdust = np.where(labels == "lowdust")
             self.assertTrue(np.all(footprints["r"][lowdust] == 1))
 
+    @unittest.skipUnless(os.path.isdir(datadir), "Test data not available.")
     def test_skyareageneratorgalplane(self):
         # Just test that it sets up and returns maps
         s = SkyAreaGeneratorGalplane(nside=self.nside)
@@ -39,6 +46,7 @@ class TestSkyArea(unittest.TestCase):
         lowdust = np.where(labels == "lowdust")
         self.assertTrue(np.all(footprints["r"][lowdust] == 1))
 
+    @unittest.skipUnless(os.path.isdir(datadir), "Test data not available.")
     def test_euclidoverlapfootprint(self):
         # Just test that it sets up and returns maps
         s = EuclidOverlapFootprint(nside=self.nside)

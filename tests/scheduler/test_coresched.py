@@ -9,19 +9,21 @@ import rubin_sim.scheduler.surveys as surveys
 from rubin_sim.data import get_data_dir
 from rubin_sim.scheduler.model_observatory import ModelObservatory
 from rubin_sim.scheduler.schedulers import CoreScheduler
-from rubin_sim.scheduler.utils import SkyAreaGenerator
+from rubin_sim.scheduler.utils import generate_all_sky
 
 
 class TestCoreSched(unittest.TestCase):
     def testsched(self):
         nside = 32
-        sky = SkyAreaGenerator(nside=nside)
-        target_maps, labels = sky.return_maps()
-        target_map = target_maps["r"]
+        # Just set up a very simple target map, dec limited, one filter
+        sky_dict = generate_all_sky(nside, mask=-1)
+        target_map = np.where(
+            ((sky_dict["map"] >= 0) & (sky_dict["dec"] < 2) & (sky_dict["dec"] > -65)), 1, 0
+        )
 
         bfs = []
         bfs.append(basis_functions.M5DiffBasisFunction(nside=nside))
-        bfs.append(basis_functions.TargetMapBasisFunction(target_map=target_map))
+        bfs.append(basis_functions.TargetMapBasisFunction(target_map=target_map, norm_factor=1))
         weights = np.array([1.0, 1])
         survey = surveys.GreedySurvey(bfs, weights)
         scheduler = CoreScheduler([survey])
