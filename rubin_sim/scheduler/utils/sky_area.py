@@ -69,7 +69,7 @@ def generate_all_sky(nside=None, elevation_limit=20, mask=hp.UNSEEN):
     # Calculate max altitude (when on meridian).
     lsst_site = Site("LSST")
     elev_max = np.pi / 2.0 - np.abs(dec - lsst_site.latitude_rad)
-    skymap = np.where(IntRounded(elev_max) >= IntRounded(np.radians(elevation_limit), skymap, mask))
+    skymap = np.where(IntRounded(elev_max) >= IntRounded(np.radians(elevation_limit)), skymap, mask)
 
     return {
         "map": skymap,

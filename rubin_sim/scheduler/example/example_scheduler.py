@@ -1466,7 +1466,7 @@ def sched_argparser():
     parser.add_argument("--neo_am", type=float, default=2.5, help="airmass limit for twilight NEO visits")
     parser.add_argument("--neo_elong_req", type=float, default=45.0)
     parser.add_argument("--neo_area_req", type=float, default=0.0)
-    parser.add_argument("--setup_only", dest="setup-only", default=False, action="store_true")
+    parser.add_argument("--setup_only", dest="setup_only", default=False, action="store_true")
     parser.add_argument(
         "--nside", type=int, default=32, help="Nside should be set to default (32) except for tests."
     )
