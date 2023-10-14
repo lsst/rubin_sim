@@ -28,17 +28,19 @@ from rubin_sim.scheduler.surveys import (
 )
 from rubin_sim.scheduler.utils import ConstantFootprint, EuclidOverlapFootprint, make_rolling_footprints
 from rubin_sim.site_models import Almanac
-from rubin_sim.utils import _hpid2_ra_dec
+from rubin_sim.utils import _hpid2_ra_dec, survey_start_mjd
 
 iers.conf.auto_download = False
 
 
-def example_scheduler():
+def example_scheduler(nside=32, mjd_start=survey_start_mjd()):
     parser = sched_argparser()
-    args = parser.parse_args()
+    args = parser.parse_args(args=[])
     args.setup_only = True
     args.dbroot = "example_"
     args.outDir = "."
+    args.nside = nside
+    args.mjd_start = mjd_start
     scheduler = main(args)
     return scheduler
 
@@ -1196,7 +1198,7 @@ def generate_twilight_near_sun(
     """
     survey_name = "twilight_near_sun"
     footprint = ecliptic_target(nside=nside, mask=footprint_mask)
-    constant_fp = ConstantFootprint()
+    constant_fp = ConstantFootprint(nside=nside)
     for filtername in filters:
         constant_fp.set_footprint(filtername, footprint)
 
