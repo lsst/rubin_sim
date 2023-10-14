@@ -22,46 +22,55 @@ class SkyAreaGenerator:
 
     Parameters
     ----------
-    nside : `int` (32)
-        Healpix nside (32)
-    dust_limit : `float` (0.199)
+    nside : `int`
+        Healpix nside
+    dust_limit : `float`
         E(B-V) limit for dust extinction. Default of 0.199.
-    smoothing_cutoff : `float` (0.45)
-       We apply a smoothing filter to the defined dust-free region to avoid sharp edges.
-       Larger values = less area, but guaranteed less dust extinction. Default 0.45 (degrees).
-    smoothing_beam : `float` (10)
-        The size of the smoothing filter, in degrees. Default 10.
-    lmc_radius : `float` (8)
-        The radius to use around the LMC (degrees).
-    smc_radius : `float` (5)
-        The radius to use around the SMC (degrees)
-    scp_dec_max : `float` (-60)
-        Maximum declination for the south celestial pole region (degrees)
-    gal_long1 : `float` (335)
-        Longitude at which to start the GP region (degrees).
-    gal_long2 : `float` (25)
-        Longitude at which to stop the GP region (degrees).
+    smoothing_cutoff : `float`
+       We apply a smoothing filter to the defined dust-free region to
+       avoid sharp edges. Larger values = less area, but guaranteed
+       less dust extinction. Reflects the value to cut at, after smoothing.
+    smoothing_beam : `float`
+        The size of the smoothing filter, in degrees.
+    lmc_ra, lmc_dec : `float`, `float`
+        RA and Dec locations of the LMC, in degrees.
+    lmc_radius : `float`
+        The radius to use around the LMC, in degrees.
+    smc_ra, smc_dec : `float`, `float`
+        RA and Dec locations for the center of the SMC, in degrees.
+    smc_radius : `float`
+        The radius to use around the SMC, degrees.
+    scp_dec_max : `float`
+        Maximum declination for the south celestial pole region, degrees.
+    gal_long1 : `float`
+        Longitude at which to start the GP region, in degrees.
+    gal_long2 : `float`
+        Longitude at which to stop the GP region, degrees.
         Order matters for gal_long1 / gal_long2!
-    gal_lat_width_max : `float` (23)
-        Max width of the galactic plane (degrees)
-    center_width : `float` (12)
-        Width at the center of the galactic plane region (degrees).
-    end_width: `float` (4)
-        Width at the remainder of the galactic plane region.
-    gal_dec_max : `float` (12)
-        Maximum declination for the galactic plane region (degrees).
-    dusty_dec_min : `float` (-90)
-        The minimum dec for the dusty plane region (degrees)
-    dusty_dec_max : `float` (15)
-        The maximum dec for the dusty plane (degrees)
-    eclat_min : `float` (-10)
-        Ecliptic latitutde minimum for the NES (degrees).
-    eclat_max : `float` (10)
-        Ecliptic latitude maximum for the NES (degrees).
-    eclip_dec_min : `float` (0)
-        Declination minimum for the NES (degrees)
-    nes_glon_limit : `float` (45.)
-        Galactic longitude limit for the NES (degrees).
+    gal_lat_width_max : `float`
+        Max width of the galactic plane, in degrees.
+    center_width : `float`
+        Width at the center of the galactic plane region, in degrees.
+    end_width: `float`
+        Width at the remainder of the galactic plane region, in degrees.
+    gal_dec_max : `float`
+        Maximum declination for the galactic plane region, degrees.
+    dusty_dec_min : `float`
+        The minimum dec for the dusty plane region, in degrees.
+    dusty_dec_max : `float`
+        The maximum dec for the dusty plane, degrees.
+    eclat_min : `float`
+        Ecliptic latitutde minimum for the NES, degrees.
+    eclat_max : `float`
+        Ecliptic latitude maximum for the NES, degrees.
+    eclip_dec_min : `float`
+        Declination minimum for the NES, degrees.
+    nes_glon_limit : `float`
+        Galactic longitude limit for the NES, degrees.
+    virgo_ra, virgo_dec : `float`, `float`
+        RA and Dec values for the Virgo coverage center, in degrees.
+    virgo_radius : `float`
+        Radius for the virgo coverage, in degrees.
     """
 
     def __init__(
@@ -70,7 +79,11 @@ class SkyAreaGenerator:
         dust_limit=0.199,
         smoothing_cutoff=0.45,
         smoothing_beam=10,
+        lmc_ra=80.893860,
+        lmc_dec=-69.756126,
         lmc_radius=8,
+        smc_ra=13.186588,
+        smc_dec=-72.828599,
         smc_radius=5,
         scp_dec_max=-60,
         gal_long1=335,
@@ -96,7 +109,11 @@ class SkyAreaGenerator:
         self.hpid = np.arange(0, hp.nside2npix(nside))
         self.read_dustmap()
 
+        self.lmc_ra = lmc_ra
+        self.lmc_dec = lmc_dec
         self.lmc_radius = lmc_radius
+        self.smc_ra = smc_ra
+        self.smc_dec = smc_dec
         self.smc_radius = smc_radius
 
         self.virgo_ra = virgo_ra
@@ -141,7 +158,7 @@ class SkyAreaGenerator:
 
     def read_dustmap(self, dustmap_file=None):
         """Read the dustmap from rubin_sim, in the appropriate resolution."""
-        # Dustmap from rubin_sim_data  - this is basically just a data directory
+        # Dustmap from rubin_sim_data
         if dustmap_file is None:
             datadir = rs_data.get_data_dir()
             if datadir is None:
@@ -151,7 +168,9 @@ class SkyAreaGenerator:
         self.dustmap = np.load(filename)["ebvMap"]
 
     def _set_circular_region(self, ra_center, dec_center, radius):
-        # find the healpixels that cover a circle of radius radius around ra/dec center (deg)
+        """Define a circular region centered on ra_center, dec_center."""
+        # find the healpixels that cover a circle of radius
+        # "radius" around ra/dec center (deg).
         result = np.zeros(len(self.ra))
         distance = rs_utils._angular_separation(
             np.radians(ra_center),
@@ -168,23 +187,25 @@ class SkyAreaGenerator:
 
         Parameters
         ----------
-        center_width : float
+        center_width : `float`
             Width at the center of the galactic plane region.
-        end_width : float
+        end_width : `float`
             Width at the remainder of the galactic plane region.
-        gal_long1 : float
+        gal_long1 : `float`
             Longitude at which to start the GP region.
-        gal_long2 : float
+        gal_long2 : `float`
             Longitude at which to stop the GP region.
             Order matters for gal_long1 / gal_long2!
+
         Returns
         -------
-        bulge : np.ndarray
+        bulge : `np.ndarray`
             HEALpix array with 1 for bulge pixels, 0 otherwise
         """
         # Reject anything beyond the central width.
         bulge = np.where(np.abs(self.gal_lat) < center_width, 1, 0)
-        # Apply the galactic longitude cuts, so that plane goes between gal_long1 to gal_long2.
+        # Apply the galactic longitude cuts,
+        # so that plane goes between gal_long1 to gal_long2.
         # This is NOT the shortest distance between the angles.
         gp_length = (gal_long2 - gal_long1) % 360
         # If the length is greater than 0 then we can add additional cuts.
@@ -198,7 +219,7 @@ class SkyAreaGenerator:
             slope = (center_width - end_width) / half_width
             # The 'center' can have a wrap-around 0 problem
             gp_center = (gal_long1 + half_width) % 360
-            # Calculate the longitude-distance between any point and the 'center'
+            # Calculate the longitude-distance btwn any point and the 'center'
             gp_dist = (self.gal_lon - gp_center) % 360
             gp_dist = np.abs(np.where((gp_dist > 180), (180 - gp_dist) % 180, gp_dist))
             lat_limit = np.abs(center_width - slope * gp_dist)
@@ -207,7 +228,8 @@ class SkyAreaGenerator:
 
     def _set_bulge_rectangle(self, lat_width, gal_long1, gal_long2):
         """
-        Define a Galactic Bulge as a simple rectangle in galactic coordinates, centered on the plane
+        Define a Galactic Bulge as a simple rectangle in galactic coordinates,
+        centered on the plane
 
         Parameters
         ----------
@@ -221,7 +243,7 @@ class SkyAreaGenerator:
 
         Returns
         -------
-        bulge : np.ndarray
+        bulge : `np.ndarray`
             HEALpix array with 1 for bulge pixels, 0 otherwise
         """
         bulge = np.where(np.abs(self.gal_lat) < lat_width, 1, 0)
@@ -234,6 +256,16 @@ class SkyAreaGenerator:
         return bulge
 
     def add_virgo_cluster(self, filter_ratios, label="virgo"):
+        """Define a circular region around the Virgo Cluster.
+        Updates self.healmaps and self.pix_labels
+
+        Parameters
+        ----------
+        filter_ratios : `dict` {`str`: `float`}
+            Dictionary of weights per filter for the footprint.
+        label : `str`, optional
+            Label to apply to the resulting footprint
+        """
         temp_map = np.zeros(hp.nside2npix(self.nside))
         temp_map += self._set_circular_region(self.virgo_ra, self.virgo_dec, self.virgo_radius)
         # Don't overide any pixels that have already been designated
@@ -246,21 +278,28 @@ class SkyAreaGenerator:
         self,
         filter_ratios,
         label="LMC_SMC",
-        lmc_ra=80.893860,
-        lmc_dec=-69.756126,
-        smc_ra=13.186588,
-        smc_dec=-72.828599,
     ):
+        """Define circular regions around the Magellanic Clouds.
+        Updates self.healmaps and self.pix_labels.
+
+        Parameters
+        -----------
+        filter_ratios : `dict` {`str`: `float`}
+            Dictionary of weights per filter for the footprint.
+        label : `str`, optional
+            Label to apply to the resulting footprint
+        """
         temp_map = np.zeros(hp.nside2npix(self.nside))
         # Define the LMC pixels
-        temp_map += self._set_circular_region(lmc_ra, lmc_dec, self.lmc_radius)
+        temp_map += self._set_circular_region(self.lmc_ra, self.lmc_dec, self.lmc_radius)
         # Define the SMC pixels
-        temp_map += self._set_circular_region(smc_ra, smc_dec, self.smc_radius)
+        temp_map += self._set_circular_region(self.smc_ra, self.smc_dec, self.smc_radius)
         # Add a simple bridge between the two - to remove the gap
         mc_dec_min = self.dec[np.where(temp_map > 0)].min()
         mc_dec_max = self.dec[np.where(temp_map > 0)].max()
         temp_map += np.where(
-            ((self.ra > smc_ra) & (self.ra < lmc_ra)) & ((self.dec > mc_dec_min) & (self.dec < mc_dec_max)),
+            ((self.ra > self.smc_ra) & (self.ra < self.lmc_ra))
+            & ((self.dec > mc_dec_min) & (self.dec < mc_dec_max)),
             1,
             0,
         )
@@ -273,6 +312,16 @@ class SkyAreaGenerator:
             self.healmaps[filtername][indx] = filter_ratios[filtername]
 
     def add_scp(self, filter_ratios, label="scp"):
+        """Define a south celestial pole cap region.
+        Updates self.healmaps and self.pix_labels.
+
+        Parameters
+        ----------
+        filter_ratios : `dict` {`str`: `float`}
+            Dictionary of weights per filter for the footprint.
+        label : `str`, optional
+            Label to apply to the resulting footprint
+        """
         indx = np.where((self.dec < self.scp_dec_max) & (self.pix_labels == ""))
 
         self.pix_labels[indx] = label
@@ -280,6 +329,17 @@ class SkyAreaGenerator:
             self.healmaps[filtername][indx] = filter_ratios[filtername]
 
     def add_bulge(self, filter_ratios, label="bulge"):
+        """Define a bulge region, where the 'bulge' is a large "diamond"
+        centered on the galactic center.
+        Updates self.healmaps and self.pix_labels.
+
+        Parameters
+        ----------
+        filter_ratios : `dict` {`str`: `float`}
+            Dictionary of weights per filter for the footprint.
+        label : `str`, optional
+            Label to apply to the resulting footprint
+        """
         b1 = self._set_bulge_diamond(
             center_width=self.center_width,
             end_width=self.end_width,
@@ -298,6 +358,16 @@ class SkyAreaGenerator:
             self.healmaps[filtername][indx] = filter_ratios[filtername]
 
     def add_lowdust_wfd(self, filter_ratios, label="lowdust"):
+        """Define a low-dust WFD region.
+        Updates self.healmaps and self.pix_labels.
+
+        Parameters
+        ----------
+        filter_ratios : `dict` {`str`: `float`}
+            Dictionary of weights per filter for the footprint.
+        label : `str`, optional
+            Label to apply to the resulting footprint
+        """
         dustfree = np.where(
             (self.dec > self.low_dust_dec_min) & (self.dec < self.low_dust_dec_max) & (self.low_dust == 1),
             1,
@@ -319,6 +389,16 @@ class SkyAreaGenerator:
             self.healmaps[filtername][indx] = filter_ratios[filtername]
 
     def add_dusty_plane(self, filter_ratios, label="dusty_plane"):
+        """Define high-dust region of the map.
+        Updates self.healmaps and self.pix_labels.
+
+        Parameters
+        ----------
+        filter_ratios : `dict` {`str`: `float`}
+            Dictionary of weights per filter for the footprint.
+        label : `str`, optional
+            Label to apply to the resulting footprint
+        """
         dusty = np.where(
             ((self.dec > self.dusty_dec_min) & (self.dec < self.dusty_dec_max) & (self.low_dust == 0)),
             1,
@@ -331,6 +411,16 @@ class SkyAreaGenerator:
             self.healmaps[filtername][indx] = filter_ratios[filtername]
 
     def add_nes(self, filter_ratios, label="nes"):
+        """Define a North Ecliptic Plane region.
+        Updates self.healmaps and self.pix_labels.
+
+        Parameters
+        ----------
+        filter_ratios : `dict` {`str`: `float`}
+            Dictionary of weights per filter for the footprint.
+        label : `str`, optional
+            Label to apply to the resulting footprint
+        """
         nes = np.where(
             ((self.eclip_lat > self.eclat_min) | (self.dec > self.eclip_dec_min))
             & (self.eclip_lat < self.eclat_max),
@@ -371,19 +461,47 @@ class SkyAreaGenerator:
         virgo_ratios={"u": 0.32, "g": 0.4, "r": 1.0, "i": 1.0, "z": 0.9, "y": 0.9},
     ):
         """
-        Parameters:
-        various_ratios : `dict`
-            Dict with filternames for keys and floats for values that are the desired ratio
-            of observations in each filter. By conventions, I usually set the low_dust_ratios['r']=1,
-            then all the other values can be interpreted relative to that. E.g., if scp_ratios['u']=0.1, then
-            when the low_dust r has 10 visits (per pixel) the scp should have 1 vist (per pixel).
+        Return the survey sky maps and labels.
+
+        Parameters
+        ----------
+        magellanic_clouds_ratios :  `dict` {`str`: `float`}
+            Magellanic clouds filter ratios.
+        scp_ratios :  `dict` {`str`: `float`}
+            SCP filter ratios.
+        nes_ratios :  `dict` {`str`: `float`}
+            NES filter ratios
+        dusty_plane-ratios :  `dict` {`str`: `float`}
+            dusty plane filter ratios
+        low_dust_ratios :  `dict` {`str`: `float`}
+            Low Dust WFD filter ratios.
+        bulge_ratios :  `dict` {`str`: `float`}
+            Bulge region filter ratios.
+        virgo_ratios :  `dict` {`str`: `float`}
+            Virgo cluster coverage filter ratios.
 
         Returns
         --------
-        self.healmaps : `np.ndarray`
-            HEALPix maps for ugrizy
-        self.pix_labels : `np.ndarray`
-            Array string labels for each HEALpix
+        self.healmaps, self.pix_labels : `np.ndarray`, (N,), `np.ndarray`, (N,)
+            HEALPix target survey maps for ugrizy,
+            and string labels for each healpix to indicate the "region".
+
+
+        Notes
+        -----
+        Each healpix point can only belong to one region. Which region it is
+        assigned to first will be used for its definition, thus order
+        matters within this method. The region defines the filter ratios.
+
+        The filter ratios contain information about the *ratio* of visits
+        in that region (compared to some reference point in the entire map)
+        in each particular filter. By convention, the low_dust_wfd ratio
+        in r band is set to "1" and all other values are then in reference
+        to that.
+
+        For example: if scp_ratios['u'] = 0.1 and the low_dust_wfd['r'] = 1,
+        then when the low-dust WFD has 10 visits in r band, the SCP should
+        have obtained 1 visits in u band (per pixel).
         """
 
         # Array to hold the labels for each pixel
@@ -393,7 +511,8 @@ class SkyAreaGenerator:
             dtype=list(zip(["u", "g", "r", "i", "z", "y"], [float] * 7)),
         )
 
-        # Note, order here matters. Once a HEALpix is set and labled, subsequent add_ methods
+        # Note, order here matters.
+        # Once a HEALpix is set and labled, subsequent add_ methods
         # will not override that pixel.
         self.add_magellanic_clouds(magellenic_clouds_ratios)
         self.add_lowdust_wfd(low_dust_ratios)
@@ -412,7 +531,7 @@ class SkyAreaGenerator:
         ----------
         nvis_total : `int`
             The total number of visits in the survey
-        fov_area : `float` (9.6)
+        fov_area : `float`
             The area of a single visit (sq degrees)
         **kwargs :
             Gets passed to self.return_maps if one wants to change the
@@ -420,15 +539,19 @@ class SkyAreaGenerator:
 
         Returns
         -------
-        result : `np.array`
+        result : `np.array`, (N,)
             array with filtername dtypes that have HEALpix arrays with the
             number of expected visits of each HEALpix center
-        sum_map : `np.array`
+        sum_map : `np.array`, (N,)
             The number of visits summed over all the filters
-        labels : `np.ndarray`
+        labels : `np.ndarray`, (N,)
             Array string labels for each HEALpix
         """
-
+        # Note that there really ought to be a fudge factor here;
+        # typically the number of visits per pixel will be slightly
+        # more than requested in the map, due to dithering.
+        # The fudge factor will depend on the complexity of the region's
+        # boundaries, but can be on the order of 1.3.
         healmaps, labels = self.return_maps(**kwargs)
 
         sum_map = rfn.structured_to_unstructured(healmaps).sum(axis=1)
@@ -477,8 +600,80 @@ class SkyAreaGenerator:
 
 
 class SkyAreaGeneratorGalplane(SkyAreaGenerator):
+    """
+    Generate survey footprint maps in each filter.
+    Adds a 'bulgy' galactic plane coverage map.
+
+    Parameters
+    ----------
+    nside : `int`
+        Healpix nside
+    dust_limit : `float`
+        E(B-V) limit for dust extinction. Default of 0.199.
+    smoothing_cutoff : `float`
+       We apply a smoothing filter to the defined dust-free region to
+       avoid sharp edges. Larger values = less area, but guaranteed
+       less dust extinction. Reflects the value to cut at, after smoothing.
+    smoothing_beam : `float`
+        The size of the smoothing filter, in degrees.
+    lmc_ra, lmc_dec : `float`, `float`
+        RA and Dec locations of the LMC, in degrees.
+    lmc_radius : `float`
+        The radius to use around the LMC, in degrees.
+    smc_ra, smc_dec : `float`, `float`
+        RA and Dec locations for the center of the SMC, in degrees.
+    smc_radius : `float`
+        The radius to use around the SMC, degrees.
+    scp_dec_max : `float`
+        Maximum declination for the south celestial pole region, degrees.
+    gal_long1 : `float`
+        Longitude at which to start the GP region, in degrees.
+    gal_long2 : `float`
+        Longitude at which to stop the GP region, degrees.
+        Order matters for gal_long1 / gal_long2!
+    gal_lat_width_max : `float`
+        Max width of the galactic plane, in degrees.
+    center_width : `float`
+        Width at the center of the galactic plane region, in degrees.
+    end_width: `float`
+        Width at the remainder of the galactic plane region, in degrees.
+    gal_dec_max : `float`
+        Maximum declination for the galactic plane region, degrees.
+    dusty_dec_min : `float`
+        The minimum dec for the dusty plane region, in degrees.
+    dusty_dec_max : `float`
+        The maximum dec for the dusty plane, degrees.
+    eclat_min : `float`
+        Ecliptic latitutde minimum for the NES, degrees.
+    eclat_max : `float`
+        Ecliptic latitude maximum for the NES, degrees.
+    eclip_dec_min : `float`
+        Declination minimum for the NES, degrees.
+    nes_glon_limit : `float`
+        Galactic longitude limit for the NES, degrees.
+    virgo_ra, virgo_dec : `float`, `float`
+        RA and Dec values for the Virgo coverage center, in degrees.
+    virgo_radius : `float`
+        Radius for the virgo coverage, in degrees.
+    """
+
+    def __init__(self, lmc_ra=89.0, lmc_dec=-70, **kwargs):
+        super().__init__(lmc_ra=lmc_ra, lmc_dec=lmc_dec, **kwargs)
+
     def add_bulgy(self, filter_ratios, label="bulgy"):
-        """Properly set the self.healmaps and self.pix_labels for the bulgy area."""
+        """Define a bulge region, where the 'bulge' is a series of
+        circles set by points defined to match as best as possible the
+        map requested by the SMWLV working group on galactic plane coverage.
+        Implemented in v3.0.
+        Updates self.healmaps and self.pix_labels.
+
+        Parameters
+        ----------
+        filter_ratios : `dict` {`str`: `float`}
+            Dictionary of weights per filter for the footprint.
+        label : `str`, optional
+            Label to apply to the resulting footprint
+        """
         # Some RA, dec, radius points that
         # seem to cover the areas that are desired
         points = [
@@ -505,8 +700,6 @@ class SkyAreaGeneratorGalplane(SkyAreaGenerator):
 
     def return_maps(
         self,
-        lmc_ra=89.0,
-        lmc_dec=-70,
         magellenic_clouds_ratios={
             "u": 0.32,
             "g": 0.4,
@@ -529,11 +722,54 @@ class SkyAreaGeneratorGalplane(SkyAreaGenerator):
             "y": 0.18,
         },
     ):
+        """
+        Return the survey sky maps and labels.
+
+        Parameters
+        ----------
+        magellanic_clouds_ratios :  `dict` {`str`: `float`}
+            Magellanic clouds filter ratios.
+        scp_ratios :  `dict` {`str`: `float`}
+            SCP filter ratios.
+        nes_ratios :  `dict` {`str`: `float`}
+            NES filter ratios
+        dusty_plane-ratios :  `dict` {`str`: `float`}
+            dusty plane filter ratios
+        low_dust_ratios :  `dict` {`str`: `float`}
+            Low Dust WFD filter ratios.
+        bulge_ratios :  `dict` {`str`: `float`}
+            Bulge region filter ratios (note this is the 'bulgy' bulge).
+        virgo_ratios :  `dict` {`str`: `float`}
+            Virgo cluster coverage filter ratios.
+
+        Returns
+        --------
+        self.healmaps, self.pix_labels : `np.ndarray`, (N,), `np.ndarray`, (N,)
+            HEALPix target survey maps for ugrizy,
+            and string labels for each healpix to indicate the "region".
+
+
+        Notes
+        -----
+        Each healpix point can only belong to one region. Which region it is
+        assigned to first will be used for its definition, thus order
+        matters within this method. The region defines the filter ratios.
+
+        The filter ratios contain information about the *ratio* of visits
+        in that region (compared to some reference point in the entire map)
+        in each particular filter. By convention, the low_dust_wfd ratio
+        in r band is set to "1" and all other values are then in reference
+        to that.
+
+        For example: if scp_ratios['u'] = 0.1 and the low_dust_wfd['r'] = 1,
+        then when the low-dust WFD has 10 visits in r band, the SCP should
+        have obtained 1 visits in u band (per pixel).
+        """
         self.pix_labels = np.zeros(hp.nside2npix(self.nside), dtype="U20")
         dt = list(zip(["u", "g", "r", "i", "z", "y"], [float] * 7))
         self.healmaps = np.zeros(hp.nside2npix(self.nside), dtype=dt)
 
-        self.add_magellanic_clouds(magellenic_clouds_ratios, lmc_ra=lmc_ra, lmc_dec=lmc_dec)
+        self.add_magellanic_clouds(magellenic_clouds_ratios)
         self.add_lowdust_wfd(low_dust_ratios)
         self.add_virgo_cluster(virgo_ratios)
         self.add_bulgy(bulge_ratios)
@@ -545,20 +781,94 @@ class SkyAreaGeneratorGalplane(SkyAreaGenerator):
 
 
 class EuclidOverlapFootprint(SkyAreaGeneratorGalplane):
+    """
+    Generate survey footprint maps in each filter.
+    This uses a bulgy coverage in the galactic plane, plus small
+    Euclid footprint extension to the low-dust WFD.
+
+    Parameters
+    ----------
+    nside : `int`
+        Healpix nside
+    dust_limit : `float`
+        E(B-V) limit for dust extinction. Default of 0.199.
+    smoothing_cutoff : `float`
+       We apply a smoothing filter to the defined dust-free region to
+       avoid sharp edges. Larger values = less area, but guaranteed
+       less dust extinction. Reflects the value to cut at, after smoothing.
+    smoothing_beam : `float`
+        The size of the smoothing filter, in degrees.
+    lmc_ra, lmc_dec : `float`, `float`
+        RA and Dec locations of the LMC, in degrees.
+    lmc_radius : `float`
+        The radius to use around the LMC, in degrees.
+    smc_ra, smc_dec : `float`, `float`
+        RA and Dec locations for the center of the SMC, in degrees.
+    smc_radius : `float`
+        The radius to use around the SMC, degrees.
+    scp_dec_max : `float`
+        Maximum declination for the south celestial pole region, degrees.
+    gal_long1 : `float`
+        Longitude at which to start the GP region, in degrees.
+    gal_long2 : `float`
+        Longitude at which to stop the GP region, degrees.
+        Order matters for gal_long1 / gal_long2!
+    gal_lat_width_max : `float`
+        Max width of the galactic plane, in degrees.
+    center_width : `float`
+        Width at the center of the galactic plane region, in degrees.
+    end_width: `float`
+        Width at the remainder of the galactic plane region, in degrees.
+    gal_dec_max : `float`
+        Maximum declination for the galactic plane region, degrees.
+    dusty_dec_min : `float`
+        The minimum dec for the dusty plane region, in degrees.
+    dusty_dec_max : `float`
+        The maximum dec for the dusty plane, degrees.
+    eclat_min : `float`
+        Ecliptic latitutde minimum for the NES, degrees.
+    eclat_max : `float`
+        Ecliptic latitude maximum for the NES, degrees.
+    eclip_dec_min : `float`
+        Declination minimum for the NES, degrees.
+    nes_glon_limit : `float`
+        Galactic longitude limit for the NES, degrees.
+    virgo_ra, virgo_dec : `float`, `float`
+        RA and Dec values for the Virgo coverage center, in degrees.
+    virgo_radius : `float`
+        Radius for the virgo coverage, in degrees.
+    euclid_contour_file : `str`
+        File containing a Euclid footprint contour file.
+        Default of none uses the file in rubin_sim_data/scheduler.
+    """
+
+    def __init__(self, euclid_contour_file=None, lmc_radius=6, smc_radius=4, **kwargs):
+        super().__init__(lmc_radius=lmc_radius, smc_radius=smc_radius, **kwargs)
+        self.euclid_contour_file = euclid_contour_file
+
     def add_euclid_overlap(
         self,
         filter_ratios,
         label="euclid_overlap",
-        contour_file=None,
-        south_limit=-50.0,
     ):
+        """Define a small extension (few degrees) to the low-dust WFD
+        to accomodate the Euclid footprint.
+        Updates self.healmaps and self.pix_labels.
+
+        Parameters
+        ----------
+        filter_ratios : `dict` {`str`: `float`}
+            Dictionary of weights per filter for the footprint.
+        label : `str`, optional
+            Label to apply to the resulting footprint
+        """
         names = ["RA", "dec"]
         types = [float, float]
-        if contour_file is None:
-            contour_file = os.path.join(
+        if self.euclid_contour_file is None:
+            self.euclid_contour_file = os.path.join(
                 rs_data.get_data_dir(), "scheduler/EWS.SGC.Mainland.ROI.2022.RADEC.txt"
             )
-        euclid_contours = np.genfromtxt(contour_file, dtype=list(zip(names, types)))
+        euclid_contours = np.genfromtxt(self.euclid_contour_file, dtype=list(zip(names, types)))
 
         wrap_ra = self.ra + 0
         wrap_ra[np.where(wrap_ra > 180)] -= 360
@@ -574,8 +884,6 @@ class EuclidOverlapFootprint(SkyAreaGeneratorGalplane):
 
     def return_maps(
         self,
-        lmc_ra=89.0,
-        lmc_dec=-70,
         magellenic_clouds_ratios={
             "u": 0.32,
             "g": 0.4,
@@ -600,19 +908,49 @@ class EuclidOverlapFootprint(SkyAreaGeneratorGalplane):
         euclid_ratios={"u": 0.32, "g": 0.4, "r": 1.0, "i": 1.0, "z": 0.9, "y": 0.9},
     ):
         """
-        Parameters:
-        various_ratios : `dict`
-            Dict with filternames for keys and floats for values that are the desired ratio
-            of observations in each filter. By conventions, I usually set the low_dust_ratios['r']=1,
-            then all the other values can be interpreted relative to that. E.g., if scp_ratios['u']=0.1, then
-            when the low_dust r has 10 visits (per pixel) the scp should have 1 vist (per pixel).
+        Return the survey sky maps and labels.
+
+        Parameters
+        ----------
+        magellanic_clouds_ratios :  `dict` {`str`: `float`}
+            Magellanic clouds filter ratios.
+        scp_ratios :  `dict` {`str`: `float`}
+            SCP filter ratios.
+        nes_ratios :  `dict` {`str`: `float`}
+            NES filter ratios
+        dusty_plane-ratios :  `dict` {`str`: `float`}
+            dusty plane filter ratios
+        low_dust_ratios :  `dict` {`str`: `float`}
+            Low Dust WFD filter ratios.
+        bulge_ratios :  `dict` {`str`: `float`}
+            Bulge region filter ratios (note this is the 'bulgy' bulge).
+        virgo_ratios :  `dict` {`str`: `float`}
+            Virgo cluster coverage filter ratios.
+        euclid_ratios : `dict` {`str`: `float`}
+            Euclid footprint overlap ratios.
 
         Returns
         --------
-        self.healmaps : `np.ndarray`
-            HEALPix maps for ugrizy
-        self.pix_labels : `np.ndarray`
-            Array string labels for each HEALpix
+        self.healmaps, self.pix_labels : `np.ndarray`, (N,), `np.ndarray`, (N,)
+            HEALPix target survey maps for ugrizy,
+            and string labels for each healpix to indicate the "region".
+
+
+        Notes
+        -----
+        Each healpix point can only belong to one region. Which region it is
+        assigned to first will be used for its definition, thus order
+        matters within this method. The region defines the filter ratios.
+
+        The filter ratios contain information about the *ratio* of visits
+        in that region (compared to some reference point in the entire map)
+        in each particular filter. By convention, the low_dust_wfd ratio
+        in r band is set to "1" and all other values are then in reference
+        to that.
+
+        For example: if scp_ratios['u'] = 0.1 and the low_dust_wfd['r'] = 1,
+        then when the low-dust WFD has 10 visits in r band, the SCP should
+        have obtained 1 visits in u band (per pixel).
         """
 
         # Array to hold the labels for each pixel
@@ -622,9 +960,10 @@ class EuclidOverlapFootprint(SkyAreaGeneratorGalplane):
             dtype=list(zip(["u", "g", "r", "i", "z", "y"], [float] * 7)),
         )
 
-        # Note, order here matters. Once a HEALpix is set and labled, subsequent add_ methods
+        # Note, order here matters.
+        # Once a HEALpix is set and labled, subsequent add_ methods
         # will not override that pixel.
-        self.add_magellanic_clouds(magellenic_clouds_ratios, lmc_ra=lmc_ra, lmc_dec=lmc_dec)
+        self.add_magellanic_clouds(magellenic_clouds_ratios)
         self.add_lowdust_wfd(low_dust_ratios)
         self.add_virgo_cluster(virgo_ratios)
         self.add_bulgy(bulge_ratios)
