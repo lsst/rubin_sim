@@ -68,7 +68,10 @@ if __name__ == "__main__":
             sys.stdout.write(text)
             sys.stdout.flush()
 
-        sm.set_ra_dec_mjd(ras, decs, mjd, degrees=False)
+        try:
+            sm.set_ra_dec_mjd(ras, decs, mjd, degrees=False)
+        except ValueError:
+            sm.sun_alt = 12.
         if sm.sun_alt > sun_limit:
             mags.append(sm.return_mags()["g"] * 0)
             airmasses.append(sm.airmass * 0)
