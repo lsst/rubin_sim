@@ -13,17 +13,17 @@ from rubin_sim.utils import survey_start_mjd
 
 class TestUtils(unittest.TestCase):
     @unittest.skipUnless(
-        os.path.isfile(os.path.join(get_data_dir(), "maps/DustMaps/dust_nside_32.npz")),
+        os.path.isfile(os.path.join(get_data_dir(), "scheduler/dust_maps/dust_nside_32.npz")),
         "Test data not available.",
     )
     def test_nside(self):
         """Test the example scheduler can be set to different nsides."""
         mjd_start = survey_start_mjd()
-        scheduler = example_scheduler(mjd_start=mjd_start, nside=64)
-        scheduler = example_scheduler(mjd_start=mjd_start, nside=8)
+        _ = example_scheduler(mjd_start=mjd_start, nside=64)
+        _ = example_scheduler(mjd_start=mjd_start, nside=8)
 
     @unittest.skipUnless(
-        os.path.isfile(os.path.join(get_data_dir(), "maps/DustMaps/dust_nside_32.npz")),
+        os.path.isfile(os.path.join(get_data_dir(), "scheduler/dust_maps/dust_nside_32.npz")),
         "Test data not available.",
     )
     def test_restore(self):
@@ -46,8 +46,9 @@ class TestUtils(unittest.TestCase):
             n_visit_limit=n_visit_limit,
         )
 
-        # Won't be exact if we restart in the middle of a blob sequence since the
-        # queue isn't reconstructed. Also, any scripted observations that get generated
+        # Won't be exact if we restart in the middle of a blob sequence
+        # since the queue isn't reconstructed.
+        # Also, any scripted observations that get generated
         # during the night (e.g., long gaps observations) will get lost,
         # so need to restart on a new night to ensure identical results.
 
@@ -65,7 +66,8 @@ class TestUtils(unittest.TestCase):
         # Restore some of the observations
         new_sched, new_mo = restore_scheduler(break_indx - 1, new_sched, new_mo, observations, fast=False)
 
-        # Simulate ahead and confirm that it behaves the same as running straight through
+        # Simulate ahead and confirm that it behaves the same
+        # as running straight through
         new_mo, new_sched, new_obs = sim_runner(
             new_mo,
             new_sched,
@@ -76,8 +78,8 @@ class TestUtils(unittest.TestCase):
         )
 
         # Check that observations taken after restart match those from before
-        # Jenkins can be bad at comparing things, so if it thinks they aren't the same
-        # check column-by-column to double check
+        # Jenkins can be bad at comparing things, so if it thinks
+        # they aren't the same, check column-by-column to double check
         if not np.all(new_obs == observations[break_indx:]):
             names = new_obs.dtype.names
             for name in names:
@@ -97,7 +99,8 @@ class TestUtils(unittest.TestCase):
         new_mo.sky_model.load_length = 10.0
         new_sched = example_scheduler(mjd_start=mjd_start)
         new_sched, new_mo = restore_scheduler(break_indx - 1, new_sched, new_mo, observations, fast=True)
-        # Simulate ahead and confirm that it behaves the same as running straight through
+        # Simulate ahead and confirm that it behaves the same as
+        # running straight through
         new_mo, new_sched, new_obs_fast = sim_runner(
             new_mo,
             new_sched,
@@ -108,8 +111,8 @@ class TestUtils(unittest.TestCase):
         )
 
         # Check that observations taken after restart match those from before
-        # Jenkins can be bad at comparing things, so if it thinks they aren't the same
-        # check column-by-column to double check
+        # Jenkins can be bad at comparing things, so if it thinks
+        # they aren't the same, check column-by-column to double check
         if not np.all(new_obs_fast == observations[break_indx:]):
             names = new_obs_fast.dtype.names
             for name in names:
@@ -158,8 +161,9 @@ class TestUtils(unittest.TestCase):
             seeing_db=os.path.join(get_data_dir(), "tests", "seeing.db"),
         )
         version_info = run_info_table(observatory)
-        # Make a minimal set of keys that probably ought to be in the info table
-        # Update these if the value they're stored as changes (either from run_info_table or observatory.info)
+        # Make a minimal set of keys that ought to be in the info table
+        # Update these if the value they're stored as changes
+        # (either from run_info_table or observatory.info)
         need_keys = [
             "rubin_sim.__version__",
             "hostname",

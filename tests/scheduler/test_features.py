@@ -53,11 +53,11 @@ class TestFeatures(unittest.TestCase):
         )
 
         # Test that the string representation works
-        print_string = conditions.__str__()
+        _ = conditions.__str__()
 
         # Check that naked conditions work
         conditions_naked = features.Conditions()
-        print_string = conditions_naked.__str__()
+        _ = conditions_naked.__str__()
 
     def test_note_last_observed(self):
         note_last_observed = features.NoteLastObserved(note="test")

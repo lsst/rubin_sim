@@ -1,8 +1,9 @@
 import unittest
-from rubin_sim.scheduler.model_observatory import ModelObservatory
+
 import numpy as np
 
 import rubin_sim.site_models
+from rubin_sim.scheduler.model_observatory import ModelObservatory
 
 
 class TestConstantWeather(unittest.TestCase):
@@ -15,11 +16,12 @@ class TestConstantWeather(unittest.TestCase):
         seeing_data = rubin_sim.site_models.ConstantSeeingData(test_seeing)
         cloud_data = rubin_sim.site_models.ConstantCloudData(test_clouds)
         wind_data = rubin_sim.site_models.ConstantWindData(
-            wind_speed=test_wind_speed, wind_direction=test_wind_direction
+            wind_speed=test_wind_speed,
+            wind_direction=test_wind_direction,
         )
 
         model_observatory = ModelObservatory(
-            seeing_data=seeing_data, cloud_data=cloud_data, wind_data=wind_data
+            seeing_data=seeing_data, cloud_data=cloud_data, wind_data=wind_data, no_sky=True
         )
         conditions = model_observatory.return_conditions()
         self.assertEqual(conditions.wind_direction, test_wind_direction)
