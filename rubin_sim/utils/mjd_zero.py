@@ -1,5 +1,5 @@
 __all__ = ("survey_start_mjd",)
-mjd0 = 60218.0  # 60218 = Oct 1, 2023
+mjd0 = 60796.0  # 60796 = May 10, 2025
 
 
 def survey_start_mjd():
