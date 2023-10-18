@@ -381,8 +381,11 @@ class TwilightInterp:
             bp_temp.resample_bandpass(
                 wavelen_min=self.solar_spec.wavelen.min(),
                 wavelen_max=self.solar_spec.wavelen.max(),
-                wavelen_step=0.2,
+                wavelen_step=self.solar_spec.wavelen[1] - self.solar_spec.wavelen[0],
             )
+            # Force wavelengths to be identical so
+            # it doesn't try to resample again later
+            bp_temp.wavelen = self.solar_spec.wavelen
             canon_filters[filter_name] = bp_temp
 
         # Tack on the LSST filters
