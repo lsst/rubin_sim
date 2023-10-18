@@ -2,7 +2,6 @@ import os
 import sys
 
 import astropy.units as u
-import healpy as hp
 import numpy as np
 from astroplan import Observer
 from astropy.time import Time
@@ -16,14 +15,12 @@ if __name__ == "__main__":
     # Generate a grid of airmass skybrightness values
     # for each DDF in 15 minute intervals.
 
-    # Takes ~5 hours to run.
-
     verbose = True
 
     dds = ddf_locations()
-    mjd0 = 60676.0  # Jan 1, 2025
+    mjd0 = 59560.2
     delta_t = 15.0 / 60.0 / 24.0  # to days
-    survey_length = 10.0 * 365.25
+    survey_length = 40.0 * 365.25
     sun_limit = np.radians(-12.0)  # degrees
 
     nominal_seeing = 0.7  # arcsec
@@ -71,7 +68,10 @@ if __name__ == "__main__":
             sys.stdout.write(text)
             sys.stdout.flush()
 
-        sm.set_ra_dec_mjd(ras, decs, mjd, degrees=False)
+        try:
+            sm.set_ra_dec_mjd(ras, decs, mjd, degrees=False)
+        except ValueError:
+            sm.sun_alt = 12.0
         if sm.sun_alt > sun_limit:
             mags.append(sm.return_mags()["g"] * 0)
             airmasses.append(sm.airmass * 0)
