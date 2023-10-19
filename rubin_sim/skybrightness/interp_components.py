@@ -78,17 +78,21 @@ def load_spec_files(filenames, mags=False):
     The ESO npz files contain the following arrays:
     * filter_wave: The central wavelengths of the pre-computed magnitudes
     * wave: wavelengths for the spectra
-    * spec: array of spectra and magnitudes along with the relevant variable inputs.  For example,
-    airglow has dtype = [('airmass', '<f8'), ('solar_flux', '<f8'), ('spectra', '<f8', (17001,)),
-    ('mags', '<f8', (6,)]
+    * spec: array of spectra and magnitudes along with the relevant
+        variable inputs.  For example, airglow has dtype =
+        [('airmass', '<f8'), ('solar_flux', '<f8'), ('spectra',
+        '<f8', (17001,)),
+        ('mags', '<f8', (6,)]
 
-    For each unique airmass and solar_flux value, there is a 17001 elements spectra and 6 magnitudes.
+    For each unique airmass and solar_flux value, there is a 17001 elements
+    spectra and 6 magnitudes.
     """
 
     if len(filenames) == 1:
         temp = np.load(filenames[0])
         wave = temp["wave"].copy()
-        # Note old camelCase here. Might need to update if sav files regenerated
+        # Note old camelCase here. Might need to update if sav
+        # files regenerated
         filter_wave = temp["filterWave"].copy()
         if mags:
             # don't copy the spectra to save memory space
@@ -171,7 +175,8 @@ class BaseSingleInterp:
         else:
             self.spec_size = 0
 
-        # What order are the dimesions sorted by (from how the .npz was packaged)
+        # What order are the dimesions sorted by (from how
+        # the .npz was packaged)
         self.sorted_order = sorted_order
         self.dim_dict = {}
         self.dim_sizes = {}
@@ -190,8 +195,8 @@ class BaseSingleInterp:
 
     def indx_and_weights(self, points, grid):
         """
-        for given 1-D points, find the grid points on either side and return the weights
-        assume grid is sorted
+        for given 1-D points, find the grid points on
+        either side and return the weights assume grid is sorted
         """
 
         order = np.argsort(points)
@@ -218,8 +223,9 @@ class BaseSingleInterp:
 
     def _weighting(self, interp_points, values):
         """
-        given a list/array of airmass values, return a dict with the interpolated
-        spectrum at each airmass and the wavelength array.
+        given a list/array of airmass values, return a
+        dict with the interpolated spectrum at each airmass
+        and the wavelength array.
 
         Input interp_points should be sorted
         """
@@ -235,7 +241,8 @@ class BaseSingleInterp:
 
         nextra = 1
 
-        # XXX--should I use the log spectra?  Make a check and switch back and forth?
+        # XXX--should I use the log spectra?
+        # Make a check and switch back and forth?
         results[in_range] = (
             w_r[:, np.newaxis] * values[indx_r * nextra] + w_l[:, np.newaxis] * values[indx_l * nextra]
         )
@@ -287,7 +294,8 @@ class UpperAtm(BaseSingleInterp):
 
 class MergedSpec(BaseSingleInterp):
     """
-    Interpolate the spectra caused by the sum of the scattered starlight, airglow, upper and lower atmosphere.
+    Interpolate the spectra caused by the sum of the scattered
+    starlight, airglow, upper and lower atmosphere.
     """
 
     def __init__(self, comp_name="MergedSpec", mags=False):
@@ -331,13 +339,20 @@ class Airglow(BaseSingleInterp):
 
 class TwilightInterp:
     def __init__(self, mags=False, dark_sky_mags=None, fit_results=None):
-        """
-        Read the Solar spectrum into a handy object and compute mags in different filters
-        mags:  If true, only return the LSST filter magnitudes, otherwise return the full spectrum
+        """Read the Solar spectrum into a handy object and
+            compute mags in different filters
 
-        dark_sky_mags = dict of the zenith dark sky values to be assumed. The twilight fits are
-        done relative to the dark sky level.
-        fit_results = dict of twilight parameters based on twilight_func. Keys should be filter names.
+        Parameters
+        ----------
+        mags : `bool`
+            If True, only return the LSST filter magnitudes,
+            otherwise return the full spectrum
+        dark_sky_mags : dict
+            Dict of the zenith dark sky values to be assumed.
+            The twilight fits are done relative to the dark sky level.
+        fit_results : dict
+            Dict of twilight parameters based on twilight_func.
+            Keys should be filter names.
         """
 
         if dark_sky_mags is None:
@@ -402,8 +417,10 @@ class TwilightInterp:
             self.filter_names.append(key)
 
         # MAGIC NUMBERS from fitting the all-sky camera:
-        # Code to generate values in sims_skybrightness/examples/fitTwiSlopesSimul.py
-        # Which in turn uses twilight maps from sims_skybrightness/examples/buildTwilMaps.py
+        # Code to generate values in
+        # sims_skybrightness/examples/fitTwiSlopesSimul.py
+        # Which in turn uses twilight maps from
+        # sims_skybrightness/examples/buildTwilMaps.py
         # values are of the form:
         # 0: ratio of f^z_12 to f_dark^z
         # 1: slope of curve wrt sun alt
@@ -411,9 +428,11 @@ class TwilightInterp:
         # 3: azimuth term.
         # 4: zenith dark sky flux (erg/s/cm^2)
 
-        # For z and y, just assuming the shape parameter fits are similar to the other bands.
+        # For z and y, just assuming the shape parameter
+        # fits are similar to the other bands.
         # Looks like the diode is not sensitive enough to detect faint sky.
-        # Using the Patat et al 2006 I-band values for z and modeified a little for y as a temp fix.
+        # Using the Patat et al 2006 I-band values for z and
+        # modeified a little for y as a temp fix.
         if fit_results is None:
             self.fit_results = {
                 "B": [
@@ -441,7 +460,8 @@ class TwilightInterp:
                 "y": [2.0, 24.08, 0.3, 0.3, -666],
             }
 
-            # XXX-completely arbitrary fudge factor to make things brighter in the blue
+            # XXX-completely arbitrary fudge factor to make things
+            # brighter in the blue
             # Just copy the blue and say it's brighter.
             self.fit_results["u"] = [
                 16.0,
@@ -474,10 +494,11 @@ class TwilightInterp:
 
         self.solar_wave = self.solar_spec.wavelen
         self.solar_flux = self.solar_spec.flambda
-        # This one isn't as bad as the model grids, maybe we could get away with computing the magnitudes
-        # in the __call__ each time.
+        # This one isn't as bad as the model grids, maybe we could get
+        # away with computing the magnitudes in the __call__ each time.
         if mags:
-            # Load up the LSST filters and convert the solarSpec.flabda and solarSpec.wavelen to fluxes
+            # Load up the LSST filters and convert the
+            # solarSpec.flabda and solarSpec.wavelen to fluxes
             through_path = through_path = os.path.join(get_data_dir(), "throughputs", "baseline")
             self.lsst_filter_names = ["u", "g", "r", "i", "z", "y"]
             self.lsst_equations = np.zeros(
@@ -498,7 +519,8 @@ class TwilightInterp:
                 temp_b = Bandpass()
                 temp_b.set_bandpass(bp["wave"], bp["trans"])
                 self.lsst_eff_wave.append(temp_b.calc_eff_wavelen()[0])
-            # Loop through the parameters and interpolate to new eff wavelengths
+            # Loop through the parameters and interpolate to new
+            # eff wavelengths
             for i in np.arange(self.lsst_equations[0, :].size):
                 interp = InterpolatedUnivariateSpline(self.eff_wave, fits[:, i])
                 self.lsst_equations[:, i] = interp(self.lsst_eff_wave)
@@ -543,8 +565,9 @@ class TwilightInterp:
         filter_names=["u", "g", "r", "i", "z", "y"],
     ):
         """
-        Originally fit the twilight with a cutoff of sun altitude of -11 degrees. I think it can be safely
-        extrapolated farther, but be warned you may be entering a regime where it breaks down.
+        Originally fit the twilight with a cutoff of sun altitude of
+        -11 degrees. I think it can be safely extrapolated farther,
+        but be warned you may be entering a regime where it breaks down.
         """
         npts = len(filter_names)
         result = np.zeros((np.size(interp_points), npts), dtype=float)
@@ -590,7 +613,8 @@ class TwilightInterp:
             & (interp_points["airmass"] >= 1.0)
         )[0]
 
-        # Compute the expected flux in each of the filters that we have fits for
+        # Compute the expected flux in each of the filters that
+        # we have fits for
         fluxes = []
         for filter_name in self.filter_names:
             out_of_range = np.where(interp_points["sunAlt"] > np.max(limits))[0]
@@ -682,8 +706,9 @@ class MoonInterp(BaseSingleInterp):
 
 class ZodiacalInterp(BaseSingleInterp):
     """
-    Interpolate the zodiacal light based on the airmass and the healpix ID where
-    the healpixels are in ecliptic coordinates, with the sun at ecliptic longitude zero
+    Interpolate the zodiacal light based on the airmass
+    and the healpix ID where the healpixels are in ecliptic
+    coordinates, with the sun at ecliptic longitude zero
     """
 
     def __init__(self, comp_name="Zodiacal", sorted_order=["airmass", "hpid"], mags=False):
