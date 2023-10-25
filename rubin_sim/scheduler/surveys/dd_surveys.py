@@ -3,6 +3,7 @@ __all__ = ("DeepDrillingSurvey", "generate_dd_surveys", "dd_bfs")
 import copy
 import logging
 import random
+from functools import cached_property
 
 import numpy as np
 
@@ -10,7 +11,7 @@ import rubin_sim.scheduler.basis_functions as basis_functions
 from rubin_sim.scheduler import features
 from rubin_sim.scheduler.surveys import BaseSurvey
 from rubin_sim.scheduler.utils import empty_observation
-from rubin_sim.utils import ddf_locations
+from rubin_sim.utils import ddf_locations, ra_dec2_hpid
 
 log = logging.getLogger(__name__)
 
@@ -110,6 +111,11 @@ class DeepDrillingSurvey(BaseSurvey):
         if self.reward_value is None:
             self.extra_features["Ntot"] = features.N_obs_survey()
             self.extra_features["N_survey"] = features.N_obs_survey(note=self.survey_name)
+
+    @cached_property
+    def roi_hpid(self):
+        hpid = ra_dec2_hpid(self.nside, np.degrees(self.ra), np.degrees(self.dec))
+        return hpid
 
     def check_continue(self, observation, conditions):
         # feasibility basis functions?
