@@ -1,5 +1,6 @@
 __all__ = (
     "BaseBasisFunction",
+    "HealpixLimitedBasisFunctionMixin",
     "ConstantBasisFunction",
     "DelayStartBasisFunction",
     "TargetMapBasisFunction",
@@ -7,11 +8,13 @@ __all__ = (
     "AvoidFastRevists",
     "VisitRepeatBasisFunction",
     "M5DiffBasisFunction",
+    "M5DiffAtHpixBasisFunction",
     "StrictFilterBasisFunction",
     "GoalStrictFilterBasisFunction",
     "FilterChangeBasisFunction",
     "SlewtimeBasisFunction",
     "AggressiveSlewtimeBasisFunction",
+    "SkybrightnessLimitAtHpixBasisFunction",
     "SkybrightnessLimitBasisFunction",
     "CablewrapUnwrapBasisFunction",
     "CadenceEnhanceBasisFunction",
@@ -172,6 +175,53 @@ class BaseBasisFunction:
         label += f" @{id(self)}"
 
         return label
+
+
+class HealpixLimitedBasisFunctionMixin:
+    """A mixin to limit a basis function to a set of Healpix pixels."""
+
+    def __init__(self, hpid, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.hpid = hpid
+
+    def check_feasibility(self, conditions):
+        """Check the feasibility of the current set of conditions.
+
+        Parameters
+        ----------
+        conditions : `rubin_sim.scheduler.features.Conditions`
+            The conditions for which to test feasibility.
+
+        Returns
+        -------
+        feasibility : `bool`
+            True if the current set of conditions is feasible, False otherwise.
+        """
+
+        if super().check_feasibility(conditions):
+            if self.recalc or (self.update_on_mjd and conditions.mjd != self.mjd_last):
+                value = self._calc_value(conditions)
+            else:
+                value = super().value
+
+            feasibility = np.nanmax(value) > -np.inf
+        else:
+            feasibility = False
+        return feasibility
+
+    def _calc_value(self, conditions, all_sky=False, **kwargs):
+        all_sky_value = super()._calc_value(conditions, **kwargs)
+
+        if all_sky:
+            return all_sky_value
+
+        if np.isscalar(all_sky_value):
+            value = all_sky_value
+        else:
+            assert len(all_sky_value) == hp.nside2npix(self.nside)
+            value = all_sky_value[self.hpid]
+
+        return value
 
 
 class ConstantBasisFunction(BaseBasisFunction):
@@ -899,6 +949,10 @@ class M5DiffBasisFunction(BaseBasisFunction):
         return result
 
 
+class M5DiffAtHpixBasisFunction(HealpixLimitedBasisFunctionMixin, M5DiffBasisFunction):
+    pass
+
+
 class StrictFilterBasisFunction(BaseBasisFunction):
     """Remove the bonus for staying in the same filter if certain conditions are met.
 
@@ -1264,6 +1318,12 @@ class SkybrightnessLimitBasisFunction(BaseBasisFunction):
         result[good] = 1.0
 
         return result
+
+
+class SkybrightnessLimitAtHpixBasisFunction(
+    HealpixLimitedBasisFunctionMixin, SkybrightnessLimitBasisFunction
+):
+    pass
 
 
 class CablewrapUnwrapBasisFunction(BaseBasisFunction):
