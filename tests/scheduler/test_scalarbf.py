@@ -4,17 +4,7 @@ import numpy as np
 from rubin_sim.scheduler.features import Conditions
 from rubin_sim.scheduler.utils import set_default_nside
 from rubin_sim.scheduler.basis_functions import HealpixLimitedBasisFunctionMixin
-from rubin_sim.scheduler.basis_functions import BaseBasisFunction
-
-
-class SimpleArrayBasisFunction(BaseBasisFunction):
-    def __init__(self, value, *args, **kwargs):
-        self.assigned_value = value
-        super().__init__(*args, **kwargs)
-
-    def _calc_value(self, conditions, **kwargs):
-        self.value = self.assigned_value
-        return self.value
+from rubin_sim.scheduler.basis_functions import SimpleArrayBasisFunction
 
 
 class SimpleArrayAtHpixBasisFunction(HealpixLimitedBasisFunctionMixin, SimpleArrayBasisFunction):

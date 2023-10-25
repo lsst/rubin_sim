@@ -2,6 +2,7 @@ __all__ = (
     "BaseBasisFunction",
     "HealpixLimitedBasisFunctionMixin",
     "ConstantBasisFunction",
+    "SimpleArrayBasisFunction",
     "DelayStartBasisFunction",
     "TargetMapBasisFunction",
     "AvoidLongGapsBasisFunction",
@@ -229,6 +230,16 @@ class ConstantBasisFunction(BaseBasisFunction):
 
     def __call__(self, conditions, **kwargs):
         return 1
+
+
+class SimpleArrayBasisFunction(BaseBasisFunction):
+    def __init__(self, value, *args, **kwargs):
+        self.assigned_value = value
+        super().__init__(*args, **kwargs)
+
+    def _calc_value(self, conditions, **kwargs):
+        self.value = self.assigned_value
+        return self.value
 
 
 class DelayStartBasisFunction(BaseBasisFunction):
