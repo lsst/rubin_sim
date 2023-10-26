@@ -1,6 +1,7 @@
 __all__ = ("BaseSurvey", "BaseMarkovSurvey")
 
 from copy import copy, deepcopy
+from functools import cached_property
 
 import healpy as hp
 import numpy as np
@@ -95,6 +96,20 @@ class BaseSurvey:
 
         # Scheduled observations
         self.scheduled_obs = scheduled_obs
+
+    @cached_property
+    def roi_hpid(self):
+        return None
+
+    @cached_property
+    def roi_mask(self):
+        if self.roi_hpid is None:
+            mask = np.ones(hp.nside2npix(self.nside), dtype=bool)
+        else:
+            mask = np.zeros(hp.nside2npix(self.nside), dtype=bool)
+            mask[self.roi_hpid] = True
+
+        return mask
 
     def _generate_survey_name(self):
         self.survey_name = ""
@@ -225,7 +240,10 @@ class BaseSurvey:
             pix_area = None
 
         if np.isscalar(reward):
-            unmasked_area = pix_area * hp.nside2npix(self.nside)
+            if np.isnan(reward) or reward == -np.inf:
+                unmasked_area = 0
+            else:
+                unmasked_area = pix_area * hp.nside2npix(self.nside)
         else:
             unmasked_area = pix_area * np.count_nonzero(reward > -np.inf)
 
@@ -235,6 +253,9 @@ class BaseSurvey:
             scalar_reward = -np.inf
         else:
             scalar_reward = np.nanmax(reward)
+
+        if np.isnan(scalar_reward):
+            scalar_reward = -np.inf
 
         return scalar_reward, unmasked_area
 
@@ -272,9 +293,7 @@ class BaseSurvey:
 
         short_labels = self.bf_short_labels
 
-        # Only count the part of the sky high enough to observe.
-        horizon_mask = np.where(conditions.alt > np.radians(20), 1, np.nan)
-        _, scalar_area = self._reward_to_scalars(horizon_mask)
+        _, scalar_area = self._reward_to_scalars(np.where(self.roi_mask, 1, -np.inf))
 
         for weight, basis_function in zip(full_basis_weights, self.basis_functions):
             bf_label.append(short_labels[basis_function.label()])
@@ -284,14 +303,17 @@ class BaseSurvey:
                 max_reward = bf_reward
                 basis_area = scalar_area
             else:
-                bf_reward = bf_reward * horizon_mask
+                bf_reward[~self.roi_mask] = -np.inf
                 max_reward, basis_area = self._reward_to_scalars(bf_reward)
 
+            if basis_area == 0:
+                this_feasibility = False
+            else:
+                this_feasibility = np.array(basis_function.check_feasibility(conditions)).any()
+
+            feasibility.append(this_feasibility)
             max_rewards.append(max_reward)
             basis_areas.append(basis_area)
-
-            this_feasibility = np.array(basis_function.check_feasibility(conditions)).any()
-            feasibility.append(this_feasibility)
 
             if accum:
                 basis_functions.append(basis_function)
@@ -300,6 +322,8 @@ class BaseSurvey:
                 test_survey.basis_functions = basis_functions
                 test_survey.basis_weights = basis_weights
                 this_accum_reward = test_survey.calc_reward_function(conditions)
+                if not np.isscalar(this_accum_reward):
+                    this_accum_reward[~self.roi_mask] = -np.inf
                 accum_reward, accum_area = self._reward_to_scalars(this_accum_reward)
                 accum_rewards.append(accum_reward)
                 accum_areas.append(accum_area)
