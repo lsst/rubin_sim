@@ -1320,12 +1320,19 @@ class SkybrightnessLimitBasisFunction(BaseBasisFunction):
     def _calc_value(self, conditions, indx=None):
         result = self.result.copy()
 
+        # Replace non-finite values so IntRounded works, then set
+        # the result to nan.
+        sky_brightness = conditions.skybrightness[self.filtername].copy()
+        not_finite = np.where(~np.isfinite(sky_brightness))
+        sky_brightness[not_finite] = 0
+        rounded_sky_brightness = IntRounded(sky_brightness)
         good = np.where(
             np.bitwise_and(
-                IntRounded(conditions.skybrightness[self.filtername]) > self.min,
-                IntRounded(conditions.skybrightness[self.filtername]) < self.max,
+                rounded_sky_brightness > self.min,
+                rounded_sky_brightness < self.max,
             )
         )
+        result[not_finite] = np.nan
         result[good] = 1.0
 
         return result
