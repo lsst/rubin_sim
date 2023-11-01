@@ -2,7 +2,6 @@ import os
 import unittest
 import warnings
 
-import matplotlib
 import numpy as np
 
 import rubin_sim.maf.stackers as stackers
@@ -15,8 +14,6 @@ from rubin_sim.utils import (
     _galactic_from_equatorial,
     calc_lmst_last,
 )
-
-matplotlib.use("Agg")
 
 
 class TestStackerClasses(unittest.TestCase):
@@ -153,7 +150,8 @@ class TestStackerClasses(unittest.TestCase):
         degrees = True
         stackerlist = stackers.setup_dither_stackers(ra_col, dec_col, degrees)
         self.assertEqual(len(stackerlist), 0)
-        # Test that we get one (and the right one) when using particular columns.
+        # Test that we get one (and the right one)
+        # when using particular columns.
         ra_col = "hexDitherFieldPerNightRa"
         dec_col = "hexDitherFieldPerNightDec"
         stackerlist = stackers.setup_dither_stackers(ra_col, dec_col, degrees)
@@ -309,13 +307,16 @@ class TestStackerClasses(unittest.TestCase):
         random_dithers = data["randomDitherPerFilterChangeRotTelPos"]
         # Check that first three visits have the same rot_tel_pos, etc.
         rot_offsets = rot_tel_pos - random_dithers
-        self.assertEqual(rot_offsets[0], 0)  # no dither w/o a filter change
+        # no dither w/o a filter change
+        self.assertEqual(rot_offsets[0], 0)
         offset_changes = np.where(rot_offsets[1:] != rot_offsets[:-1])[0]
         filt_changes = np.where(filt[1:] != filt[:-1])[0]
-        np.testing.assert_array_equal(offset_changes, filt_changes)  # dither after every filter
+        # dither after every filter
+        np.testing.assert_array_equal(offset_changes, filt_changes)
 
-        # now test to ensure that user-defined max_rot_angle value works and that
-        # visits in between filter changes for which no offset can be found are left undithered
+        # now test to ensure that user-defined max_rot_angle value works
+        # and that visits in between filter changes for which no offset
+        # can be found are left undithered
         # (g band visits span rotator range, so can't be dithered)
         gvisits = np.where(filt == "g")
         maxrot = 30
@@ -438,13 +439,13 @@ class TestStackerClasses(unittest.TestCase):
         data["ra"] += ra
         data["dec"] += dec
         s = stackers.EclipticStacker(ra_col="ra", dec_col="dec", degrees=True)
-        new_data = s.run(data)
+        _ = s.run(data)
 
         data = np.zeros(ra.size, dtype=list(zip(["ra", "dec"], [float] * 2)))
         data["ra"] += ra
         data["dec"] += dec
         s = stackers.EclipticStacker(ra_col="ra", dec_col="dec", degrees=True, subtract_sun_lon=False)
-        new_data = s.run(data)
+        _ = s.run(data)
 
 
 if __name__ == "__main__":

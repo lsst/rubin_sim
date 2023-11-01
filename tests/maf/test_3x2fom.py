@@ -21,8 +21,8 @@ class Test3x2(unittest.TestCase):
         "Skipping 3x3 metric test because no dust maps.",
     )
     def test_3x2(self):
-        # Only testing that the metric successfully runs, not checking that the
-        # output values are valid.
+        # Only testing that the metric successfully runs, not checking that
+        # the output values are valid.
         bundle_list = []
         nside = 64
         colmap = maf.batches.col_map_dict("fbs")

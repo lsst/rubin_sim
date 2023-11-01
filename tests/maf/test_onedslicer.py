@@ -1,6 +1,3 @@
-import matplotlib
-
-matplotlib.use("Agg")
 import unittest
 import warnings
 
@@ -10,7 +7,8 @@ from rubin_sim.maf.slicers import OneDSlicer, UniSlicer
 
 
 def make_data_values(size=100, min_val=0.0, max_val=1.0, random=-1):
-    """Generate a simple array of numbers, evenly arranged between min/max, but (optional) random order."""
+    """Generate a simple array of numbers, evenly arranged between min/max,
+    but (optional) random order."""
     datavalues = np.arange(0, size, dtype="float")
     datavalues *= (float(max_val) - float(min_val)) / (datavalues.max() - datavalues.min())
     datavalues += min_val
@@ -50,7 +48,8 @@ class TestOneDSlicerSetup(unittest.TestCase):
         self.assertEqual(self.testslicer.nslice, len(bins) - 1)
 
     def test_setup_slicer_nbins_zeros(self):
-        """Test what happens if give slicer test data that is all single-value."""
+        """Test what happens if give slicer test data that is all
+        single-value."""
         dv = np.zeros(100, float)
         dv = np.array(list(zip(dv)), dtype=[("testdata", "float")])
         bin_size = 0.1
@@ -120,7 +119,8 @@ class TestOneDSlicerIteration(unittest.TestCase):
             self.assertEqual(s["slice_point"]["bin_left"], self.bins[i])
             self.assertEqual(s["slice_point"]["bin_right"], self.bins[i + 1])
         # Iteration stops while i<= nslice ..
-        # nslice = len(bins)-1 (and bins[i+2] is out of range but bins[i+1] is last RH edge of bins
+        # nslice = len(bins)-1 (and bins[i+2] is out of range
+        # but bins[i+1] is last RH edge of bins
         self.assertEqual(i, self.testslicer.nslice - 1)
 
     def test_get_item(self):
@@ -140,8 +140,8 @@ class TestOneDSlicerEqual(unittest.TestCase):
 
     def test_equivalence(self):
         """Test equals method."""
-        # Note that two OneD slicers will be considered equal if they are both the same kind of
-        # slicer AND have the same bins.
+        # Note that two OneD slicers will be considered equal if
+        # they are both the same kind of slicer AND have the same bins.
         # Set up self..
         dvmin = 0
         dvmax = 1
@@ -151,13 +151,15 @@ class TestOneDSlicerEqual(unittest.TestCase):
         # Set up reference
         self.testslicer = OneDSlicer(slice_col_name="testdata", bins=bins)
         self.testslicer.setup_slicer(dv)
-        # Set up another slicer to match (same bins, although not the same data).
+        # Set up another slicer to match
+        # (same bins, although not the same data).
         dv2 = make_data_values(nvalues + 100, dvmin, dvmax, random=334)
         testslicer2 = OneDSlicer(slice_col_name="testdata", bins=bins)
         testslicer2.setup_slicer(dv2)
         self.assertTrue(self.testslicer == testslicer2)
         self.assertFalse(self.testslicer != testslicer2)
-        # Set up another slicer that should not match (different bins, based on data)
+        # Set up another slicer that should not match
+        # (different bins, based on data)
         dv2 = make_data_values(nvalues, dvmin + 1, dvmax + 1, random=445)
         testslicer2 = OneDSlicer(slice_col_name="testdata", bins=None)
         testslicer2.setup_slicer(dv2)
@@ -206,9 +208,11 @@ class TestOneDSlicerSlicing(unittest.TestCase):
         dvmax = 1
         stepsize = 0.01
         bins = np.arange(dvmin, dvmax + stepsize / 2, stepsize)
-        # Test that testbinner raises appropriate error before it's set up (first time)
+        # Test that testbinner raises appropriate error before it's set up
+        # (first time)
         self.assertRaises(NotImplementedError, self.testslicer._slice_sim_data, 0)
-        # test that we're not dumping extra visits into the 'last bin' (that it's closed both sides)
+        # test that we're not dumping extra visits into the 'last bin'
+        # (that it's closed both sides)
         nvalues = 1000
         dv = make_data_values(nvalues, 0, 2, random=560)
         bins = np.arange(0, 1.05, 0.1)

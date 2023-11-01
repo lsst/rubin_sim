@@ -1,6 +1,3 @@
-import matplotlib
-
-matplotlib.use("Agg")
 import os
 import shutil
 import tempfile
@@ -62,7 +59,8 @@ class TestResultsDb(unittest.TestCase):
             self.info_label,
             self.metric_data_file,
         )
-        # Try to re-add metric (should get back same metric id as previous, with no add).
+        # Try to re-add metric
+        # (should get back same metric id as previous, with no add).
         metric_id2 = results_db.update_metric(
             self.metric_name,
             self.slicer_name,
@@ -81,13 +79,15 @@ class TestResultsDb(unittest.TestCase):
         results_db.update_summary_stat(metric_id, self.summary_stat_name2, self.summary_stat_value2)
         # Add something like tableFrac summary statistic.
         results_db.update_summary_stat(metric_id, self.summary_stat_name3, self.summary_stat_value3)
-        # Test get warning when try to add a non-conforming summary stat (not 'name' & 'value' cols).
+        # Test get warning when try to add a non-conforming summary stat
+        # (not 'name' & 'value' cols).
         teststat = np.empty(10, dtype=[("col", "|S12"), ("value", float)])
         with warnings.catch_warnings(record=True) as w:
             warnings.simplefilter("always")
             results_db.update_summary_stat(metric_id, "testfail", teststat)
             self.assertIn("not save", str(w[-1].message))
-        # Test get warning when try to add a string (non-conforming) summary stat.
+        # Test we get warning when try to add a string (non-conforming)
+        # summary stat.
         teststat = "teststring"
         with warnings.catch_warnings(record=True) as w:
             warnings.simplefilter("always")

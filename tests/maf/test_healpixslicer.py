@@ -1,6 +1,3 @@
-import matplotlib
-
-matplotlib.use("Agg")
 import os
 import unittest
 
@@ -37,7 +34,8 @@ def make_data_values(
     datavalues = datavalues[randind]
     datavalues = np.array(list(zip(datavalues)), dtype=[("testdata", "float")])
     data.append(datavalues)
-    # Generate RA/Dec values equally spaces on sphere between ramin/max, decmin/max.
+    # Generate RA/Dec values equally spaces on sphere between
+    # ramin/max, decmin/max.
     ra = np.arange(0, size, dtype="float")
     ra *= (float(ramax) - float(ramin)) / (ra.max() - ra.min())
     randorder = rng.rand(size)
@@ -65,7 +63,8 @@ def make_data_values(
 
 def calc_dist_vincenty(ra1, dec1, ra2, dec2):
     """Calculates distance on a sphere using the Vincenty formula.
-    Give this function RA/Dec values in radians. Returns angular distance(s), in radians.
+    Give this function RA/Dec values in radians.
+    Returns angular distance(s), in radians.
     Note that since this is all numpy, you could input arrays of RA/Decs."""
     d1 = (np.cos(dec2) * np.sin(ra2 - ra1)) ** 2 + (
         np.cos(dec1) * np.sin(dec2) - np.sin(dec1) * np.cos(dec2) * np.cos(ra2 - ra1)
@@ -87,7 +86,8 @@ class TestHealpixSlicerSetup(unittest.TestCase):
         self.assertEqual(testslicer.slicer_name, "HealpixSlicer")
 
     def test_nsides_nbins(self):
-        """Test that number of sides passed to slicer produces expected number of bins."""
+        """Test that number of sides passed to slicer produces expected
+        number of bins."""
         nsides = [1, 2, 4, 8, 16, 32, 64, 128, 256, 512]
         npixx = [12, 48, 192, 768, 3072, 12288, 49152, 196608, 786432, 3145728]
         for nside, npix in zip(nsides, npixx):
@@ -129,8 +129,10 @@ class TestHealpixSlicerEqual(unittest.TestCase):
         self.testslicer = None
 
     def test_slicer_equivalence(self):
-        """Test that slicers are marked equal when appropriate, and unequal when appropriate."""
-        # Note that they are judged equal based on nsides (not on data in ra/dec spatial tree).
+        """Test that slicers are marked equal when appropriate,
+        and unequal when appropriate."""
+        # Note that they are judged equal based on nsides
+        # (not on data in ra/dec spatial tree).
         testslicer2 = HealpixSlicer(
             nside=self.nside,
             verbose=False,
@@ -180,7 +182,8 @@ class TestHealpixSlicerIteration(unittest.TestCase):
         self.testslicer = None
 
     def test_iteration(self):
-        """Test iteration goes through expected range and ra/dec are in expected range (radians)."""
+        """Test iteration goes through expected range and ra/dec
+        are in expected range (radians)."""
         npix = hp.nside2npix(self.nside)
         for i, s in enumerate(self.testslicer):
             self.assertEqual(i, s["slice_point"]["sid"])
@@ -201,7 +204,8 @@ class TestHealpixSlicerIteration(unittest.TestCase):
 
 
 class TestHealpixSlicerSlicing(unittest.TestCase):
-    # Note that this is really testing baseSpatialSlicer, as slicing is done there for healpix grid
+    # Note that this is really testing baseSpatialSlicer,
+    # as slicing is done there for healpix grid
 
     def setUp(self):
         self.camera_footprint_file = os.path.join(get_data_dir(), "tests", "fov_map.npz")
@@ -233,7 +237,8 @@ class TestHealpixSlicerSlicing(unittest.TestCase):
         self.testslicer = None
 
     def test_slicing(self):
-        """Test slicing returns (all) data points which are within 'radius' of bin point."""
+        """Test slicing returns (all) data points which are within
+        'radius' of bin point."""
         # Test that slicing fails before setup_slicer
         self.assertRaises(NotImplementedError, self.testslicer._slice_sim_data, 0)
         # Set up and test actual slicing.
@@ -252,7 +257,8 @@ class TestHealpixSlicerSlicing(unittest.TestCase):
 
 
 class TestHealpixChipGap(unittest.TestCase):
-    # Note that this is really testing baseSpatialSlicer, as slicing is done there for healpix grid
+    # Note that this is really testing baseSpatialSlicer,
+    # as slicing is done there for healpix grid
 
     def setUp(self):
         self.camera_footprint_file = os.path.join(get_data_dir(), "tests", "fov_map.npz")
@@ -285,7 +291,8 @@ class TestHealpixChipGap(unittest.TestCase):
         self.testslicer = None
 
     def test_slicing(self):
-        """Test slicing returns (most) data points which are within 'radius' of bin point."""
+        """Test slicing returns (most) data points which are
+        within 'radius' of bin point."""
         # Test that slicing fails before setup_slicer
         self.assertRaises(NotImplementedError, self.testslicer._slice_sim_data, 0)
         # Set up and test actual slicing.
@@ -293,10 +300,12 @@ class TestHealpixChipGap(unittest.TestCase):
         for s in self.testslicer:
             ra = s["slice_point"]["ra"]
             dec = s["slice_point"]["dec"]
-            # Find the points of 'dv' which are within self.radius of this slice_point
+            # Find the points of 'dv' which are within self.radius of
+            # this slice_point
             distances = calc_dist_vincenty(ra, dec, self.dv["ra"], self.dv["dec"])
             didxs = np.where(distances <= np.radians(self.radius))
-            # find the indexes of dv which the slicer says are in the camera footprint
+            # find the indexes of dv which the slicer says are in the
+            # camera footprint
             sidxs = s["idxs"]
             self.assertLessEqual(len(sidxs), len(didxs[0]))
             if len(sidxs) > 0:

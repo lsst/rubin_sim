@@ -1,12 +1,9 @@
-import matplotlib
-import numpy as np
-import numpy.ma as ma
-
-matplotlib.use("Agg")
 import unittest
 from tempfile import TemporaryFile
 
 import healpy as hp
+import numpy as np
+import numpy.ma as ma
 
 import rubin_sim.maf.slicers as slicers
 

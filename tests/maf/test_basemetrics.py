@@ -1,6 +1,3 @@
-import matplotlib
-
-matplotlib.use("Agg")
 import unittest
 
 import rubin_sim.maf.metrics as metrics
@@ -13,7 +10,9 @@ class TestBaseMetric(unittest.TestCase):
         self.assertEqual(list(testmetric.reduce_funcs.keys()), [])
 
     def test_metric_name(self):
-        """Test that metric name is set appropriately automatically and explicitly"""
+        """Test that metric name is set appropriately automatically
+        and when explicitly passed.
+        """
         # Test automatic setting of metric name
         testmetric = metrics.BaseMetric("testcol")
         self.assertEqual(testmetric.name, "Base testcol")
@@ -33,7 +32,8 @@ class TestBaseMetric(unittest.TestCase):
         colset = set()
         colset.add(cols)
         testmetric = metrics.BaseMetric(cols)
-        # Class registry should have dictionary with values = set of columns for metric class
+        # Class registry should have dictionary with values =
+        # set of columns for metric class
         for item in colset:
             self.assertIn(item, testmetric.col_registry.col_set)
         cols = ["onecolumn", "twocolumn"]

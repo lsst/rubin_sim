@@ -9,8 +9,9 @@ from rubin_sim.maf.slicers import NDSlicer, UniSlicer
 
 
 def make_data_values(size=100, min=0.0, max=1.0, nd=3, random=-1):
-    """Generate a simple array of numbers, evenly arranged between min/max, in nd dimensions, but (optional)
-    random order."""
+    """Generate a simple array of numbers, evenly arranged between min/max,
+    in nd dimensions, but (optional) random order.
+    """
     data = []
     for d in range(nd):
         datavalues = np.arange(0, size, dtype="float")
@@ -61,7 +62,8 @@ class TestNDSlicerSetup(unittest.TestCase):
             for nbins in (5, 25, 74):
                 dv = make_data_values(nvalues, self.dvmin, self.dvmax, self.nd, random=-1)
                 # Right number of bins?
-                # expect one more 'bin' to accomodate last right edge, but nbins accounts for this
+                # expect one more 'bin' to accomodate last right edge,
+                # but nbins accounts for this
                 testslicer = NDSlicer(self.dvlist, bins_list=nbins)
                 testslicer.setup_slicer(dv)
                 self.assertEqual(testslicer.nslice, nbins**self.nd)
@@ -70,7 +72,8 @@ class TestNDSlicerSetup(unittest.TestCase):
                     bindiff = np.diff(testslicer.bins[i])
                     expectedbindiff = (self.dvmax - self.dvmin) / float(nbins)
                     np.testing.assert_allclose(bindiff, expectedbindiff)
-                # Can we use a list of nbins too and get the right number of bins?
+                # Can we use a list of nbins too and get the
+                # right number of bins?
                 nbins_list = []
                 expectednbins = 1
                 for d in range(self.nd):
@@ -93,7 +96,9 @@ class TestNDSlicerSetup(unittest.TestCase):
         self.assertEqual(testslicer.nslice, expectednbins)
 
     def test_setup_slicer_equivalent(self):
-        """Test setting up slicer using defined bins and nbins is equal where expected."""
+        """Test setting up slicer using defined bins and nbins is
+        equal where expected.
+        """
         for nbins in (20, 105):
             testslicer = NDSlicer(self.dvlist, bins_list=nbins)
             bins = make_data_values(nbins + 1, self.dvmin, self.dvmax, self.nd, random=-1)
@@ -124,9 +129,11 @@ class TestNDSlicerEqual(unittest.TestCase):
 
     def test_equivalence(self):
         """Test equals method."""
-        # Note that two ND slicers will be considered equal if they are both the same kind of
-        # slicer AND have the same bins in all dimensions.
-        # Set up another slicer to match (same bins, although not the same data).
+        # Note that two ND slicers will be considered equal if
+        # they are both the same kind of slicer AND have the same bins in
+        # all dimensions.
+        # Set up another slicer to match
+        # (same bins, although not the same data).
         dv2 = make_data_values(100, self.dvmin, self.dvmax, self.nd, random=10029)
         dvlist = dv2.dtype.names
         testslicer2 = NDSlicer(slice_col_list=dvlist, bins_list=self.testslicer.bins)

@@ -1,13 +1,8 @@
-import unittest
-
-import matplotlib
-
-matplotlib.use("Agg")
-
 import glob
 import os
 import shutil
 import tempfile
+import unittest
 
 import rubin_sim.maf.db as db
 import rubin_sim.maf.maps as maps

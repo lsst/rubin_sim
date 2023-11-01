@@ -1,6 +1,3 @@
-import matplotlib
-
-matplotlib.use("Agg")
 import os
 import sqlite3
 import unittest
@@ -13,7 +10,9 @@ from rubin_sim.data import get_data_dir
 
 class TestOpsimUtils(unittest.TestCase):
     def test_scale_benchmarks(self):
-        """Test scaling the design and stretch benchmarks for the length of the run."""
+        """Test scaling the design and stretch benchmarks for the
+        length of the run.
+        """
         # First test that method returns expected dictionaries.
         for i in ("design", "stretch"):
             benchmark = opsimUtils.scale_benchmarks(10.0, i)
