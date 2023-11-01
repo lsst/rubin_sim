@@ -20,7 +20,6 @@ from .sampling_functions import *
 from .season_utils import *
 from .site import *
 from .spatial_bounds import *
-from .stellar_mags import *
 from .sys_eng_vals import *
 from .time_handler import *
 from .tree_utils import *
