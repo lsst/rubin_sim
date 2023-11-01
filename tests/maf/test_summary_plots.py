@@ -148,10 +148,13 @@ class TestSummaryPlots(unittest.TestCase):
 def _run_infos_norm_df(df, norm_run, invert_cols=None, mag_cols=None):
     """
     Normalize values in a DataFrame, based on the values in a given run.
-    Can normalize some columns (metric values) differently (invert_cols, reverse_cols, mag_cols)
-    if those columns are specified; this lets the final normalized dataframe 'look' the same way
-    in a plot (i.e. "up" is better (reverse_cols), they center on 1 (mag_cols), and the magnitude scales
-    as expected (invert_cols)).
+    Can normalize some columns (metric values) differently
+    (invert_cols, reverse_cols, mag_cols)
+    if those columns are specified; this lets the final normalized dataframe
+    'look' the same way
+    in a plot (i.e. "up" is better (reverse_cols), they center on 1 (mag_cols),
+    and the magnitude scales as expected (invert_cols)).
+
     Parameters
     ----------
     df : pd.DataFrame
@@ -161,7 +164,8 @@ def _run_infos_norm_df(df, norm_run, invert_cols=None, mag_cols=None):
     invert_cols: list
         Columns (metric values) to convert to 1 / value
     mag_cols: list
-        Columns (metrics values) to treat as magnitudes (1 + (difference from norm_run))
+        Columns (metrics values) to treat as magnitudes
+        (1 + (difference from norm_run))
 
     Returns
     -------
