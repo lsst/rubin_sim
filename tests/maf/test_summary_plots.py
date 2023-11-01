@@ -42,9 +42,11 @@ class TestSummaryPlots(unittest.TestCase):
         self.metric_values.columns.name = "metric"
         self.metric_values.index.name = "run"
 
-        self.metric_set = pd.DataFrame({"mag": False, "invert": False, "metric": self.metrics}).set_index(
-            "metric", drop=False
-        )
+        styles = ["-" for i in range(self.num_metrics)]
+
+        self.metric_set = pd.DataFrame(
+            {"mag": False, "invert": False, "metric": self.metrics, "style": styles}
+        ).set_index("metric", drop=False)
         self.metric_set.loc[self.mag_metrics, "mag"] = True
         self.metric_set.loc[self.inverted_metrics, "invert"] = True
         self.metric_set.loc["metric3", "style"] = "b--"
