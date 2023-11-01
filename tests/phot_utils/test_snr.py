@@ -7,7 +7,6 @@ import rubin_sim.phot_utils.signaltonoise as snr
 from rubin_sim.data import get_data_dir
 from rubin_sim.phot_utils import Bandpass, LSSTdefaults, PhotometricParameters, Sed
 from rubin_sim.phot_utils.utils import set_m5
-from rubin_sim.utils import ObservationMetaData
 
 
 class TestSNRmethods(unittest.TestCase):
@@ -180,12 +179,6 @@ class TestSNRmethods(unittest.TestCase):
         m5_list = [23.5, 24.3, 22.1, 20.0, 19.5, 21.7]
         phot_params = PhotometricParameters(sigma_sys=sigma_sys)
 
-        obs_metadata = ObservationMetaData(
-            pointing_ra=23.0,
-            pointing_dec=45.0,
-            m5=m5_list,
-            bandpass_name=self.filter_name_list,
-        )
         magnitude_list = []
         for bp in self.bp_list:
             mag = self.star_sed.calc_mag(bp)
@@ -202,7 +195,7 @@ class TestSNRmethods(unittest.TestCase):
             sky_dummy.read_sed_flambda(os.path.join(get_data_dir(), "throughputs", "baseline", "darksky.dat"))
 
             normalized_sky_dummy = set_m5(
-                obs_metadata.m5[filterName],
+                m5,
                 sky_dummy,
                 bp,
                 hardware,
@@ -244,13 +237,6 @@ class TestSNRmethods(unittest.TestCase):
         m5_list = [23.5, 24.3, 22.1, 20.0, 19.5, 21.7]
         phot_params = PhotometricParameters(sigma_sys=0.0)
 
-        obs_metadata = ObservationMetaData(
-            pointing_ra=23.0,
-            pointing_dec=45.0,
-            m5=m5_list,
-            bandpass_name=self.filter_name_list,
-        )
-
         magnitude_list = []
         for bp in self.bp_list:
             mag = self.star_sed.calc_mag(bp)
@@ -267,7 +253,7 @@ class TestSNRmethods(unittest.TestCase):
             sky_dummy.read_sed_flambda(os.path.join(get_data_dir(), "throughputs", "baseline", "darksky.dat"))
 
             normalized_sky_dummy = set_m5(
-                obs_metadata.m5[filterName],
+                m5,
                 sky_dummy,
                 bp,
                 hardware,

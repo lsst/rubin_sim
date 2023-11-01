@@ -6,7 +6,6 @@ import numpy as np
 from rubin_sim.data import get_data_dir
 from rubin_sim.phot_utils.bandpass import Bandpass
 from rubin_sim.phot_utils.sed import Sed
-from rubin_sim.utils import ObservationMetaData
 from rubin_sim.utils.code_utilities import sims_clean_up
 
 
@@ -14,20 +13,6 @@ class PhotometryUnitTest(unittest.TestCase):
     @classmethod
     def tearDown_class(cls):
         sims_clean_up()
-
-    def setUp(self):
-        self.obs_metadata = ObservationMetaData(
-            mjd=52000.7,
-            bandpass_name="i",
-            bound_type="circle",
-            pointing_ra=200.0,
-            pointing_dec=-30.0,
-            bound_length=1.0,
-            m5=25.0,
-        )
-
-    def tearDown(self):
-        del self.obs_metadata
 
     def test_alternate_bandpasses_stars(self):
         """Test our ability to do photometry using non-LSST bandpasses.
