@@ -1,7 +1,7 @@
 import os
 import unittest
 
-from rubin_sim.data import data_versions, get_baseline, get_data_dir
+from rubin_scheduler.data import data_versions, get_baseline, get_data_dir
 
 
 class DataTest(unittest.TestCase):

@@ -11,7 +11,7 @@ import rubin_sim.maf.metrics as metrics
 import rubin_sim.maf.slicers as slicers
 import rubin_sim.maf.stackers as stackers
 from rubin_sim.data import get_data_dir
-from rubin_sim.utils.code_utilities import sims_clean_up
+from rubin_scheduler.utils.code_utilities import sims_clean_up
 
 
 class TestMetricBundle(unittest.TestCase):
