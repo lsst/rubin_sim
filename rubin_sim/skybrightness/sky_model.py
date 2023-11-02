@@ -6,14 +6,9 @@ import numpy as np
 from astropy import units as u
 from astropy.coordinates import AltAz, EarthLocation, SkyCoord, get_body, get_sun
 from astropy.time import Time
+from rubin_scheduler.utils import Site, _approx_alt_az2_ra_dec, _approx_ra_dec2_alt_az, haversine
 
 from rubin_sim.phot_utils import Sed
-from rubin_sim.utils import (
-    Site,
-    _approx_alt_az2_ra_dec,
-    _approx_ra_dec2_alt_az,
-    haversine,
-)
 
 from .interp_components import (
     Airglow,
@@ -260,11 +255,11 @@ class SkyModel:
             self.alts = self.dec.copy()
             if self.precise_alt_az:
                 raise ValueError("Need to swap in astropy")
-                #self.ra, self.dec = _ra_dec_from_alt_az(
+                # self.ra, self.dec = _ra_dec_from_alt_az(
                 #    self.alts,
                 #    self.azs,
                 #    ObservationMetaData(mjd=self.mjd, site=self.telescope),
-                #)
+                # )
             else:
                 self.ra, self.dec = _approx_alt_az2_ra_dec(
                     self.alts,
@@ -276,11 +271,11 @@ class SkyModel:
         else:
             if self.precise_alt_az:
                 raise ValueError("Need to swap in astropy")
-                #self.alts, self.azs, pa = _alt_az_pa_from_ra_dec(
+                # self.alts, self.azs, pa = _alt_az_pa_from_ra_dec(
                 #    self.ra,
                 #    self.dec,
                 #    ObservationMetaData(mjd=self.mjd, site=self.telescope),
-                #)
+                # )
             else:
                 self.alts, self.azs = _approx_ra_dec2_alt_az(
                     self.ra,

@@ -3,9 +3,8 @@ __all__ = ("generate_nights",)
 import numpy as np
 from astropy.coordinates import AltAz, EarthLocation, get_body, get_sun
 from astropy.time import Time
+from rubin_scheduler.utils import Site
 from scipy.optimize import Bounds, minimize
-
-from rubin_sim.utils import Site
 
 
 def lin_interp(x, x0, x1, y0, y1):

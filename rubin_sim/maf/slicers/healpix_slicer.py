@@ -8,9 +8,9 @@ __all__ = ("HealpixSlicer",)
 
 import healpy as hp
 import numpy as np
+from rubin_scheduler.utils import _galactic_from_equatorial
 
 from rubin_sim.maf.plots.spatial_plotters import HealpixHistogram, HealpixSkyMap
-from rubin_sim.utils import _galactic_from_equatorial
 
 from .base_spatial_slicer import BaseSpatialSlicer
 

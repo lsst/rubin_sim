@@ -1,15 +1,15 @@
 __all__ = ("DitherDetailer", "CameraRotDetailer", "EuclidDitherDetailer")
 
 import numpy as np
-
-from rubin_sim.scheduler.detailers import BaseDetailer
-from rubin_sim.utils import (
+from rubin_scheduler.utils import (
     _approx_altaz2pa,
     _approx_ra_dec2_alt_az,
     bearing,
     dest_latlon,
     gnomonic_project_tosky,
 )
+
+from rubin_sim.scheduler.detailers import BaseDetailer
 
 
 class DitherDetailer(BaseDetailer):

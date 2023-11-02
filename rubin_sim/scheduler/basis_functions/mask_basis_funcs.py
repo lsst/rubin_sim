@@ -14,10 +14,10 @@ __all__ = (
 import healpy as hp
 import matplotlib.pylab as plt
 import numpy as np
+from rubin_scheduler.utils import Site, _angular_separation, _hpid2_ra_dec
 
 from rubin_sim.scheduler.basis_functions import BaseBasisFunction
 from rubin_sim.scheduler.utils import HpInLsstFov, IntRounded
-from rubin_sim.utils import Site, _angular_separation, _hpid2_ra_dec
 
 
 class SolarElongMaskBasisFunction(BaseBasisFunction):

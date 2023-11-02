@@ -1,9 +1,9 @@
 __all__ = ("PeriodicDetectMetric",)
 
 import numpy as np
+import rubin_scheduler.utils as utils
 import scipy
 
-import rubin_sim.utils as utils
 from rubin_sim.maf.utils import m52snr
 
 from .base_metric import BaseMetric

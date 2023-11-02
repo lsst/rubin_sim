@@ -10,9 +10,9 @@ import healpy as hp
 import numpy as np
 import pandas as pd
 from astropy.time import Time
+from rubin_scheduler.utils import _approx_altaz2pa, _approx_ra_dec2_alt_az, _hpid2_ra_dec
 
 from rubin_sim.scheduler.utils import HpInComcamFov, HpInLsstFov, IntRounded, set_default_nside
-from rubin_sim.utils import _approx_altaz2pa, _approx_ra_dec2_alt_az, _hpid2_ra_dec
 
 
 class CoreScheduler:

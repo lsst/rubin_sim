@@ -11,8 +11,8 @@ import warnings
 from functools import wraps
 
 import numpy as np
+import rubin_scheduler.utils as simsUtils
 
-import rubin_sim.utils as simsUtils
 from rubin_sim.maf.plots.spatial_plotters import BaseHistogram, BaseSkyMap
 
 from .base_slicer import BaseSlicer

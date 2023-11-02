@@ -1,9 +1,9 @@
 __all__ = ("DcrPrecisionMetric",)
 
 import numpy as np
+import rubin_scheduler.utils as utils
 
 import rubin_sim.maf.utils as mafUtils
-import rubin_sim.utils as utils
 
 from .base_metric import BaseMetric
 

@@ -2,8 +2,7 @@ import astropy.units as u
 import numpy as np
 from astroplan import Observer
 from astropy.time import Time
-
-from rubin_sim.utils import Site
+from rubin_scheduler.utils import Site
 
 if __name__ == "__main__":
     # Trying out the astroplan sunrise/set code.

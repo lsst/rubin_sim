@@ -3,10 +3,10 @@ import warnings
 
 import healpy as hp
 import numpy as np
+from rubin_scheduler.utils import hpid2_ra_dec
 
 import rubin_sim.skybrightness as sb
 import rubin_sim.skybrightness_pre as sbp
-import rubin_sim.utils as utils
 
 
 class TestSkyPre(unittest.TestCase):
@@ -67,7 +67,7 @@ class TestSkyPre(unittest.TestCase):
             pre_calc_model = self.sm
 
             hpindx = np.arange(hp.nside2npix(self.nside))
-            ra, dec = utils.hpid2_ra_dec(self.nside, hpindx)
+            ra, dec = hpid2_ra_dec(self.nside, hpindx)
 
             # Run through a number of mjd values
             step = 30.0 / 60.0 / 24.0  # 30 minute timestep

@@ -29,9 +29,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from astropy import units as u
-
-from rubin_sim.utils.ddf_locations import ddf_locations
-from rubin_sim.utils.riseset import riseset_times
+from rubin_scheduler.utils.ddf_locations import ddf_locations
+from rubin_scheduler.utils.riseset import riseset_times
 
 from .plot_handler import BasePlotter
 

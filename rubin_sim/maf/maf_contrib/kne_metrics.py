@@ -4,13 +4,13 @@ import glob
 import os
 
 import numpy as np
+from rubin_scheduler.utils import survey_start_mjd, uniform_sphere
 
 from rubin_sim.data import get_data_dir
 from rubin_sim.maf.metrics import BaseMetric
 from rubin_sim.maf.slicers import UserPointsSlicer
 from rubin_sim.maf.utils import m52snr
 from rubin_sim.phot_utils import DustValues
-from rubin_sim.utils import survey_start_mjd, uniform_sphere
 
 
 def get_kne_filename(inj_params_list=None):

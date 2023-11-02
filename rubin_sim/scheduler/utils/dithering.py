@@ -2,10 +2,9 @@ __all__ = ("wrap_ra_dec", "rotate_ra_dec", "Pointings2hp", "HpmapCross")
 
 import healpy as hp
 import numpy as np
+from rubin_scheduler.site_models import _read_fields
+from rubin_scheduler.utils import _hpid2_ra_dec, _xyz_angular_radius, _xyz_from_ra_dec
 from scipy.optimize import minimize
-
-from rubin_sim.site_models import _read_fields
-from rubin_sim.utils import _hpid2_ra_dec, _xyz_angular_radius, _xyz_from_ra_dec
 
 from .utils import hp_kd_tree, set_default_nside
 

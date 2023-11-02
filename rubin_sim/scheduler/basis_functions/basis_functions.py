@@ -51,12 +51,12 @@ import matplotlib.pylab as plt
 import numpy as np
 from astropy import units as u
 from astropy.coordinates import SkyCoord
+from rubin_scheduler.site_models import SeeingModel
+from rubin_scheduler.utils import _hpid2_ra_dec, m5_flat_sed
 
 from rubin_sim.scheduler import features, utils
 from rubin_sim.scheduler.utils import IntRounded
-from rubin_sim.site_models import SeeingModel
 from rubin_sim.skybrightness_pre import dark_sky
-from rubin_sim.utils import _hpid2_ra_dec, m5_flat_sed
 
 
 class BaseBasisFunction:

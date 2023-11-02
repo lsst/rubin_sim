@@ -3,11 +3,11 @@ __all__ = ("ShortExptDetailer",)
 import healpy as hp
 import matplotlib.pylab as plt
 import numpy as np
+from rubin_scheduler.utils import survey_start_mjd
 
 import rubin_sim.scheduler.features as features
 from rubin_sim.scheduler.detailers import BaseDetailer
 from rubin_sim.scheduler.utils import HpInLsstFov
-from rubin_sim.utils import survey_start_mjd
 
 
 class ShortExptDetailer(BaseDetailer):

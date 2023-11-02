@@ -22,8 +22,7 @@ import healpy as hp
 import numpy as np
 from astropy import units as u
 from astropy.coordinates import SkyCoord
-
-from rubin_sim.utils import _hpid2_ra_dec
+from rubin_scheduler.utils import _hpid2_ra_dec
 
 from .utils import set_default_nside
 

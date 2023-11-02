@@ -1,7 +1,8 @@
 __all__ = ("GalCoordsMap",)
 
+from rubin_scheduler.utils import _galactic_from_equatorial
+
 from rubin_sim.maf.maps import BaseMap
-from rubin_sim.utils import _galactic_from_equatorial
 
 
 class GalCoordsMap(BaseMap):

@@ -2,9 +2,9 @@ __all__ = ("VaryExptDetailer", "calc_target_m5s")
 
 import healpy as hp
 import numpy as np
+from rubin_scheduler.utils import m5_flat_sed, ra_dec2_hpid
 
 from rubin_sim.scheduler.detailers import BaseDetailer
-from rubin_sim.utils import m5_flat_sed, ra_dec2_hpid
 
 
 def calc_target_m5s(alt=65.0, fiducial_seeing=0.9, exptime=20.0):

@@ -23,15 +23,14 @@ from matplotlib import colors, ticker
 from matplotlib.collections import PatchCollection
 from matplotlib.patches import Ellipse
 from matplotlib.ticker import FuncFormatter
+from rubin_scheduler.utils import _equatorial_from_galactic, _healbin
 
 from rubin_sim.maf.utils import optimal_bins, percentile_clipping
-from rubin_sim.utils import _equatorial_from_galactic, _healbin
 
 from .perceptual_rainbow import make_pr_cmap
 from .plot_handler import BasePlotter, apply_zp_norm
 
 perceptual_rainbow = make_pr_cmap()
-import numpy.ma as ma
 
 base_default_plot_dict = {
     "title": None,

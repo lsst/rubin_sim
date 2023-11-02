@@ -4,8 +4,7 @@ import numpy as np
 from astropy import units as u
 from astropy.coordinates import SkyCoord, get_sun
 from astropy.time import Time
-
-from rubin_sim.utils import _galactic_from_equatorial, calc_lmst_last
+from rubin_scheduler.utils import _galactic_from_equatorial, calc_lmst_last
 
 from .base_stacker import BaseStacker
 from .dither_stackers import wrap_ra

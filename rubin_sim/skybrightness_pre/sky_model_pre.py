@@ -7,9 +7,9 @@ import warnings
 import h5py
 import healpy as hp
 import numpy as np
+from rubin_scheduler.utils import _angular_separation, _hpid2_ra_dec, survey_start_mjd
 
 from rubin_sim.data import get_data_dir
-from rubin_sim.utils import _angular_separation, _hpid2_ra_dec, survey_start_mjd
 
 
 def short_angle_dist(a0, a1):

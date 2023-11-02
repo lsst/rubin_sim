@@ -23,12 +23,12 @@ import healpy
 import numpy as np
 import palpy
 import pandas as pd
+import rubin_scheduler.utils as utils
 import scipy.optimize
 from numexpr import NumExpr
 from scipy.interpolate import interp1d
 from sklearn.linear_model import LinearRegression
 
-import rubin_sim.utils as utils
 from rubin_sim.data import get_data_dir
 
 # constants

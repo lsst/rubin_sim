@@ -32,9 +32,8 @@ import healpy as hp
 import matplotlib.path as mplPath
 import numpy as np
 import pandas as pd
-
-import rubin_sim.version as rsVersion
-from rubin_sim.utils import _build_tree, _hpid2_ra_dec, _xyz_from_ra_dec, xyz_angular_radius
+import rubin_scheduler.version as rsVersion
+from rubin_scheduler.utils import _build_tree, _hpid2_ra_dec, _xyz_from_ra_dec, xyz_angular_radius
 
 
 def smallest_signed_angle(a1, a2):

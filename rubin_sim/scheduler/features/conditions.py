@@ -6,14 +6,7 @@ from io import StringIO
 import healpy as hp
 import numpy as np
 import pandas as pd
-
-from rubin_sim.scheduler.utils import (
-    match_hp_resolution,
-    season_calc,
-    set_default_nside,
-    smallest_signed_angle,
-)
-from rubin_sim.utils import (
+from rubin_scheduler.utils import (
     Site,
     _angular_separation,
     _approx_altaz2pa,
@@ -21,6 +14,13 @@ from rubin_sim.utils import (
     _hpid2_ra_dec,
     calc_lmst_last,
     m5_flat_sed,
+)
+
+from rubin_sim.scheduler.utils import (
+    match_hp_resolution,
+    season_calc,
+    set_default_nside,
+    smallest_signed_angle,
 )
 
 

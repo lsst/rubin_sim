@@ -1,11 +1,9 @@
 import unittest
-import warnings
 
 import healpy as hp
 import numpy as np
 
 import rubin_sim.skybrightness_pre as sbp
-import rubin_sim.utils as utils
 
 
 class TestDarkSky(unittest.TestCase):
@@ -29,7 +27,6 @@ class TestDarkSky(unittest.TestCase):
     def test_downgrade_default(self):
         default_map_before_downgrade = sbp.dark_sky()
 
-        nside = 16
         sbp.dark_sky(nside=16)
 
         default_map_after_downgrade = sbp.dark_sky()
