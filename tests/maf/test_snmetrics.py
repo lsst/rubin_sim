@@ -5,7 +5,7 @@ import warnings
 import numpy as np
 
 from rubin_sim.data import get_data_dir
-from rubin_sim.maf.metrics import SNCadenceMetric, SNNSNMetric, SNSLMetric, SNSNRMetric
+from rubin_sim.maf.metrics import SNCadenceMetric, SNSLMetric, SNSNRMetric
 from rubin_sim.maf.utils.sn_utils import Lims, ReferenceData
 
 m5_ref = dict(zip("ugrizy", [23.60, 24.83, 24.38, 23.92, 23.35, 22.44]))
@@ -325,8 +325,9 @@ class TestSNmetrics(unittest.TestCase):
         # and the result should be
         # Changing the reference value because we have new coadd and mag limits
         # Change again to switch to per-season calc rather than average
-        # Change again to reflect updated calculation (due to counting year = 365.25 days, not 360)
-        n_sl_ref = 1.4569195613987307e-06  # 1.478166e-6  # 1.42168e-6  # 0.00012650940
+        # Change again to reflect updated calculation
+        # (due to counting year = 365.25 days, not 360)
+        n_sl_ref = 1.4569195613987307e-06
         assert np.abs(n_sl - n_sl_ref) < 1.0e-8
 
 

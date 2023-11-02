@@ -1,6 +1,3 @@
-import matplotlib
-
-matplotlib.use("Agg")
 import os
 import unittest
 import warnings
@@ -13,7 +10,9 @@ from rubin_sim.data import get_data_dir
 
 
 def make_data_values(size=100, min=0.0, max=1.0, random=-1):
-    """Generate a simple array of numbers, evenly arranged between min/max, but (optional) random order."""
+    """Generate a simple array of numbers, evenly arranged between min/max,
+    (optional) random order.
+    """
     datavalues = np.arange(0, size, dtype="float")
     datavalues *= (float(max) - float(min)) / (datavalues.max() - datavalues.min())
     datavalues += min
@@ -113,11 +112,12 @@ class TestMaps(unittest.TestCase):
             assert "ebv3d_dist_at_10.0" in list(result3.keys())
 
             # Check that we can call the distance at magnitude method
-            dists = dustmap.distance_at_dmag(5, result3["ebv3d_dists"], result3["ebv3d_ebvs"], "r")
-            # And call it without running the map (and thus reading more info) first
-            dists = maps.DustMap3D().distance_at_dmag(5, result3["ebv3d_dists"], result3["ebv3d_ebvs"], "r")
+            _ = dustmap.distance_at_dmag(5, result3["ebv3d_dists"], result3["ebv3d_ebvs"], "r")
+            # And call it without running the map
+            # (and thus reading more info) first
+            _ = maps.DustMap3D().distance_at_dmag(5, result3["ebv3d_dists"], result3["ebv3d_ebvs"], "r")
             # And call it as a static method at one point on the sky
-            dists = maps.DustMap3D().distance_at_dmag(
+            _ = maps.DustMap3D().distance_at_dmag(
                 5, result3["ebv3d_dists"][0, :], result3["ebv3d_ebvs"][0, :], "r"
             )
 

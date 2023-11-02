@@ -1,6 +1,3 @@
-import matplotlib
-
-matplotlib.use("Agg")
 import unittest
 
 import numpy as np
@@ -101,7 +98,8 @@ class TestCadenceMetrics(unittest.TestCase):
         np.testing.assert_almost_equal(result3, 0.0)
         # Test setup with max_value > 1
         metric = metrics.GeneralUniformityMetric(col="observationStartMJD", min_value=0, max_value=10)
-        # Make a perfectly uniform dist covering limited range (0-1 out of 0-10 range)
+        # Make a perfectly uniform dist covering limited range
+        # (0-1 out of 0-10 range)
         data["observationStartMJD"] = np.arange(0.0, 1 + step / 2, step)
         result5 = metric.run(data, slice_point)
         self.assertEqual(result5, 0.9)
@@ -163,7 +161,8 @@ class TestCadenceMetrics(unittest.TestCase):
         data["observationStartMJD"] = [1, 2, 3, 4]
         metric = metrics.TgapsPercentMetric(min_time=0.5, max_time=1.5, all_gaps=True)
         result3 = metric.run(data)
-        # This should be 50% -- 3 gaps of 1 day, 2 gaps of 2 days, 1 gap of 3 days
+        # This should be 50% -- 3 gaps of 1 day, 2 gaps of 2 days, and
+        # 1 gap of 3 days
         self.assertEqual(result3, 50)
 
     def test_night_gap_metric(self):
@@ -248,7 +247,8 @@ class TestCadenceMetrics(unittest.TestCase):
         for i in range(10000):
             dtimes = rng.rand(100)
             data['observationStartMJD'] = dtimes.cumsum()
-            metric = metrics.RapidRevisitUniformityMetric(d_tmin=0.1, d_tmax=0.8, min_nvisits=50)
+            metric = metrics.RapidRevisitUniformityMetric(d_tmin=0.1,
+                                d_tmax=0.8, min_nvisits=50)
             result = metric.run(data)
             resmin = np.min([resmin, result])
             resmax = np.max([resmax, result])
@@ -314,7 +314,8 @@ class TestCadenceMetrics(unittest.TestCase):
         metric = metrics.TransientMetric(survey_duration=ndata / 365.25 * 2)
         self.assertEqual(metric.run(data_slice), 0.5)
 
-        # Set half of the m5 of the observations very bright, so kill another half.
+        # Set half of the m5 of the observations very bright,
+        # so kill another half.
         data_slice["fiveSigmaDepth"][0:50] = 20
         self.assertEqual(metric.run(data_slice), 0.25)
 

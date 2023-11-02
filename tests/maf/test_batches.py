@@ -27,18 +27,31 @@ class TestBatches(unittest.TestCase):
     )
     def testload_them_all(self):
         ack = batches.altazHealpix()
+        assert ack is not None
         ack = batches.altazLambert()
+        assert ack is not None
         ack = batches.standard_summary()
+        assert ack is not None
         ack = batches.standard_metrics("night")
+        assert ack is not None
         ack = batches.filtersPerNight()
+        assert ack is not None
         ack = batches.filtersWholeSurvey()
+        assert ack is not None
         ack = batches.glanceBatch()
+        assert ack is not None
         ack = batches.hourglassPlots()
+        assert ack is not None
         ack = batches.slewBasics()
+        assert ack is not None
         ack = batches.timeGaps()
+        assert ack is not None
         ack = batches.metadataBasics("airmass")
+        assert ack is not None
         ack = batches.metadataBasicsAngle("rotskyPos")
+        assert ack is not None
         ack = batches.metadataMaps("fiveSigmaDepth")
+        assert ack is not None
 
     @unittest.skipUnless(
         os.path.isdir(os.path.join(get_data_dir(), "maf")),
@@ -47,9 +60,13 @@ class TestBatches(unittest.TestCase):
     def test_moving_objects_batches(self):
         slicer = MoObjSlicer()
         ack = batches.quick_discovery_batch(slicer)
+        assert ack is not None
         ack = batches.discovery_batch(slicer)
+        assert ack is not None
         ack = batches.characterization_inner_batch(slicer)
+        assert ack is not None
         ack = batches.characterization_outer_batch(slicer)
+        assert ack is not None
 
     def test_moving_fractions(self):
         bdict = {}
@@ -58,24 +75,27 @@ class TestBatches(unittest.TestCase):
         bdict["days"] = bundle
         bdict["days"].slicer = MoObjSlicer()
         bdict["days"].slicer.slice_points["H"] = np.arange(50)
-        # Should probably fill in some data as well to make sure
-        # more parts of the code get exercised, but this is a start.
-        ack = batches.run_completeness_summary(bdict, 0.0, [10, 20], None, None)
-        ack = batches.run_fraction_summary(bdict, 0.0, None, None)
-        ack = batches.plot_fractions(bdict, out_dir=self.out_dir)
-        # A mystery why this batch takes a bundle while the rest take dicts.
-        ack = batches.plot_single(bundle, out_dir=self.out_dir)
-        ack = batches.plot_activity(bdict)
+        # This is a start, but the methods below aren't really doing anything
+        # without appropriately named/values bundles in the bdict.
+        batches.run_completeness_summary(bdict, 0.0, [10, 20], None, None)
+        batches.run_fraction_summary(bdict, 0.0, None, None)
+        batches.plot_fractions(bdict, out_dir=self.out_dir)
+        # This batch takes a single bundle because it plots that single
+        # bundle with multiple summary interpretations of the metric
+        batches.plot_single(bundle, out_dir=self.out_dir)
+        batches.plot_activity(bdict)
 
     @unittest.skipUnless(
         os.path.isdir(os.path.join(get_data_dir(), "maf")),
         "Skipping scienceRadarBatch test because operating without full MAF test data",
     )
     def test_science_radar(self):
-        # Loading the science radar batch requires reading a significant set of input files
+        # Loading the science radar batch requires reading a significant
+        # set of input files
         # This test is skipped if running with the lighter set of test data.
         # batch requires reading a lot of input files for lightcurves
         ack = batches.science_radar_batch()
+        assert ack is not None
 
     @unittest.skipUnless(
         os.path.isdir(os.path.join(get_data_dir(), "maf")),

@@ -1,6 +1,3 @@
-import matplotlib
-
-matplotlib.use("Agg")
 import unittest
 
 import numpy as np
@@ -39,7 +36,8 @@ class TestVisitGroupsMetric(unittest.TestCase):
         tmin = 15.0 / 60.0 / 24.0
         tmax = 90.0 / 60.0 / 24.0
         tstart = 49406.00
-        # The test data needs to have times for all observations: set up the times in two stages .. the night
+        # The test data needs to have times for all observations:
+        # set up the times in two stages .. the night
         night = np.array(
             [
                 0,

@@ -56,15 +56,17 @@ class TestSNmetrics(unittest.TestCase):
         expected["sparse_pointing"] = metric.badval
         # Very dense pointing
         expected["dense_pointing"] = np.rec.fromrecords([(5.158324, 0.276509)], names=["nSN", "zlim"])
-        # These are of the same point on the sky, with/without DD fields - they should be the same
-        # as the metric rejects DD visits internally---XXX except now the metric does
-        # not reject visits based on notes, so not sure why these still pass fine.
+        # These are of the same point on the sky, with/without DD fields -
+        # they should be the same as the metric rejects DD visits internally
+        # ---XXX except now the metric does
+        # not reject visits based on notes, so not sure why these still pass
 
         expected["one_season_noDD"] = np.rec.fromrecords([(0.870031, 0.289703)], names=["nSN", "zlim"])
         expected["one_season_wDD"] = np.rec.fromrecords([(0.870031, 0.289703)], names=["nSN", "zlim"])
         # Here we muddle with the visit exposure time (without changing m5)
         expected["one_season_singleExp_20"] = np.rec.fromrecords([(0.879159, 0.29006)], names=["nSN", "zlim"])
-        # Here we muddle with the number of visits per exposure, without changing m5 or visitExpTime
+        # Here we muddle with the number of visits per exposure,
+        # without changing m5 or visitExpTime
         expected["one_season_singleExp_30"] = np.rec.fromrecords(
             [(0.870031, 0.289703)], names=["nSN", "zlim"]
         )

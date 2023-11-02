@@ -34,9 +34,9 @@ class TestScalarHourglassPlots(unittest.TestCase):
             out_dir=self.out_dir,
             results_db=self.results_db,
         )
-        run_result = bundle_group.run_all()
+        _ = bundle_group.run_all()
         plot_func = plots.YearHourglassPlot(2023)
-        result = metric_bundle.plot(plotFunc=plot_func)
+        _ = metric_bundle.plot(plotFunc=plot_func)
 
 
 class TestTimeUseHourglassPlots(unittest.TestCase):
@@ -62,9 +62,9 @@ class TestTimeUseHourglassPlots(unittest.TestCase):
             out_dir=self.out_dir,
             results_db=self.results_db,
         )
-        run_result = bundle_group.run_all()
+        _ = bundle_group.run_all()
         plot_func = plots.YearHourglassUsePlot(2023)
-        result = metric_bundle.plot(plotFunc=plot_func)
+        _ = metric_bundle.plot(plotFunc=plot_func)
 
 
 def create_sample_visit_db(dir_name):

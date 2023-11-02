@@ -1,8 +1,4 @@
 import os
-
-import matplotlib
-
-matplotlib.use("Agg")
 import unittest
 
 import numpy as np

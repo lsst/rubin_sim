@@ -1,6 +1,3 @@
-import matplotlib
-
-matplotlib.use("Agg")
 import unittest
 
 import numpy as np
@@ -50,8 +47,9 @@ class TestCalibrationMetrics(unittest.TestCase):
             worse4 = metrics.ParallaxMetric(normalize=flag, rmag=22.0, seeing_col="finSeeing").run(
                 data[0:300], slice_point
             )
-            # Make sure the RMS increases as seeing increases, the star gets fainter,
-            #    the background gets brighter, or the baseline decreases.
+            # Make sure the RMS increases as seeing increases,
+            # the star gets fainter, the background gets brighter,
+            # or the baseline decreases.
             if flag:
                 pass
             else:
@@ -102,10 +100,12 @@ class TestCalibrationMetrics(unittest.TestCase):
             worse4 = metrics.ProperMotionMetric(normalize=flag, rmag=22.0, seeing_col="finSeeing").run(
                 data[0:300], slice_point
             )
-            # Make sure the RMS increases as seeing increases, the star gets fainter,
-            # the background gets brighter, or the baseline decreases.
+            # Make sure the RMS increases as seeing increases,
+            # the star gets fainter, the background gets brighter,
+            # or the baseline decreases.
             if flag:
-                # When normalized, mag of star and m5 don't matter (just scheduling).
+                # When normalized, mag of star and m5 don't matter
+                # (just scheduling).
                 self.assertAlmostEqual(worse2, worse1)
                 self.assertAlmostEqual(worse4, worse3)
                 # But using fewer points should make proper motion worse.
@@ -204,7 +204,8 @@ class TestCalibrationMetrics(unittest.TestCase):
         val = metric.run(data)
         np.testing.assert_almost_equal(val, 0.0, decimal=2)
 
-        # Generate a random distribution that should have little or no correlation
+        # Generate a random distribution that should have
+        # little or no correlation
         rng = np.random.RandomState(42)
 
         data["ra_pi_amp"] = rng.rand(100) * 2 - 1.0

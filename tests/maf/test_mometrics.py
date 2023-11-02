@@ -11,10 +11,14 @@ class TestMoMetrics1(unittest.TestCase):
         # Set up some sso_obs data to test the metrics on.
         # Note that sso_obs is a numpy recarray.
         # The expected set of columns in sso_obs is:
-        # cols = ['observationStartMJD', 'night', 'fieldRA', 'fieldDec', 'rotSkyPos', 'filter',
-        #        'visitExposureTime', 'seeingFwhmGeom', 'fiveSigmaDepth', 'solarElong',
-        #        'delta', 'ra', 'dec', 'magV', 'time', 'dradt', 'ddecdt', 'phase', 'solarelon',
-        #        'velocity', 'magFilter', 'dmagColor', 'dmagTrail', 'dmagDetect']
+        # cols = ['observationStartMJD', 'night', 'fieldRA', 'fieldDec',
+        #        'rotSkyPos', 'filter',
+        #        'visitExposureTime', 'seeingFwhmGeom', 'fiveSigmaDepth',
+        #        'solarElong',
+        #        'delta', 'ra', 'dec', 'magV', 'time', 'dradt', 'ddecdt',
+        #        'phase', 'solarelon',
+        #        'velocity', 'magFilter', 'dmagColor', 'dmagTrail',
+        #        'dmagDetect']
         # And stackers will often add
         # addCols = ['appMag', 'magLimit', 'snr', 'vis']
 

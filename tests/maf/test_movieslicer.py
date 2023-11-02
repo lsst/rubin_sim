@@ -1,6 +1,3 @@
-import matplotlib
-
-matplotlib.use("Agg")
 import unittest
 import warnings
 
@@ -84,7 +81,8 @@ class TestMovieSlicerSetup(unittest.TestCase):
             self.assertIn("bin_size", str(w[-1].message))
 
     def test_setup_slicer_nbins_zeros(self):
-        """Test what happens if give slicer test data that is all single-value."""
+        """Test what happens if give slicer test data that is all
+        single-value."""
         dv = np.zeros(100, float)
         dv = np.array(list(zip(dv)), dtype=[("times", "float")])
         nbins = 10
@@ -137,7 +135,8 @@ class TestMovieSlicerSetup(unittest.TestCase):
 
     def test_equivalence(self):
         """Test equals method."""
-        # Note that two Movie slicers will be considered equal if they are both the same kind of
+        # Note that two Movie slicers will be considered equal
+        # if they are both the same kind of
         # slicer AND have the same bins.
         # Set up self..
         dvmin = 0
@@ -149,7 +148,8 @@ class TestMovieSlicerSetup(unittest.TestCase):
             slice_col_name="times", bins=bins, cumulative=False, force_no_ffmpeg=True
         )
         self.testslicer.setup_slicer(dv)
-        # Set up another slicer to match (same bins, although not the same data).
+        # Set up another slicer to match
+        # (same bins, although not the same data).
         dv2 = make_times(nvalues + 100, dvmin, dvmax, random=56221)
         testslicer2 = MovieSlicer(slice_col_name="times", bins=bins, cumulative=False, force_no_ffmpeg=True)
         testslicer2.setup_slicer(dv2)
@@ -175,7 +175,8 @@ class TestMovieSlicerSetup(unittest.TestCase):
         dvmin = 0
         dvmax = 1
         nbins = 100
-        # Test that testbinner raises appropriate error before it's set up (first time)
+        # Test that testbinner raises appropriate error before it's set up
+        # (first time)
         self.assertRaises(NotImplementedError, self.testslicer._slice_sim_data, 0)
         for nvalues in (100, 1000):
             dv = make_times(nvalues, dvmin, dvmax, random=82)

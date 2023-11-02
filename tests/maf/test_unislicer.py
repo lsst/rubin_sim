@@ -1,6 +1,3 @@
-import matplotlib
-
-matplotlib.use("Agg")
 import unittest
 
 import numpy as np
@@ -9,7 +6,9 @@ from rubin_sim.maf.slicers import OneDSlicer, UniSlicer
 
 
 def make_data_values(size=100, min=0.0, max=1.0, random=-1):
-    """Generate a simple array of numbers, evenly arranged between min/max, but (optional) random order."""
+    """Generate a simple array of numbers,
+    evenly arranged between min/max, but (optional) random order.
+    """
     datavalues = np.arange(0, size, dtype="float")
     datavalues *= (float(max) - float(min)) / (datavalues.max() - datavalues.min())
     datavalues += min
@@ -39,7 +38,9 @@ class TestUniSlicerSetupAndSlice(unittest.TestCase):
         self.assertEqual(self.testslicer.nslice, 1)
 
     def test_setup_slicer_indices(self):
-        """Test slicer returns correct indices (all) after setup. Note this also tests slicing."""
+        """Test slicer returns correct indices (all) after setup.
+        Note this also tests slicing.
+        """
         dvmin = 0
         dvmax = 1
         nvalues = 1000
@@ -59,7 +60,9 @@ class TestUniSlicerIteration(unittest.TestCase):
         self.testslicer = None
 
     def test_iteration(self):
-        """Test iteration -- which is a one-step identity op for a unislicer."""
+        """Test iteration -- which is a one-step identity op for a
+        unislicer.
+        """
         dvmin = 0
         dvmax = 1
         nvalues = 1000
@@ -94,8 +97,9 @@ class TestUniSlicerEqual(unittest.TestCase):
 
     def test_equivalence(self):
         """Test equals method."""
-        # Note that two uni slicers will be considered equal if they are both the same kind of
-        # slicer (unislicer). They will not necessarily slice data equally though (the indices are
+        # Note that two uni slicers will be considered equal if they are
+        # both the same kind of slicer (unislicer).
+        # They will not necessarily slice data equally though (the indices are
         #  not necessarily the same!).
         # These should be the same, even though data is not the same.
         testslicer2 = UniSlicer()

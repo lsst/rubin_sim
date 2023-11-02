@@ -1,6 +1,3 @@
-import matplotlib
-
-matplotlib.use("Agg")
 import unittest
 
 import numpy as np
@@ -196,7 +193,7 @@ class TestSimpleMetrics(unittest.TestCase):
         data["skyBrightness"] = 25.0
         data["numExposures"] = 2.0
         data["filter"] = "r"
-        result = testmetric.run(data, None)
+        _ = testmetric.run(data, None)
 
 
 if __name__ == "__main__":

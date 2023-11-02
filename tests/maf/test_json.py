@@ -1,16 +1,15 @@
 import json
 import unittest
 
-import matplotlib
 import numpy as np
 import numpy.ma as ma
 
-matplotlib.use("Agg")
 import rubin_sim.maf.slicers as slicers
 
 
 def make_data_values(size=100, min=0.0, max=1.0, random=-1):
-    """Generate a simple array of numbers, evenly arranged between min/max, but (optional) random order."""
+    """Generate a simple array of numbers, evenly arranged between min/max,
+    but (optional) random order."""
     datavalues = np.arange(0, size, dtype="float")
     datavalues *= (float(max) - float(min)) / (datavalues.max() - datavalues.min())
     datavalues += min
@@ -70,7 +69,8 @@ def make_field_data():
 
 
 def make_opsim_data_values(field_data, size=10000, min=0.0, max=1.0, random=88):
-    """Generate a simple array of numbers, evenly arranged between min/max, but (optional) random order."""
+    """Generate a simple array of numbers, evenly arranged between min/max,
+    but (optional) random order."""
     datavalues = np.arange(0, size, dtype="float")
     datavalues *= (float(max) - float(min)) / (datavalues.max() - datavalues.min())
     datavalues += min
