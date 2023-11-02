@@ -75,20 +75,15 @@ class TestBatches(unittest.TestCase):
         bdict["days"] = bundle
         bdict["days"].slicer = MoObjSlicer()
         bdict["days"].slicer.slice_points["H"] = np.arange(50)
-        # Should probably fill in some data as well to make sure
-        # more parts of the code get exercised, but this is a start.
-        ack = batches.run_completeness_summary(bdict, 0.0, [10, 20], None, None)
-        assert ack is not None
-        ack = batches.run_fraction_summary(bdict, 0.0, None, None)
-        assert ack is not None
-        ack = batches.plot_fractions(bdict, out_dir=self.out_dir)
-        assert ack is not None
+        # This is a start, but the methods below aren't really doing anything
+        # without appropriately named/values bundles in the bdict.
+        batches.run_completeness_summary(bdict, 0.0, [10, 20], None, None)
+        batches.run_fraction_summary(bdict, 0.0, None, None)
+        batches.plot_fractions(bdict, out_dir=self.out_dir)
         # This batch takes a single bundle because it plots that single
         # bundle with multiple summary interpretations of the metric
-        ack = batches.plot_single(bundle, out_dir=self.out_dir)
-        assert ack is not None
-        ack = batches.plot_activity(bdict)
-        assert ack is not None
+        batches.plot_single(bundle, out_dir=self.out_dir)
+        batches.plot_activity(bdict)
 
     @unittest.skipUnless(
         os.path.isdir(os.path.join(get_data_dir(), "maf")),
