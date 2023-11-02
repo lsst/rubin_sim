@@ -1,10 +1,11 @@
 import unittest
+
 import healpy as hp
 import numpy as np
+
+from rubin_sim.scheduler.basis_functions import HealpixLimitedBasisFunctionMixin, SimpleArrayBasisFunction
 from rubin_sim.scheduler.features import Conditions
 from rubin_sim.scheduler.utils import set_default_nside
-from rubin_sim.scheduler.basis_functions import HealpixLimitedBasisFunctionMixin
-from rubin_sim.scheduler.basis_functions import SimpleArrayBasisFunction
 
 
 class SimpleArrayAtHpixBasisFunction(HealpixLimitedBasisFunctionMixin, SimpleArrayBasisFunction):

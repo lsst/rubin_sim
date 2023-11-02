@@ -1,16 +1,16 @@
 import os
 import unittest
 
-import pandas as pd
-import numpy as np
 import healpy as hp
+import numpy as np
+import pandas as pd
 
 import rubin_sim.scheduler.basis_functions as basis_functions
 import rubin_sim.scheduler.surveys as surveys
 from rubin_sim.data import get_data_dir
-from rubin_sim.scheduler.utils import set_default_nside
-from rubin_sim.scheduler.model_observatory import ModelObservatory
 from rubin_sim.scheduler.basis_functions import SimpleArrayBasisFunction
+from rubin_sim.scheduler.model_observatory import ModelObservatory
+from rubin_sim.scheduler.utils import set_default_nside
 
 
 class TestSurveys(unittest.TestCase):
