@@ -13,8 +13,10 @@ import os
 from copy import deepcopy
 
 import numpy as np
+from astropy import units as u
+from astropy.coordinates import SkyCoord
 from rubin_scheduler.data import get_data_dir
-from rubin_scheduler.utils import equatorial_from_galactic, hpid2_ra_dec
+from rubin_scheduler.utils import hpid2_ra_dec
 
 import rubin_sim.maf.metrics as metrics
 import rubin_sim.maf.slicers as slicers
@@ -579,8 +581,8 @@ def generate_microlensing_slicer(
     indexes = np.floor(np.interp(uniform_draw, cumm_dist, np.arange(cumm_dist.size)))
     hp_ids = order[indexes.astype(int)]
     gal_l, gal_b = hpid2_ra_dec(nside, hp_ids, nest=True)
-    ra, dec = equatorial_from_galactic(gal_l, gal_b)
-
+    c = SkyCoord(l=gal_l * u.deg, b=gal_b * u.deg, frame="galactic").transform_to("icrs")
+    ra, dec = c.ra.deg, c.dec.deg
     # Set up the slicer to evaluate the catalog we just made
     slicer = slicers.UserPointsSlicer(ra, dec, lat_lon_deg=True, badval=0)
     # Add any additional information about each object to the slicer

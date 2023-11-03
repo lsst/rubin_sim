@@ -25,7 +25,6 @@ dependencies = [
     "healpy",
     "pandas",
     "numexpr",
-    "palpy",
     "scipy",
     "sqlalchemy",
     "astropy",

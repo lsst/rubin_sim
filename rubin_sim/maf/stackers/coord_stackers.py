@@ -4,7 +4,7 @@ import numpy as np
 from astropy import units as u
 from astropy.coordinates import SkyCoord, get_sun
 from astropy.time import Time
-from rubin_scheduler.utils import _galactic_from_equatorial, calc_lmst
+from rubin_scheduler.utils import calc_lmst
 
 from .base_stacker import BaseStacker
 from .dither_stackers import wrap_ra
@@ -89,13 +89,15 @@ class GalacticStacker(BaseStacker):
             # Column already present in data; assume it is correct and does not need recalculating.
             return sim_data
         if self.degrees:
-            sim_data["gall"], sim_data["galb"] = _galactic_from_equatorial(
-                np.radians(sim_data[self.ra_col]), np.radians(sim_data[self.dec_col])
+            c = SkyCoord(ra=sim_data[self.ra_col] * u.deg, dec=sim_data[self.dec_col] * u.deg).transform_to(
+                "galactic"
             )
         else:
-            sim_data["gall"], sim_data["galb"] = _galactic_from_equatorial(
-                sim_data[self.ra_col], sim_data[self.dec_col]
+            c = SkyCoord(ra=sim_data[self.ra_col] * u.rad, dec=sim_data[self.dec_col] * u.rad).transform_to(
+                "galactic"
             )
+        sim_data["gall"] = c.l.rad
+        sim_data["galb"] = c.b.rad
         return sim_data
 
 

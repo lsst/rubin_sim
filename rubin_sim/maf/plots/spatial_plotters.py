@@ -19,11 +19,13 @@ import matplotlib as mpl
 import matplotlib.cm as cm
 import matplotlib.pyplot as plt
 import numpy as np
+from astropy import units as u
+from astropy.coordinates import SkyCoord
 from matplotlib import colors, ticker
 from matplotlib.collections import PatchCollection
 from matplotlib.patches import Ellipse
 from matplotlib.ticker import FuncFormatter
-from rubin_scheduler.utils import _equatorial_from_galactic, _healbin
+from rubin_scheduler.utils import _healbin
 
 from rubin_sim.maf.utils import optimal_bins, percentile_clipping
 
@@ -176,6 +178,7 @@ class HealpixSkyMap(BasePlotter):
             )
             mask = np.zeros(metric_value.size)
             mask[np.where(metric_value == slicer.badval)] = 1
+            # XXX--hm, this looks broken
             metric_value = ma.array(metric_value, mask=mask)
             metric_value = apply_zp_norm(metric_value, plot_dict)
 
@@ -604,10 +607,14 @@ class BaseSkyMap(BasePlotter):
         gal_b2 = np.where(np.abs(gal_l) <= taper_length, -val, 0)
         # Convert to ra/dec.
         # Convert to lon/lat and plot.
-        ra, dec = _equatorial_from_galactic(gal_l, gal_b1)
+        c = SkyCoord(l=gal_l * u.rad, b=gal_b1 * u.rad, frame="galactic").transform_to("icrs")
+        ra = c.ra.rad
+        dec = c.dec.rad
         lon = -(ra - ra_cen - np.pi) % (np.pi * 2) - np.pi
         ax.plot(lon, dec, "b.", markersize=1.8, alpha=0.4)
-        ra, dec = _equatorial_from_galactic(gal_l, gal_b2)
+        c = SkyCoord(l=gal_l * u.rad, b=gal_b2 * u.rad, frame="galactic").transform_to("icrs")
+        ra = c.ra.rad
+        dec = c.dec.rad
         lon = -(ra - ra_cen - np.pi) % (np.pi * 2) - np.pi
         ax.plot(lon, dec, "b.", markersize=1.8, alpha=0.4)
 

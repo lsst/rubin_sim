@@ -3,8 +3,10 @@ import unittest
 import warnings
 
 import numpy as np
+from astropy import units as u
+from astropy.coordinates import SkyCoord
 from rubin_scheduler.data import get_data_dir
-from rubin_scheduler.utils import Site, _alt_az_pa_from_ra_dec, _galactic_from_equatorial, calc_lmst
+from rubin_scheduler.utils import Site, _alt_az_pa_from_ra_dec, calc_lmst
 
 import rubin_sim.maf.stackers as stackers
 from rubin_sim.maf import get_sim_data
@@ -410,7 +412,8 @@ class TestStackerClasses(unittest.TestCase):
         data["dec"] += dec
         s = stackers.GalacticStacker(ra_col="ra", dec_col="dec")
         new_data = s.run(data)
-        expected_l, expected_b = _galactic_from_equatorial(np.radians(ra), np.radians(dec))
+        c = SkyCoord(ra=ra * u.deg, dec=dec * u.deg).transform_to("galactic")
+        expected_l, expected_b = c.l.rad, c.b.rad
         np.testing.assert_array_equal(new_data["gall"], expected_l)
         np.testing.assert_array_equal(new_data["galb"], expected_b)
 

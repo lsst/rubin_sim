@@ -8,7 +8,8 @@ __all__ = ("HealpixSlicer",)
 
 import healpy as hp
 import numpy as np
-from rubin_scheduler.utils import _galactic_from_equatorial
+from astropy import units as u
+from astropy.coordinates import SkyCoord
 
 from rubin_sim.maf.plots.spatial_plotters import HealpixHistogram, HealpixSkyMap
 
@@ -138,7 +139,11 @@ class HealpixSlicer(BaseSpatialSlicer):
         self.slice_points["nside"] = nside
         self.slice_points["sid"] = np.arange(self.nslice)
         self.slice_points["ra"], self.slice_points["dec"] = self._pix2radec(self.slice_points["sid"])
-        gall, galb = _galactic_from_equatorial(self.slice_points["ra"], self.slice_points["dec"])
+        c = SkyCoord(ra=self.slice_points["ra"] * u.rad, dec=self.slice_points["dec"] * u.rad).transform_to(
+            "galactic"
+        )
+        gall, galb = c.l.rad, c.b.rad
+
         self.slice_points["gall"] = gall
         self.slice_points["galb"] = galb
 
