@@ -155,9 +155,6 @@ class SkyModelPre:
         npyfile : `str` (None)
             If sky brightness data not in npz file, checks the .npy file with same root name.
         """
-        del self.sb
-        del self.filter_names
-        del self.timestep_max
 
         if filename is None:
             # Figure out which file to load.
@@ -173,6 +170,23 @@ class SkyModelPre:
             filename = self.files[file_indx]
         else:
             self.loaded_range = None
+
+        # Use three separate try/excepet blocks so that if any of them throw
+        # exceptions, we still get the others.
+        try:
+            del self.sb
+        except AttributeError:
+            pass
+
+        try:
+            del self.filter_names
+        except AttributeError:
+            pass
+
+        try:
+            del self.timestep_max
+        except AttributeError:
+            pass
 
         if self.verbose:
             print("Loading file %s" % filename)
