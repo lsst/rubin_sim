@@ -4,7 +4,7 @@ import unittest
 import numpy as np
 from rubin_scheduler.utils.code_utilities import sims_clean_up
 
-from rubin_sim.data import get_data_dir
+from rubin_scheduler.data import get_data_dir
 from rubin_sim.phot_utils.bandpass import Bandpass
 from rubin_sim.phot_utils.sed import Sed
 

@@ -13,7 +13,7 @@ import unittest
 
 import numpy as np
 
-from rubin_sim.data import get_data_dir
+from rubin_scheduler.data import get_data_dir
 from rubin_sim.phot_utils import Bandpass, PhotometricParameters
 
 

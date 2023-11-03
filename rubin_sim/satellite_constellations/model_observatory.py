@@ -4,7 +4,7 @@ import numpy as np
 from rubin_scheduler.site_models import Almanac
 from rubin_scheduler.utils import _healbin, survey_start_mjd
 
-from rubin_sim.scheduler.model_observatory import ModelObservatory as OMO
+from rubin_scheduler.scheduler.model_observatory import ModelObservatory as OMO
 
 # Take the model observatory from the scheduler and subclass and expand to include satellite constellations
 

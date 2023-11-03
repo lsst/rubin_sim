@@ -9,7 +9,7 @@ import rubin_sim.maf.metrics as metrics
 import rubin_sim.maf.plots as plots
 import rubin_sim.maf.slicers as slicers
 import rubin_sim.maf.stackers as stackers
-from rubin_sim.scheduler.utils import EuclidOverlapFootprint
+from rubin_scheduler.scheduler.utils import EuclidOverlapFootprint
 
 from .col_map_dict import col_map_dict
 from .common import standard_summary
