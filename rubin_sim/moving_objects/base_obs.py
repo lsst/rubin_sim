@@ -4,9 +4,9 @@ import os
 import warnings
 
 import numpy as np
+from rubin_scheduler.data import get_data_dir
 from rubin_scheduler.utils import LsstCameraFootprint, angular_separation
 
-from rubin_sim.data import get_data_dir
 from rubin_sim.phot_utils import Bandpass, Sed
 
 from .ooephemerides import PyOrbEphemerides

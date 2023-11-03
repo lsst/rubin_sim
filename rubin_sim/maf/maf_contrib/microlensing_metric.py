@@ -13,11 +13,11 @@ import os
 from copy import deepcopy
 
 import numpy as np
+from rubin_scheduler.data import get_data_dir
 from rubin_scheduler.utils import equatorial_from_galactic, hpid2_ra_dec
 
 import rubin_sim.maf.metrics as metrics
 import rubin_sim.maf.slicers as slicers
-from rubin_sim.data import get_data_dir
 from rubin_sim.maf.utils import m52snr
 
 

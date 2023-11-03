@@ -6,7 +6,6 @@ import pandas as pd
 
 import rubin_sim.scheduler.basis_functions as basis_functions
 import rubin_sim.scheduler.surveys as surveys
-from rubin_sim.data import get_data_dir
 from rubin_sim.scheduler.model_observatory import ModelObservatory
 from rubin_sim.scheduler.schedulers import CoreScheduler
 from rubin_sim.scheduler.utils import generate_all_sky
@@ -28,9 +27,7 @@ class TestCoreSched(unittest.TestCase):
         survey = surveys.GreedySurvey(bfs, weights)
         scheduler = CoreScheduler([survey])
 
-        observatory = ModelObservatory(
-            seeing_db=os.path.join(get_data_dir(), "tests", "seeing.db"),
-        )
+        observatory = ModelObservatory()
 
         # Check that we can update conditions
         scheduler.update_conditions(observatory.return_conditions())

@@ -3,11 +3,11 @@ __all__ = ("ScriptedSurvey", "PairsSurveyScripted")
 import logging
 
 import numpy as np
+from rubin_scheduler.utils import _approx_ra_dec2_alt_az, ra_dec2_hpid
 
 import rubin_sim.scheduler.features as features
 from rubin_sim.scheduler.surveys import BaseSurvey
 from rubin_sim.scheduler.utils import empty_observation, set_default_nside
-from rubin_sim.utils import _approx_ra_dec2_alt_az, ra_dec2_hpid
 
 log = logging.getLogger(__name__)
 

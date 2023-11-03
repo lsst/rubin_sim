@@ -5,10 +5,10 @@ from copy import copy, deepcopy
 
 import numpy as np
 import pandas as pd
+from rubin_scheduler.utils import Site, _approx_ra_dec2_alt_az
 
 from rubin_sim.scheduler.surveys import BaseSurvey
 from rubin_sim.scheduler.utils import scheduled_observation
-from rubin_sim.utils import Site, _approx_ra_dec2_alt_az
 
 log = logging.getLogger(__name__)
 

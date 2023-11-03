@@ -6,6 +6,7 @@ from copy import copy
 import healpy as hp
 import matplotlib.pylab as plt
 import numpy as np
+from rubin_scheduler.utils import _angular_separation, _approx_ra_dec2_alt_az, _hpid2_ra_dec, hp_grow_argsort
 
 from rubin_sim.scheduler.surveys import BaseMarkovSurvey
 from rubin_sim.scheduler.utils import (
@@ -16,7 +17,6 @@ from rubin_sim.scheduler.utils import (
     set_default_nside,
     tsp_convex,
 )
-from rubin_sim.utils import _angular_separation, _approx_ra_dec2_alt_az, _hpid2_ra_dec, hp_grow_argsort
 
 
 class GreedySurvey(BaseMarkovSurvey):

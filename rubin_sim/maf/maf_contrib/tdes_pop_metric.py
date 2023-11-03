@@ -4,11 +4,11 @@ import glob
 import os
 
 import numpy as np
+from rubin_scheduler.data import get_data_dir
 from rubin_scheduler.utils import survey_start_mjd, uniform_sphere
 
 import rubin_sim.maf.metrics as metrics
 import rubin_sim.maf.slicers as slicers
-from rubin_sim.data import get_data_dir
 from rubin_sim.phot_utils import DustValues
 
 

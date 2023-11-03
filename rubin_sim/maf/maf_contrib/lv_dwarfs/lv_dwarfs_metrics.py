@@ -12,8 +12,8 @@ import healpy as hp
 import numpy as np
 from astropy.coordinates import SkyCoord
 from astropy.io import ascii, fits
+from rubin_scheduler.data import get_data_dir
 
-from rubin_sim.data import get_data_dir
 from rubin_sim.maf.maf_contrib.lss_obs_strategy import GalaxyCountsMetricExtended
 from rubin_sim.maf.metrics import BaseMetric, ExgalM5, StarDensityMetric
 from rubin_sim.maf.slicers import UserPointsSlicer

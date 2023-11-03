@@ -12,9 +12,8 @@ __all__ = (
 )
 
 import numpy as np
+from rubin_scheduler.utils import _angular_separation
 from scipy.optimize import minimize
-
-from rubin_sim.utils import _angular_separation
 
 
 def thetaphi2xyz(theta, phi):

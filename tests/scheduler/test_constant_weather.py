@@ -1,8 +1,8 @@
 import unittest
 
 import numpy as np
+import rubin_scheduler.site_models as site_models
 
-import rubin_sim.site_models
 from rubin_sim.scheduler.model_observatory import ModelObservatory
 
 
@@ -13,9 +13,9 @@ class TestConstantWeather(unittest.TestCase):
         test_wind_speed = 10.0
         test_wind_direction = np.radians(30.0)
 
-        seeing_data = rubin_sim.site_models.ConstantSeeingData(test_seeing)
-        cloud_data = rubin_sim.site_models.ConstantCloudData(test_clouds)
-        wind_data = rubin_sim.site_models.ConstantWindData(
+        seeing_data = site_models.ConstantSeeingData(test_seeing)
+        cloud_data = site_models.ConstantCloudData(test_clouds)
+        wind_data = site_models.ConstantWindData(
             wind_speed=test_wind_speed,
             wind_direction=test_wind_direction,
         )

@@ -4,14 +4,15 @@ import shutil
 import tempfile
 import unittest
 
+from rubin_scheduler.data import get_data_dir
+from rubin_scheduler.utils.code_utilities import sims_clean_up
+
 import rubin_sim.maf.db as db
 import rubin_sim.maf.maps as maps
 import rubin_sim.maf.metric_bundles as metric_bundles
 import rubin_sim.maf.metrics as metrics
 import rubin_sim.maf.slicers as slicers
 import rubin_sim.maf.stackers as stackers
-from rubin_sim.data import get_data_dir
-from rubin_scheduler.utils.code_utilities import sims_clean_up
 
 
 class TestMetricBundle(unittest.TestCase):

@@ -14,9 +14,8 @@ import numpy as np
 import pandas as pd
 from astropy.cosmology import FlatLambdaCDM
 from astropy.table import Table
+from rubin_scheduler.data import get_data_dir
 from scipy.interpolate import RegularGridInterpolator
-
-from rubin_sim.data import get_data_dir
 
 warnings.filterwarnings("ignore", category=RuntimeWarning)
 

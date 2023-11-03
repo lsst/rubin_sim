@@ -6,12 +6,12 @@ import random
 from functools import cached_property
 
 import numpy as np
+from rubin_scheduler.utils import ddf_locations, ra_dec2_hpid
 
 import rubin_sim.scheduler.basis_functions as basis_functions
 from rubin_sim.scheduler import features
 from rubin_sim.scheduler.surveys import BaseSurvey
 from rubin_sim.scheduler.utils import empty_observation
-from rubin_sim.utils import ddf_locations, ra_dec2_hpid
 
 log = logging.getLogger(__name__)
 

@@ -23,12 +23,12 @@ __all__ = (
 
 import healpy as hp
 import numpy as np
+from rubin_scheduler.skybrightness_pre import dark_sky
 from rubin_scheduler.utils import _hpid2_ra_dec, calc_season, m5_flat_sed, ra_dec2_hpid
 from scipy.stats import binned_statistic
 
 from rubin_sim.scheduler import utils
 from rubin_sim.scheduler.utils import IntRounded
-from rubin_sim.skybrightness_pre import dark_sky
 
 
 class BaseFeature:

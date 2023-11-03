@@ -2,13 +2,13 @@ import os
 import unittest
 
 import numpy as np
+from rubin_scheduler.data import get_data_dir
+from rubin_scheduler.utils import survey_start_mjd
 
-from rubin_sim.data import get_data_dir
 from rubin_sim.scheduler import sim_runner
 from rubin_sim.scheduler.example import example_scheduler
 from rubin_sim.scheduler.model_observatory import ModelObservatory
 from rubin_sim.scheduler.utils import restore_scheduler, run_info_table, season_calc
-from rubin_sim.utils import survey_start_mjd
 
 
 class TestUtils(unittest.TestCase):
@@ -155,11 +155,7 @@ class TestUtils(unittest.TestCase):
 
     def test_run_info_table(self):
         """Test run_info_table gets information"""
-        observatory = ModelObservatory(
-            nside=8,
-            mjd_start=survey_start_mjd(),
-            seeing_db=os.path.join(get_data_dir(), "tests", "seeing.db"),
-        )
+        observatory = ModelObservatory(nside=8, mjd_start=survey_start_mjd())
         version_info = run_info_table(observatory)
         # Make a minimal set of keys that ought to be in the info table
         # Update these if the value they're stored as changes

@@ -4,13 +4,13 @@ import tempfile
 import unittest
 
 import numpy as np
+from rubin_scheduler.data import get_data_dir
+from rubin_scheduler.utils.code_utilities import sims_clean_up
 
 import rubin_sim.maf.batches as batches
 import rubin_sim.maf.db as db
 import rubin_sim.maf.metric_bundles as metric_bundles
-from rubin_sim.data import get_data_dir
 from rubin_sim.maf.slicers import MoObjSlicer
-from rubin_scheduler.utils.code_utilities import sims_clean_up
 
 
 class TestBatches(unittest.TestCase):

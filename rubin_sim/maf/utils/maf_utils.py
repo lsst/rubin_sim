@@ -11,10 +11,10 @@ import warnings
 
 import healpy as hp
 import numpy as np
+from rubin_scheduler.data import get_data_dir
 from rubin_scheduler.utils import SysEngVals, int_binned_stat
 from scipy.stats import binned_statistic
 
-from rubin_sim.data import get_data_dir
 from rubin_sim.phot_utils import Bandpass, PhotometricParameters
 
 

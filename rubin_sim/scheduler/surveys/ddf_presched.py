@@ -4,10 +4,10 @@ import os
 import warnings
 
 import numpy as np
+from rubin_scheduler.data import get_data_dir
+from rubin_scheduler.utils import calc_season, ddf_locations, survey_start_mjd
 
-from rubin_sim.data import get_data_dir
 from rubin_sim.scheduler.utils import scheduled_observation
-from rubin_sim.utils import calc_season, ddf_locations, survey_start_mjd
 
 
 def ddf_slopes(ddf_name, raw_obs, night_season):

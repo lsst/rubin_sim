@@ -12,6 +12,8 @@ from astropy.coordinates import SkyCoord
 
 # So things don't fail on hyak
 from astropy.utils import iers
+from rubin_scheduler.site_models import Almanac
+from rubin_scheduler.utils import _hpid2_ra_dec, survey_start_mjd
 
 import rubin_sim
 import rubin_sim.scheduler.basis_functions as bf
@@ -27,8 +29,6 @@ from rubin_sim.scheduler.surveys import (
     generate_ddf_scheduled_obs,
 )
 from rubin_sim.scheduler.utils import ConstantFootprint, EuclidOverlapFootprint, make_rolling_footprints
-from rubin_sim.site_models import Almanac
-from rubin_sim.utils import _hpid2_ra_dec, survey_start_mjd
 
 iers.conf.auto_download = False
 

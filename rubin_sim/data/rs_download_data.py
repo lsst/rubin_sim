@@ -2,7 +2,7 @@ __all__ = ("data_dict", "rs_download_data")
 
 import argparse
 
-from rubin_scheduler.data import download_rubin_data, DEFAULT_DATA_URL
+from rubin_scheduler.data import DEFAULT_DATA_URL, download_rubin_data
 
 
 def data_dict():
@@ -84,7 +84,7 @@ def rs_download_data():
 
     # delete orbit_precompute if not wanted.
     if not args.orbits:
-        del files['orbits_precompute']
+        del files["orbits_precompute"]
 
     download_rubin_data(
         files,

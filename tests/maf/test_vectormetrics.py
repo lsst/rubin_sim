@@ -2,11 +2,11 @@ import os
 import unittest
 
 import numpy as np
+from rubin_scheduler.data import get_data_dir
 
 import rubin_sim.maf.metric_bundles as metricBundle
 import rubin_sim.maf.metrics as metrics
 import rubin_sim.maf.slicers as slicers
-from rubin_sim.data import get_data_dir
 
 
 class Test2D(unittest.TestCase):

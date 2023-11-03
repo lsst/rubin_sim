@@ -6,6 +6,7 @@ from functools import cached_property
 import healpy as hp
 import numpy as np
 import pandas as pd
+from rubin_scheduler.site_models import _read_fields
 
 from rubin_sim.scheduler.basis_functions.mask_basis_funcs import ZenithShadowMaskBasisFunction
 from rubin_sim.scheduler.detailers import ZeroRotDetailer
@@ -17,7 +18,6 @@ from rubin_sim.scheduler.utils import (
     empty_observation,
     set_default_nside,
 )
-from rubin_sim.site_models import _read_fields
 
 
 class BaseSurvey:

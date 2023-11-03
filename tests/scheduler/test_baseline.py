@@ -2,11 +2,11 @@ import os
 import unittest
 
 import numpy as np
+import rubin_scheduler.utils as utils
+from rubin_scheduler.data import get_data_dir
 
 import rubin_sim.scheduler.basis_functions as bf
 import rubin_sim.scheduler.detailers as detailers
-import rubin_sim.utils as utils
-from rubin_sim.data import get_data_dir
 from rubin_sim.scheduler import sim_runner
 from rubin_sim.scheduler.example import example_scheduler
 from rubin_sim.scheduler.model_observatory import ModelObservatory

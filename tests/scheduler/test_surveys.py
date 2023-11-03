@@ -1,4 +1,3 @@
-import os
 import unittest
 
 import healpy as hp
@@ -7,7 +6,6 @@ import pandas as pd
 
 import rubin_sim.scheduler.basis_functions as basis_functions
 import rubin_sim.scheduler.surveys as surveys
-from rubin_sim.data import get_data_dir
 from rubin_sim.scheduler.basis_functions import SimpleArrayBasisFunction
 from rubin_sim.scheduler.model_observatory import ModelObservatory
 from rubin_sim.scheduler.utils import set_default_nside
@@ -21,9 +19,7 @@ class TestSurveys(unittest.TestCase):
         bfs.append(basis_functions.M5DiffBasisFunction(nside=nside))
         survey = surveys.FieldSurvey(bfs, RA=90.0, dec=-30.0, reward_value=1)
 
-        observatory = ModelObservatory(
-            seeing_db=os.path.join(get_data_dir(), "tests", "seeing.db"),
-        )
+        observatory = ModelObservatory()
 
         # Check dunder methods
         self.assertIsInstance(repr(survey), str)

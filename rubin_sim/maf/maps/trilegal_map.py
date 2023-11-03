@@ -4,9 +4,8 @@ import os
 
 import healpy as hp
 import numpy as np
+from rubin_scheduler.data import get_data_dir
 from rubin_scheduler.utils import _build_tree, _equatorial_from_galactic, _hpid2_ra_dec, _xyz_from_ra_dec
-
-from rubin_sim.data import get_data_dir
 
 from . import BaseMap
 

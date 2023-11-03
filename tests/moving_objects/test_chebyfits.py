@@ -5,8 +5,8 @@ import unittest
 import warnings
 
 import numpy as np
+from rubin_scheduler.data import get_data_dir
 
-from rubin_sim.data import get_data_dir
 from rubin_sim.moving_objects import ChebyFits, Orbits
 
 ROOT = os.path.abspath(os.path.dirname(__file__))

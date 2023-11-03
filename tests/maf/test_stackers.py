@@ -3,17 +3,11 @@ import unittest
 import warnings
 
 import numpy as np
+from rubin_scheduler.data import get_data_dir
+from rubin_scheduler.utils import Site, _alt_az_pa_from_ra_dec, _galactic_from_equatorial, calc_lmst_last
 
 import rubin_sim.maf.stackers as stackers
-from rubin_sim.data import get_data_dir
 from rubin_sim.maf import get_sim_data
-from rubin_sim.utils import (
-    ObservationMetaData,
-    Site,
-    _alt_az_pa_from_ra_dec,
-    _galactic_from_equatorial,
-    calc_lmst_last,
-)
 
 
 class TestStackerClasses(unittest.TestCase):

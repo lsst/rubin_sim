@@ -14,11 +14,10 @@ import healpy as hp
 import numpy as np
 from astropy.coordinates import SkyCoord
 from numpy.lib import recfunctions as rfn
+from rubin_scheduler import data as rs_data
 from rubin_scheduler.utils import Site, _angular_separation, angular_separation
 from shapely.geometry import Point
 from shapely.geometry.polygon import Polygon
-
-from rubin_sim import data as rs_data
 
 from .footprints import ra_dec_hp_map
 from .utils import IntRounded, set_default_nside
