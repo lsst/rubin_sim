@@ -1,8 +1,10 @@
-import os
+import matplotlib
+
+matplotlib.use("Agg")
+
 import unittest
 
 import numpy as np
-from rubin_scheduler.data import get_data_dir
 
 import rubin_sim.maf.metric_bundles as metricBundle
 import rubin_sim.maf.metrics as metrics
@@ -50,7 +52,6 @@ class Test2D(unittest.TestCase):
         self.field_data["fieldDec"] = np.radians([0.0, -20.0])
 
         self.sim_data["observationStartMJD"] = self.sim_data["night"]
-        self.camera_footprint_file = os.path.join(get_data_dir(), "tests", "fov_map.npz")
 
     def test_user_points2d_slicer(self):
         metric = metrics.AccumulateCountMetric(bins=[0.5, 1.5, 2.5])
@@ -58,7 +59,6 @@ class Test2D(unittest.TestCase):
             ra=np.degrees(self.field_data["fieldRA"]),
             dec=np.degrees(self.field_data["fieldDec"]),
             lat_lon_deg=True,
-            camera_footprint_file=self.camera_footprint_file,
         )
         sql = ""
         mb = metricBundle.MetricBundle(metric, slicer, sql)
@@ -73,7 +73,7 @@ class Test2D(unittest.TestCase):
 
     def test_healpix2d_slicer(self):
         metric = metrics.AccumulateCountMetric(bins=[0.5, 1.5, 2.5])
-        slicer = slicers.HealpixSlicer(nside=16, camera_footprint_file=self.camera_footprint_file)
+        slicer = slicers.HealpixSlicer(nside=16)
         sql = ""
         mb = metricBundle.MetricBundle(metric, slicer, sql)
         # Clobber the stacker that gets auto-added
@@ -88,7 +88,7 @@ class Test2D(unittest.TestCase):
 
     def test_histogram_metric(self):
         metric = metrics.HistogramMetric(bins=[0.5, 1.5, 2.5])
-        slicer = slicers.HealpixSlicer(nside=16, camera_footprint_file=self.camera_footprint_file)
+        slicer = slicers.HealpixSlicer(nside=16)
         sql = ""
         mb = metricBundle.MetricBundle(metric, slicer, sql)
         # Clobber the stacker that gets auto-added
@@ -114,7 +114,7 @@ class Test2D(unittest.TestCase):
 
     def test_accumulate_metric(self):
         metric = metrics.AccumulateMetric(col="fiveSigmaDepth", bins=[0.5, 1.5, 2.5])
-        slicer = slicers.HealpixSlicer(nside=16, camera_footprint_file=self.camera_footprint_file)
+        slicer = slicers.HealpixSlicer(nside=16)
         sql = ""
         mb = metricBundle.MetricBundle(metric, slicer, sql)
         # Clobber the stacker that gets auto-added
@@ -128,7 +128,7 @@ class Test2D(unittest.TestCase):
 
     def test_histogram_m5_metric(self):
         metric = metrics.HistogramM5Metric(bins=[0.5, 1.5, 2.5])
-        slicer = slicers.HealpixSlicer(nside=16, camera_footprint_file=self.camera_footprint_file)
+        slicer = slicers.HealpixSlicer(nside=16)
         sql = ""
         mb = metricBundle.MetricBundle(metric, slicer, sql)
         # Clobber the stacker that gets auto-added
@@ -151,7 +151,7 @@ class Test2D(unittest.TestCase):
 
     def test_accumulate_m5_metric(self):
         metric = metrics.AccumulateM5Metric(bins=[0.5, 1.5, 2.5])
-        slicer = slicers.HealpixSlicer(nside=16, camera_footprint_file=self.camera_footprint_file)
+        slicer = slicers.HealpixSlicer(nside=16)
         sql = ""
         mb = metricBundle.MetricBundle(metric, slicer, sql)
         # Clobber the stacker that gets auto-added
@@ -203,7 +203,7 @@ class Test2D(unittest.TestCase):
         """
         bundle_list = []
         metric = metrics.AccumulateM5Metric(bins=[0.5, 1.5, 2.5])
-        slicer = slicers.HealpixSlicer(nside=16, camera_footprint_file=self.camera_footprint_file)
+        slicer = slicers.HealpixSlicer(nside=16)
         sql = ""
         bundle_list.append(metricBundle.MetricBundle(metric, slicer, sql))
         metric = metrics.Coaddm5Metric()

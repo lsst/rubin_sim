@@ -77,7 +77,6 @@ def calc_dist_vincenty(ra1, dec1, ra2, dec2):
 
 class TestHealpixSubsetSlicerSetup(unittest.TestCase):
     def setUp(self):
-        self.camera_footprint_file = os.path.join(get_data_dir(), "tests", "fov_map.npz")
         self.nside = 16
         idxs = np.arange(0, hp.nside2npix(self.nside))
         self.idxs = idxs[np.where(idxs < idxs.max() / 2)]
@@ -88,7 +87,6 @@ class TestHealpixSubsetSlicerSetup(unittest.TestCase):
             nside=self.nside,
             hpid=self.idxs,
             verbose=False,
-            camera_footprint_file=self.camera_footprint_file,
         )
         self.assertEqual(testslicer.slicer_name, testslicer.__class__.__name__)
         self.assertEqual(testslicer.slicer_name, "HealpixSubsetSlicer")
@@ -96,7 +94,6 @@ class TestHealpixSubsetSlicerSetup(unittest.TestCase):
 
 class TestHealpixSlicerEqual(unittest.TestCase):
     def setUp(self):
-        self.camera_footprint_file = os.path.join(get_data_dir(), "tests", "fov_map.npz")
         self.nside = 16
         self.testslicer = HealpixSubsetSlicer(
             nside=self.nside,
@@ -104,7 +101,6 @@ class TestHealpixSlicerEqual(unittest.TestCase):
             verbose=False,
             lon_col="ra",
             lat_col="dec",
-            camera_footprint_file=self.camera_footprint_file,
         )
         nvalues = 10000
         self.dv = make_data_values(
@@ -136,7 +132,6 @@ class TestHealpixSlicerEqual(unittest.TestCase):
             verbose=False,
             lon_col="ra",
             lat_col="dec",
-            camera_footprint_file=self.camera_footprint_file,
         )
         self.assertEqual(self.testslicer, testslicer2)
         assert (self.testslicer != testslicer2) is False
@@ -146,7 +141,6 @@ class TestHealpixSlicerEqual(unittest.TestCase):
             verbose=False,
             lon_col="ra",
             lat_col="dec",
-            camera_footprint_file=self.camera_footprint_file,
         )
         self.assertNotEqual(self.testslicer, testslicer2)
         assert (self.testslicer != testslicer2) is True
@@ -154,7 +148,6 @@ class TestHealpixSlicerEqual(unittest.TestCase):
 
 class TestHealpixSlicerIteration(unittest.TestCase):
     def setUp(self):
-        self.camera_footprint_file = os.path.join(get_data_dir(), "tests", "fov_map.npz")
         self.nside = 8
         self.hpid = np.arange(10, 20)
         self.testslicer = HealpixSubsetSlicer(
@@ -163,7 +156,6 @@ class TestHealpixSlicerIteration(unittest.TestCase):
             verbose=False,
             lon_col="ra",
             lat_col="dec",
-            camera_footprint_file=self.camera_footprint_file,
         )
         nvalues = 10000
         self.dv = make_data_values(
@@ -209,7 +201,6 @@ class TestHealpixSlicerSlicing(unittest.TestCase):
     # as slicing is done there for healpix grid
 
     def setUp(self):
-        self.camera_footprint_file = os.path.join(get_data_dir(), "tests", "fov_map.npz")
         self.nside = 8
         self.radius = 1.8
         self.testslicer = HealpixSubsetSlicer(

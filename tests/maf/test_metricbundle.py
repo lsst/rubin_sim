@@ -22,14 +22,13 @@ class TestMetricBundle(unittest.TestCase):
 
     def setUp(self):
         self.out_dir = tempfile.mkdtemp(prefix="TMB")
-        self.camera_footprint_file = os.path.join(get_data_dir(), "tests", "fov_map.npz")
 
     def test_out(self):
         """
         Check that the metric bundle can generate the expected output
         """
         nside = 8
-        slicer = slicers.HealpixSlicer(nside=nside, camera_footprint_file=self.camera_footprint_file)
+        slicer = slicers.HealpixSlicer(nside=nside)
         metric = metrics.MeanMetric(col="airmass")
         sql = 'filter="r"'
         stacker1 = stackers.HourAngleStacker()

@@ -2,7 +2,6 @@ __all__ = ("SatelliteAvoidBasisFunction",)
 
 import healpy as hp
 import numpy as np
-
 import rubin_scheduler.scheduler.basis_functions as bf
 
 

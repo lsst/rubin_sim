@@ -6,8 +6,8 @@ import unittest
 import warnings
 
 import numpy as np
-
 from rubin_scheduler.data import get_data_dir
+
 from rubin_sim.phot_utils import Bandpass, PhotometricParameters, Sed
 
 ROOT = os.path.abspath(os.path.dirname(__file__))

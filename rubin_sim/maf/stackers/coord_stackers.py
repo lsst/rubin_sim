@@ -4,7 +4,7 @@ import numpy as np
 from astropy import units as u
 from astropy.coordinates import SkyCoord, get_sun
 from astropy.time import Time
-from rubin_scheduler.utils import _galactic_from_equatorial, calc_lmst_last
+from rubin_scheduler.utils import _galactic_from_equatorial, calc_lmst
 
 from .base_stacker import BaseStacker
 from .dither_stackers import wrap_ra
@@ -37,7 +37,7 @@ def ra_dec2_alt_az(ra, dec, lat, lon, mjd, altonly=False):
     az : numpy.array
         Azimuth, same length as `ra` and `dec`. Radians.
     """
-    lmst, last = calc_lmst_last(mjd, lon)
+    lmst = calc_lmst(mjd, lon)
     lmst = lmst / 12.0 * np.pi  # convert to rad
     ha = lmst - ra
     sindec = np.sin(dec)

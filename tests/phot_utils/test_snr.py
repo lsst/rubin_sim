@@ -2,9 +2,9 @@ import os
 import unittest
 
 import numpy as np
+from rubin_scheduler.data import get_data_dir
 
 import rubin_sim.phot_utils.signaltonoise as snr
-from rubin_scheduler.data import get_data_dir
 from rubin_sim.phot_utils import Bandpass, LSSTdefaults, PhotometricParameters, Sed
 from rubin_sim.phot_utils.utils import set_m5
 
