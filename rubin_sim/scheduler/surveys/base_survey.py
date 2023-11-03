@@ -234,28 +234,25 @@ class BaseSurvey:
         return repr
 
     def _reward_to_scalars(self, reward):
-        try:
-            pix_area = hp.nside2pixarea(self.nside, degrees=True)
-        except AttributeError:
-            pix_area = None
-
-        if np.isscalar(reward):
-            if np.isnan(reward) or reward == -np.inf:
-                unmasked_area = 0
-            else:
-                unmasked_area = pix_area * hp.nside2npix(self.nside)
-        else:
-            unmasked_area = pix_area * np.count_nonzero(reward > -np.inf)
-
         if np.isscalar(reward):
             scalar_reward = reward
-        elif unmasked_area == 0:
-            scalar_reward = -np.inf
+            if np.isnan(reward) or reward == -np.inf:
+                unmasked_area = 0
+                scalar_reward = -np.inf
+            else:
+                try:
+                    pix_area = hp.nside2pixarea(self.nside, degrees=True)
+                    unmasked_area = pix_area * np.count_nonzero(self.roi_mask)
+                except AttributeError:
+                    unmasked_area = 4 * np.pi * (180 / np.pi) ** 2
         else:
-            scalar_reward = np.nanmax(reward)
-
-        if np.isnan(scalar_reward):
-            scalar_reward = -np.inf
+            reward_in_roi = np.where(self.roi_mask, reward, -np.inf)
+            pix_area = hp.nside2pixarea(self.nside, degrees=True)
+            unmasked_area = pix_area * np.count_nonzero(reward_in_roi > -np.inf)
+            if unmasked_area == 0:
+                scalar_reward = -np.inf
+            else:
+                scalar_reward = np.nanmax(reward_in_roi)
 
         return scalar_reward, unmasked_area
 
@@ -293,18 +290,13 @@ class BaseSurvey:
 
         short_labels = self.bf_short_labels
 
-        _, scalar_area = self._reward_to_scalars(np.where(self.roi_mask, 1, -np.inf))
+        _, scalar_area = self._reward_to_scalars(1)
 
         for weight, basis_function in zip(full_basis_weights, self.basis_functions):
             bf_label.append(short_labels[basis_function.label()])
             bf_class.append(basis_function.__class__.__name__)
             bf_reward = basis_function(conditions)
-            if np.isscalar(bf_reward):
-                max_reward = bf_reward
-                basis_area = scalar_area
-            else:
-                bf_reward[~self.roi_mask] = -np.inf
-                max_reward, basis_area = self._reward_to_scalars(bf_reward)
+            max_reward, basis_area = self._reward_to_scalars(bf_reward)
 
             if basis_area == 0:
                 this_feasibility = False
@@ -322,8 +314,6 @@ class BaseSurvey:
                 test_survey.basis_functions = basis_functions
                 test_survey.basis_weights = basis_weights
                 this_accum_reward = test_survey.calc_reward_function(conditions)
-                if not np.isscalar(this_accum_reward):
-                    this_accum_reward[~self.roi_mask] = -np.inf
                 accum_reward, accum_area = self._reward_to_scalars(this_accum_reward)
                 accum_rewards.append(accum_reward)
                 accum_areas.append(accum_area)
