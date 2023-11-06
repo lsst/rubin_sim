@@ -67,13 +67,6 @@ def rs_download_data():
         help="Root URL of download location",
     )
     parser.add_argument(
-        "--orbits_pre",
-        dest="orbits",
-        default=False,
-        action="store_true",
-        help="Include pre-computed orbit files.",
-    )
-    parser.add_argument(
         "--tdqm_disable",
         dest="tdqm_disable",
         default=False,
@@ -81,10 +74,6 @@ def rs_download_data():
         help="Turn off tdqm progress bar",
     )
     args = parser.parse_args()
-
-    # delete orbit_precompute if not wanted.
-    if not args.orbits:
-        del files["orbits_precompute"]
 
     download_rubin_data(
         files,
