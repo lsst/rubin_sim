@@ -77,6 +77,7 @@ class TestSurveys(unittest.TestCase):
         # Make sure it still works as expected if no ROI is set
         weights = [1] * num_bfs
         survey = surveys.BaseMarkovSurvey(bfs, weights)
+        reward_df = survey.make_reward_df(conditions)
         for value, max_basis_reward in zip(bf_values.max(axis=1), reward_df["max_basis_reward"]):
             self.assertEqual(max_basis_reward, value)
 
