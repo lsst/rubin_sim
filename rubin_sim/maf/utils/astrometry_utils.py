@@ -51,7 +51,7 @@ def m52snr(m, m5, gamma=0.04):
         astrometric errors and weighting SNR accordingly.
         See equation 5 of the LSST Overview paper.
         Use "None" to discount the gamma factor completely
-        and just use 10^^(0.4 * (m-m5)).
+        and use standard 5*10^(0.4 * (m5-m)).
 
     Returns
     -------
@@ -59,10 +59,11 @@ def m52snr(m, m5, gamma=0.04):
         The SNR
     """
     # gamma varies per band, but is fairly close to 0.04
-    xval = np.power(10, 0.4 * (m - m5))
+
     if gamma is None:
-        snr = xval
+        snr = 5.0 * 10.0 ** (-0.4 * (m - m5))
     else:
+        xval = np.power(10, 0.4 * (m - m5))
         snr = 1 / np.sqrt((0.04 - gamma) * xval + gamma * xval * xval)
     return snr
 
