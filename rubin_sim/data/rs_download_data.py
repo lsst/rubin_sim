@@ -1,8 +1,14 @@
-__all__ = ("data_dict", "rs_download_data")
+__all__ = ("data_dict", "rs_download_data", "get_data_dir")
 
 import argparse
 
 from rubin_scheduler.data import DEFAULT_DATA_URL, download_rubin_data
+from rubin_scheduler.data import get_data_dir as gdd
+
+
+def get_data_dir():
+    """For backwards compatibility since this got moved over to the scheduler."""
+    return gdd()
 
 
 def data_dict():
