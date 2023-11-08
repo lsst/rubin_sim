@@ -5,7 +5,7 @@ import numpy as np
 from rubin_scheduler.data import get_data_dir
 
 import rubin_sim.phot_utils.signaltonoise as snr
-from rubin_sim.phot_utils import Bandpass, LSSTdefaults, PhotometricParameters, Sed
+from rubin_sim.phot_utils import Bandpass, PhotometricParameters, Sed
 from rubin_sim.phot_utils.utils import set_m5
 
 
@@ -58,12 +58,20 @@ class TestSNRmethods(unittest.TestCase):
 
         self.filter_name_list = ["u", "g", "r", "i", "z", "y"]
 
+        self.seeing_defaults = {
+            "u": 0.92,
+            "g": 0.87,
+            "r": 0.83,
+            "i": 0.80,
+            "z": 0.78,
+            "y": 0.76,
+        }
+
     def test_mag_error(self):
         """
         Make sure that calc_mag_error_sed and calc_mag_error_m5
         agree to within 0.001
         """
-        defaults = LSSTdefaults()
         phot_params = PhotometricParameters()
 
         # create a cartoon spectrum to test on
@@ -84,7 +92,7 @@ class TestSNRmethods(unittest.TestCase):
             for total, hardware, filterName, mm in zip(
                 self.bp_list, self.hardware_list, self.filter_name_list, mag_list
             ):
-                fwhm_eff = defaults.fwhm_eff(filterName)
+                fwhm_eff = self.seeing_defaults[filterName]
 
                 m5 = snr.calc_m5(self.sky_sed, total, hardware, phot_params, fwhm_eff=fwhm_eff)
 
@@ -127,7 +135,6 @@ class TestSNRmethods(unittest.TestCase):
         """
         Test that calc_snr_m5 and calc_snr_sed give similar results
         """
-        defaults = LSSTdefaults()
         phot_params = PhotometricParameters()
 
         m5 = []
@@ -138,7 +145,7 @@ class TestSNRmethods(unittest.TestCase):
                     self.bp_list[i],
                     self.hardware_list[i],
                     phot_params,
-                    fwhm_eff=defaults.fwhm_eff(self.filter_name_list[i]),
+                    fwhm_eff=self.seeing_defaults[self.filter_name_list[i]],
                 )
             )
 
@@ -163,7 +170,7 @@ class TestSNRmethods(unittest.TestCase):
                     self.sky_sed,
                     self.hardware_list[i],
                     phot_params,
-                    defaults.fwhm_eff(self.filter_name_list[i]),
+                    self.seeing_defaults[self.filter_name_list[i]],
                 )
 
                 mag = spectrum.calc_mag(self.bp_list[i])
@@ -199,7 +206,7 @@ class TestSNRmethods(unittest.TestCase):
                 sky_dummy,
                 bp,
                 hardware,
-                fwhm_eff=LSSTdefaults().fwhm_eff(filterName),
+                fwhm_eff=self.seeing_defaults[filterName],
                 phot_params=phot_params,
             )
 
@@ -210,7 +217,7 @@ class TestSNRmethods(unittest.TestCase):
                 bp,
                 normalized_sky_dummy,
                 hardware,
-                fwhm_eff=LSSTdefaults().fwhm_eff(filterName),
+                fwhm_eff=self.seeing_defaults[filterName],
                 phot_params=PhotometricParameters(),
             )
 
@@ -257,7 +264,7 @@ class TestSNRmethods(unittest.TestCase):
                 sky_dummy,
                 bp,
                 hardware,
-                fwhm_eff=LSSTdefaults().fwhm_eff(filterName),
+                fwhm_eff=self.seeing_defaults[filterName],
                 phot_params=phot_params,
             )
 
@@ -268,7 +275,7 @@ class TestSNRmethods(unittest.TestCase):
                 bp,
                 normalized_sky_dummy,
                 hardware,
-                fwhm_eff=LSSTdefaults().fwhm_eff(filterName),
+                fwhm_eff=self.seeing_defaults[filterName],
                 phot_params=PhotometricParameters(),
             )
 
