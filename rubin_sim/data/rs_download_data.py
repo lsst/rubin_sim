@@ -84,7 +84,7 @@ def rs_download_data():
     download_rubin_data(
         files,
         dirs=args.dirs,
-        versions=args.versions,
+        print_versions_only=args.versions,
         force=args.force,
         url_base=args.url_base,
         tdqm_disable=args.tdqm_disable,
