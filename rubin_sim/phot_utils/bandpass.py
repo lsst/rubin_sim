@@ -20,7 +20,7 @@
 # see <http://www.lsstcorp.org/LegalNotices/>.
 #
 
-__all__ = ("Bandpass",)
+__all__ = ("Bandpass", "rubin_bandpasses")
 
 import gzip
 import os
@@ -29,8 +29,22 @@ import warnings
 import numpy as np
 import scipy.interpolate as interpolate
 
+from rubin_sim.data import get_data_dir
+
 from .physical_parameters import PhysicalParameters
 from .sed import Sed
+
+
+def rubin_bandpasses():
+    """Return the standard expected Rubin filter bandpasses."""
+    filterlist = ["u", "g", "r", "i", "z", "y"]
+    dd = get_data_dir()
+
+    filter_dict = {}
+    for f in filterlist:
+        filter_dict[f] = Bandpass()
+        filter_dict[f].read_throughput(os.path.join(dd, "throughputs", "baseline", f"total_{f}.dat"))
+    return filter_dict
 
 
 class Bandpass:
