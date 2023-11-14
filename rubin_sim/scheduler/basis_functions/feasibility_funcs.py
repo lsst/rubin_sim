@@ -294,7 +294,7 @@ class ForceDelayBasisFunction(BaseBasisFunction):
         super(ForceDelayBasisFunction, self).__init__()
         self.days_delay = days_delay
         self.survey_name = survey_name
-        self.survey_features["last_obs_self"] = features.Last_observation(survey_name=self.survey_name)
+        self.survey_features["last_obs_self"] = features.LastObservation(survey_name=self.survey_name)
 
     def check_feasibility(self, conditions):
         result = True
