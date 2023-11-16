@@ -19,6 +19,7 @@ import matplotlib as mpl
 import matplotlib.cm as cm
 import matplotlib.pyplot as plt
 import numpy as np
+import numpy.ma as ma
 from astropy import units as u
 from astropy.coordinates import SkyCoord
 from matplotlib import colors, ticker
@@ -178,7 +179,7 @@ class HealpixSkyMap(BasePlotter):
             )
             mask = np.zeros(metric_value.size)
             mask[np.where(metric_value == slicer.badval)] = 1
-            # XXX--hm, this looks broken
+
             metric_value = ma.array(metric_value, mask=mask)
             metric_value = apply_zp_norm(metric_value, plot_dict)
 

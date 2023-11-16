@@ -79,6 +79,14 @@ def rs_download_data():
         action="store_true",
         help="Turn off tdqm progress bar",
     )
+    parser.add_argument(
+        "--update",
+        dest="update",
+        default=False,
+        action="store_true",
+        help="Update versions of data on disk to match current",
+    )
+
     args = parser.parse_args()
 
     download_rubin_data(
@@ -88,4 +96,5 @@ def rs_download_data():
         force=args.force,
         url_base=args.url_base,
         tdqm_disable=args.tdqm_disable,
+        update=args.update,
     )
