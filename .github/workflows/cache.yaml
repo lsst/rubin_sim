@@ -29,6 +29,7 @@ jobs:
         id: rs-install
         shell: bash -l {0}
         run: |
+          mamba install --quiet rubin-scheduler
           mamba install --quiet rubin_sim           
           mamba list rubin-sim | grep -v "#" | awk '{print $2}' > ${{ github.workspace }}/rs_version
           echo "rs-version" `cat ${{ github.workspace }}/rs_version`
