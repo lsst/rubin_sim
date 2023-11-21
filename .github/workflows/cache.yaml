@@ -51,7 +51,8 @@ jobs:
         run: |
           export RUBIN_SIM_DATA_DIR=~/rubin_sim_data
           scheduler_download_data --tdqm_disable --update
-          rs_download_data --tdqm_disable --update
+          rs_download_data --tdqm_disable 
+          #--update
 
       - name: Check data
         shell: bash -l {0}
