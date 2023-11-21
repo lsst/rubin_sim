@@ -30,7 +30,7 @@ jobs:
         run: |
           mamba install --quiet --file=requirements.txt          
           mamba install --quiet pip
-          pip install "documenteer[guide]"
+          pip install "documenteer[pipelines]"
 
       - name: install rubin_sim
         shell: bash -l {0}
