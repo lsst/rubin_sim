@@ -41,26 +41,16 @@ jobs:
           cache-name: cached-rubin-sim-data
         with:
           path: ~/rubin_sim_data
-          key: ${{ env.cache-name }}-v${{ steps.rs-install.outputs.rs-version }}
+          key: ${{ env.cache-name }}
           restore-keys: |
-            ${{ env.cache-name }}-v
+            ${{ env.cache-name }}
 
-      - if: ${{ steps.cache-rs.outputs.cache-hit == 'true' }}
-        name: List cache contents.
+      - name: Download data.
         shell: bash -l {0}
         run: |
           export RUBIN_SIM_DATA_DIR=~/rubin_sim_data
-          echo $RUBIN_SIM_DATA_DIR contents
-          ls $RUBIN_SIM_DATA_DIR
-          echo "__contents of versions.txt__"
-          cat $RUBIN_SIM_DATA_DIR/versions.txt
-
-      - if: ${{ steps.cache-rs.outputs.cache-hit != 'true' }}
-        name: Download data.
-        shell: bash -l {0}
-        run: |
-          export RUBIN_SIM_DATA_DIR=~/rubin_sim_data       
-          rs_download_data --tdqm_disable
+          scheduler_download_data --tdqm_disable --update
+          rs_download_data --tdqm_disable --update
 
       - name: Check data
         shell: bash -l {0}

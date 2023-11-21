@@ -18,17 +18,18 @@ jobs:
       - uses: conda-incubator/setup-miniconda@v2
         with:
           auto-update-conda: true
-          python-version: "3.11"
-          channels: conda-forge
+          python-version: ${{ matrix.python-version }}
+          miniforge-variant: Mambaforge
+          channels: conda-forge,defaults
+          use-mamba: true
           channel-priority: strict
           show-channel-urls: true
 
-      - name: configure and install requirements and documenteer
+      - name: configure conda and install requirements
         shell: bash -l {0}
         run: |
-          conda config --set always_yes yes
-          conda install --quiet --file=requirements.txt
-          conda install --quiet pip
+          mamba install --quiet --file=requirements.txt          
+          mamba install --quiet pip
           pip install "documenteer[guide]"
 
       - name: install rubin_sim
@@ -36,13 +37,25 @@ jobs:
         run: |
           echo `pwd`
           ls ${{ github.workspace }}
-          python -m pip install .
+          python -m pip install . --no-deps
 
-      - name: download rubin_sim_data components needed to set up metrics for metricList
+      - name: Access rubin-sim-data cache
+        id: cache-rs
+        uses: actions/cache@v3
+        env:
+          cache-name: cached-rubin-sim-data
+        with:
+          path: ~/rubin_sim_data
+          key: ${{ env.cache-name }}
+          restore-keys: |
+            ${{ env.cache-name }}
+
+      - name: Update rubin-sim-data if needed
         shell: bash -l {0}
         run: |
-          export RUBIN_SIM_DATA_DIR=${{ github.workspace }}
-          rs_download_data --tdqm_disable -d 'maf,throughputs'
+          export RUBIN_SIM_DATA_DIR=~/rubin_sim_data
+          # Download anything that is not current
+          rs_download_data --tdqm_disable --update --dirs "maf,throughputs"
 
       - name: check conda and documenteer
         shell: bash -l {0}
@@ -52,16 +65,17 @@ jobs:
       - name: build docs
         shell: bash -l {0}
         run: |
-          export RUBIN_SIM_DATA_DIR=${{ github.workspace }}
+          export RUBIN_SIM_DATA_DIR=~/rubin_sim_data
           cd doc
           python metric_list.py
-          package-docs build
+          make html
+          #package-docs build
 
       - name: upload documentation
         uses: lsst-sqre/ltd-upload@v1
         with:
           project: "rubin-sim"
-          dir: "docs/_build/html"
+          dir: "doc/_build/html"
           username: ${{ secrets.ltd_username }}
           password: ${{ secrets.ltd_password }}
 

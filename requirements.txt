@@ -21,4 +21,4 @@ requests
 shapely
 skyfield
 tqdm
-rubin_scheduler
+rubin-scheduler

@@ -1,18 +1,21 @@
-name: Run Tests and Build Documentation
+name: Run Tests and Publish PyPI
 
 on:
   # Trigger the workflow on push (to main) or pull request
   push:
+    tags:
+      - "*"
     branches:
-      - main
+      - "main"
   pull_request:
     branches:
-      - main
+      - "main"
   workflow_dispatch:
 
+
 jobs:
-  Tests:
-    name: Run Tests (${{ matrix.python-version }}, ${{ matrix.os }})
+  tests:
+    name: Run Unit Tests (${{ matrix.python-version }}, ${{ matrix.os }})
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -25,8 +28,8 @@ jobs:
         with:
           auto-update-conda: true
           python-version: ${{ matrix.python-version }}
-          channels: conda-forge,defaults
           miniforge-variant: Mambaforge
+          channels: conda-forge,defaults
           use-mamba: true
           channel-priority: strict
           show-channel-urls: true
@@ -34,7 +37,6 @@ jobs:
       - name: configure conda and install requirements
         shell: bash -l {0}
         run: |
-          mamba config --set always_yes yes
           mamba install --quiet --file=requirements.txt
           mamba install --quiet --file=test-requirements.txt
 
@@ -43,14 +45,26 @@ jobs:
         run: |
           echo `pwd`
           ls ${{ github.workspace }}
-          python -m pip install .
+          python -m pip install . --no-deps
 
-      - name: download rubin_sim_data components needed for unit tests
+      - name: Access rubin-sim-data cache
+        id: cache-rs
+        uses: actions/cache@v3
+        env:
+          cache-name: cached-rubin-sim-data
+        with:
+          path: ~/rubin_sim_data
+          key: ${{ env.cache-name }}
+          restore-keys: |
+            ${{ env.cache-name }}
+
+      - name: Update rubin-sim-data if needed
         shell: bash -l {0}
         run: |
-          export RUBIN_SIM_DATA_DIR=${{ github.workspace }}/data_dir
-          rs_download_data --tdqm_disable -d 'site_models,throughputs,skybrightness,skybrightness_pre'
-          rs_download_data --tdqm_disable -d tests --force
+          export RUBIN_SIM_DATA_DIR=~/rubin_sim_data
+          # Download anything that is not current
+          scheduler_download_data --tdqm_disable --update
+          rs_download_data --tdqm_disable --update
 
       - name: conda list
         shell: bash -l {0}
@@ -59,57 +73,39 @@ jobs:
       - name: run tests
         shell: bash -l {0}
         run: |
-          export RUBIN_SIM_DATA_DIR=${{ github.workspace }}/data_dir
-          pytest -r a -v
+          export RUBIN_SIM_DATA_DIR=~/rubin_sim_data
+          #pytest -r a -v 
+          pytest -r a -v --cov=rubin_scheduler --cov=tests --cov-report=xml --cov-report=term --cov-branch
 
-  Docs:
-    name: Build and push documentation
-    needs: Tests
-    runs-on: "macos-latest"
+  pypi:
+    name: Build and Publish to PyPI
+    runs-on: ubuntu-latest
+    needs: [tests]
+    if: startsWith(github.ref, 'refs/tags/')
+
     steps:
       - uses: actions/checkout@v4
-      - uses: conda-incubator/setup-miniconda@v2
         with:
-          auto-update-conda: true
-          python-version: "3.11"
-          channels: conda-forge,defaults
-          channel-priority: strict
-          show-channel-urls: true
-      - name: configure and install conda and requirements
-        shell: bash -l {0}
+          # Need to clone everything to embed the version.
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.11
+          cache: "pip"
+
+      - name: Install dependencies for build
         run: |
-          conda config --set always_yes yes
-          conda install --quiet --file=requirements.txt
-          conda install lsst-documenteer-pipelines
-      - name: install rubin_sim
-        shell: bash -l {0}
+          python -m pip install --upgrade pip
+          pip install --upgrade setuptools build
+
+      - name: Build and create distribution
         run: |
-          echo `pwd`
-          ls ${{ github.workspace }}
-          python -m pip install .
-      - name: download rubin_sim_data components needed to set up metrics for metricList
-        shell: bash -l {0}
-        run: |
-          export RUBIN_SIM_DATA_DIR=${{ github.workspace }}
-          rs_download_data --tdqm_disable -d 'maf,throughputs'
-      - name: conda list
-        shell: bash -l {0}
-        run: conda list
-      - name: build documentation
-        shell: bash -l {0}
-        run: |
-          export RUBIN_SIM_DATA_DIR=${{ github.workspace }}
-          cd doc
-          python metric_list.py
-          make html
-      - name: Install LTD Conveyor
-        shell: bash -l {0}
-        run: |
-          python -m pip install ltd-conveyor
-      - name: upload documentation
-        shell: bash -l {0}
-        env:
-          LTD_PASSWORD: ${{ secrets.LTD_PASSWORD }}
-          LTD_USERNAME: ${{ secrets.LTD_USERNAME }}
-        run: |
-          ltd upload --gh --dir doc/_build/html --product rubin-sim
+          python -m build --skip-dependency-check
+
+      - name: Upload to lsst-sp PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          user: __token__
+          password: ${{ secrets.SP_PYPI_UPLOADS }}
