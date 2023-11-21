@@ -28,6 +28,7 @@ dependencies = [
     "scipy",
     "sqlalchemy",
     "astropy",
+    "palpy",
     "tables",
     "h5py",
     "astroplan",
@@ -35,12 +36,10 @@ dependencies = [
     "cycler",
     "george",
     "scikit-learn",
-    "requests",
     "shapely",
     "skyfield",
     "pyoorb",
-    "tqdm",
-    "rubin_scheduler",
+    "rubin-scheduler",
 ]
 
 [project.optional-dependencies]

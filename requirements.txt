@@ -18,8 +18,6 @@ colorcet
 cycler
 george
 scikit-learn
-requests
 shapely
 skyfield
-tqdm
 rubin-scheduler
