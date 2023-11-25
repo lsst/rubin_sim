@@ -2,14 +2,16 @@
 Scheduler, survey strategy analysis, and other simulation tools for Rubin Observatory.
 
 
-[![Run Tests and Build Documentation](https://github.com/lsst/rubin_sim/actions/workflows/python-tests-doc.yml/badge.svg)](https://github.com/lsst/rubin_sim/actions/workflows/python-tests-doc.yml)
+[![pypi](https://img.shields.io/pypi/v/rubin-sim.svg)](https://pypi.org/project/rubin-sim/)
+ [![Conda Version](https://img.shields.io/conda/vn/conda-forge/rubin-sim.svg)](https://anaconda.org/conda-forge/rubin-sim) <br>
+[![Run CI](https://github.com/lsst/rubin_sim/actions/workflows/test_and_build.yaml/badge.svg)](https://github.com/lsst/rubin_sim/actions/workflows/test_and_build.yaml)
+[![codecov](https://codecov.io/gh/lsst/rubin_sim/branch/main/graph/badge.svg?token=2BUBL8R9RH)](https://codecov.io/gh/lsst/rubin_sim)
 
 
 [![DOI](https://zenodo.org/badge/365031715.svg)](https://zenodo.org/badge/latestdoi/365031715)
 
 
-
-# Installation
+## Installation
 
 ### Conda Installation ###
 
@@ -93,7 +95,7 @@ https://s3df.slac.stanford.edu/data/rubin/sim-data/sims_skybrightness_pre/h5_202
 (the file names reflect the range of MJD covered within each data file).
 
 
-# Documentation
+## Documentation
 
 Online documentation is available at https://rubin-sim.lsst.io
 Example jupyter notebooks can be found at:  https://github.com/lsst/rubin_sim_notebooks
