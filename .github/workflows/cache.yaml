@@ -12,28 +12,28 @@ jobs:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
-
-      - name: Install conda
-        uses: conda-incubator/setup-miniconda@v2
+      - uses: conda-incubator/setup-miniconda@v2
         with:
-          python-version: "3.11"
           auto-update-conda: true
-          channels: conda-forge,defaults
+          python-version: ${{ matrix.python-version }}
           miniforge-variant: Mambaforge
+          channels: conda-forge,defaults
           use-mamba: true
           channel-priority: strict
           show-channel-urls: true
-          activate-environment: rubin-sim
 
-      - name: Install rubin-sim
-        id: rs-install
+      - name: Configure conda and install requirements
         shell: bash -l {0}
         run: |
-          mamba install --quiet rubin-scheduler
-          mamba install --quiet rubin_sim           
-          mamba list rubin-sim | grep -v "#" | awk '{print $2}' > ${{ github.workspace }}/rs_version
-          echo "rs-version" `cat ${{ github.workspace }}/rs_version`
-          echo "rs-version=`cat ${{ github.workspace }}/rs_version`" >> $GITHUB_OUTPUT          
+          mamba install --quiet --file=requirements.txt
+          mamba install --quiet --file=test-requirements.txt
+
+      - name: Install rubin_sim from git
+        shell: bash -l {0}
+        run: |
+          echo `pwd`
+          ls ${{ github.workspace }}
+          python -m pip install . --no-deps      
 
       - name: Access rubin-sim-data cache
         id: cache-rs
@@ -51,8 +51,7 @@ jobs:
         run: |
           export RUBIN_SIM_DATA_DIR=~/rubin_sim_data
           scheduler_download_data --tdqm_disable --update
-          rs_download_data --tdqm_disable 
-          #--update
+          rs_download_data --tdqm_disable --update
 
       - name: Check data
         shell: bash -l {0}

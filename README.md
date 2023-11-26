@@ -5,6 +5,7 @@ Scheduler, survey strategy analysis, and other simulation tools for Rubin Observ
 [![pypi](https://img.shields.io/pypi/v/rubin-sim.svg)](https://pypi.org/project/rubin-sim/)
  [![Conda Version](https://img.shields.io/conda/vn/conda-forge/rubin-sim.svg)](https://anaconda.org/conda-forge/rubin-sim) <br>
 [![Run CI](https://github.com/lsst/rubin_sim/actions/workflows/test_and_build.yaml/badge.svg)](https://github.com/lsst/rubin_sim/actions/workflows/test_and_build.yaml)
+[![Build and Upload Docs](https://github.com/lsst/rubin_sim/actions/workflows/build_docs.yaml/badge.svg)](https://github.com/lsst/rubin_sim/actions/workflows/build_docs.yaml)
 [![codecov](https://codecov.io/gh/lsst/rubin_sim/branch/main/graph/badge.svg?token=2BUBL8R9RH)](https://codecov.io/gh/lsst/rubin_sim)
 
 
