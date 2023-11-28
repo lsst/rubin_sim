@@ -75,7 +75,7 @@ jobs:
         run: |
           export RUBIN_SIM_DATA_DIR=~/rubin_sim_data
           #pytest -r a -v 
-          pytest -r a -v --cov=rubin_scheduler --cov=tests --cov-report=xml --cov-report=term --cov-branch
+          pytest -r a -v --cov=rubin_sim --cov=tests --cov-report=xml --cov-report=term --cov-branch
 
   pypi:
     name: Build and Publish to PyPI
