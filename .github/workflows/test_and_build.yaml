@@ -77,6 +77,11 @@ jobs:
           #pytest -r a -v 
           pytest -r a -v --cov=rubin_sim --cov=tests --cov-report=xml --cov-report=term --cov-branch
 
+      - name: Upload coverage to codecov
+        uses: codecov/codecov-action@v2
+        with:
+          file: coverage.xml
+
   pypi:
     name: Build and Publish to PyPI
     runs-on: ubuntu-latest
