@@ -3,10 +3,10 @@ import unittest
 import warnings
 
 import numpy as np
+from rubin_scheduler.data import get_data_dir
 
 import rubin_sim.maf.maps as maps
 import rubin_sim.maf.slicers as slicers
-from rubin_sim.data import get_data_dir
 
 
 def make_data_values(size=100, min=0.0, max=1.0, random=-1):

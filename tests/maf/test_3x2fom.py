@@ -3,9 +3,10 @@ import shutil
 import tempfile
 import unittest
 
+from rubin_scheduler.data import get_data_dir
+from rubin_scheduler.utils.code_utilities import sims_clean_up
+
 import rubin_sim.maf as maf
-from rubin_sim.data import get_data_dir
-from rubin_sim.utils.code_utilities import sims_clean_up
 
 
 class Test3x2(unittest.TestCase):

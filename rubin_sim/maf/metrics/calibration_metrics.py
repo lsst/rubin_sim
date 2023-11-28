@@ -7,10 +7,10 @@ __all__ = (
 )
 
 import numpy as np
+import rubin_scheduler.utils as utils
 from scipy.optimize import curve_fit
 
 import rubin_sim.maf.utils as mafUtils
-import rubin_sim.utils as utils
 
 from .base_metric import BaseMetric
 
@@ -414,7 +414,7 @@ class ParallaxDcrDegenMetric(BaseMetric):
     rmag : float
         r-band magnitude of the fiducual star that is being used (mag).
     SedTemplate : str
-        The SED template to use for fiducia star colors, passed to rubin_sim.utils.stellarMags.
+        The SED template to use for fiducia star colors, passed to rubin_scheduler.utils.stellarMags.
         Default 'flat'
     tol : float
         Tolerance for how well curve_fit needs to work before believing the covariance result.

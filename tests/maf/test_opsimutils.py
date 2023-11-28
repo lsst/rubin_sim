@@ -3,9 +3,9 @@ import sqlite3
 import unittest
 
 import numpy as np
+from rubin_scheduler.data import get_data_dir
 
 import rubin_sim.maf.utils.opsim_utils as opsimUtils
-from rubin_sim.data import get_data_dir
 
 
 class TestOpsimUtils(unittest.TestCase):

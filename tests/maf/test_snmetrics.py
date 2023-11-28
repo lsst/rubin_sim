@@ -3,8 +3,8 @@ import unittest
 import warnings
 
 import numpy as np
+from rubin_scheduler.data import get_data_dir
 
-from rubin_sim.data import get_data_dir
 from rubin_sim.maf.metrics import SNCadenceMetric, SNSLMetric, SNSNRMetric
 from rubin_sim.maf.utils.sn_utils import Lims, ReferenceData
 
@@ -151,7 +151,7 @@ def fake_data(band, season=1):
 class TestSNmetrics(unittest.TestCase):
     def setUp(self):
         if not os.path.isdir(os.path.join(get_data_dir(), "maf")):
-            self.skipTest("Skipping SN tests because running unit tests without full rubin_sim_data.")
+            self.skipTest("Skipping SN tests because running unit tests without full rubin_sim.data.")
 
     @unittest.skip("The SNCadenceMetric is not used")
     def test_sn_cadence_metric(self):
@@ -217,7 +217,7 @@ class TestSNmetrics(unittest.TestCase):
             assert np.abs(result - result_ref) < 1.0e-5
 
         else:
-            warnings.warn("skipping SN test because no rubin_sim_data set")
+            warnings.warn("skipping SN test because no rubin_sim.data set")
 
     @unittest.skip("This metric is not used")
     def test_snsnr_metric(self):
@@ -294,7 +294,7 @@ class TestSNmetrics(unittest.TestCase):
 
             assert np.abs(result - result_ref) < 1.0e-5
         else:
-            warnings.warn("skipping SN test because no rubin_sim_data set")
+            warnings.warn("skipping SN test because no rubin_sim.data set")
 
     def test_snsl_metric(self):
         """Test the SN SL metric"""

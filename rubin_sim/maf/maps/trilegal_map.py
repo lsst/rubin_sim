@@ -4,9 +4,10 @@ import os
 
 import healpy as hp
 import numpy as np
-
-from rubin_sim.data import get_data_dir
-from rubin_sim.utils import _build_tree, _equatorial_from_galactic, _hpid2_ra_dec, _xyz_from_ra_dec
+from astropy import units as u
+from astropy.coordinates import SkyCoord
+from rubin_scheduler.data import get_data_dir
+from rubin_scheduler.utils import _build_tree, _hpid2_ra_dec, _xyz_from_ra_dec
 
 from . import BaseMap
 
@@ -51,7 +52,10 @@ class TrilegalDensityMap(BaseMap):
         gal_l, gal_b = _hpid2_ra_dec(self.nside, np.arange(hp.nside2npix(self.nside)), nest=True)
 
         # Convert that to RA,dec. Then do nearest neighbor lookup.
-        ra, dec = _equatorial_from_galactic(gal_l, gal_b)
+        c = SkyCoord(l=gal_l * u.rad, b=gal_b * u.rad, frame="galactic").transform_to("icrs")
+        ra = c.ra.rad
+        dec = c.dec.rad
+
         self.tree = _build_tree(ra, dec)
 
     def run(self, slice_points):

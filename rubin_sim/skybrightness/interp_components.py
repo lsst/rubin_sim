@@ -19,9 +19,9 @@ import warnings
 
 import healpy as hp
 import numpy as np
+from rubin_scheduler.data import get_data_dir
 from scipy.interpolate import InterpolatedUnivariateSpline, interp1d
 
-from rubin_sim.data import get_data_dir
 from rubin_sim.phot_utils import Bandpass, Sed
 
 from .twilight_func import twilight_func

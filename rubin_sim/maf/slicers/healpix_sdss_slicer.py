@@ -4,9 +4,9 @@ from functools import wraps
 
 import matplotlib.path as mplPath
 import numpy as np
+from rubin_scheduler.utils import _xyz_from_ra_dec, gnomonic_project_toxy
 
 from rubin_sim.maf.plots import HealpixSDSSSkyMap
-from rubin_sim.utils import _xyz_from_ra_dec, gnomonic_project_toxy
 
 from .healpix_slicer import HealpixSlicer
 

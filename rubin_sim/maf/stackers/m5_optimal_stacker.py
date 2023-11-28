@@ -1,11 +1,9 @@
 __all__ = ("M5OptimalStacker", "generate_sky_slopes")
 
 import numpy as np
-
-from rubin_sim.utils import Site
+from rubin_scheduler.utils import Site
 
 from .base_stacker import BaseStacker
-from .general_stackers import FiveSigmaStacker
 
 
 def generate_sky_slopes():

@@ -3,17 +3,13 @@ import unittest
 import warnings
 
 import numpy as np
+from astropy import units as u
+from astropy.coordinates import SkyCoord
+from rubin_scheduler.data import get_data_dir
+from rubin_scheduler.utils import Site, _alt_az_pa_from_ra_dec, calc_lmst
 
 import rubin_sim.maf.stackers as stackers
-from rubin_sim.data import get_data_dir
 from rubin_sim.maf import get_sim_data
-from rubin_sim.utils import (
-    ObservationMetaData,
-    Site,
-    _alt_az_pa_from_ra_dec,
-    _galactic_from_equatorial,
-    calc_lmst_last,
-)
 
 
 class TestStackerClasses(unittest.TestCase):
@@ -382,7 +378,7 @@ class TestStackerClasses(unittest.TestCase):
         )
         data["observationStartMJD"] = np.arange(100) * 0.2 + 50000
         site = Site(name="LSST")
-        data["observationStartLST"], last = calc_lmst_last(data["observationStartMJD"], site.longitude_rad)
+        data["observationStartLST"] = calc_lmst(data["observationStartMJD"], site.longitude_rad)
         data["observationStartLST"] = data["observationStartLST"] * 180.0 / 12.0
         stacker = stackers.ParallacticAngleStacker(degrees=True)
         data = stacker.run(data)
@@ -395,10 +391,11 @@ class TestStackerClasses(unittest.TestCase):
         ras = np.radians(data["fieldRA"])
         decs = np.radians(data["fieldDec"])
         for ra, dec, mjd in zip(ras, decs, data["observationStartMJD"]):
-            alt, az, pa = _alt_az_pa_from_ra_dec(ra, dec, ObservationMetaData(mjd=mjd, site=site))
+            alt, az, pa = _alt_az_pa_from_ra_dec(ra, dec, mjd, site.longitude_rad, site.latitude_rad)
 
             check_pa.append(pa)
         check_pa = np.degrees(check_pa)
+
         np.testing.assert_array_almost_equal(data["PA"], check_pa, decimal=0)
 
     def test_galactic_stacker(self):
@@ -415,7 +412,8 @@ class TestStackerClasses(unittest.TestCase):
         data["dec"] += dec
         s = stackers.GalacticStacker(ra_col="ra", dec_col="dec")
         new_data = s.run(data)
-        expected_l, expected_b = _galactic_from_equatorial(np.radians(ra), np.radians(dec))
+        c = SkyCoord(ra=ra * u.deg, dec=dec * u.deg).transform_to("galactic")
+        expected_l, expected_b = c.l.rad, c.b.rad
         np.testing.assert_array_equal(new_data["gall"], expected_l)
         np.testing.assert_array_equal(new_data["galb"], expected_b)
 

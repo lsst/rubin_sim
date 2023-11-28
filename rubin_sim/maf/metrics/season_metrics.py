@@ -10,9 +10,9 @@ __all__ = (
 )
 
 import numpy as np
+from rubin_scheduler.utils import calc_season
 
 from rubin_sim.phot_utils import DustValues
-from rubin_sim.utils import calc_season
 
 from .base_metric import BaseMetric
 

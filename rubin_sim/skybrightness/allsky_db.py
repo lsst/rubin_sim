@@ -4,8 +4,7 @@ import os
 
 import numpy as np
 import sqlalchemy as sqla
-
-from rubin_sim.data import get_data_dir
+from rubin_scheduler.data import get_data_dir
 
 # Tools for using an all-sky sqlite DB with cannon and photodiode data from the site.
 

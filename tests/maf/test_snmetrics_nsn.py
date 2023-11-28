@@ -3,16 +3,16 @@ import unittest
 
 import numpy as np
 import pandas as pd
+from rubin_scheduler.data import get_data_dir
 
 import rubin_sim.maf as maf
-from rubin_sim.data import get_data_dir
 
 
 class TestSNmetrics(unittest.TestCase):
     def setUp(self):
         # Make sure we can read SN lightcurve and reference info
         if not os.path.isdir(os.path.join(get_data_dir(), "maf")):
-            self.skipTest("Skipping SN tests because running unit tests without full rubin_sim_data.")
+            self.skipTest("Skipping SN tests because running unit tests without full rubin_scheduler.data.")
         # Read test point data
         testfile = os.path.join(get_data_dir(), "tests", "test_simData.hdf")
         if not os.path.isfile(testfile):

@@ -1,7 +1,9 @@
 __all__ = ("GalCoordsMap",)
 
+from astropy import units as u
+from astropy.coordinates import SkyCoord
+
 from rubin_sim.maf.maps import BaseMap
-from rubin_sim.utils import _galactic_from_equatorial
 
 
 class GalCoordsMap(BaseMap):
@@ -9,7 +11,10 @@ class GalCoordsMap(BaseMap):
         self.keynames = ["gall", "galb"]
 
     def run(self, slice_points):
-        gall, galb = _galactic_from_equatorial(slice_points["ra"], slice_points["dec"])
+        coords = SkyCoord(ra=slice_points["ra"] * u.rad, dec=slice_points["dec"] * u.rad)
+        gal = coords.galactic
+        gall = gal.l.rad
+        galb = gal.b.rad
         slice_points["gall"] = gall
         slice_points["galb"] = galb
         return slice_points

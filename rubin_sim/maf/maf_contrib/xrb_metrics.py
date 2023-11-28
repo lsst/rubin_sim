@@ -1,12 +1,12 @@
 __all__ = ("XrbLc", "XRBPopMetric", "generate_xrb_pop_slicer")
 
 import numpy as np
+from rubin_scheduler.data import get_data_dir
+from rubin_scheduler.utils import survey_start_mjd
 from scipy.stats import loguniform
 
-from rubin_sim.data import get_data_dir
 from rubin_sim.maf.utils import m52snr
 from rubin_sim.phot_utils import DustValues
-from rubin_sim.utils import survey_start_mjd
 
 from ..metrics import BaseMetric
 from ..slicers import UserPointsSlicer

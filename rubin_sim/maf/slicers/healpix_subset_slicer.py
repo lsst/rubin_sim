@@ -6,8 +6,7 @@ from functools import wraps
 
 import healpy as hp
 import numpy as np
-
-import rubin_sim.utils as simsUtils
+import rubin_scheduler.utils as simsUtils
 
 from .healpix_slicer import HealpixSlicer
 

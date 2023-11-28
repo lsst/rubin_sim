@@ -2,7 +2,7 @@ import unittest
 
 import numpy as np
 
-import rubin_sim.utils as utils
+import rubin_sim.maf.utils as utils
 
 
 class StellarMagsTest(unittest.TestCase):

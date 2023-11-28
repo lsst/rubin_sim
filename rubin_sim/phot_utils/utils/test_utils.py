@@ -7,10 +7,10 @@ __all__ = ("set_m5", "comoving_distance_integrand", "cosmological_omega")
 
 import numpy
 
-from rubin_sim.phot_utils import LSSTdefaults, Sed, calc_sky_counts_per_pixel_for_m5
+from rubin_sim.phot_utils import Sed, calc_sky_counts_per_pixel_for_m5
 
 
-def set_m5(m5target, skysed, total_bandpass, hardware, phot_params, fwhm_eff=None):
+def set_m5(m5target, skysed, total_bandpass, hardware, phot_params, fwhm_eff=0.83):
     """
     Take an SED representing the sky and normalize it so that
     m5 (the magnitude at which an object is detected in this
@@ -73,9 +73,6 @@ def set_m5(m5target, skysed, total_bandpass, hardware, phot_params, fwhm_eff=Non
 
     # This is based on the LSST SNR document (v1.2, May 2010)
     # www.astro.washington.edu/users/ivezic/Astr511/LSST_SNRdoc.pdf
-
-    if fwhm_eff is None:
-        fwhm_eff = LSSTdefaults().FWHMeff("r")
 
     sky_counts_target = calc_sky_counts_per_pixel_for_m5(
         m5target, total_bandpass, fwhm_eff=fwhm_eff, phot_params=phot_params

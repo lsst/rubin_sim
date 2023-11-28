@@ -5,8 +5,7 @@ import logging
 import warnings
 
 import numpy as np
-
-from rubin_sim.utils import angular_separation
+from rubin_scheduler.utils import angular_separation
 
 from .base_obs import BaseObs
 

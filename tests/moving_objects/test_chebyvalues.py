@@ -7,8 +7,8 @@ import warnings
 import numpy as np
 import pandas as pd
 from astropy.time import Time
+from rubin_scheduler.data import get_data_dir
 
-from rubin_sim.data import get_data_dir
 from rubin_sim.moving_objects import ChebyFits, ChebyValues, Orbits, PyOrbEphemerides
 
 ROOT = os.path.abspath(os.path.dirname(__file__))

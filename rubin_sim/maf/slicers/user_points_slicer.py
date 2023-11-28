@@ -1,9 +1,10 @@
 __all__ = ("UserPointsSlicer",)
 
 import numpy as np
+from astropy import units as u
+from astropy.coordinates import SkyCoord
 
 from rubin_sim.maf.plots.spatial_plotters import BaseHistogram, BaseSkyMap
-from rubin_sim.utils import _galactic_from_equatorial
 
 from .base_spatial_slicer import BaseSpatialSlicer
 
@@ -86,7 +87,10 @@ class UserPointsSlicer(BaseSpatialSlicer):
         self.slice_points["sid"] = np.arange(np.size(ra))
         self.slice_points["ra"] = np.array(ra)
         self.slice_points["dec"] = np.array(dec)
-        gall, galb = _galactic_from_equatorial(self.slice_points["ra"], self.slice_points["dec"])
+        c = SkyCoord(ra=self.slice_points["ra"] * u.rad, dec=self.slice_points["dec"] * u.rad).transform_to(
+            "galactic"
+        )
+        gall, galb = c.l.rad, c.b.rad
         self.slice_points["gall"] = gall
         self.slice_points["galb"] = galb
 

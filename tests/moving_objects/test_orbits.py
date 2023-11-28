@@ -4,8 +4,8 @@ import unittest
 import numpy as np
 import pandas as pd
 from pandas.testing import assert_frame_equal
+from rubin_scheduler.data import get_data_dir
 
-from rubin_sim.data import get_data_dir
 from rubin_sim.moving_objects import Orbits
 
 

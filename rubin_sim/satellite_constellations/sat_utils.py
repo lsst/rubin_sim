@@ -10,10 +10,9 @@ __all__ = (
 import numpy as np
 from astropy import constants as const
 from astropy import units as u
+from rubin_scheduler.utils import Site, gnomonic_project_toxy, point_to_line_distance, survey_start_mjd
 from shapely.geometry import LineString, Point
 from skyfield.api import EarthSatellite, load, wgs84
-
-from rubin_sim.utils import Site, gnomonic_project_toxy, point_to_line_distance, survey_start_mjd
 
 MJDOFFSET = 2400000.5
 mjd0 = survey_start_mjd()

@@ -17,8 +17,6 @@ __all__ = (
 
 import numpy
 
-from .lsst_defaults import LSSTdefaults
-from .photometric_parameters import PhotometricParameters
 from .sed import Sed
 
 
@@ -181,7 +179,7 @@ def calc_total_non_source_noise_sq(sky_sed, hardwarebandpass, phot_params, fwhm_
     return total_noise_sq
 
 
-def calc_sky_counts_per_pixel_for_m5(m5target, total_bandpass, phot_params, fwhm_eff=None):
+def calc_sky_counts_per_pixel_for_m5(m5target, total_bandpass, phot_params, fwhm_eff=0.83):
     """Calculate the skycounts per pixel.
 
     Calculate the number of sky counts per pixel expected for a given
@@ -198,7 +196,7 @@ def calc_sky_counts_per_pixel_for_m5(m5target, total_bandpass, phot_params, fwhm
         A photometric parameters object containing the photometric response
         information for Rubin.
     fwhm_eff : `float`
-        fwhm_eff in arcseconds.
+        fwhm_eff in arcseconds. Default 0.83
 
     Returns
     -------
@@ -212,9 +210,6 @@ def calc_sky_counts_per_pixel_for_m5(m5target, total_bandpass, phot_params, fwhm
     (such as diameter of the mirrors and the readnoise) together with the
     sky background.
     """
-
-    if fwhm_eff is None:
-        fwhm_eff = LSSTdefaults().fwhm_eff("r")
 
     # instantiate a flat SED
     flat_sed = Sed()
@@ -251,7 +246,7 @@ def calc_sky_counts_per_pixel_for_m5(m5target, total_bandpass, phot_params, fwhm
     return sky_counts_target
 
 
-def calc_m5(skysed, total_bandpass, hardware, phot_params, fwhm_eff=None):
+def calc_m5(skysed, total_bandpass, hardware, phot_params, fwhm_eff=0.83):
     """Calculate the AB magnitude of a 5-sigma source above sky background source.
 
     Parameters
@@ -288,9 +283,6 @@ def calc_m5(skysed, total_bandpass, hardware, phot_params, fwhm_eff=None):
     This comes from equation 45 of the SNR document (v1.2, May 2010)
     https://docushare.lsstcorp.org/docushare/dsweb/ImageStoreViewer/LSE-40
     """
-
-    if fwhm_eff is None:
-        fwhm_eff = LSSTdefaults().fwhm_eff("r")
 
     # create a flat fnu source
     flatsource = Sed()
