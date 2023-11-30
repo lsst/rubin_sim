@@ -1,10 +1,9 @@
 __all__ = ("PeriodicDetectMetric",)
 
 import numpy as np
-import rubin_scheduler.utils as utils
 import scipy
 
-from rubin_sim.maf.utils import m52snr
+from rubin_sim.maf.utils import m52snr, stellar_mags
 
 from .base_metric import BaseMetric
 
@@ -88,7 +87,7 @@ class PeriodicDetectMetric(BaseMetric):
         if n_pts > p2:
             for period, starMag, amplitude in zip(self.periods, self.star_mags, self.amplitudes):
                 chi_sq_1 = 0
-                mags = utils.stellar_mags(self.sed_template, rmag=starMag)
+                mags = stellar_mags(self.sed_template, rmag=starMag)
                 for filtername in u_filters:
                     in_filt = np.where(data_slice[self.filter_col] == filtername)[0]
                     lc = (
