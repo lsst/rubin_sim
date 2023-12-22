@@ -5,7 +5,7 @@ import warnings
 
 import numpy as np
 import numpy.lib.recfunctions as rfn
-from scipy.spatial import cKDTree as kdtree
+from scipy.spatial import cKDTree as kdtree  # noqa: N813
 
 from .offsets import OffsetSNR
 from .star_tools import assign_patches, stars_project
@@ -37,7 +37,8 @@ def build_tree(ra, dec, leafsize=100):
     """Build KD tree on RA/dec and set radius (via setRad) for matching.
 
     ra, dec = RA and Dec values (in radians).
-    leafsize = the number of Ra/Dec pointings in each leaf node."""
+    leafsize = the number of Ra/Dec pointings in each leaf node.
+    """
     if np.any(np.abs(ra) > np.pi * 2.0) or np.any(np.abs(dec) > np.pi * 2.0):
         raise ValueError("Expecting RA and Dec values to be in radians.")
     x, y, z = treexyz(ra, dec)
@@ -65,22 +66,22 @@ def generate_catalog(
 
     Parameters
     ----------
-    visits : np.array
+    visits : `np.array`
         A numpy array with the properties of the visits.
         Expected columns of fiveSigmaDepth, ra, dec, rotSkyPos (all degrees)
-    offsets : list of rubin_sim.selfcal.Offset classes
+    offsets : `list` of rubin_sim.selfcal.Offset classes
         A list of instatiated classes that will apply offsets to the stars
-    lsst_filter :  str ("r")
+    lsst_filter :  `str` ("r")
         Which filter to use for the observed stars.
-    n_patches : int (16)
+    n_patches : `int` (16)
         Number of patches to divide the FoV into.  Must be an integer squared
-    radius_fov : float (1.8)
+    radius_fov : `float` (1.8)
         Radius of the telescope field of view in degrees
-    seed : float (42)
+    seed : `float` (42)
         Random number seed
-    uncert_floor : float (0.005)
+    uncert_floor : `float` (0.005)
         Value to add in quadrature to magnitude uncertainties (mags)
-    verbose : bool (True)
+    verbose : `bool` (True)
         Should we be verbose
     """
 
@@ -136,7 +137,7 @@ def generate_catalog(
     for i, visit in enumerate(visits):
         dmags = {}
         # Calc x,y, radius for each star, crop off stars outside the FoV
-        # XXX - plan to replace with code to see where each star falls and get chipID.
+        # could replace with code to see where each star falls and get chipID.
         vx, vy, vz = treexyz(np.radians(visit["ra"]), np.radians(visit["dec"]))
         indices = star_tree.query_ball_point((vx, vy, vz), tree_radius)
         stars_in = stars[indices]

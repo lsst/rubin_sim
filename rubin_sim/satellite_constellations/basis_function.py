@@ -6,7 +6,8 @@ import rubin_scheduler.scheduler.basis_functions as bf
 
 
 class SatelliteAvoidBasisFunction(bf.BaseBasisFunction):
-    """Class to take satellite position information from the conditions object and avoid streaks
+    """Uses satellite position information from the Conditions object
+    and then avoids streaks.
 
     Parameters
     ----------
@@ -32,7 +33,8 @@ class SatelliteAvoidBasisFunction(bf.BaseBasisFunction):
             result = hp.smoothing(result, fwhm=self.smooth_fwhm)
             result = hp.ud_grade(result, self.nside)
             result[np.where(result < 0)] = 0
-            # Make it negative, so positive weights will result in avoiding satellites
+            # Make it negative, so positive weights will result
+            # in avoiding satellites
             result *= -1
 
         return result

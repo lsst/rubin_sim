@@ -19,13 +19,17 @@ mjd0 = survey_start_mjd()
 
 
 def sun_alt_limits():
-    """For different constellations, expect zero illuminated satellites above 20 degree altitude
-    if the sun is below the limits (degrees)
+    """Return sun altitude limits (degrees) at which zero illuminated
+    satellites above 20 degrees altitude result.
+
+    Different constellations have different limits at which zero illumination
+    above 20 degrees occurs.
 
     Returns
     -------
-    result : `dict` [`str`, `float`]
-        Dict with satellite constellation name keys, altitude limits values (degrees).
+    sun_alt_limits : `dict` {`str`: `float`}
+        Dict with satellite constellation name keys,
+        altitude limits values (degrees).
     """
     # Estimated in sun_alts_limits.ipynb
     result = {"slv1": -36.0, "slv2": -36.0, "oneweb": -53.0}
@@ -33,26 +37,26 @@ def sun_alt_limits():
 
 
 def satellite_mean_motion(altitude, mu=const.GM_earth, r_earth=const.R_earth):
-    """
-    Compute mean motion of satellite at altitude in Earth's gravitational field.
+    """Calculate mean motion of satellites at a given altitude in Earth's
+    gravitational field.
     See https://en.wikipedia.org/wiki/Mean_motion#Formulae
 
     Parameters
     ----------
     altitude : `float`
-        Altitude of the satellite. Should be a float with astropy units attached
+        Altitude of the satellite.
+        Should be a float with astropy units attached.
 
     Returns
     -------
-    mm : `float`
+    mean_motion : `float`
     """
     no = np.sqrt(4.0 * np.pi**2 * (altitude + r_earth) ** 3 / mu).to(u.day)
     return 1 / no
 
 
 def tle_from_orbital_parameters(sat_name, sat_nr, epoch, inclination, raan, mean_anomaly, mean_motion):
-    """
-    Generate TLE strings from orbital parameters.
+    """Generate TLE strings from orbital parameters.
 
     Parameters
     ----------
@@ -77,13 +81,12 @@ def tle_from_orbital_parameters(sat_name, sat_nr, epoch, inclination, raan, mean
 
     Notes
     -----
-    epoch has a very strange format: first two digits are the year, next three
+    epoch has the format: first two digits are the year, next three
     digits are the day from beginning of year, then fraction of a day is given, e.g.
     20180.25 would be 2020, day 180, 6 hours (UT?)
     """
 
     # Note: RAAN = right ascention (or longitude) of ascending node
-
     # I suspect this is filling in 0 eccentricity everywhere.
 
     def checksum(line):
@@ -174,9 +177,8 @@ def create_constellation(
 
 
 def starlink_tles_v1():
-    """
-    Create a list of satellite TLE's.
-    For starlink v1 (as of July 2022). Should create 4,408 orbits
+    """Create a list of satellite TLE's, appropriate for
+    Starlink v1 (as of July 2022). Should create 4,408 orbits
 
     Returns
     -------
@@ -193,9 +195,8 @@ def starlink_tles_v1():
 
 
 def starlink_tles_v2():
-    """
-    Create a list of satellite TLE's
-    For starlink v2 (as of July 2022). Should create 29,988 orbits
+    """Create a list of satellite TLE's appropriate for
+    Starlink v2 (as of July 2022). Should create 29,988 orbits
 
     Returns
     -------
@@ -212,8 +213,7 @@ def starlink_tles_v2():
 
 
 def oneweb_tles():
-    """
-    Create a list of satellite TLE's
+    """Create a list of satellite TLE's appropriate
     for OneWeb plans (as of July 2022). Should create 6,372 orbits
 
     Returns
@@ -231,8 +231,9 @@ def oneweb_tles():
 
 
 class Constellation:
-    """
-    Have a class to hold satellite constellation
+    """Holds the constellation TLEs and calculates their appearance
+    in a series of observations.
+
     Parameters
     ----------
     sat_tle_list : `list` of `str`
@@ -264,8 +265,8 @@ class Constellation:
         self.observatory_site = wgs84.latlon(telescope.latitude, telescope.longitude, telescope.height)
 
     def update_mjd(self, mjd):
-        """
-        Record the alt,az position and illumination status for all the satellites at a given time
+        """Calculate and record the alt/az position and illumination status
+        for all the satellites at a given time.
         """
         jd = mjd + MJDOFFSET
         t = self.ts.ut1_jd(jd)
@@ -279,7 +280,8 @@ class Constellation:
             self.illum.append(illum.copy())
             if illum:
                 topo = current_sat - self.observatory_site.at(t)
-                alt, az, dist = topo.altaz()  # this returns an anoying Angle object
+                # this returns an Angle object
+                alt, az, dist = topo.altaz()
                 self.altitudes_rad.append(alt.radians + 0)
                 self.azimuth_rad.append(az.radians + 0)
             else:
@@ -293,8 +295,8 @@ class Constellation:
         self.visible = np.where((self.altitudes_rad >= self.alt_limit_rad) & (self.illum == True))[0]
 
     def paths_array(self, mjds):
-        """For an array of MJD values, compute the resulting RA,Dec and illumination status of
-        the full constellation at each MJD.
+        """Calculate and return the RA/Dec/Alt and illumination status
+        for all the satellites at an array of times.
 
         Parameters
         ----------
@@ -342,25 +344,26 @@ class Constellation:
         test_radius=10.0,
         dt=2.0,
     ):
-        """Find streak length and number of streaks in an image
+        """Calculate streak length and number of streaks in a set of visits.
 
         Parameters
         ----------
-        pointing_ras : array
+        pointing_ras : `np.ndarray`
             The RA for each pointing (degrees).
-        pointing_decs : array
-            The dec for each pointing (degres).
+        pointing_decs : `np.ndarray``
+            The dec for each pointing (degrees).
         mjds : `np.ndarray`
             The MJD for the (start) of each pointing (days).
         visit_time : `np.ndarray`
-            The entire time a visit happend (seconds).
+            The start to end time for a visit (seconds).
         fov_radius : `float`
             The radius of the science field of view (degrees)
         test_radius : `float`
-            The radius to use to see if a streak gets close (degrees). Need to set large
-            because satellites can be moving at ~1 deg/s.
+            The radius to use to see if a streak gets close (degrees).
+            Should be large, because satellites can be moving at ~1 deg/s.
         dt : `float`
-            The timestep to use for high resolution checking if a satellite crossed (seconds).
+            The timestep to use for high resolution checking
+            if a satellite crossed (seconds).
 
         Returns
         -------
@@ -384,7 +387,8 @@ class Constellation:
         pointing_decs_rad = np.radians(pointing_decs)
         fov_radius_rad = np.radians(fov_radius)
 
-        # Note self.paths_array should return an array that is N_sats x N_mjds in shape
+        # Note self.paths_array should return an array that is
+        # N_sats x N_mjds in shape
         # And all angles in radians.
         sat_ra_1, sat_dec_1, sat_alt_1, sat_illum_1 = self.paths_array(mjds)
         mjd_end = mjds + visit_time
@@ -402,7 +406,8 @@ class Constellation:
             & ((sat_illum_1 == True) | (sat_illum_2 == True))
         )
 
-        # point_to_line_distance can take arrays, but they all need to be the same shape,
+        # point_to_line_distance can take arrays,
+        # but they all need to be the same shape,
         # thus why we broadcast pointing ra and dec above.
         distances = point_to_line_distance(
             sat_ra_1[above_illum_indx],
@@ -448,7 +453,7 @@ class Constellation:
 
 
 def _streak_length(sat_ras, sat_decs, pointing_ra, pointing_dec, radius):
-    """Calc streak lengths
+    """Calculate streak lengths for satellites in a given (circular) pointing.
 
     Parameters
     ----------

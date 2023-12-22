@@ -15,7 +15,8 @@ def stars_project(stars, visit):
         np.radians(visit["ra"]),
         np.radians(visit["dec"]),
     )
-    # Rotate the field using the visit rotSkyPos.  Hope I got that sign right...
+    # Rotate the field using the visit rotSkyPos.
+    # Hope I got that sign right...
     sin_rot = np.sin(np.radians(visit["rotSkyPos"]))
     cos_rot = np.cos(np.radians(visit["rotSkyPos"]))
     stars["x"] = cos_rot * xtemp + sin_rot * ytemp
@@ -27,7 +28,8 @@ def stars_project(stars, visit):
 
 def assign_patches(stars, visit, n_patches=16, radius_fov=1.8):
     """
-    Assign PatchIDs to everything.  Assume that stars have already been projected to x,y
+    Assign PatchIDs to everything.
+    Assume that stars have already been projected to x,y
     """
     maxx, maxy = gnomonic_project_toxy(0.0, np.radians(radius_fov), 0.0, 0.0)
     nsides = n_patches**0.5
