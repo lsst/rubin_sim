@@ -6,7 +6,3 @@
 from documenteer.conf.guide import *  # noqa: F403, import *
 
 linkcheck_retries = 2
-
-from .metric_list import make_metric_list
-
-make_metric_list("maf-metric-list.rst")

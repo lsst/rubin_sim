@@ -78,7 +78,7 @@ however building a local copy can be done as follows:
 
  pip install "documenteer[guide]"
  cd docs
- package-docs build
+ make html
 
 
 The root of the local documentation will then be ``docs/_build/html/index.html``.

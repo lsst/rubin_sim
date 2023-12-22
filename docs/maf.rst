@@ -32,7 +32,7 @@ in depth in a notebook in the github repo at `lsst/rubin_sim_notebooks
 <https://github.com/lsst/rubin_sim_notebooks/blob/main/maf/science/KNe%20Metric.ipynb>`_
 (see the maf/science directory).
 
-MAF also provides lots of ready to use :doc:`metrics <metric_list>`, as well as
+MAF also provides lots of ready to use :ref:`metrics <maf-metric-list>`, as well as
 a variety of ways to subdivide the pointing histories using :py:obj:`rubin_sim.maf.slicers`
 -- a typical use case is to evaluate a quantity at all points over the sky, which would use
 the :py:class:`rubin_sim.maf.slicers.HealpixSlicer` slicer, but there are
