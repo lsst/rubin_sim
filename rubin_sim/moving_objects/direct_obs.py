@@ -106,7 +106,7 @@ class DirectObs(BaseObs):
         obs_info="",
         tstep=1.0,
         rough_tol=10.0,
-        verbose=True,
+        verbose=False,
         night_col="night",
         filter_col="filter",
         m5_col="fiveSigmaDepth",

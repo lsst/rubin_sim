@@ -64,7 +64,7 @@ class BaseSlicer(metaclass=SlicerRegistry):
         The value the Slicer uses to fill masked metric data values
     """
 
-    def __init__(self, verbose=True, badval=-666):
+    def __init__(self, verbose=False, badval=-666):
         self.verbose = verbose
         self.badval = badval
         # Set the cache_size.
@@ -419,7 +419,10 @@ class BaseSlicer(metaclass=SlicerRegistry):
         try:
             slicer = getattr(slicers, slicer_name)(**slicer_init)
         except TypeError:
-            warnings.warn(f"Cannot use saved slicer init values; falling back to defaults for {infilename}")
+            if self.verbose:
+                warnings.warn(
+                    f"Cannot use saved slicer init values; falling back to defaults for {infilename}"
+                )
             slicer = getattr(slicers, slicer_name)()
         # Restore slice_point information.
         slicer.nslice = slicer_nslice
@@ -489,7 +492,10 @@ class BaseSlicer(metaclass=SlicerRegistry):
         try:
             slicer = getattr(slicers, slicer_name)(**slicer_init)
         except TypeError:
-            warnings.warn(f"Cannot use saved slicer init values; falling back to defaults for {infilename}")
+            if self.verbose:
+                warnings.warn(
+                    f"Cannot use saved slicer init values; falling back to defaults for {infilename}"
+                )
             slicer = getattr(slicers, slicer_name)()
         # Restore slice_point information.
         slicer.nslice = slicer_nslice
