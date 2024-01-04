@@ -6,10 +6,10 @@ import sys
 import healpy as hp
 import numpy as np
 import pandas as pd
+from rubin_scheduler.utils import Site, _approx_ra_dec2_alt_az, m5_flat_sed, raDec2Hpid
 
 import rubin_sim.skybrightness_pre as sb
 from rubin_sim.skybrightness import SkyModel
-from rubin_sim.utils import Site, _approx_ra_dec2_alt_az, m5_flat_sed, raDec2Hpid
 
 
 def obs2sqlite(

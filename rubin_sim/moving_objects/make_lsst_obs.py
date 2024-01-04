@@ -160,6 +160,9 @@ def setup_args(parser=None):
         default=None,
         help="Send log output to log_file, instead of to console. (default = console)",
     )
+    parser.add_argument("--verbose", dest="verbose", action="store_true", help="Print more output")
+    parser.set_defaults(verbose=False)
+
     args = parser.parse_args()
 
     if args.simulation_db is None:
@@ -244,6 +247,7 @@ def make_lsst_obs():
         tstep=args.t_step,
         rough_tol=args.rough_tol,
         obs_info=args.obs_info,
+        verbose=args.verbose,
     )
     filterlist = np.unique(pointing_data["filter"])
     d_obs.read_filters(filterlist=filterlist)

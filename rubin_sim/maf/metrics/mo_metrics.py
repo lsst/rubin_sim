@@ -376,7 +376,7 @@ class DiscoveryMetric(BaseMoMetric):
                 sso_obs[self.night_col][vis][good_idx] - sso_obs[self.night_col][vis][good_idx][sIdx]
                 <= self.t_window
             )[0]
-            end_idxs[i] = np.array([in_window.max()])
+            end_idxs[i] = in_window.max()
         # Convert back to index based on sso_obs[vis] (sorted by expMJD).
         start_idxs = good_idx[start_idxs]
         end_idxs = good_idx_ends[end_idxs]
