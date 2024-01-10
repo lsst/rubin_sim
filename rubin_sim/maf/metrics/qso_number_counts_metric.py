@@ -90,10 +90,12 @@ class QSONumberCountsMetric(BaseMetric):
         c_mz_data = np.cumsum(c_mz_data, axis=1)
 
         # Create a 2D interpolation object for the long table.
-        #self.nqso_cumulative = interpolate.interp2d(zs[:-1], mags[:-1], #c_mz_data[:-1, :-1], kind="cubic")
-        self.nqso_cumulative_aux = interpolate.RectBivariateSpline(zs[:-1], mags[:-1], c_mz_data[:-1,:-1].T, kx=3, ky=3)
+        # self.nqso_cumulative = interpolate.interp2d(zs[:-1], mags[:-1], #c_mz_data[:-1, :-1], kind="cubic")
+        self.nqso_cumulative_aux = interpolate.RectBivariateSpline(
+            zs[:-1], mags[:-1], c_mz_data[:-1, :-1].T, kx=3, ky=3
+        )
 
-        self.nqso_cumulative = lambda z_new, m_new: self.nqso_cumulative_aux(z_new,m_new).T[0]
+        self.nqso_cumulative = lambda z_new, m_new: self.nqso_cumulative_aux(z_new, m_new).T[0]
 
         super().__init__(
             col=[m5_col, filter_col, "saturation_mag"],
