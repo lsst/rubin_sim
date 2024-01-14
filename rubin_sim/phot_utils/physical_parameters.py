@@ -3,14 +3,14 @@ __all__ = ("PhysicalParameters",)
 
 class PhysicalParameters:
     """
-    A dataclass to store physical constants and other immutable parameters
+    Stores physical constants and other immutable parameters
     used by the sims_phot_utils code.
     """
 
     def __init__(self):
-        self._lightspeed = 299792458.0  # speed of light, = 2.9979e8 m/s
-        self._planck = 6.626068e-27  # planck's constant, = 6.626068e-27 ergs*seconds
-        self._nm2m = 1.00e-9  # nanometers to meters conversion = 1e-9 m/nm
+        self._lightspeed = 299792458.0  # speed of light, m/s
+        self._planck = 6.626068e-27  # planck's constant, ergs*seconds
+        self._nm2m = 1.00e-9  # nanometers to meters conversion m/nm
         self._ergsetc2jansky = 1.00e23  # erg/cm2/s/Hz to Jansky units (fnu)
 
     @property

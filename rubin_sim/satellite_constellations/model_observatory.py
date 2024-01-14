@@ -1,7 +1,7 @@
 __all__ = ("ModelObservatory",)
 
 import numpy as np
-from rubin_scheduler.scheduler.model_observatory import ModelObservatory as OMO
+from rubin_scheduler.scheduler.model_observatory import ModelObservatory as oMO
 from rubin_scheduler.site_models import Almanac
 from rubin_scheduler.utils import _healbin, survey_start_mjd
 
@@ -9,7 +9,7 @@ from rubin_scheduler.utils import _healbin, survey_start_mjd
 # subclass to expand to include satellite constellations
 
 
-class ModelObservatory(OMO):
+class ModelObservatory(oMO):
     """A class to generate a realistic telemetry stream for the scheduler
 
     Parameters

@@ -75,7 +75,7 @@ class Bandpass:
         return
 
     def _check_wavelength_sampling(self):
-        """Check that the wavelength sampling is above some threshold"""
+        """Check that the wavelength sampling is above some threshold."""
         if self.wavelen is not None:
             dif = np.diff(self.wavelen)
             if np.max(dif) > self.sampling_warning:

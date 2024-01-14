@@ -27,7 +27,7 @@ def sun_alt_limits():
 
     Returns
     -------
-    sun_alt_limits : `dict` {`str`: `float`}
+    sun_alt_limits : `dict` [`str`: `float`]
         Dict with satellite constellation name keys,
         altitude limits values (degrees).
     """
@@ -81,8 +81,9 @@ def tle_from_orbital_parameters(sat_name, sat_nr, epoch, inclination, raan, mean
 
     Notes
     -----
-    epoch has the format: first two digits are the year, next three
-    digits are the day from beginning of year, then fraction of a day is given, e.g.
+    epoch has the format: first two digits are the year,
+    next three digits are the day from beginning of year,
+    then fraction of a day is given, e.g.
     20180.25 would be 2020, day 180, 6 hours (UT?)
     """
 
@@ -130,13 +131,13 @@ def create_constellation(
 
     Parameters
     ----------
-    altitudes : `np.ndarray`
+    altitudes : `np.ndarray`, (N,)
         Altitudes (degrees).
-    inclinations : `np.ndarray`
+    inclinations : `np.ndarray`, (N,)
         Inclinations (degrees).
-    nplanes : `np.ndarray`
+    nplanes : `np.ndarray`, (N,)
         Number of satellite planes.
-    sats_per_plane : `np.ndarray`
+    sats_per_plane : `np.ndarray`, (N,)
         Number of satellites per orbital plane.
     epoch : `float`
         Epoch.
@@ -182,7 +183,7 @@ def starlink_tles_v1():
 
     Returns
     -------
-    my_sat_tles : `list` of `str`
+    my_sat_tles : `list` [`str`]
     """
     altitudes = np.array([550, 540, 570, 560, 560]) * u.km
     inclinations = np.array([53, 53.2, 70, 97.6, 97.6]) * u.deg
@@ -200,7 +201,7 @@ def starlink_tles_v2():
 
     Returns
     -------
-    my_sat_tles : `list` of `str`
+    my_sat_tles : `list` [`str`]
     """
     altitudes = np.array([340, 345, 350, 360, 525, 530, 535, 604, 614]) * u.km
     inclinations = np.array([53, 46, 38, 96.9, 53, 43, 33, 148, 115.7]) * u.deg
@@ -218,7 +219,7 @@ def oneweb_tles():
 
     Returns
     -------
-    my_sat_tles : `list` of `str`
+    my_sat_tles : `list` [`str`]
     """
     altitudes = np.array([1200, 1200, 1200]) * u.km
     inclinations = np.array([87.9, 40, 55]) * u.deg
@@ -236,7 +237,7 @@ class Constellation:
 
     Parameters
     ----------
-    sat_tle_list : `list` of `str`
+    sat_tle_list : `list` [`str`]
         A list of satellite TLEs to be used
     alt_limit : `float`
         Altitude limit below which satellites can be ignored (degrees)
@@ -267,6 +268,11 @@ class Constellation:
     def update_mjd(self, mjd):
         """Calculate and record the alt/az position and illumination status
         for all the satellites at a given time.
+
+        Parameters
+        ----------
+        mjd : `float`
+            New MJD.
         """
         jd = mjd + MJDOFFSET
         t = self.ts.ut1_jd(jd)
@@ -300,18 +306,18 @@ class Constellation:
 
         Parameters
         ----------
-        mjds : `np.ndarray`
+        mjds : `np.ndarray`, (N,)
             Modified Julian Dates.
 
         Returns
         -------
-        ras : `np.ndarray`
+        ras : `np.ndarray`, (N,)
             RAs at each MJD
-        decs : `np.ndarray`
+        decs : `np.ndarray`, (N,)
             Decs at each MJD
-        alts : `np.ndarray`
+        alts : `np.ndarray`, (N,)
             Altitudes at each MJD
-        illums : `np.ndarray`
+        illums : `np.ndarray`, (N,)
             Array of bools for if satellite is illuminated
         """
 
@@ -348,13 +354,13 @@ class Constellation:
 
         Parameters
         ----------
-        pointing_ras : `np.ndarray`
+        pointing_ras : `np.ndarray`, (N,)
             The RA for each pointing (degrees).
-        pointing_decs : `np.ndarray``
+        pointing_decs : `np.ndarray`, (N,)
             The dec for each pointing (degrees).
-        mjds : `np.ndarray`
+        mjds : `np.ndarray`, (N,)
             The MJD for the (start) of each pointing (days).
-        visit_time : `np.ndarray`
+        visit_time : `np.ndarray`, (N,)
             The start to end time for a visit (seconds).
         fov_radius : `float`
             The radius of the science field of view (degrees)
@@ -457,9 +463,9 @@ def _streak_length(sat_ras, sat_decs, pointing_ra, pointing_dec, radius):
 
     Parameters
     ----------
-    sat_ras : `np.ndarray`
+    sat_ras : `np.ndarray`, (N,)
         RA for each satellite (radians).
-    sat_decs : `np.ndarray`
+    sat_decs : `np.ndarray`, (N,)
         Decs for the satelltes (radians).
     pointing_ra : `float`
         RA of the pointing (radians).

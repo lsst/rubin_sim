@@ -12,50 +12,64 @@ from .base_obs import BaseObs
 
 class DirectObs(BaseObs):
     """
-    Generate observations of a set of moving objects: exact ephemeris at the times of each observation.
+    Generate observations of a set of moving objects:
+    exact ephemeris at the times of each observation.
 
-    First generates observations on a rough grid and looks for observations within a specified tolerance
-    of the actual observations; for the observations which pass this cut, generates a precise ephemeris
-    and checks if the object is within the FOV.
+    First generates observations on a rough grid and looks for
+    observations within a specified tolerance
+    of the actual observations; for the observations which pass this cut,
+    generates a precise ephemeris and checks if the object is within the FOV.
 
     Parameters
     ----------
-    footprint: `str`, optional
-        Specify the footprint for the FOV. Options include "camera", "circle", "rectangle".
-        'Camera' means use the actual LSST camera footprint (following a rough cut with a circular FOV).
+    footprint : `str`, optional
+        Specify the footprint for the FOV.
+        Options include "camera", "circle", "rectangle".
+        'Camera' means use the actual LSST camera footprint
+        (following a rough cut with a circular FOV).
         Default is circular FOV.
     r_fov : `float`, optional
         If footprint is "circular", this is the radius of the fov (in degrees).
         Default 1.75 degrees.
     x_tol : `float`, optional
-        If footprint is "rectangular", this is half of the width of the (on-sky) fov in the RA
-        direction (in degrees).
-        Default 5 degrees. (so size of footprint in degrees will be 10 degrees in the RA direction).
+        If footprint is "rectangular", this is half of the width of
+        the (on-sky) fov in the RA direction (in degrees).
+        Default 5 degrees.
     y_tol : `float`, optional
-        If footprint is "rectangular", this is half of the width of the fov in Declination (in degrees).
-        Default is 3 degrees (so size of footprint in degrees will be 6 degrees in the Dec direction).
+        If footprint is "rectangular", this is half of the width of
+        the fov in Declination (in degrees).
+        Default is 3 degrees
     eph_mode: `str`, optional
         Mode for ephemeris generation - nbody or 2body. Default is nbody.
     prelim_eph_mode: str, optional
-        Mode for preliminary ephemeris generation, if any is done. Default is 2body.
+        Mode for preliminary ephemeris generation, if any is done.
+        Default is 2body.
     eph_type: `str`, optional
         Type of ephemerides to generate - full or basic.
-        Full includes all values calculated by openorb; Basic includes a more basic set.
-        Default is Basic.  (this includes enough information for most standard MAF metrics).
+        Full includes all values calculated by openorb;
+        Basic includes a more basic set.
+        Default is Basic.
+        (this includes enough information for most standard MAF metrics).
     eph_file: `str` or None, optional
-        The name of the planetary ephemerides file to use for ephemeris generation.
-        Default (None) will use the default for PyOrbEphemerides.
+        The name of the planetary ephemerides file to use in ephemeris
+        generation. Default (None) will use the default for PyOrbEphemerides.
     obs_code: `str`, optional
-        Observatory code for ephemeris generation. Default is "I11" - Cerro Pachon.
+        Observatory code for ephemeris generation.
+        Default is "I11" - Cerro Pachon.
     obs_time_col: `str`, optional
-        Name of the time column in the obsData. Default 'observationStartMJD'.
+        Name of the time column in the obsData.
+        Default 'observationStartMJD'.
     obs_time_scale: `str`, optional
-        Type of timescale for MJD (TAI or UTC currently). Default TAI.
+        Type of timescale for MJD (TAI or UTC currently).
+        Default TAI.
     seeing_col: `str`, optional
-        Name of the seeing column in the obsData. Default 'seeingFwhmGeom'.
-        This should be the geometric/physical seeing as it is used for the trailing loss calculation.
+        Name of the seeing column in the obsData.
+        Default 'seeingFwhmGeom'.
+        This should be the geometric/physical seeing as it is used
+        for the trailing loss calculation.
     visit_exp_time_col: `str`, optional
-        Name of the visit exposure time column in the obsData. Default 'visitExposureTime'.
+        Name of the visit exposure time column in the obsData.
+        Default 'visitExposureTime'.
     obs_ra: `str`, optional
         Name of the RA column in the obsData. Default 'fieldRA'.
     obs_dec: `str`, optional
@@ -63,20 +77,22 @@ class DirectObs(BaseObs):
     obs_rot_sky_pos: `str`, optional
         Name of the Rotator column in the obsData. Default 'rotSkyPos'.
     obs_degrees: `bool`, optional
-        Whether the observational data is in degrees or radians. Default True (degrees).
+        Whether the observational data is in degrees or radians.
+         Default True (degrees).
     outfile_name : `str`, optional
         The output file name.
         Default is 'lsst_obs.dat'.
     obs_info : `str`, optional
         A string that captures provenance information about the observations.
-        For example: 'baseline_v2.0_10yrs, MJD 59853-61677' or 'baseline2018a minus NES'
+        For example: 'baseline_v2.0_10yrs, MJD 59853-61677'
+        or 'baseline2018a minus NES'
         Default ''.
     tstep: `float`, optional
         The time between initial (rough) ephemeris generation points, in days.
         Default 1 day.
     rough_tol: `float`, optional
-        The initial rough tolerance value for positions, used as a first cut to identify potential
-        observations (in degrees).
+        The initial rough tolerance value for positions, used as a first
+        cut to identify potential observations (in degrees).
         Default 10 degrees.
     pre_comp_tol : float (2.08)
         The radial tolerance to add when using pre-computed orbits. Should be
@@ -148,22 +164,27 @@ class DirectObs(BaseObs):
     def run(self, orbits, obs_data, object_positions=None, object_mjds=None):
         """Find and write the observations of each object to disk.
 
-        For each object, generate a very rough grid of ephemeris points (typically using 2body integration).
-        Then identify pointings in obs_data which are within
+        For each object, a rough grid of ephemeris points are either
+        generated on the fly or read from a pre-calculated grid;
+        If the rough grids indicate that an object may be present
+        in an observation, then a more precise position is generated
+        for the time of the observation.
+
 
         Parameters
         ----------
         orbits : `rubin_sim.moving_objects.Orbits`
-            The orbits to generate ephemerides for.
+            The orbits for which to generate ephemerides.
         obs_data : `np.ndarray`
             The simulated pointing history data.
         object_positions : `np.ndarray`
-            Pre-computed RA,dec positions for each object in orbits (degrees)
+            Pre-computed RA,dec positions for each object in orbits (degrees).
         object_mjds : `np.ndarray`
-            MJD values for each pre-computed position
+            MJD values for each pre-computed position.
         """
 
-        # If we are trying to use pre-computed positions, check that the MJDs span enough
+        # If we are trying to use pre-computed positions,
+        # check that the MJDs span the necessary time.
         if object_mjds is not None:
             if (obs_data[self.obs_time_col].min() < object_mjds.min()) | (
                 obs_data[self.obs_time_col].max() > object_mjds.max()
@@ -241,7 +262,8 @@ class DirectObs(BaseObs):
         result = []
         # save indx to match observation indx to object indx
         indx_map_visit_to_object = []
-        # For each object, identify observations where the object is within the FOV (or camera footprint).
+        # For each object, identify observations where the object is
+        # within the FOV (or camera footprint).
         for i, sso in enumerate(orbits):
             objid = sso.orbits["obj_id"].iloc[0]
             sedname = sso.orbits["sed_filename"].iloc[0]
@@ -273,7 +295,8 @@ class DirectObs(BaseObs):
                 ephs_idxs = np.searchsorted(ephs["time"], obs_data[self.obs_time_col])
                 rough_idx_obs = self._sso_in_circle_fov(ephs[ephs_idxs], obs_data, self.rough_tol)
             else:
-                # Nearest neighbor search for the object_mjd closest to obs_data mjd
+                # Nearest neighbor search for the object_mjd closest to
+                # obs_data mjd
                 pos = np.searchsorted(object_mjds, obs_data[self.obs_time_col], side="left")
                 pos_right = pos - 1
                 object_indx = pos + 0
@@ -303,7 +326,7 @@ class DirectObs(BaseObs):
                     ("%d/%d   id=%s : " % (i, len(orbits), objid))
                     + datetime.datetime.now().strftime("Exact end: %Y-%m-%d %H:%M:%S")
                 )
-                # Identify the objects which fell within the specific footprint.
+                # Identify the objects which fell within the footprint.
                 idx_obs = self.sso_in_fov(ephs, obs_data[rough_idx_obs])
                 if self.verbose:
                     logging.info(

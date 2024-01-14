@@ -37,12 +37,14 @@ class ChebyValues:
 
     def set_coefficients(self, cheby_fits):
         """Set coefficients using a ChebyFits object.
-        (which contains a dictionary of obj_id, t_start, t_end, ra, dec, delta, vmag, and elongation lists).
+        (which contains a dictionary of obj_id, t_start, t_end, ra,
+        dec, delta, vmag, and elongation lists).
 
         Parameters
         ----------
         cheby_fits : `rubin_sim.movingObjects.chebyFits`
-            ChebyFits object, with attribute 'coeffs' - a dictionary of lists of coefficients.
+            ChebyFits object, with attribute 'coeffs' -
+            a dictionary of lists of coefficients.
         """
         self.coeffs = cheby_fits.coeffs
         # Convert list of coefficients into numpy arrays.
@@ -67,7 +69,8 @@ class ChebyValues:
             raise IOError("Could not find cheby_fits_file at %s" % (cheby_fits_file))
         # Read the coefficients file.
         coeffs = pd.read_table(cheby_fits_file, delim_whitespace=True)
-        # The header line provides information on the number of coefficients for each parameter.
+        # The header line provides information on the number of
+        # coefficients for each parameter.
         datacols = coeffs.columns.values
         cols = {}
         coeff_cols = ["ra", "dec", "geo_dist", "vmag", "elongation"]
@@ -82,7 +85,8 @@ class ChebyValues:
             self.coeffs[k] = np.empty([len(cols[k]), len(coeffs)], float)
             for i in range(len(cols[k])):
                 self.coeffs[k][i] = coeffs["%s_%d" % (k, i)].values
-        # Add the mean RA and Dec columns (before swapping the coefficients axes).
+        # Add the mean RA and Dec columns
+        # (before swapping the coefficients axes).
         self.coeffs["meanRA"] = self.coeffs["ra"][0]
         self.coeffs["meanDec"] = self.coeffs["dec"][0]
         # Swap the coefficient axes so that they are [segment, coeff].
@@ -90,7 +94,8 @@ class ChebyValues:
             self.coeffs[k] = self.coeffs[k].swapaxes(0, 1)
 
     def _eval_segment(self, segment_idx, times, subset_segments=None, mask=True):
-        """Evaluate the ra/dec/delta/vmag/elongation values for a given segment at a series of times.
+        """Evaluate the ra/dec/delta/vmag/elongation values for a
+        given segment at a series of times.
 
         Parameters
         ----------
@@ -103,14 +108,16 @@ class ChebyValues:
             Optionally specify a subset of the total segment indexes.
             This lets you pick out particular obj_ids.
         mask : `bool`, optional
-            If True, returns NaNs for values outside the range of times in the segment.
-            If False, extrapolates segment for times outside the segment time range.
+            If True, returns NaNs for values outside the range of times
+            in the segment.
+            If False, extrapolates segment for times outside the
+            segment time range.
 
         Returns
         -------
         ephemeris : `dict`
-           Dictionary of RA, Dec, delta, vmag, and elongation values for the segment indicated,
-           at the time indicated.
+           Dictionary of RA, Dec, delta, vmag, and elongation values for
+           the segment indicated, at the time indicated.
         """
         if subset_segments is None:
             subset_segments = np.ones(len(self.coeffs["obj_id"]), dtype=bool)
@@ -148,8 +155,9 @@ class ChebyValues:
     def get_ephemerides(self, times, obj_ids=None, extrapolate=False):
         """Find the ephemeris information for 'obj_ids' at 'time'.
 
-        Implicit in how this is currently written is that the segments are all expected to cover the
-        same start/end time range across all objects.
+        Implicit in how this is currently written is that the segments
+        are all expected to cover the same start/end time range across
+        all objects.
         They do not have to have the same segment length for all objects.
 
         Parameters
@@ -157,9 +165,11 @@ class ChebyValues:
         times : `float` or `np.ndarray`
             The time to calculate ephemeris positions.
         obj_ids : `np.ndarray`, opt
-            The object ids for which to generate ephemerides. If None, then just uses all objects.
+            The object ids for which to generate ephemerides.
+            If None, then just uses all objects.
         extrapolate : `bool`, opt
-            If True, extrapolate beyond ends of segments if time outside of segment range.
+            If True, extrapolate beyond ends of segments if time
+            outside of segment range.
             If False, return ValueError if time is beyond range of segments.
 
         Returns
@@ -205,7 +215,8 @@ class ChebyValues:
                         if seg_end < t:
                             segments = np.where(self.coeffs["t_end"][obj_match] == seg_end)[0]
                 elif seg_end == t:
-                    # Not extrapolating, but outside the simple match case above.
+                    # Not extrapolating, but outside the
+                    # simple match case above.
                     segments = np.where(self.coeffs["t_end"][obj_match] == seg_end)[0]
             for i, segmentIdx in enumerate(segments):
                 ephemeris = self._eval_segment(segmentIdx, t, obj_match, mask=False)
