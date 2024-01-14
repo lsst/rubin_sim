@@ -41,7 +41,7 @@ class BaseSpatialSlicer(BaseSlicer):
     rot_sky_pos_col_name : `str`, optional
         Name of the rotSkyPos column in the input  data.
         Only used if use_camera is True.
-        Describes the orientation of the camera orientation on the the sky.
+        Describes the orientation of the camera orientation on the sky.
     lat_lon_deg : `bool`, optional
         Flag indicating whether lat and lon values from input data are
         in degrees (True) or radians (False).
@@ -53,7 +53,7 @@ class BaseSpatialSlicer(BaseSlicer):
         Leafsize value for kdtree.
     radius : `float`, optional
         Radius for matching in the kdtree.
-         Equivalent to the radius of the FOV, in degrees.
+        Equivalent to the radius of the FOV, in degrees.
     use_camera : `bool`, optional
         Flag to indicate whether to use the LSST camera footprint or not.
     camera_footprint_file : `str`, optional

@@ -13,7 +13,7 @@ __all__ = (
     "mag_error_from_snr",
     "calc_mag_error_m5",
     "calc_mag_error_sed",
-    "scale_sky_m5"
+    "scale_sky_m5",
 )
 
 import numpy
@@ -655,6 +655,7 @@ def calc_astrometric_error(mag, m5, fwhm_geom=0.7, nvisit=1, systematic_floor=10
     error_sys = systematic_floor
     astrom_error = numpy.sqrt(error_sys * error_sys + error_rand * error_rand)
     return astrom_error
+
 
 def scale_sky_m5(m5target, skysed, total_bandpass, hardware, phot_params, fwhm_eff=0.83):
     """

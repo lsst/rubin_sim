@@ -9,12 +9,13 @@ data = np.genfromtxt(
     os.path.join(dataDir, "solarSpec/solarSpec.dat"),
     dtype=list(zip(["microns", "Irr"], [float] * 2)),
 )
-# data['Irr'] = data['Irr']*1 #convert W/m2/micron to erg/s/cm2/nm (HA, it's the same!)
+# #convert W/m2/micron to erg/s/cm2/nm (HA, it's the same!)
+# data['Irr'] = data['Irr']*1
 
 sun = Sed()
 sun.setSED(data["microns"] * 1e3, flambda=data["Irr"])
 
-# Match the wavelenth spacing and range to the ESO spectra
+# Match the wavelength spacing and range to the ESO spectra
 airglowSpec = np.load(os.path.join(dataDir, "ESO_Spectra/Airglow/airglowSpectra.npz"))
 sun.resampleSED(wavelen_match=airglowSpec["wave"])
 

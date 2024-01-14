@@ -50,6 +50,7 @@ base_default_plot_dict = {
     "n_ticks": 10,
     "color_min": None,
     "color_max": None,
+    "extend": "neither",
     "x_min": None,
     "x_max": None,
     "y_min": None,
@@ -263,11 +264,16 @@ class HealpixSkyMap(BasePlotter):
             warnings.simplefilter("ignore")
             # The vertical colorbar is primarily aimed at the movie
             # but may be useful for other purposes
+            if plot_dict["extend"] is not "neither":
+                extendrect = False
+            else:
+                extendrect = True
             if plot_dict["cbar_orientation"].lower() == "vertical":
                 cb = plt.colorbar(
                     im,
                     shrink=0.5,
-                    extendrect=True,
+                    extendrect=extendrect,
+                    extend=plot_dict["extend"],
                     location="right",
                     format=plot_dict["cbar_format"],
                 )
@@ -280,7 +286,8 @@ class HealpixSkyMap(BasePlotter):
                     pad=0.1,
                     orientation="horizontal",
                     format=plot_dict["cbar_format"],
-                    extendrect=True,
+                    extendrect=extendrect,
+                    extend=plot_dict["extend"],
                 )
             cb.set_label(plot_dict["xlabel"], fontsize=plot_dict["fontsize"])
             if plot_dict["labelsize"] is not None:

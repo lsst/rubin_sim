@@ -38,14 +38,18 @@ import numpy as np
 
 from .base_metric import BaseMetric
 
-# A collection of commonly used simple metrics, operating on a single column and returning a float.
+# A collection of commonly used simple metrics,
+# operating on a single column and returning a float.
 
 twopi = 2.0 * np.pi
 
 
 class PassMetric(BaseMetric):
-    """
-    Just pass the entire array through
+    """Pass the entire dataslice array back to the MetricBundle.
+
+    This is most likely useful while prototyping metrics and wanting to
+    just 'get the data at a point in the sky', while using a HealpixSlicer
+    or a UserPointSlicer.
     """
 
     def __init__(self, cols=None, **kwargs):
@@ -58,64 +62,86 @@ class PassMetric(BaseMetric):
 
 
 class Coaddm5Metric(BaseMetric):
-    """Calculate the coadded m5 value at this gridpoint.
+    """Calculate the coadded m5 value.
 
     Parameters
     ----------
-    m5Col : `str`, optional
+    m5_col : `str`, optional
         Name of the m5 column. Default fiveSigmaDepth.
     metric_name : `str`, optional
-        Name to associate with the metric output.
+        Name to associate with the metric output. Default "CoaddM5".
+    filter_name : `str`, optional
+        Optionally specify a filter to sub-select visits.
+        Default None, does no sub-selection or checking.
+    filter_col : `str`, optional
+        Name of the filter column.
     """
 
-    def __init__(self, m5_col="fiveSigmaDepth", metric_name="CoaddM5", **kwargs):
+    def __init__(self, m5_col="fiveSigmaDepth", metric_name="CoaddM5",
+                 filter_name=None, filter_col="Filter", **kwargs):
+        self.filter_name = filter_name
+        self.filter_col = filter_col
+        self.m5_col = m5_col
         super(Coaddm5Metric, self).__init__(col=m5_col, metric_name=metric_name, **kwargs)
 
+    @staticmethod
+    def coadd(single_visit_m5s):
+        return 1.25 * np.log10(np.sum(10.0 ** (0.8 * single_visit_m5s)))
+
     def run(self, data_slice, slice_point=None):
-        # Running this metric directly from the slicer, this should never come up.
-        # However, other metrics call this one and maybe had visits in other filters ..
         if len(data_slice) == 0:
             return self.badval
-        return 1.25 * np.log10(np.sum(10.0 ** (0.8 * data_slice[self.colname])))
+        if self.filter_name is not None:
+            matched = np.where(data_slice[self.filter_col] == self.filter_name)
+            coadd = self.coadd(data_slice[matched][self.m5_col])
+        else:
+            coadd = self.coadd(data_slice[self.m5_col])
+        return coadd
 
 
 class MaxMetric(BaseMetric):
-    """Calculate the maximum of a simData column slice."""
+    """Calculate the maximum of a simData column slice.
+    """
 
     def run(self, data_slice, slice_point=None):
         return np.max(data_slice[self.colname])
 
 
 class AbsMaxMetric(BaseMetric):
-    """Calculate the max of the absolute value of a simData column slice."""
+    """Calculate the max of the absolute value of a simData column slice.
+    """
 
     def run(self, data_slice, slice_point=None):
         return np.max(np.abs(data_slice[self.colname]))
 
 
 class MeanMetric(BaseMetric):
-    """Calculate the mean of a simData column slice."""
+    """Calculate the mean of a simData column slice.
+    """
 
     def run(self, data_slice, slice_point=None):
         return np.mean(data_slice[self.colname])
 
 
 class AbsMeanMetric(BaseMetric):
-    """Calculate the mean of the absolute value of a simData column slice."""
+    """Calculate the mean of the absolute value of a simData column slice.
+    """
 
     def run(self, data_slice, slice_point=None):
         return np.mean(np.abs(data_slice[self.colname]))
 
 
 class MedianMetric(BaseMetric):
-    """Calculate the median of a simData column slice."""
+    """Calculate the median of a simData column slice.
+    """
 
     def run(self, data_slice, slice_point=None):
         return np.median(data_slice[self.colname])
 
 
 class AbsMedianMetric(BaseMetric):
-    """Calculate the median of the absolute value of a simData column slice."""
+    """Calculate the median of the absolute value of a simData column slice.
+    """
 
     def run(self, data_slice, slice_point=None):
         return np.median(np.abs(data_slice[self.colname]))
@@ -164,7 +190,8 @@ class CountUniqueMetric(BaseMetric):
 
 
 class UniqueRatioMetric(BaseMetric):
-    """Return the number of unique values divided by the total number of values."""
+    """Return the number of unique values divided by the
+    total number of values."""
 
     def run(self, data_slice, slice_point=None):
         ntot = float(np.size(data_slice[self.colname]))
@@ -184,7 +211,8 @@ class CountMetric(BaseMetric):
 
 
 class CountExplimMetric(BaseMetric):
-    """Count the number of x second visits.  Useful for rejecting very short exposures
+    """Count the number of x second visits.
+    Useful for rejecting very short exposures
     and counting 60s exposures as 2 visits."""
 
     def __init__(self, col=None, min_exp=20.0, expected_exp=30.0, exp_col="visitExposureTime", **kwargs):
@@ -202,7 +230,7 @@ class CountExplimMetric(BaseMetric):
 
 
 class CountRatioMetric(BaseMetric):
-    """Count the length of a simData column slice, then divide by 'norm_val'."""
+    """Count the length of a column slice, then divide by `norm_val`."""
 
     def __init__(self, col=None, norm_val=1.0, metric_name=None, units="", **kwargs):
         self.norm_val = float(norm_val)
@@ -215,7 +243,7 @@ class CountRatioMetric(BaseMetric):
 
 
 class CountSubsetMetric(BaseMetric):
-    """Count the length of a simData column slice which matches 'subset'."""
+    """Count the length of a column slice which matches `subset`."""
 
     def __init__(self, col=None, subset=None, units="#", **kwargs):
         super(CountSubsetMetric, self).__init__(col=col, units=units, **kwargs)
@@ -229,7 +257,8 @@ class CountSubsetMetric(BaseMetric):
 
 
 class CountBeyondThreshold(BaseMetric):
-    """Count the number of entries in a data column above or below the threshold."""
+    """Count the number of entries in a data column above or below
+    the `threshold`."""
 
     def __init__(self, col=None, lower_threshold=None, upper_threshold=None, **kwargs):
         super().__init__(col=col, **kwargs)
@@ -256,7 +285,7 @@ class CountBeyondThreshold(BaseMetric):
 
 class RobustRmsMetric(BaseMetric):
     """Use the inter-quartile range of the data to estimate the RMS.
-    Robust since this calculation does not include outliers in the distribution.
+    Robust, as this calculation does not include outliers in the distribution.
     """
 
     def run(self, data_slice, slice_point=None):
@@ -266,7 +295,8 @@ class RobustRmsMetric(BaseMetric):
 
 
 class MaxPercentMetric(BaseMetric):
-    """Return the percent of the data which has the maximum value."""
+    """Return the percent of data which matches the maximum value of the data.
+    """
 
     def run(self, data_slice, slice_point=None):
         n_max = np.size(np.where(data_slice[self.colname] == np.max(data_slice[self.colname]))[0])
@@ -275,7 +305,9 @@ class MaxPercentMetric(BaseMetric):
 
 
 class AbsMaxPercentMetric(BaseMetric):
-    """Return the percent of the data which has the absolute value of the max value of the data."""
+    """Return the percent of data which matches the absolute value of the
+    max value of the data.
+    """
 
     def run(self, data_slice, slice_point=None):
         max_val = np.abs(np.max(data_slice[self.colname]))
@@ -285,7 +317,8 @@ class AbsMaxPercentMetric(BaseMetric):
 
 
 class BinaryMetric(BaseMetric):
-    """Return 1 if there is data."""
+    """Return 1 if there is data, `badval` otherwise.
+    """
 
     def run(self, data_slice, slice_point=None):
         if data_slice.size > 0:
@@ -295,7 +328,8 @@ class BinaryMetric(BaseMetric):
 
 
 class FracAboveMetric(BaseMetric):
-    """Find the fraction of data values above a given value."""
+    """Find the fraction of data values above a given `cutoff`.
+    """
 
     def __init__(self, col=None, cutoff=0.5, scale=1, metric_name=None, **kwargs):
         # Col could just get passed in bundle with kwargs, but by explicitly pulling it out
@@ -314,7 +348,8 @@ class FracAboveMetric(BaseMetric):
 
 
 class FracBelowMetric(BaseMetric):
-    """Find the fraction of data values below a given value."""
+    """Find the fraction of data values below a given `cutoff`.
+    """
 
     def __init__(self, col=None, cutoff=0.5, scale=1, metric_name=None, **kwargs):
         if metric_name is None:
@@ -331,7 +366,8 @@ class FracBelowMetric(BaseMetric):
 
 
 class PercentileMetric(BaseMetric):
-    """Find the value of a column at a given percentile."""
+    """Find the value of a column at a given `percentile`.
+    """
 
     def __init__(self, col=None, percentile=90, metric_name=None, **kwargs):
         if metric_name is None:
@@ -345,8 +381,8 @@ class PercentileMetric(BaseMetric):
 
 
 class NoutliersNsigmaMetric(BaseMetric):
-    """Calculate the # of visits less than n_sigma below the mean (n_sigma<0) or
-    more than n_sigma above the mean of 'col'.
+    """Calculate the # of visits less than n_sigma below the mean (n_sigma<0)
+    or more than n_sigma above the mean.
     """
 
     def __init__(self, col=None, n_sigma=3.0, metric_name=None, **kwargs):
@@ -374,9 +410,10 @@ def _rotate_angles(angles):
     """Private utility for the '*Angle' Metrics below.
 
     This takes a series of angles between 0-2pi and rotates them so that the
-    first angle is at 0, ensuring the biggest 'gap' is at the end of the series.
-    This simplifies calculations like the 'mean' and 'rms' or 'fullrange', removing
-    the discontinuity at 0/2pi.
+    first angle is at 0, ensuring the biggest 'gap' is at the end of the
+    series.
+    This simplifies calculations like the 'mean' and 'rms' or 'fullrange',
+    removing the discontinuity at 0/2pi.
     """
     angleidx = np.argsort(angles)
     diffangles = np.diff(angles[angleidx])
@@ -395,14 +432,15 @@ def _rotate_angles(angles):
 
 
 class MeanAngleMetric(BaseMetric):
-    """Calculate the mean of an angular (degree) simData column slice.
+    """Calculate the mean of an angular (degree) column slice.
 
     'MeanAngle' differs from 'Mean' in that it accounts for wraparound at 2pi.
     """
 
     def run(self, data_slice, slice_point=None):
         """Calculate mean angle via unit vectors.
-        If unit vector 'strength' is less than 0.1, then just set mean to 180 degrees
+        If unit vector 'strength' is less than 0.1,
+        then just set mean to 180 degrees
         (as this indicates nearly uniformly distributed angles).
         """
         x = np.cos(np.radians(data_slice[self.colname]))
@@ -418,7 +456,7 @@ class MeanAngleMetric(BaseMetric):
 
 
 class RmsAngleMetric(BaseMetric):
-    """Calculate the standard deviation of an angular (degrees) simData column slice.
+    """Calculate the standard deviation of an angular (degrees) column slice.
 
     'RmsAngle' differs from 'Rms' in that it accounts for wraparound at 2pi.
     """
@@ -429,9 +467,10 @@ class RmsAngleMetric(BaseMetric):
 
 
 class FullRangeAngleMetric(BaseMetric):
-    """Calculate the full range of an angular (degrees) simData column slice.
+    """Calculate the full range of an angular (degrees) column slice.
 
-    'FullRangeAngle' differs from 'FullRange' in that it accounts for wraparound at 2pi.
+    'FullRangeAngle' differs from 'FullRange' in that it accounts for
+    wraparound at 2pi.
     """
 
     def run(self, data_slice, slice_point=None):
@@ -440,24 +479,30 @@ class FullRangeAngleMetric(BaseMetric):
 
 
 class AngularSpreadMetric(BaseMetric):
-    """Compute the angular spread statistic which measures uniformity of a distribution angles
-    accounting for 2pi periodicity.
+    """Compute the angular spread statistic which measures
+    uniformity of a distribution angles accounting for 2pi periodicity.
 
-    The strategy is to first map angles into unit vectors on the unit circle, and then compute the
-    2D centroid of those vectors.  A uniform distribution of angles will lead to a distribution of
-    unit vectors with mean that approaches the origin.  In contrast, a delta function distribution
-    of angles leads to a delta function distribution of unit vectors with a mean that lands on the
+    The strategy is to first map angles into unit vectors on the unit circle,
+    and then compute the 2D centroid of those vectors.
+    A uniform distribution of angles will lead to a distribution of
+    unit vectors with mean that approaches the origin.
+    In contrast, a delta function distribution of angles leads to a
+    delta function distribution of unit vectors with a mean that lands on the
     unit circle.
 
-    The angular spread statistic is then defined as 1 - R, where R is the radial offset of the mean
-    of the unit vectors derived from the input angles.  R approaches 1 for a uniform distribution
+    The angular spread statistic is then defined as 1 - R,
+    where R is the radial offset of the mean
+    of the unit vectors derived from the input angles.
+    R approaches 1 for a uniform distribution
     of angles and 0 for a delta function distribution of angles.
 
-    The optional parameter `period` may be used to specificy periodicity other than 2 pi.
+    The optional parameter `period` may be used to specificy periodicity
+    other than 2 pi.
     """
 
     def __init__(self, col=None, period=2.0 * np.pi, **kwargs):
-        # https://en.wikipedia.org/wiki/Directional_statistics#Measures_of_location_and_spread
+        # https://en.wikipedia.org/wiki/Directional_statistics
+        # #Measures_of_location_and_spread
         # jmeyers314@gmail.com
         self.period = period
         super(AngularSpreadMetric, self).__init__(col=col, **kwargs)
@@ -474,7 +519,8 @@ class AngularSpreadMetric(BaseMetric):
 
 
 class RealMeanMetric(BaseMetric):
-    """Calculate the mean of a simData column slice with no nans or infs."""
+    """Calculate the mean of a column with no nans or infs.
+    """
 
     def run(self, data_slice, slice_point=None):
         return np.mean(data_slice[self.colname][np.isfinite(data_slice[self.colname])])

@@ -4,14 +4,17 @@ import subprocess
 import healpy as hp
 import numpy as np
 from astropy.io import fits
-from lsst.sims.photUtils import Bandpass, Sed
-from lsst.sims.utils import angular_separation
+from rubin_scheduler.utils import angular_separation
+
+from rubin_sim.data import get_data_dir
+from rubin_sim.phot_utils import Bandpass, Sed
 
 ## Tools for calling and reading things from the ESO sky model.
-# Downloaded and installed from XXX.
-# Installing is a major headache, let's hope we don't have to do this again anytime soon
+# Installing 'calcskymodel' is a major headache,
+# let's hope we don't have to do this again anytime soon
 
-# Run this in the sm-01_mod2 direcory to regenerate the sims_skybrightness save files.
+# Run this in the sm-01_mod2 directory to regenerate the sims_skybrightness
+# save files.
 
 
 hPlank = 6.626068e-27  # erg s
@@ -105,13 +108,12 @@ def call_calcskymodel():
 
 def spec2mags(spectra_list, wave):
     # Load LSST filters
-    throughPath = os.getenv("LSST_THROUGHPUTS_BASELINE")
+    throughPath = os.path.join(get_data_dir(), "throughputs", "baseline")
     keys = ["u", "g", "r", "i", "z", "y"]
 
     dtype = [("mags", "float", (6))]
     result = np.zeros(len(spectra_list), dtype=dtype)
 
-    nfilt = len(keys)
     filters = {}
     for filtername in keys:
         bp = np.loadtxt(
@@ -119,25 +121,25 @@ def spec2mags(spectra_list, wave):
             dtype=list(zip(["wave", "trans"], [float] * 2)),
         )
         tempB = Bandpass()
-        tempB.setBandpass(bp["wave"], bp["trans"])
+        tempB.set_bandpass(bp["wave"], bp["trans"])
         filters[filtername] = tempB
 
-    filterwave = np.array([filters[f].calcEffWavelen()[0] for f in keys])
+    filterwave = np.array([filters[f].calc_eff_wavelen()[0] for f in keys])
 
     for i, spectrum in enumerate(spectra_list):
         tempSed = Sed()
-        tempSed.setSED(wave, flambda=spectrum)
+        tempSed.set_sed(wave, flambda=spectrum)
         for j, filtName in enumerate(keys):
             try:
-                result["mags"][i][j] = tempSed.calcMag(filters[filtName])
-            except:
+                result["mags"][i][j] = tempSed.calc_mag(filters[filtName])
+            except ValueError:
                 pass
     return result, filterwave
 
 
 def generate_airglow(outDir=None):
     if outDir is None:
-        dataDir = os.getenv("SIMS_SKYBRIGHTNESS_DATA_DIR")
+        dataDir = os.path.join(get_data_dir(), "skybrightness")
         outDir = os.path.join(dataDir, "ESO_Spectra/Airglow")
 
     ams = np.array([1.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 2.0, 2.5, 3.0])
@@ -184,7 +186,7 @@ def generate_airglow(outDir=None):
 
 def generate_loweratm(outDir=None):
     if outDir is None:
-        dataDir = os.getenv("SIMS_SKYBRIGHTNESS_DATA_DIR")
+        dataDir = os.path.join(get_data_dir(), "skybrightness")
         outDir = os.path.join(dataDir, "ESO_Spectra/LowerAtm")
 
     ams = np.array([1.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 2.0, 2.5, 3.0])
@@ -230,10 +232,11 @@ def generate_loweratm(outDir=None):
 
 
 def merged_spec():
-    dataDir = os.getenv("SIMS_SKYBRIGHTNESS_DATA_DIR")
+    dataDir = os.path.join(get_data_dir(), "skybrightness")
     outDir = os.path.join(dataDir, "ESO_Spectra/MergedSpec")
 
-    # A large number of the background components only depend on Airmass, so we can merge those together
+    # A large number of the background components only depend on Airmass,
+    # so we can merge those together
 
     npzs = [
         "LowerAtm/Spectra.npz",
@@ -266,7 +269,7 @@ def merged_spec():
 
 def generate_moon(outDir=None):
     if outDir is None:
-        dataDir = os.getenv("SIMS_SKYBRIGHTNESS_DATA_DIR")
+        dataDir = os.path.join(get_data_dir(), "skybrightness")
         outDir = os.path.join(dataDir, "ESO_Spectra/Moon")
 
     nside = 4
@@ -342,7 +345,7 @@ def generate_moon(outDir=None):
 
 def generate_scatteredStar(outDir=None):
     if outDir is None:
-        dataDir = os.getenv("SIMS_SKYBRIGHTNESS_DATA_DIR")
+        dataDir = os.path.join(get_data_dir(), "skybrightness")
         outDir = os.path.join(dataDir, "ESO_Spectra/ScatteredStarLight")
 
     ams = np.array([1.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 2.0, 2.5, 3.0])
@@ -389,7 +392,7 @@ def generate_scatteredStar(outDir=None):
 
 def generate_upperatm(outDir=None):
     if outDir is None:
-        dataDir = os.getenv("SIMS_SKYBRIGHTNESS_DATA_DIR")
+        dataDir = os.path.join(get_data_dir(), "skybrightness")
         outDir = os.path.join(dataDir, "ESO_Spectra/UpperAtm")
 
     ams = np.array([1.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 2.0, 2.5, 3.0])
@@ -436,7 +439,7 @@ def generate_upperatm(outDir=None):
 
 def generate_zodi(outDir=None):
     if outDir is None:
-        dataDir = os.getenv("SIMS_SKYBRIGHTNESS_DATA_DIR")
+        dataDir = os.path.join(get_data_dir(), "skybrightness")
         outDir = os.path.join(dataDir, "ESO_Spectra/Zodiacal")
 
     ams = np.array([1.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 2.0, 2.5, 3.0])

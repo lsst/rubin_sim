@@ -215,7 +215,6 @@ class Orbits:
         # All is good.
         self.orbits = orbits
 
-    @staticmethod
     def assign_sed(self, orbits, random_seed=None):
         """Assign either a C or S type SED,
         depending on the semi-major axis of the object.

@@ -10,7 +10,9 @@ from .base_spatial_slicer import BaseSpatialSlicer
 
 
 class UserPointsSlicer(BaseSpatialSlicer):
-    """A spatial slicer that evaluates pointings overlapping user-provided list of points.
+    """A spatial slicer based on a user-provided list of points.
+    The data_slices returned are the visit pointings which overlap
+    each of these points.
 
     Parameters
     ----------
@@ -19,32 +21,37 @@ class UserPointsSlicer(BaseSpatialSlicer):
     dec : `list` or `numpy.ndarray`
         User-selected Dec points, in degrees. Stored internally in radians.
     lon_col : `str`, optional
-        Name of the longitude (RA equivalent) column to use from the input data.
+        Name of the longitude (RA equivalent) column in the input data.
         Default fieldRA
     lat_col : `str`, optional
-        Name of the latitude (Dec equivalent) column to use from the input data.
+        Name of the latitude (Dec equivalent) column in the input data.
         Default fieldDec
     latLonDeg : `bool`, optional
-        Flag indicating whether the lon and lat values will be in degrees (True) or radians (False).
-        Default True (appropriate for opsim v4).
+        Flag indicating whether the lon and lat values will be in
+        degrees (True) or radians (False).
+        Default True.
     verbose : `bool`, optional
-        Flag to indicate whether or not to write additional information to stdout during runtime.
+        Flag to indicate whether or not to write additional
+        information to stdout during runtime.
         Default True.
     badval : `float`, optional
         Bad value flag, relevant for plotting. Default -666.
     leafsize : `int`, optional
         Leafsize value for kdtree. Default 100.
     radius : `float`, optional
-        Radius for matching in the kdtree. Equivalent to the radius of the FOV. Degrees.
+        Radius for matching in the kdtree.
+        Equivalent to the radius of the FOV. Degrees.
         Default 2.45.
     use_camera : `bool`, optional
         Flag to indicate whether to use the LSST camera footprint or not.
         Default True.
     camera_footprint_file : `str`, optional
-        Name of the camera footprint map to use. Can be None, which will use the default.
+        Name of the camera footprint map to use.
+        Can be None, which will use the default.
     rotSkyPosColName : `str`, optional
-        Name of the rotSkyPos column in the input  data. Only used if use_camera is True.
-        Describes the orientation of the camera orientation compared to the sky.
+        Name of the rotSkyPos column in the input  data.
+        Only used if use_camera is True.
+        Describes the camera orientation compared to the sky.
         Default rotSkyPos.
     """
 
@@ -75,7 +82,8 @@ class UserPointsSlicer(BaseSpatialSlicer):
             camera_footprint_file=camera_footprint_file,
             rot_sky_pos_col_name=rot_sky_pos_col_name,
         )
-        # check that ra and dec are iterable, if not, they are probably naked numbers, wrap in list
+        # check that ra and dec are iterable,
+        # if not, they are probably naked numbers, wrap in list
         if not hasattr(ra, "__iter__"):
             ra = [ra]
         if not hasattr(dec, "__iter__"):
