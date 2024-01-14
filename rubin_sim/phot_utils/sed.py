@@ -1340,7 +1340,7 @@ class Sed:
         """
         flux = self.calc_flux(bandpass, wavelen=wavelen, fnu=fnu)
         if flux < 1e-300:
-            raise Exception("This SED has no flux within this bandpass.")
+            raise ValueError("This SED has no flux within this bandpass.")
         mag = self.mag_from_flux(flux)
         return mag
 
