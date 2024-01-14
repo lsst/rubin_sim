@@ -36,8 +36,7 @@ else:
 
 
 def id2intid(ids):
-    """
-    take an array of ids, and convert them to an integer id.
+    """take an array of ids, and convert them to an integer id.
     Handy if you want to put things into a sparse array.
     """
     uids = np.unique(ids)
@@ -55,9 +54,7 @@ def id2intid(ids):
 
 
 def intid2id(intids, uintids, uids, dtype=int):
-    """
-    convert an int back to an id
-    """
+    """convert an int back to an id"""
     ids = np.zeros(np.size(intids))
 
     order = np.argsort(intids)
@@ -150,15 +147,20 @@ def load_spec_files(filenames, mags=False):
 
 
 class BaseSingleInterp:
-    """
-    Base class for sky components that only need to be interpolated on airmass
+    """Base class for interpolating sky components which only depend
+    on airmass.
+
+    Parameters
+    ----------
+    comp_name : `str`, optional
+        Component name.
+    sorted_order : `list` [`str`], optional
+        Order of the dimensions in the input .npz files.
+    mags : `bool`, optional
+        Return magnitudes (only) rather than the full spectrum.
     """
 
     def __init__(self, comp_name=None, sorted_order=["airmass", "nightTimes"], mags=False):
-        """
-        mags: Rather than the full spectrum, return the LSST ugrizy magnitudes.
-        """
-
         self.mags = mags
 
         data_dir = os.path.join(get_data_dir(), "skybrightness", "ESO_Spectra/" + comp_name)
@@ -175,7 +177,7 @@ class BaseSingleInterp:
         else:
             self.spec_size = 0
 
-        # What order are the dimesions sorted by (from how
+        # What order are the dimensions sorted by (from how
         # the .npz was packaged)
         self.sorted_order = sorted_order
         self.dim_dict = {}
@@ -187,21 +189,34 @@ class BaseSingleInterp:
         # Set up and save the dict to order the filters once.
         self.filter_name_dict = {"u": 0, "g": 1, "r": 2, "i": 3, "z": 4, "y": 5}
 
-    def __call__(self, intep_points, filter_names=["u", "g", "r", "i", "z", "y"]):
+    def __call__(self, interp_points, filter_names=["u", "g", "r", "i", "z", "y"]):
+        """At `interp_points (e.g. airmass), return values."""
         if self.mags:
-            return self.interp_mag(intep_points, filter_names=filter_names)
+            return self.interp_mag(interp_points, filter_names=filter_names)
         else:
-            return self.interp_spec(intep_points)
+            return self.interp_spec(interp_points)
 
-    def indx_and_weights(self, points, grid):
-        """
-        for given 1-D points, find the grid points on
-        either side and return the weights assume grid is sorted
+    def _indx_and_weights(self, points, grid):
+        """For given 1-D points, find the grid points on
+        either side and return the weights assume grid is sorted.
+
+        Parameters
+        ----------
+        points : `np.ndarray`, (N,)
+            The points on the grid to query.
+        grid : `np.ndarray`, (N,)
+            The grid on which to locate `points`.
+
+        Returns
+        -------
+        indx_r, indx_l : `np.ndarray`, `np.ndarray`
+            The grid indexes for each of the 1-d points
+        w_r, w_l : `np.ndarray`, `np.ndarray`
+            The weights for each of these grid points.
         """
 
         order = np.argsort(points)
 
-        indx_l = np.empty(points.size, dtype=int)
         indx_r = np.empty(points.size, dtype=int)
 
         indx_r[order] = np.searchsorted(grid, points[order])
@@ -235,7 +250,7 @@ class BaseSingleInterp:
             (interp_points["airmass"] <= np.max(self.dim_dict["airmass"]))
             & (interp_points["airmass"] >= np.min(self.dim_dict["airmass"]))
         )
-        indx_r, indx_l, w_r, w_l = self.indx_and_weights(
+        indx_r, indx_l, w_r, w_l = self._indx_and_weights(
             interp_points["airmass"][in_range], self.dim_dict["airmass"]
         )
 
@@ -266,36 +281,29 @@ class BaseSingleInterp:
 
 
 class ScatteredStar(BaseSingleInterp):
-    """
-    Interpolate the spectra caused by scattered starlight.
-    """
+    """Interpolate the spectra caused by scattered starlight."""
 
     def __init__(self, comp_name="ScatteredStarLight", mags=False):
         super(ScatteredStar, self).__init__(comp_name=comp_name, mags=mags)
 
 
 class LowerAtm(BaseSingleInterp):
-    """
-    Interpolate the spectra caused by the lower atmosphere.
-    """
+    """Interpolate the spectra caused by the lower atmosphere."""
 
     def __init__(self, comp_name="LowerAtm", mags=False):
         super(LowerAtm, self).__init__(comp_name=comp_name, mags=mags)
 
 
 class UpperAtm(BaseSingleInterp):
-    """
-    Interpolate the spectra caused by the upper atmosphere.
-    """
+    """Interpolate the spectra caused by the upper atmosphere."""
 
     def __init__(self, comp_name="UpperAtm", mags=False):
         super(UpperAtm, self).__init__(comp_name=comp_name, mags=mags)
 
 
 class MergedSpec(BaseSingleInterp):
-    """
-    Interpolate the spectra caused by the sum of the scattered
-    starlight, airglow, upper and lower atmosphere.
+    """Interpolate the combined spectra caused by the sum of the scattered
+    starlight, air glow, upper and lower atmosphere.
     """
 
     def __init__(self, comp_name="MergedSpec", mags=False):
@@ -303,9 +311,7 @@ class MergedSpec(BaseSingleInterp):
 
 
 class Airglow(BaseSingleInterp):
-    """
-    Interpolate the spectra caused by airglow.
-    """
+    """Interpolate the spectra caused by airglow."""
 
     def __init__(self, comp_name="Airglow", sorted_order=["airmass", "solarFlux"], mags=False):
         super(Airglow, self).__init__(comp_name=comp_name, mags=mags, sorted_order=sorted_order)
@@ -321,11 +327,11 @@ class Airglow(BaseSingleInterp):
             & (interp_points["solar_flux"] <= np.max(self.dim_dict["solarFlux"]))
         )
         use_points = interp_points[in_range]
-        am_right_index, am_left_index, am_right_w, am_left_w = self.indx_and_weights(
+        am_right_index, am_left_index, am_right_w, am_left_w = self._indx_and_weights(
             use_points["airmass"], self.dim_dict["airmass"]
         )
 
-        sf_right_index, sf_left_index, sf_right_w, sf_left_w = self.indx_and_weights(
+        sf_right_index, sf_left_index, sf_right_w, sf_left_w = self._indx_and_weights(
             use_points["solar_flux"], self.dim_dict["solarFlux"]
         )
 
@@ -338,23 +344,23 @@ class Airglow(BaseSingleInterp):
 
 
 class TwilightInterp:
+    """Use the Solar Spectrum to provide an interpolated spectra or magnitudes
+    for the twilight sky.
+
+    Parameters
+    ----------
+    mags : `bool`
+        If True, only return the LSST filter magnitudes,
+        otherwise return the full spectrum
+    dark_sky_mags : `dict`
+        Dict of the zenith dark sky values to be assumed.
+        The twilight fits are done relative to the dark sky level.
+    fit_results : `dict`
+        Dict of twilight parameters based on twilight_func.
+        Keys should be filter names.
+    """
+
     def __init__(self, mags=False, dark_sky_mags=None, fit_results=None):
-        """Read the Solar spectrum into a handy object and
-            compute mags in different filters
-
-        Parameters
-        ----------
-        mags : `bool`
-            If True, only return the LSST filter magnitudes,
-            otherwise return the full spectrum
-        dark_sky_mags : dict
-            Dict of the zenith dark sky values to be assumed.
-            The twilight fits are done relative to the dark sky level.
-        fit_results : dict
-            Dict of twilight parameters based on twilight_func.
-            Keys should be filter names.
-        """
-
         if dark_sky_mags is None:
             dark_sky_mags = {
                 "u": 22.8,
@@ -498,8 +504,7 @@ class TwilightInterp:
         # away with computing the magnitudes in the __call__ each time.
         if mags:
             # Load up the LSST filters and convert the
-            # solarSpec.flabda and solarSpec.wavelen to fluxes
-            through_path = through_path = os.path.join(get_data_dir(), "throughputs", "baseline")
+            # solarSpec.flambda and solarSpec.wavelen to fluxes
             self.lsst_filter_names = ["u", "g", "r", "i", "z", "y"]
             self.lsst_equations = np.zeros(
                 (np.size(self.lsst_filter_names), np.size(self.fit_results["B"])),
@@ -511,6 +516,7 @@ class TwilightInterp:
             for i, fn in enumerate(self.filter_names):
                 fits[i, :] = self.fit_results[fn]
 
+            through_path = os.path.join(get_data_dir(), "throughputs", "baseline")
             for filtername in self.lsst_filter_names:
                 bp = np.loadtxt(
                     os.path.join(through_path, "total_" + filtername + ".dat"),
@@ -531,11 +537,13 @@ class TwilightInterp:
         self.filter_name_dict = {"u": 0, "g": 1, "r": 2, "i": 3, "z": 4, "y": 5}
 
     def print_fits_used(self):
-        """
-        Print out the fit parameters being used
-        """
+        """Print out the fit parameters being used"""
         print(
-            "\\tablehead{\colhead{Filter} & \colhead{$r_{12/z}$} & \colhead{$a$ (1/radians)} & \colhead{$b$ (1/airmass)} & \colhead{$c$ (az term/airmass)} & \colhead{$f_z_dark$ (erg/s/cm$^2$)$\\times 10^8$} & \colhead{m$_z_dark$}}"
+            r"\\tablehead{\colhead{Filter} & \colhead{$r_{12/z}$} & "
+            r"\colhead{$a$ (1/radians)} & \colhead{$b$ (1/airmass)} & "
+            r"\colhead{$c$ (az term/airmass)} & "
+            r"\colhead{$f_z_dark$ (erg/s/cm$^2$)$\\times 10^8$} & "
+            r"\colhead{m$_z_dark$}}"
         )
         for key in self.fit_results:
             numbers = ""
@@ -565,6 +573,21 @@ class TwilightInterp:
         filter_names=["u", "g", "r", "i", "z", "y"],
     ):
         """
+        Parameters
+        ----------
+        interp_points : `np.ndarray`, (N, 3)
+            Interpolation points. Should contain sunAlt, airmass and azRelSun.
+        max_am : `float`, optional
+            Maximum airmass to calculate twilight sky to.
+        limits : `np.ndarray`, (N,), optional
+            Sun altitude limits
+
+        Returns
+        -------
+        spectra, wavelength : `np.ndarray`, (N, 3), `np.ndarray`, (M,)
+
+        Note
+        ----
         Originally fit the twilight with a cutoff of sun altitude of
         -11 degrees. I think it can be safely extrapolated farther,
         but be warned you may be entering a regime where it breaks down.
@@ -596,7 +619,24 @@ class TwilightInterp:
 
     def interp_spec(self, interp_points, max_am=3.0, limits=(np.radians(15.0), np.radians(-20.0))):
         """
-        interp_points should have airmass, azRelSun, and sunAlt.
+        Parameters
+        ----------
+        interp_points : `np.ndarray`, (N, 3)
+            Interpolation points. Should contain sunAlt, airmass and azRelSun.
+        max_am : `float`, optional
+            Maximum airmass to calculate twilight sky to.
+        limits : `np.ndarray`, (N,), optional
+            Sun altitude limits
+
+        Returns
+        -------
+        spectra, wavelength : `np.ndarray`, (N, 3), `np.ndarray`, (M,)
+
+        Note
+        ----
+        Originally fit the twilight with a cutoff of sun altitude of
+        -11 degrees. I think it can be safely extrapolated farther,
+        but be warned you may be entering a regime where it breaks down.
         """
 
         npts = np.size(self.solar_wave)
@@ -679,12 +719,12 @@ class MoonInterp(BaseSingleInterp):
         hweights[:, good] = hweights[:, good] / norm[good]
 
         # Find the neighboring moonAltitude points in the grid
-        right_m_as, left_m_as, ma_right_w, ma_left_w = self.indx_and_weights(
+        right_m_as, left_m_as, ma_right_w, ma_left_w = self._indx_and_weights(
             interp_points["moonAltitude"], self.dim_dict["moonAltitude"]
         )
 
         # Find the neighboring moonSunSep points in the grid
-        right_mss, left_mss, mss_right_w, mss_left_w = self.indx_and_weights(
+        right_mss, left_mss, mss_right_w, mss_left_w = self._indx_and_weights(
             interp_points["moonSunSep"], self.dim_dict["moonSunSep"]
         )
 
@@ -743,7 +783,7 @@ class ZodiacalInterp(BaseSingleInterp):
         good = np.where(norm != 0.0)[0]
         hweights[:, good] = hweights[:, good] / norm[good]
 
-        am_right_index, am_left_index, am_right_w, am_left_w = self.indx_and_weights(
+        am_right_index, am_left_index, am_right_w, am_left_w = self._indx_and_weights(
             use_points["airmass"], self.dim_dict["airmass"]
         )
 

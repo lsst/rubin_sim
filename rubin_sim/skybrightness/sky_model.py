@@ -78,43 +78,49 @@ class SkyModel:
         precise_alt_az=False,
         airmass_limit=3.0,
     ):
-        """
-        Instatiate the SkyModel. This loads all the required template spectra/magnitudes
-        that will be used for interpolation.
+        """A model of the sky, including all of the required
+        template spectra or magnitudes needed to interpolate the
+        sky spectrum or magnitudes during twilight or night time
+        at any point on the sky.
+
 
         Parameters
         ----------
-        Observatory : Site object
-            object with attributes lat, lon, elev. But default loads LSST.
-
-        twilight : bool (True)
+        observatory : `rubin_scheduler.site_models.Site`, optional
+            Default of None loads the LSST site.
+        twilight : `bool`, optional
             Include twilight component (True)
-        zodiacal : bool (True)
+        zodiacal : `bool`, optional
             Include zodiacal light component (True)
-        moon : bool (True)
+        moon : `bool`, optional
             Include scattered moonlight component (True)
-        airglow : bool (True)
+        airglow : `bool`, optional
             Include airglow component
-        lower_atm : bool (False)
-            Include lower atmosphere component. This component is part of `merged_spec`.
-        upper_atm : bool (False)
-            Include upper atmosphere component. This component is part of `merged_spec`.
-        scattered_star : bool (False)
-            Include scattered starlight component. This component is part of `merged_spec`.
-        merged_spec : bool (True)
-            Compute the lower_atm, upper_atm, and scattered_star simultaneously since they are all
-            functions of only airmass.
-        mags : bool (False)
-            By default, the sky model computes a 17,001 element spectrum. If `mags` is True,
+        lower_atm : `bool`, optional
+            Include lower atmosphere component.
+            This component is part of `merged_spec`.
+        upper_atm : `bool`, optional
+            Include upper atmosphere component.
+            This component is part of `merged_spec`.
+        scattered_star : `bool`, optional
+            Include scattered starlight component.
+            This component is part of `merged_spec`.
+        merged_spec : `bool`, optional
+            Compute the lower_atm, upper_atm, and scattered_star
+            simultaneously since they are all functions of only airmass.
+        mags : `bool`, optional
+            By default, the sky model computes a 17,001 element spectrum.
+            If `mags` is True,
             the model will return the LSST ugrizy magnitudes (in that order).
-        precise_alt_az : bool (False)
+        precise_alt_az : `bool`, optional
             If False, use the fast alt, az to ra, dec coordinate
-            transformations that do not take abberation, diffraction, etc
+            transformations that do not take aberation, diffraction, etc
             into account. Results in errors up to ~1.5 degrees,
-            but an order of magnitude faster than coordinate transforms in sims_utils.
-        airmass_limit : float (3.0)
-            Most of the models are only accurate to airmass 3.0. If set higher, airmass values
-            higher than 3.0 are set to 3.0.
+            but an order of magnitude faster than the precise coordinate
+            transformations available in rubin_scheduler.utils.
+        airmass_limit : `float`, optional
+            Most of the models are only accurate to airmass 3.0.
+            If set higher, airmass values higher than 3.0 are set to 3.0.
         """
 
         self.moon = moon
@@ -219,17 +225,28 @@ class SkyModel:
         filter_names=["u", "g", "r", "i", "z", "y"],
     ):
         """
-        Set the sky parameters by computing the sky conditions on a given MJD and sky location.
+        Set the sky parameters by computing the sky conditions on a
+        given MJD and sky location.
 
 
-
-        lon: Longitude-like (RA or Azimuth). Can be single number, list, or numpy array
-        lat: Latitude-like (Dec or Altitude)
-        mjd: Modified Julian Date for the calculation. Must be single number.
-        degrees: (False) Assumes lon and lat are radians unless degrees=True
-        az_alt: (False) Assume lon, lat are RA, Dec unless az_alt=True
-        solar_flux: solar flux in SFU Between 50 and 310. Default=130. 1 SFU=10^4 Jy.
-        filter_names: list of fitlers to return magnitudes for (if initialized with mags=True).
+        Parameters
+        ----------
+        lon : `float` or `np.ndarray`, (N,)
+            Longitude-like (RA or Azimuth).
+            Can be single number, list, or numpy array
+        lat: `float` or `np.ndarray`, (N,)
+            Latitude-like (Dec or Altitude)
+        mjd: `float`
+            Modified Julian Date for the calculation. Must be single number.
+        degrees: `bool`, optional
+            If True, lon/lat are in degrees. If False, lon/lat in radians.
+        az_alt: `bool`, optional
+            Assume lon, lat are RA, Dec unless az_alt=True
+        solar_flux: `float`
+            Solar flux in SFU Between 50 and 310. Default=130. 1 SFU=10^4 Jy.
+        filter_names: `list` [`str`]
+            List of filter for which to return magnitudes
+            (if initialized with mags=True).
         """
         self.filter_names = filter_names
         if self.mags:
@@ -318,9 +335,11 @@ class SkyModel:
         filter_names=["u", "g", "r", "i", "z", "y"],
     ):
         """
-        Set the sky parameters by computing the sky conditions on a given MJD and sky location.
+        Set the sky parameters by computing the sky conditions on a
+        given MJD and sky location.
 
-        Use if you already have alt az coordinates so you can skip the coordinate conversion.
+        Use if you already have alt az coordinates so you can skip the
+        coordinate conversion.
         """
         self.filter_names = filter_names
         if self.mags:
@@ -373,61 +392,66 @@ class SkyModel:
 
     def get_computed_vals(self):
         """
-        Return the intermediate values that are caluculated by set_ra_dec_mjd and used for interpolation.
-        All of these values are also accesible as class atributes, this is a convience method to grab them
-        all at once and document the formats.
+        Return the intermediate values that are caluculated by
+        set_ra_dec_mjd and used for interpolation.
+        All of these values are also accessible as class attributes, this is
+        a convenience method to grab them all at once and document the formats.
 
         Returns
         -------
-        out : dict
-            Dictionary of all the intermediate calculated values that may be of use outside
-        (the key:values in the output dict)
-        ra : numpy.array
+        out : `dict`
+            Dictionary of all the intermediate calculated values that may
+            be of use outside (the key:values in the output dict)
+        ra : `np.ndarray`, (N,)
             RA of the interpolation points (radians)
-        dec : np.array
+        dec : `np.ndarray`, (N,)
             Dec of the interpolation points (radians)
-        alts : np.array
+        alts : `np.ndarray`, (N,)
             Altitude (radians)
-        azs : np.array
+        azs : `np.ndarray`, (N,)
             Azimuth of interpolation points (radians)
-        airmass : np.array
-            Airmass values for each point, computed via 1./np.cos(np.pi/2.-self.alts).
-        solar_flux : float
+        airmass : `np.ndarray`, (N,)
+            Airmass values for each point,
+            computed via 1./np.cos(np.pi/2.-self.alts).
+        solar_flux : `float`
             The solar flux used (SFU).
-        sunAz : float
+        sunAz : `float`
             Azimuth of the sun (radians)
-        sunAlt : float
+        sunAlt : `float`
             Altitude of the sun (radians)
-        sunRA : float
+        sunRA : `float`
             RA of the sun (radians)
-        sunDec : float
+        sunDec : `float`
             Dec of the sun (radians)
-        azRelSun : np.array
-            Azimuth of each point relative to the sun (0=same direction as sun) (radians)
-        moonAz : float
+        azRelSun : `np.ndarray`, (N,)
+            Azimuth of each point relative to the sun
+            (0=same direction as sun) (radians)
+        moonAz : `float`
             Azimuth of the moon (radians)
-        moonAlt : float
+        moonAlt : `float`
             Altitude of the moon (radians)
-        moonRA : float
+        moonRA : `float`
             RA of the moon (radians)
-        moonDec : float
+        moonDec : `float`
             Dec of the moon (radians).  Note, if you want distances
-        moon_phase : float
+        moon_phase : `float`
             Phase of the moon (0-100)
-        moonSunSep : float
+        moonSunSep : `float`
             Seperation of moon and sun (radians)
-        azRelMoon : np.array
+        azRelMoon : `np.ndarray`, (N,)
             Azimuth of each point relative to teh moon
-        eclipLon : np.array
+        eclipLon : `np.ndarray`, (N,)
             Ecliptic longitude (radians) of each point
-        eclipLat : np.array
+        eclipLat : `np.ndarray`, (N,)
             Ecliptic latitude (radians) of each point
-        sunEclipLon: np.array
-            Ecliptic longitude (radians) of each point with the sun at longitude zero
+        sunEclipLon: `np.ndarray`, (N,)
+            Ecliptic longitude (radians) of each point with the sun at
+            longitude zero
 
-        Note that since the alt and az can be calculated using the fast approximation, if one wants
-        to compute the distance between the the points and the sun or moon, it is probably better to
-        use the ra,dec positions rather than the alt,az positions.
+        Note that since the alt and az can be calculated using the fast
+        approximation, if one wants to compute the distance between the points
+        and the sun or moon, it is probably better to use the ra,dec positions
+        rather than the alt,az positions.
         """
 
         result = {}
@@ -555,9 +579,9 @@ class SkyModel:
     ):
         """
         Set parameters manually.
-        Note, you can put in unphysical combinations of Parameters if you want to
-        (e.g., put a full moon at zenith at sunset).
-        if the alts kwarg is set it will override the airmass kwarg.
+        Note, you can put in unphysical combinations of Parameters if you
+        want to (e.g., put a full moon at zenith at sunset).
+        If the alts kwarg is set it will override the airmass kwarg.
         MoonPhase is percent of moon illuminated (0-100)
         """
 
@@ -680,7 +704,8 @@ class SkyModel:
         """
         if self.azs is None:
             raise ValueError(
-                "No coordinates set. Use set_ra_dec_mjd, setRaDecAltAzMjd, or setParams methods before calling returnWaveSpec."
+                "No coordinates set. Use set_ra_dec_mjd, setRaDecAltAzMjd, or "
+                "setParams methods before calling returnWaveSpec."
             )
         if self.mags:
             raise ValueError("SkyModel set to interpolate magnitudes. Initialize object with mags=False")
@@ -689,26 +714,30 @@ class SkyModel:
         return self.wave.copy(), self.spec.copy()
 
     def return_mags(self, bandpasses=None):
-        """
-        Convert the computed spectra to a magnitude using the supplied bandpass,
-        or, if self.mags=True, return the mags in the LSST filters
+        """Return the skybrightness in magnitudes.
+
+        Convert the computed spectra to a magnitude using the
+        supplied bandpass, or, if self.mags=True, return the mags in the
+        LSST filters.
 
         Parameters
         ----------
-        bandpasses : dict (None)
-            Dictionary with bandpass name as keys and rubin_su=im.phot_utils.Bandpass objects as values.
+        bandpasses : `dict` [`str`, `rubin_sim.phot_utils.Bandpass`], optional
+            Dictionary with bandpass name as keys and `Bandpass` objects
+            as values.
 
-        If mags=True when initialized, return mags returns an structured array with
-        dtype names u,g,r,i,z,y.
+        If mags=True when initialized, return mags returns a structured array
+        with dtype names u,g,r,i,z,y; the default LSST bandpasses are used.
 
         Returns
         -------
-        mags : np.array
+        mags : `np.ndarray`, (N,)
             Sky brightness in AB mags/sq arcsec
         """
         if self.azs is None:
             raise ValueError(
-                "No coordinates set. Use set_ra_dec_mjd, setRaDecAltAzMjd, or setParams methods before calling return_mags."
+                "No coordinates set. Use set_ra_dec_mjd, setRaDecAltAzMjd, or "
+                "setParams methods before calling return_mags."
             )
 
         if self.mags:
@@ -731,7 +760,8 @@ class SkyModel:
                 max_wave = bandpasses[key].wavelen[is_through].max()
                 in_band = np.where((self.wave >= min_wave) & (self.wave <= max_wave))
                 for i, ra in enumerate(self.ra):
-                    # Check that there is flux in the band, otherwise calc_mag fails
+                    # Check that there is flux in the band,
+                    # otherwise calc_mag fails
                     if np.max(self.spec[i, in_band]) > 0:
                         temp_sed.set_sed(self.wave, flambda=self.spec[i, :])
                         mags[i] = temp_sed.calc_mag(bandpasses[key])
