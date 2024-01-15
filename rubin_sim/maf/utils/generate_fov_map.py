@@ -1,5 +1,5 @@
 import numpy as np
-from rubin_scheduler.utils import gnomonic_project_toxy, gnomonic_project_tosky
+from rubin_scheduler.utils import gnomonic_project_tosky, gnomonic_project_toxy
 
 # Use the main stack to make a rough array.
 
