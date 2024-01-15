@@ -11,19 +11,24 @@ import rubin_sim.maf.metric_bundles as metricBundles
 
 
 class MafRunResults:
-    """
-    Class to read MAF's resultsDb_sqlite.db and organize the output for display on web pages.
+    """Read and serve the MAF resultsDb_sqlite.db database for the
+    show_maf jinja2 templates.
 
     Deals with a single MAF run (one output directory, one results_db) only.
+
+    Parameters
+    ----------
+    out_dir : `str`
+        The location of the results database for this run.
+    run_name : `str`, optional
+        The name of the opsim run.
+        If None, simply stays blank on show_maf display pages.
+    results_db : `str`, optional
+        The path to the sqlite database in `out_dir`.
+        If None, uses the default of `resultsDb_sqlite.db`.
     """
 
     def __init__(self, out_dir, run_name=None, results_db=None):
-        """
-        Instantiate the (individual run) layout visualization class.
-
-        This class provides methods used by our jinja2 templates to help interact
-        with the outputs of MAF.
-        """
         self.out_dir = os.path.relpath(out_dir, ".")
         self.run_name = run_name
 
@@ -90,6 +95,18 @@ class MafRunResults:
         """
         Convert the lists of values returned by 'select metrics' template page
         into an appropriate dataframe of metrics (in sorted order).
+
+        Parameters
+        ----------
+        group_list : `list` [`str`]
+            The groups of metrics to show on the show_maf pages.
+        metric_id_list : `list` [`int`]
+            The integer ids of the metrics in the sqlite results database.
+
+        Returns
+        -------
+        metrics : `np.ndarray`, (N,)
+            An array of the metric information for the metrics .
         """
         metric_ids = set()
         for group_subgroup in group_list:
@@ -141,9 +158,8 @@ class MafRunResults:
 
     def get_results_db(self):
         """
-        Return the summary results sqlite filename.
-
-        Note that this assumes the resultsDB is stored in 'resultsDB_sqlite.db'.
+        Return the summary results sqlite filename, as long as the
+        results data is named `resultsDb_sqlite.db`.
         """
         return os.path.join(self.out_dir, "resultsDb_sqlite.db")
 
@@ -188,7 +204,8 @@ class MafRunResults:
         """
         Sort the metrics by order specified by 'order'.
 
-        Default is to sort by group, subgroup, metric name, slicer, display order, then info_label.
+        Default is to sort by group, subgroup, metric name, slicer,
+        display order, then info_label.
         Returns sorted numpy array.
         """
         if len(metrics) > 0:
@@ -197,7 +214,8 @@ class MafRunResults:
 
     def metrics_in_group(self, group, metrics=None, sort=True):
         """
-        Given a group, return the metrics belonging to this group, in display order.
+        Given a group, return the metrics belonging to this group,
+        in display order.
         """
         if metrics is None:
             metrics = self.metrics
@@ -208,8 +226,8 @@ class MafRunResults:
 
     def metrics_in_subgroup(self, group, subgroup, metrics=None):
         """
-        Given a group and subgroup, return a dataframe of the metrics belonging to these
-        group/subgroups, in display order.
+        Given a group and subgroup, return a dataframe of the metrics
+        belonging to these group/subgroups, in display order.
 
         If 'metrics' is provided, then only consider this subset of metrics.
         """
@@ -221,7 +239,8 @@ class MafRunResults:
 
     def metrics_to_subgroups(self, metrics):
         """
-        Given an array of metrics, return an ordered dict of their group/subgroups.
+        Given an array of metrics, return an ordered dict of their
+        group/subgroups.
         """
         group_list = sorted(np.unique(metrics["display_group"]))
         groups = OrderedDict()
@@ -232,7 +251,8 @@ class MafRunResults:
 
     def metrics_with_plot_type(self, plot_type="SkyMap", metrics=None):
         """
-        Return an array of metrics with plot=plot_type (optional, metric subset).
+        Return an array of metrics with plot=plot_type
+        (optionally also within a metric subset).
         """
         # Allow some variation in plot_type names for backward compatibility,
         #  even if plot_type is  a list.
@@ -249,13 +269,15 @@ class MafRunResults:
             metrics = self.metrics
         # Identify the plots with the right plot_type, get their IDs.
         plot_match = self.plots[np.in1d(self.plots["plot_type"], plot_types)]
-        # Convert those potentially matching metricIds to metrics, using the subset info.
+        # Convert those potentially matching metricIds to metrics,
+        # using the subset info.
         metrics = self.metric_ids_to_metrics(plot_match["metric_id"], metrics)
         return metrics
 
     def unique_metric_names(self, metrics=None, baseonly=True):
         """
-        Return a list of the unique metric names, preserving the order of 'metrics'.
+        Return a list of the unique metric names,
+        preserving the order of 'metrics'.
         """
         if metrics is None:
             metrics = self.metrics
@@ -268,7 +290,8 @@ class MafRunResults:
 
     def metrics_with_summary_stat(self, summary_stat_name="Identity", metrics=None):
         """
-        Return metrics with summary stat matching 'summary_stat_name' (optional, metric subset).
+        Return metrics with summary stat matching 'summary_stat_name'
+        (optionally, within a metric subset).
         """
         if metrics is None:
             metrics = self.metrics
@@ -276,7 +299,8 @@ class MafRunResults:
         stats = self.stats[np.in1d(self.stats["summary_metric"], summary_stat_name)]
         # Identify the subset of relevant metrics.
         metrics = self.metric_ids_to_metrics(stats["metric_id"], metrics)
-        # Re-sort metrics because at this point, probably want displayOrder + info_label before metric name.
+        # Re-sort metrics because at this point, probably want displayOrder
+        # + info_label before metric name.
         metrics = self.sort_metrics(
             metrics,
             order=[
@@ -321,7 +345,8 @@ class MafRunResults:
 
     def metrics_with_slicer(self, slicer, metrics=None):
         """
-        For an array of metrics, return the subset which match a particular 'slicername' value.
+        For an array of metrics, return the subset which match a
+        particular 'slicername' value.
         """
         if metrics is None:
             metrics = self.metrics
@@ -330,7 +355,8 @@ class MafRunResults:
 
     def unique_metric_name_and_info_label(self, metrics=None):
         """
-        For an array of metrics, return the unique metric names + info_label combo in same order.
+        For an array of metrics, return the unique metric names
+        + info_label combo in same order.
         """
         if metrics is None:
             metrics = self.metrics
@@ -351,7 +377,8 @@ class MafRunResults:
 
     def metrics_with_info_label(self, info_label, metrics=None):
         """
-        For an array of metrics, return the subset which match a particular 'info_label' value.
+        For an array of metrics, return the subset which match a
+        particular 'info_label' value.
         """
         if metrics is None:
             metrics = self.metrics
@@ -360,7 +387,8 @@ class MafRunResults:
 
     def metrics_with_metric_name(self, metric_name, metrics=None, baseonly=True):
         """
-        Return all metrics which match metric_name (default, only the 'base' metric name).
+        Return all metrics which match metric_name
+        (default, only the 'base' metric name).
         """
         if metrics is None:
             metrics = self.metrics
@@ -419,10 +447,12 @@ class MafRunResults:
     def plot_dict(self, plots=None):
         """
         Given an array of plots (for a single metric usually).
-        Returns an ordered dict with 'plot_type' for interfacing with jinja2 templates.
+        Returns an ordered dict with 'plot_type' for interfacing with
+        jinja2 templates.
         plot_dict == {'SkyMap': {'plot_file': [], 'thumb_file', []}, 'Histogram': {}..}
 
-        If no plot of a particular type, the plot_file and thumb_file are empty lists.
+        If no plot of a particular type, the plot_file and thumb_file
+        are empty lists.
         Calling with plots=None returns a blank plot_dict.
         """
         plot_dict = OrderedDict()
@@ -475,10 +505,14 @@ class MafRunResults:
 
         Returns an ordered list of plotDicts.
 
-        The goal is to lay out the skymaps in a 3x2 grid on the MultiColor page, in ugrizy order.
-        If a plot for a filter is missing, add a gap. (i.e. if there is no u, keep a blank spot).
-        If there are other plots, with multiple filters or no filter info, they are added to the end.
-        If sky_plots includes multiple plots in the same filter, just goes back to displayOrder.
+        The goal is to lay out the skymaps in a 3x2 grid on the MultiColor
+        page, in ugrizy order.
+        If a plot for a filter is missing, add a gap. (i.e. if there is no
+        u band plot, keep a blank spot).
+        If there are other plots, with multiple filters or no filter
+        info, they are added to the end.
+        If sky_plots includes multiple plots in the same filter,
+        just goes back to displayOrder.
         """
         ordered_sky_plots = []
         if len(sky_plots) == 0:
@@ -493,13 +527,13 @@ class MafRunResults:
             pattern = "_" + f + "_"
             matches = np.array([bool(re.search(pattern, x)) for x in sky_plots["plot_file"]])
             match_sky_plot = sky_plots[matches]
-            # in pandas: match_sky_plot = sky_plots[sky_plots.plot_file.str.contains(pattern)]
             if len(match_sky_plot) == 1:
                 ordered_sky_plots.append(self.plot_dict(match_sky_plot))
             elif len(match_sky_plot) == 0:
                 ordered_sky_plots.append(blank_plot_dict)
             else:
-                # If we found more than one plot in the same filter, we just go back to displayOrder.
+                # If we found more than one plot in the same filter,
+                # we just go back to displayOrder.
                 too_many_plots = True
                 break
 
@@ -529,7 +563,8 @@ class MafRunResults:
 
     def get_sky_maps(self, metrics=None, plot_type="SkyMap"):
         """
-        Return a numpy array of the plots with plot_type=plot_type, optionally for subset of metrics.
+        Return a numpy array of the plots with plot_type=plot_type,
+        optionally for subset of metrics.
         """
         if metrics is None:
             metrics = self.metrics
@@ -543,7 +578,8 @@ class MafRunResults:
 
     def stats_for_metric(self, metric, stat_name=None):
         """
-        Return a numpy array of summary statistics which match a given metric(s).
+        Return a numpy array of summary statistics which match a
+        given metric(s).
 
         Optionally specify a particular stat_name that you want to match.
         """
@@ -554,25 +590,29 @@ class MafRunResults:
 
     def stat_dict(self, stats):
         """
-        Returns an ordered dictionary with statName:statValue for an array of stats.
+        Returns an ordered dictionary with statName:statValue
+        for an array of stats.
 
-        Note that if you pass 'stats' from multiple metrics with the same summary names, they
-        will be overwritten in the resulting dictionary!
+        Note that if you pass 'stats' from multiple metrics with the same
+        summary names, they will be overwritten in the resulting dictionary!
         So just use stats from one metric, with unique summary_metric names.
         """
-        # Result = dict with key == summary stat name, value = summary stat value.
+        # Result = dict with key
+        # == summary stat name, value = summary stat value.
         sdict = OrderedDict()
         statnames = self.order_stat_names(stats)
         for n in statnames:
             match = stats[np.where(stats["summary_metric"] == n)]
-            # We're only going to look at the first value; and this should be a float.
+            # We're only going to look at the first value;
+            # and this should be a float.
             sdict[n] = match["summary_value"][0]
         return sdict
 
     def order_stat_names(self, stats):
         """
-        Given an array of stats, return a list containing all the unique 'summary_metric' names
-        in a default ordering (identity-count-mean-median-rms..).
+        Given an array of stats, return a list containing all the unique
+        'summary_metric' names in a default ordering
+        (identity-count-mean-median-rms..).
         """
         names = list(np.unique(stats["summary_metric"]))
         # Add some default sorting:
@@ -587,8 +627,8 @@ class MafRunResults:
 
     def all_stat_names(self, metrics):
         """
-        Given an array of metrics, return a list containing all the unique 'summary_metric' names
-        in a default ordering.
+        Given an array of metrics, return a list containing all the
+        unique 'summary_metric' names in a default ordering.
         """
         names = np.unique(
             self.stats["summary_metric"][np.in1d(self.stats["metric_id"], metrics["metric_id"])]

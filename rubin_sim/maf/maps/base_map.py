@@ -41,7 +41,7 @@ class MapsRegistry(type):
 
 
 class BaseMap(metaclass=MapsRegistry):
-    """ """
+    """Base for maps classes."""
 
     def __init__(self, **kwargs):
         self.keynames = ["newkey"]
@@ -65,8 +65,8 @@ class BaseMap(metaclass=MapsRegistry):
         return self.keynames >= othermap.keynames
 
     def run(self, slice_points):
-        """
-        Given slice_points (dict containing metadata about each slice_point, including ra/dec),
-         adds additional metadata at each slice_point and returns updated dict.
+        """Given slice_points (dict containing metadata about each slice_point,
+        including ra/dec), adds additional metadata at each slice_point
+        and returns updated dict.
         """
         raise NotImplementedError("This must be defined in subclass")

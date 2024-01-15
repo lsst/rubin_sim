@@ -11,21 +11,18 @@ from .maf_run_results import MafRunResults
 
 
 class MafTracking:
-    """
-    Class to read MAF's tracking SQLite database (tracking a set of MAF runs)
-    and handle the output for web display.
+    """Hold and serve the MAF tracking (sqlite) database content for
+    the show_maf web server.
+
+    Parameters
+    ----------
+    database : `str`, optional
+        Path to the sqlite tracking database file.
+        If None, looks for `trackingDb_sqlite.db` default file in the
+        current directory.
     """
 
     def __init__(self, database=None):
-        """
-        Instantiate the (multi-run) layout visualization class.
-
-        Parameters
-        ----------
-        database :str
-           Path to the sqlite tracking database file.
-           If not set, looks for 'trackingDb_sqlite.db' file in current directory.
-        """
         if database is None:
             database = os.path.join(os.getcwd(), "trackingDb_sqlite.db")
 
@@ -48,13 +45,12 @@ class MafTracking:
         self.runs_page = {}
 
     def run_info(self, run):
-        """
-        Provide the tracking database information relevant for a given run in a format
-        that the jinja2 templates can use.
+        """Get the tracking database information relevant for a given run
+        in a format that the jinja2 templates for show_maf  can use.
 
         Parameters
         ----------
-        run : `numpy.NDarray`
+        run : `np.ndarray`, (1,)
            One line from self.runs
 
         Returns
@@ -80,14 +76,13 @@ class MafTracking:
         return runInfo
 
     def sort_runs(self, runs, order=["run_name", "maf_comment", "maf_run_id"]):
-        """
-        Sort the numpy array of run data.
+        """Sort  the numpy array of run data.
 
         Parameters
         ----------
-        runs : `numpy.NDarray`
+        runs : `np.ndarray`, (N,)
            The runs from self.runs to sort.
-        order : `list`
+        order : `list` [`str`]
            The fields to use to sort the runs array.
 
         Returns
@@ -98,21 +93,23 @@ class MafTracking:
         return np.sort(runs, order=order)
 
     def get_run(self, maf_run_id):
-        """
-        Set up a mafRunResults object to read and handle the data from an individual run.
-        Caches the mafRunResults object, meaning the metric information from a particular run
-        is only read once from disk.
+        """Set up a mafRunResults object to read and handle the data
+        from a single individual run.
+        Caches the mafRunResults object, meaning the metric information from
+        a particular run is only read once from disk.
 
         Parameters
         ----------
         maf_run_id : `int`
-           maf_run_id value in the tracking database corresponding to a particular MAF run.
+           maf_run_id value in the tracking database
+           corresponding to a particular MAF run.
 
         Returns
         -------
         runPage : `MafRunResults`
-           A MafRunResults object containing the information about a particular run.
-           Stored internally in self.runs_page dict, but also passed back to the tornado server.
+           A MafRunResults object containing the information for this run.
+           Stored internally in self.runs_page dict, but also passed
+           back to the tornado server.
         """
         if not isinstance(maf_run_id, int):
             if isinstance(maf_run_id, dict):

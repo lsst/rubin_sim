@@ -77,8 +77,9 @@ class Coaddm5Metric(BaseMetric):
         Name of the filter column.
     """
 
-    def __init__(self, m5_col="fiveSigmaDepth", metric_name="CoaddM5",
-                 filter_name=None, filter_col="Filter", **kwargs):
+    def __init__(
+        self, m5_col="fiveSigmaDepth", metric_name="CoaddM5", filter_name=None, filter_col="Filter", **kwargs
+    ):
         self.filter_name = filter_name
         self.filter_col = filter_col
         self.m5_col = m5_col
@@ -100,48 +101,42 @@ class Coaddm5Metric(BaseMetric):
 
 
 class MaxMetric(BaseMetric):
-    """Calculate the maximum of a simData column slice.
-    """
+    """Calculate the maximum of a simData column slice."""
 
     def run(self, data_slice, slice_point=None):
         return np.max(data_slice[self.colname])
 
 
 class AbsMaxMetric(BaseMetric):
-    """Calculate the max of the absolute value of a simData column slice.
-    """
+    """Calculate the max of the absolute value of a simData column slice."""
 
     def run(self, data_slice, slice_point=None):
         return np.max(np.abs(data_slice[self.colname]))
 
 
 class MeanMetric(BaseMetric):
-    """Calculate the mean of a simData column slice.
-    """
+    """Calculate the mean of a simData column slice."""
 
     def run(self, data_slice, slice_point=None):
         return np.mean(data_slice[self.colname])
 
 
 class AbsMeanMetric(BaseMetric):
-    """Calculate the mean of the absolute value of a simData column slice.
-    """
+    """Calculate the mean of the absolute value of a simData column slice."""
 
     def run(self, data_slice, slice_point=None):
         return np.mean(np.abs(data_slice[self.colname]))
 
 
 class MedianMetric(BaseMetric):
-    """Calculate the median of a simData column slice.
-    """
+    """Calculate the median of a simData column slice."""
 
     def run(self, data_slice, slice_point=None):
         return np.median(data_slice[self.colname])
 
 
 class AbsMedianMetric(BaseMetric):
-    """Calculate the median of the absolute value of a simData column slice.
-    """
+    """Calculate the median of the absolute value of a simData column slice."""
 
     def run(self, data_slice, slice_point=None):
         return np.median(np.abs(data_slice[self.colname]))
@@ -295,8 +290,7 @@ class RobustRmsMetric(BaseMetric):
 
 
 class MaxPercentMetric(BaseMetric):
-    """Return the percent of data which matches the maximum value of the data.
-    """
+    """Return the percent of data which matches the maximum value of the data."""
 
     def run(self, data_slice, slice_point=None):
         n_max = np.size(np.where(data_slice[self.colname] == np.max(data_slice[self.colname]))[0])
@@ -317,8 +311,7 @@ class AbsMaxPercentMetric(BaseMetric):
 
 
 class BinaryMetric(BaseMetric):
-    """Return 1 if there is data, `badval` otherwise.
-    """
+    """Return 1 if there is data, `badval` otherwise."""
 
     def run(self, data_slice, slice_point=None):
         if data_slice.size > 0:
@@ -328,8 +321,7 @@ class BinaryMetric(BaseMetric):
 
 
 class FracAboveMetric(BaseMetric):
-    """Find the fraction of data values above a given `cutoff`.
-    """
+    """Find the fraction of data values above a given `cutoff`."""
 
     def __init__(self, col=None, cutoff=0.5, scale=1, metric_name=None, **kwargs):
         # Col could just get passed in bundle with kwargs, but by explicitly pulling it out
@@ -348,8 +340,7 @@ class FracAboveMetric(BaseMetric):
 
 
 class FracBelowMetric(BaseMetric):
-    """Find the fraction of data values below a given `cutoff`.
-    """
+    """Find the fraction of data values below a given `cutoff`."""
 
     def __init__(self, col=None, cutoff=0.5, scale=1, metric_name=None, **kwargs):
         if metric_name is None:
@@ -366,8 +357,7 @@ class FracBelowMetric(BaseMetric):
 
 
 class PercentileMetric(BaseMetric):
-    """Find the value of a column at a given `percentile`.
-    """
+    """Find the value of a column at a given `percentile`."""
 
     def __init__(self, col=None, percentile=90, metric_name=None, **kwargs):
         if metric_name is None:
@@ -519,8 +509,7 @@ class AngularSpreadMetric(BaseMetric):
 
 
 class RealMeanMetric(BaseMetric):
-    """Calculate the mean of a column with no nans or infs.
-    """
+    """Calculate the mean of a column with no nans or infs."""
 
     def run(self, data_slice, slice_point=None):
         return np.mean(data_slice[self.colname][np.isfinite(data_slice[self.colname])])

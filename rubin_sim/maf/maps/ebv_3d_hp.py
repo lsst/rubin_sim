@@ -19,25 +19,31 @@ def ebv_3d_hp(
     pixels=None,
     interp=False,
 ):
-    """Reads and saves a 3d dust extinction file, return extinction at specified points (ra/dec/ or pixels).
+    """Reads and saves a 3d dust extinction file from disk, return extinction
+    at  specified points (ra/dec/ or pixels).
 
     Parameters
     ----------
-    nside: `int`
+    nside : `int`
         Healpixel resolution (2^x).
     map_file : `str`, opt
         Path to dust map file.
     ra : `np.ndarray` or `float`, opt
-        RA (can take numpy array). Default None sets up healpix array of nside. Radians.
+        RA (can take numpy array).
+        Default None sets up healpix array of nside. Radians.
     dec : `np.ndarray` or `float`, opt
-        Dec (can take numpy array). Default None set up healpix array of nside. Radians.
+        Dec (can take numpy array).
+        Default None set up healpix array of nside. Radians.
     pixels : `np.ndarray`, opt
-        Healpixel IDs, to sub-select particular healpix points. Default uses all points.
+        Healpixel IDs, to sub-select particular healpix points.
+        Default uses all points.
         Easiest way to access healpix values.
-        Note that the pixels in the healpix array MUST come from a healpix grid with the same nside
-        as the ebv_3d_hp map. Using different nsides can potentially fail silently.
+        Note that the pixels in the healpix array MUST come from a h
+        ealpix grid with the same nside as the ebv_3d_hp map.
+        Using different nsides can potentially fail silently.
     interp : `bool`, opt
-        Should returned values be interpolated (True) or just nearest neighbor (False).
+        Should returned values be interpolated (True)
+        or just nearest neighbor (False).
         Default False.
     """
     if (ra is None) & (dec is None) & (pixels is None):
@@ -89,14 +95,16 @@ def ebv_3d_hp(
                 f"Will use nside from map data."
             )
             if pixels is not None:
-                # We're just going to raise an exception here because this could mean bad things.
+                # We're just going to raise an exception here
+                # because this could mean bad things.
                 raise ValueError(
                     f"Map nside {map_nside} did not match expected nside {nside}, "
                     f"and pixels provided; this can potentially indicate a serious "
                     f"error. Make nsides match or specify ra/dec instead of pixels."
                 )
             nside = map_nside
-        # Nested healpix data will not match the healpix arrays for the slicers (at this time)
+        # Nested healpix data will not match the healpix arrays
+        # for the slicers (at this time)
         if nested:
             warnings.warn("Map has nested (not ring order) data; will reorder.")
             for i in np.arange(0, len(dists[0])):
@@ -140,7 +148,8 @@ def get_x_at_nearest_y(x, y, x_goal):
         the x at a single point of the map (1d array)
     y : `np.array`
         Can be either a map with y at each point in the map (2d array) or
-        the y at a single point of the map (1d array) - but should match x dimensionality
+        the y at a single point of the map (1d array) -
+        but should match x dimensionality
     x_goal : `float'
         The goal x value to look for the nearest y value
 
