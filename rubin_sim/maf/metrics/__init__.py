@@ -46,3 +46,4 @@ from .use_metrics import *
 from .vector_metrics import *
 from .visit_groups_metric import *
 from .weak_lensing_systematics_metric import *
+from .incremental_template_metric import *
