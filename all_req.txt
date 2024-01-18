@@ -8,6 +8,7 @@ numexpr
 scipy
 sqlalchemy
 astropy
+palpy
 pytables
 h5py
 openorb
@@ -26,3 +27,4 @@ pytest-cov
 pytest-black
 black
 ruff
+rubin-scheduler
