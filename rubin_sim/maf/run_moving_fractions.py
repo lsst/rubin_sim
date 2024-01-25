@@ -5,8 +5,7 @@ import glob
 import os
 
 import numpy as np
-
-from rubin_sim.utils import survey_start_mjd
+from rubin_scheduler.utils import survey_start_mjd
 
 from . import batches as batches
 from . import db as db
