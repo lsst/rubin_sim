@@ -6,8 +6,17 @@ from .base_metric import BaseMetric
 
 
 class PairMetric(BaseMetric):
-    """
-    Count the number of pairs that could be used for Solar System object detection
+    """Count the number of pairs of visits that could be used for
+    Solar System object detection.
+
+    Parameters
+    ----------
+    match_min : `float`
+        Minutes after first observation to count something as a match.
+    match_max : `float`
+        Minutes after first observation to count something as a match.
+    bin_size : `float`
+        bin_size to use (minutes).
     """
 
     def __init__(
@@ -19,16 +28,6 @@ class PairMetric(BaseMetric):
         bin_size=5.0,
         **kwargs,
     ):
-        """
-        Parameters
-        ----------
-        match_min : float (20.)
-            Minutes after first observation to count something as a match
-        match_max : float (40.)
-            Minutes after first observation to count something as a match
-        bin_size : float (5.)
-            bin_size to use (minutes)
-        """
         self.mjd_col = mjd_col
         self.bin_size = bin_size / 60.0 / 24.0
         self.match_min = match_min / 60.0 / 24.0
@@ -47,7 +46,8 @@ class PairMetric(BaseMetric):
         nbin_max = np.round(self.match_max / self.bin_size)
         bins_to_check = np.arange(nbin_min, nbin_max + 1, 1)
         bins_w_obs = np.where(hist > 0)[0]
-        # now, for each bin with an observation, need to check if there is a bin
+        # now, for each bin with an observation,
+        # need to check if there is a bin
         # far enough ahead that is also populated.
         result = 0
         for binadd in bins_to_check:

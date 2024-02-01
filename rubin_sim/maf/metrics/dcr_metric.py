@@ -13,8 +13,9 @@ class DcrPrecisionMetric(BaseMetric):
 
     Parameters
     ----------
-    atm_err : float
-        Minimum error in photometry centroids introduced by the atmosphere (arcseconds). Default 0.01.
+    atm_err : `float`
+        Minimum error in photometry centroids introduced by the atmosphere
+        (arcseconds). Default 0.01.
     """
 
     def __init__(
@@ -74,7 +75,8 @@ class DcrPrecisionMetric(BaseMetric):
         # Now I want to compute the error if I interpolate/extrapolate to +/-1.
 
         # function is of form, y=ax. a=y/x. da = dy/x.
-        # Only strictly true if we know the unshifted position. But this should be a reasonable approx.
+        # Only strictly true if we know the unshifted position.
+        # But this should be a reasonable approx.
         slope_uncerts = position_errors / x_coord
         slope_uncerts2 = position_errors / x_coord2
 
@@ -82,10 +84,12 @@ class DcrPrecisionMetric(BaseMetric):
             np.sum(1.0 / slope_uncerts**2) + np.sum(1.0 / slope_uncerts2**2)
         )
 
-        # So, this will be the uncertainty in the RA or Dec offset at x= +/- 1. A.K.A., the uncertainty in the slope
+        # So, this will be the uncertainty in the RA or Dec offset at
+        # x= +/- 1. A.K.A., the uncertainty in the slope
         # of the line made by tan(zd)*sin(PA) vs RA offset
         # or the line tan(zd)*cos(PA) vs Dec offset
-        # Assuming we know the unshfted position of the object (or there's little covariance if we are fitting for both)
+        # Assuming we know the unshfted position of the object
+        # (or there's little covariance if we are fitting for both)
         result = total_slope_uncert
 
         return result

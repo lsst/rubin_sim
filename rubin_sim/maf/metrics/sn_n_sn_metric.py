@@ -69,7 +69,8 @@ class SNNSNMetric(BaseMetric):
     dust : `bool`, opt
         Apply dust extinction to visit depth values (default False)
     hard_dust_cut : `float`, opt
-      If set, cut any point on the sky that has an ebv extinction higher than the hard_dust_cut value.
+      If set, cut any point on the sky that has an ebv extinction
+      higher than the hard_dust_cut value.
       Default 0.25
     """
 
@@ -221,14 +222,14 @@ class SNNSNMetric(BaseMetric):
 
         Parameters
         --------------
-        data_slice: `np.array`
+        data_slice : `np.ndarray`
             Observations to process (scheduler simulations)
-        slice_point: `bool`, opt
+        slice_point : `bool`, opt
             Information about the location on the sky from the slicer
 
         Returns
         -------
-        metricVal : `np.recarray`
+        metricVal : `np.ndarray`
             ['n_sn', 'zlim'] at this point on the sky
         """
         # Hard dust cut
@@ -264,7 +265,8 @@ class SNNSNMetric(BaseMetric):
         if len(data_slice) <= self.n_aft + self.n_bef:
             return self.badval
 
-        # get season information (seasons calculated by gaps, not by place on sky)
+        # get season information (seasons calculated by gaps,
+        # not by place on sky)
         data_slice = self.getseason(data_slice, mjd_col=self.mjd_col)
 
         # get redshift values per season
@@ -326,17 +328,17 @@ class SNNSNMetric(BaseMetric):
         Method to estimate season lengths vs z
 
         Parameters
-        ---------------
-        seasons : list(int)
+        -----------
+        seasons : `list` [`int`]
           list of seasons to process
-        data_slice: numpy array
+        data_slice : `np.ndarray`, (N,)`
           array of observations
 
         Returns
-        -----------
-        seasons : list(int)
+        --------
+        seasons : `list` [`int`]
           list of seasons to process
-        dur_z : pandas df
+        dur_z : `pandas.DataFrame`
           season lengths vs z
         """
         # if seasons = -1: process the seasons seen in data
@@ -368,15 +370,15 @@ class SNNSNMetric(BaseMetric):
 
         Parameters
         --------------
-        dfa: pandas df
+        dfa : pandas df
           dat to process
-        zseason: pandas df
+        zseason : pandas df
           redshift infos per season
-        min_duration: float, opt
+        min_duration : `float`, opt
           min season length to be accepted (default: 60 days)
 
         Returns
-        ----------
+        --------
         pandas df with season length infos
 
         """
@@ -406,13 +408,13 @@ class SNNSNMetric(BaseMetric):
 
         Parameters
         ---------------
-        obs: array
+        obs : array
           observations
-        gen_par: array
+        gen_par : array
           simulation parameters
-        x1: float, opt
+        x1 : `float`, opt
            stretch value (default: -2.0)
-        color: float, opt
+        color : `float`, opt
           color value (default: 0.2)
 
         Returns
@@ -437,9 +439,6 @@ class SNNSNMetric(BaseMetric):
         pandas df with efficiencies
 
         """
-        # sn_effis = lc.groupby(['healpixID', 'season', 'z', 'x1', 'color', 'sntype']).apply(
-        #    lambda x: self.sn_effi(x)).reset_index()
-
         sn_effis = (
             lc.groupby(["season", "z", "x1", "color", "sntype"])
             .apply(lambda x: self.sn_effi(x))
@@ -476,14 +475,14 @@ class SNNSNMetric(BaseMetric):
         Method to estimate the number of supernovae from efficiencies
 
         Parameters
-        ---------------
-        sn_effis: pandas df
+        ----------
+        sn_effis : pandas df
           data with efficiencies of observation
-        dur_z:  array
+        dur_z :  array
           array of season length
 
         Returns
-        ----------
+        -------
         initial sn_effis appended with a set of infos (duration, nsn)
 
         """
@@ -501,8 +500,8 @@ class SNNSNMetric(BaseMetric):
 
         Parameters
         --------------
-        grp: pandas df group
-        min_duration: float
+        grp : pandas df group
+        min_duration : `float`
           minimal duration for a season to be considered
 
         Returns
@@ -543,9 +542,9 @@ class SNNSNMetric(BaseMetric):
 
         Parameters
         --------------
-        grp: pandas df group
+        grp : pandas df group
           data to process: season infos
-        min_duration: float, opt
+        min_duration : `float`, opt
           min season length for a season to be processed (deafult: 60 days)
 
         Returns
@@ -581,11 +580,11 @@ class SNNSNMetric(BaseMetric):
         Parameters
         --------------
         grp: group (pandas df sense)
-         group of data to process with the following cols:
-           t0_min: T0 min value (per season)
-           t0_max: T0 max value (per season)
-        daymax_step: float
-          step for T0 simulation
+            group of data to process with the following cols:
+            t0_min: T0 min value (per season)
+            t0_max: T0 max value (per season)
+        daymax_step: `float`
+            step for T0 simulation
 
         Returns
         ----------
@@ -615,13 +614,13 @@ class SNNSNMetric(BaseMetric):
 
         Parameters
         ---------------
-        grp: pandas group
+        grp : pandas group
           observations to process
-        gen_par_orig: pandas df
+        gen_par_orig : pandas df
           simulation parameters
-        x1: float
+        x1 : `float`
           SN stretch
-        color: float
+        color : `float`
           SN color
 
         Returns
@@ -656,7 +655,7 @@ class SNNSNMetric(BaseMetric):
 
         Parameters
         ---------------
-        lc: pandas grp
+        lc : pandas grp
           light curve
 
         Returns
@@ -721,13 +720,13 @@ class SNNSNMetric(BaseMetric):
 
         Parameters
         --------------
-        lcarr: numpy array
+        lcarr : numpy array
           data to process
-        varname: str
+        varname : `str`
           col to process in lcarr
-        nvals: int
+        nvals : `int`
           dimension for tiling
-        flag: array(bool)
+        flag : array(bool)
           flag to apply
 
         Returns
@@ -748,11 +747,11 @@ class SNNSNMetric(BaseMetric):
 
         Parameters
         ---------------
-        nights: array
+        nights : array
           night number array
-        flag: array(bool)
+        flag : array(bool)
           flag to apply
-        flagph: array(bool)
+        flagph : array(bool)
           flag to apply
 
         Returns
@@ -1316,7 +1315,8 @@ class SNNSNMetric(BaseMetric):
 
     def check_dur_z(self, dur_z, nmin=2):
         """ "
-        Method to remove seasons with a poor redshift range due to too low season length
+        Method to remove seasons with a poor redshift range due
+        to too low season length
 
         Parameters
         ----------------

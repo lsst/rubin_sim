@@ -27,6 +27,7 @@ from .star_counts import starcount_bymass
 # There are stellar luminosity function maps available within MAF
 # that may supersede these StarCount functions
 
+
 class StarCountMassMetric(BaseMetric):
     """Find the number of stars in a given field in the mass range
     fainter than magnitude 16 and bright enough to have noise less than
@@ -51,7 +52,7 @@ class StarCountMassMetric(BaseMetric):
         Bandpass to consider.
     """
 
-    def __init__(self, m1=0.9, m2=1.0, band='i',  **kwargs):
+    def __init__(self, m1=0.9, m2=1.0, band="i", **kwargs):
         self.m1 = m1
         self.m2 = m2
         self.band = band

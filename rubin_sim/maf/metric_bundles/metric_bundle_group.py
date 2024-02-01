@@ -18,14 +18,15 @@ from .metric_bundle import MetricBundle, create_empty_metric_bundle
 
 
 def make_bundles_dict_from_list(bundle_list):
-    """Utility to convert a list of MetricBundles into a dictionary, keyed by the fileRoot names.
+    """Utility to convert a list of MetricBundles into a dictionary,
+    keyed by the fileRoot names.
 
     Raises an exception if the fileroot duplicates another metricBundle.
     (Note this should alert to potential cases of filename duplication).
 
     Parameters
     ----------
-    bundle_list : `list` of `MetricBundles`
+    bundle_list : `list` [`MetricBundles`]
     """
     b_dict = {}
     for b in bundle_list:
@@ -36,47 +37,57 @@ def make_bundles_dict_from_list(bundle_list):
 
 
 class MetricBundleGroup:
-    """The MetricBundleGroup exists to calculate the metric values for a group of
-    MetricBundles.
+    """Calculate all values for a group of MetricBundles.
 
-    The MetricBundleGroup will query data from a single database table (for multiple
-    constraints), use that data to calculate metric values for multiple slicers,
-    and calculate summary statistics and generate plots for all metrics included in
+    The MetricBundleGroup will query data from a single database table
+    (for multiple constraints), use that data to calculate metric values
+    for multiple slicers, and calculate summary statistics and
+    generate plots for all metrics included in
     the dictionary passed to the MetricBundleGroup.
 
-    We calculate the metric values here, rather than in the individual MetricBundles,
-    because it is much more efficient to step through a slicer once (and calculate all
-    the relevant metric values at each point) than it is to repeat this process multiple times.
+    We calculate the metric values here, rather than in the
+    individual MetricBundles, because it is much more efficient to step
+    through a slicer once (and calculate all the relevant metric values
+    at each point) than it is to repeat this process multiple times.
 
-    The MetricBundleGroup also determines how to efficiently group the MetricBundles
-    to reduce the number of sql queries of the database, grabbing larger chunks of data at once.
+    The MetricBundleGroup also determines how to efficiently group
+    the MetricBundles to reduce the number of sql queries of the database,
+    grabbing larger chunks of data at once.
 
     Parameters
     ----------
-    bundle_dict : `dict` or `list` of `MetricBundles`
-        Individual MetricBundles should be placed into a dictionary, and then passed to
-        the MetricBundleGroup. The dictionary keys can then be used to identify MetricBundles
-        if needed -- and to identify new MetricBundles which could be created if 'reduce'
-        functions are run on a particular MetricBundle.
-        A bundle_dict can be conveniently created from a list of MetricBundles using
-        makeBundlesDictFromList (done automatically if a list is passed in)
+    bundle_dict : `dict` or `list` [`MetricBundles`]
+        Individual MetricBundles should be placed into a dictionary,
+        and then passed to the MetricBundleGroup.
+        The dictionary keys can then be used to identify MetricBundles
+        if needed -- and to identify new MetricBundles which could be
+        created if 'reduce' functions are run on a particular MetricBundle.
+        A bundle_dict can be conveniently created from a list of MetricBundles
+        using makeBundlesDictFromList (done automatically if a list is passed).
     db_con : `str` or database connection object
-        A str that is the path to a sqlite3 file or a database object that can be used by pandas.read_sql.
-        Advanced use: It is possible to set this to None, in which case data should be passed
-        directly to the runCurrent method (and runAll should not be used).
-    out_dir : `str`, optional
+        A str that is the path to a sqlite3 file or a database object
+        that can be used by pandas.read_sql.
+        Advanced use: It is possible to set this to None, in which case
+        data should be passed directly to the runCurrent method
+        (and runAll should not be used).
+    out_dir : `str`, opt
         Directory to save the metric results. Default is the current directory.
-    results_db : `ResultsDb`, optional
-        A results database. If not specified, one will be created in the out_dir.
-        This database saves information about the metrics calculated, including their summary statistics.
-    verbose : `bool`, optional
+    results_db : `ResultsDb`, opt
+        A results database to store summary stat information.
+        If not specified, one will be created in the out_dir.
+        This database saves information about the metrics calculated,
+        including their summary statistics.
+    verbose : `bool`, opt
         Flag to turn on/off verbose feedback.
-    save_early : `bool`, optional
-        If True, metric values will be saved immediately after they are first calculated (to prevent
-        data loss) as well as after summary statistics are calculated.
-        If False, metric values will only be saved after summary statistics are calculated.
-    db_table : `str`, optional
+    save_early : `bool`, opt
+        If True, metric values will be saved immediately after
+        they are first calculated (to prevent data loss) as well as after
+        summary statistics are calculated.
+        If False, metric values will only be saved after summary statistics
+        are calculated.
+    db_table : `str`, opt
         The name of the table in the db_obj to query for data.
+        For modern opsim outputs, this table is `observations` (default None).
     """
 
     def __init__(
@@ -90,7 +101,7 @@ class MetricBundleGroup:
         db_table=None,
     ):
         """Set up the MetricBundleGroup."""
-        if type(bundle_dict) is list:
+        if isinstance(bundle_dict, list):
             bundle_dict = make_bundles_dict_from_list(bundle_dict)
         # Print occasional messages to screen.
         self.verbose = verbose
@@ -129,19 +140,21 @@ class MetricBundleGroup:
 
     def _check_compatible(self, metric_bundle1, metric_bundle2):
         """Check if two MetricBundles are "compatible".
-        Compatible indicates that the sql constraints, the slicers, and the maps are the same, and
+
+        Compatible indicates that the sql constraints, the slicers,
+        and the maps are the same, and
         that the stackers do not interfere with each other
         (i.e. are not trying to set the same column in different ways).
         Returns True if the MetricBundles are compatible, False if not.
 
         Parameters
         ----------
-        metric_bundle1 : MetricBundle
-        metric_bundle2 : MetricBundle
+        metric_bundle1 : `MetricBundle`
+        metric_bundle2 : `MetricBundle`
 
         Returns
         -------
-        bool
+        match : `bool`
         """
         if metric_bundle1.constraint != metric_bundle2.constraint:
             return False
@@ -151,7 +164,8 @@ class MetricBundleGroup:
             return False
         for stacker in metric_bundle1.stacker_list:
             for stacker2 in metric_bundle2.stacker_list:
-                # If the stackers have different names, that's OK, and if they are identical, that's ok.
+                # If the stackers have different names, that's OK,
+                # and if they are identical, that's ok.
                 if (stacker.__class__.__name__ == stacker2.__class__.__name__) & (stacker != stacker2):
                     return False
         # But if we got this far, everything matches.
@@ -160,8 +174,8 @@ class MetricBundleGroup:
     def _find_compatible_lists(self):
         """Find sets of compatible metricBundles from the currentBundleDict."""
         # CompatibleLists stores a list of lists;
-        #   each (nested) list contains the bundleDict _keys_ of a compatible set of metricBundles.
-        #
+        #  each (nested) list contains the bundleDict _keys_
+        #  of a compatible set of metricBundles.
         compatible_lists = []
         for k, b in self.current_bundle_dict.items():
             found_compatible = False
@@ -169,16 +183,20 @@ class MetricBundleGroup:
                 comparison_metric_bundle_key = compatible_list[0]
                 compatible = self._check_compatible(self.bundle_dict[comparison_metric_bundle_key], b)
                 if compatible:
-                    # Must compare all metricBundles in each subset (if they are a potential match),
-                    #  as the stackers could be different (and one could be incompatible,
+                    # Must compare all metricBundles in each subset
+                    # (if they are a potential match),
+                    #  as the stackers could be different
+                    #  (and one could be incompatible,
                     #  not necessarily the first)
                     for comparison_metric_bundle_key in compatible_list[1:]:
                         compatible = self._check_compatible(self.bundle_dict[comparison_metric_bundle_key], b)
                         if not compatible:
-                            # If we find one which is not compatible, stop and go on to the
+                            # If we find one which is not compatible,
+                            # stop and go on to the
                             # next subset list.
                             break
-                    # Otherwise, we reached the end of the subset and they were all compatible.
+                    # Otherwise, we reached the end of the subset
+                    # and they were all compatible.
                     found_compatible = True
                     compatible_list.append(k)
             if not found_compatible:
@@ -191,23 +209,25 @@ class MetricBundleGroup:
         self.compatible_lists = compatible_lists
 
     def run_all(self, clear_memory=False, plot_now=False, plot_kwargs=None):
-        """Runs all the metricBundles in the metricBundleGroup, over all constraints.
+        """Runs all the metricBundles in the metricBundleGroup,
+        over all constraints.
 
-        Calculates metric values, then runs reduce functions and summary statistics for
-        all MetricBundles.
+        Calculates metric values, then runs reduce functions and summary
+        statistics for all MetricBundles.
 
         Parameters
         ----------
         clear_memory : `bool`, optional
-            If True, deletes metric values from memory after running each constraint group.
+            If True, deletes metric values from memory after running
+            each constraint group.
         plot_now : `bool`, optional
             If True, plots the metric values immediately after calculation.
         plot_kwargs : `bool`, optional
             kwargs to pass to plotCurrent.
         """
         for constraint in self.constraints:
-            # Set the 'currentBundleDict' which is a dictionary of the metricBundles which match this
-            #  constraint.
+            # Set the 'currentBundleDict' which is a dictionary of the
+            # metricBundles which match this constraint.
             self.run_current(
                 constraint,
                 clear_memory=clear_memory,
@@ -216,13 +236,15 @@ class MetricBundleGroup:
             )
 
     def set_current(self, constraint):
-        """Utility to set the currentBundleDict (i.e. a set of metricBundles with the same SQL constraint).
+        """Utility to set the currentBundleDict
+        (i.e. a set of metricBundles with the same SQL constraint).
 
         Parameters
         ----------
         constraint : `str`
-            The subset of MetricBundles with metricBundle.constraint == constraint will be
-            included in a subset identified as the currentBundleDict.
+            The subset of MetricBundles with metricBundle.constraint ==
+            constraint will be included in a subset identified as the
+            currentBundleDict.
             These are the active metrics to be calculated and plotted, etc.
         """
         if constraint is None:
@@ -256,17 +278,17 @@ class MetricBundleGroup:
         ----------
         constraint : `str`
            constraint to use to set the currently active metrics
-        sim_data : `numpy.ndarray`, optional
+        sim_data : `np.ndarray`, ops
            If simData is not None, then this numpy structured array is used
            instead of querying data from the dbObj.
-        clear_memory : `bool`, optional
+        clear_memory : `bool`, ops
            If True, metric values are deleted from memory after they are
            calculated (and saved to disk).
-        plot_now : `bool`, optional
+        plot_now : `bool`, ops
            Plot immediately after calculating metric values
            (instead of the usual procedure, which is to plot after metric
            values are calculated for all constraints).
-        plot_kwargs : kwargs, optional
+        plot_kwargs : kwargs, ops
            Plotting kwargs to pass to plotCurrent.
         """
         self.set_current(constraint)
@@ -371,10 +393,11 @@ class MetricBundleGroup:
         """Runs a set of 'compatible' metricbundles in the MetricBundleGroup
         dictionary identified by 'compatible_list' keys.
 
-        A compatible list of MetricBundles is a subset of the currentBundleDict.
+        A compatible list of MetricBundles is a subset of the
+        currentBundleDict.
         The currentBundleDict == set of MetricBundles with the same constraint.
         The compatibleBundles == set of MetricBundles with the same constraint,
-        the same slicer, the same maps applied to the slicer,
+        AND the same slicer, the same maps applied to the slicer,
         and stackers which do not clobber each other's data.
 
         This is where the work of calculating the metric values is done.
@@ -541,12 +564,15 @@ class MetricBundleGroup:
         # Create a temporary dictionary to hold the reduced metricbundles.
         reduce_bundle_dict = {}
         for b in self.current_bundle_dict.values():
-            # If there are no reduce functions associated with the metric, skip this metricBundle.
+            # If there are no reduce functions associated with the metric,
+            # skip this metricBundle.
             if len(b.metric.reduce_funcs) > 0:
-                # Apply reduce functions, creating a new metricBundle in the process (new metric values).
+                # Apply reduce functions, creating a new metricBundle in
+                # the process (new metric values).
                 for r in b.metric.reduce_funcs:
                     newmetricbundle = b.reduce_metric(b.metric.reduce_funcs[r], reduce_func_name=r)
-                    # Add the new metricBundle to our metricBundleGroup dictionary.
+                    # Add the new metricBundle to our metricBundleGroup
+                    # dictionary.
                     name = newmetricbundle.metric.name
                     if name in self.bundle_dict:
                         name = newmetricbundle.file_root
@@ -560,7 +586,8 @@ class MetricBundleGroup:
                     b.summary_metrics = []
         # Add the new metricBundles to the MetricBundleGroup dictionary.
         self.bundle_dict.update(reduce_bundle_dict)
-        # And add to to the currentBundleDict too, so we run as part of 'summaryCurrent'.
+        # And add to to the currentBundleDict too, so we run as part
+        # of 'summaryCurrent'.
         self.current_bundle_dict.update(reduce_bundle_dict)
 
     def summary_all(self):
@@ -575,7 +602,8 @@ class MetricBundleGroup:
 
     def summary_current(self):
         """Run summary statistics on all the metricBundles in the
-        currently active set of MetricBundles."""
+        currently active set of MetricBundles.
+        """
         for b in self.current_bundle_dict.values():
             b.compute_summary_stats(self.results_db)
 
@@ -692,7 +720,8 @@ class MetricBundleGroup:
     def write_all(self):
         """Save all the MetricBundles to disk.
 
-        Saving all MetricBundles to disk at this point assumes that clearMemory was False.
+        Saving all MetricBundles to disk at this point assumes that
+        clearMemory was False.
         """
         for constraint in self.constraints:
             self.set_current(constraint)

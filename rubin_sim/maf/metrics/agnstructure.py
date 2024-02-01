@@ -12,31 +12,35 @@ from .base_metric import BaseMetric
 
 
 class SFUncertMetric(BaseMetric):
-    """Structure Function (SF) Uncertainty Metric. Developed on top of LogTGaps
+    """Structure Function (SF) Uncertainty Metric.
+    Developed on top of LogTGaps
 
     Adapted from Weixiang Yu & Gordon Richards at:
-    https://github.com/RichardsGroup/LSST_SF_Metric/blob/main/notebooks/00_SFErrorMetric.ipynb
+    https://github.com/RichardsGroup/
+    LSST_SF_Metric/blob/main/notebooks/00_SFErrorMetric.ipynb
 
     Parameters
     ----------
-    mag: `float` (22)
+    mag : `float`
         The magnitude of the fiducial object. Default 22.
-    times_col: `str`  ('observationStartMJD')
+    times_col : `str`
         Time column name. Defaults to "observationStartMJD".
-    all_gaps: `bool` (True)
+    all_gaps : `bool`
          Whether to use all gaps (between any two pairs of observations).
          If False, only use consecutive paris. Defaults to True.
-    units: `str` ('mag')
+    units : `str`
         Unit of this metric. Defaults to "mag".
-    bins: `object`
-        An array of bin edges. Defaults to "np.logspace(0, np.log10(3650), 16)" for a
+    bins : `object`
+        An array of bin edges.
+        Defaults to "np.logspace(0, np.log10(3650), 16)" for a
         total of 15 (final) bins.
-    weight: `object
+    weight : `object`
         The weight assigned to each delta_t bin for deriving the final metric.
-        Defaults to flat weighting with sum of 1. Should have length 1 less than bins.
-    snr_cut : float (5)
+        Defaults to flat weighting with sum of 1.
+        Should have length 1 less than bins.
+    snr_cut : `float`
         Ignore observations below an SNR limit, default 5.
-    dust : `bool` (True)
+    dust : `bool`
         Apply dust extinction to the fiducial object magnitude. Default True.
     """
 
@@ -115,15 +119,17 @@ class SFUncertMetric(BaseMetric):
         else:
             dts = np.diff(times)
 
-        # bin delta_t using provided bins; if zero pair found at any delta_t bin,
-        # replace 0 with 0.01 to avoid the exploding 1/sqrt(n) term in this metric
+        # bin delta_t using provided bins;
+        # if zero pair found at any delta_t bin,
+        # replace 0 with 0.01 to avoid the exploding 1/sqrt(n) term
+        # in this metric
         result, bins = np.histogram(dts, self.bins)
         new_result = np.where(result > 0, result, 0.01)
 
         # compute photometric_error^2 population variance and population mean
         # note that variance is replaced by median_absolute_deviate^2
-        # mean is replaced by median in this implementation to make it robust to
-        # outliers in simulations (e.g., dcr simulations)
+        # mean is replaced by median in this implementation to make it robust
+        # to outliers in simulations (e.g., dcr simulations)
         err_var = mag_err**2
         err_var_mu = np.median(err_var)
         err_var_std = mad_std(err_var)

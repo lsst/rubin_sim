@@ -14,13 +14,13 @@ class NgalScaleMetric(BaseMetric):
 
     Parameters
     ----------
-    a_max : float (0.2)
+    a_max : `float`
         The maximum dust extinction to allow. Anything with higher dust
         extinction is considered to have zero usable galaxies.
-    m5min : float (26)
+    m5min : `float`
         The minimum coadded 5-sigma depth to allow. Anything less is
         considered to have zero usable galaxies.
-    filter : str ("i")
+    filter : `str`
         The filter to use. Any visits in other filters are ignored.
     """
 
@@ -55,7 +55,8 @@ class NgalScaleMetric(BaseMetric):
         self.ax1 = dust_properties.ax1
 
     def run(self, data_slice, slice_point):
-        # I'm a little confused why there's a dust cut and an M5 cut, but whatever
+        # I'm a little confused why there's a dust cut and an M5 cut,
+        # but whatever
         a_x = self.ax1[data_slice[self.filter_col][0]] * slice_point["ebv"]
         if a_x > self.a_max:
             return 0
@@ -80,16 +81,18 @@ class NlcPointsMetric(BaseMetric):
 
     Parameters
     ----------
-    ndpmin : int (10)
+    ndpmin : `int`
         The number of points to demand on a lightcurve in a single
         filter to have that light curve qualify.
-    mags : float (21)
+    mags : `float`
         The magnitude of our fiducial object (maybe make it a dict in the
         future to support arbitrary colors).
-    maps : list of map objects (None)
-        List of stellar density maps to use. Default of None loads Trilegal maps.
-    nside : int (128)
-        The nside is needed to make sure the loaded maps match the slicer nside.
+    maps : `list` [`~rubin_sim.maf.map`] or None
+        List of stellar density maps to use.
+        Default of None loads Trilegal maps.
+    nside : `int`
+        The nside is needed to make sure the loaded maps
+        match the slicer nside.
     """
 
     def __init__(

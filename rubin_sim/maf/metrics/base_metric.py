@@ -1,10 +1,4 @@
 # Base class for metrics - defines methods which must be implemented.
-# If a metric calculates a vector or list at each gridpoint, then there
-#  should be additional 'reduce_*' functions defined, to convert the vector
-#  into scalar (and thus plottable) values at each gridpoint.
-# The philosophy behind keeping the vector instead of the scalar at each gridpoint
-#  is that these vectors may be expensive to compute; by keeping/writing the full
-#  vector we permit multiple 'reduce' functions to be executed on the same data.
 
 __all__ = ("MetricRegistry", "BaseMetric", "ColRegistry")
 
@@ -114,8 +108,9 @@ class BaseMetric(metaclass=MetricRegistry):
     ----------
     col : `str` or `list` [`str`]
         Names of the data columns that the metric will use.
-        The columns required for each metric is tracked in the ColRegistry, and used to retrieve data
-        from the opsim database. Can be a single string or a list.
+        The columns required for each metric is tracked in the ColRegistry,
+        and used to retrieve data from the opsim database.
+        Can be a single string or a list.
     metric_name : `str`
         Name to use for the metric (optional - if not set, will be derived).
     maps : `list` [`rubin_sim.maf.maps`]
@@ -143,9 +138,11 @@ class BaseMetric(metaclass=MetricRegistry):
         badval=-666,
         mask_val=None,
     ):
-        # Turn cols into numpy array so we know we can iterate over the columns.
+        # Turn cols into numpy array so we know
+        # we can iterate over the columns.
         self.col_name_arr = np.array(col, copy=False, ndmin=1)
-        # To support simple metrics operating on a single column, set self.colname
+        # To support simple metrics operating on a single column,
+        # set self.colname
         if len(self.col_name_arr) == 1:
             self.colname = self.col_name_arr[0]
         # Add the columns to the colRegistry.
@@ -161,7 +158,8 @@ class BaseMetric(metaclass=MetricRegistry):
         # Save a unique name for the metric.
         self.name = metric_name
         if self.name is None:
-            # If none provided, construct our own from the class name and the data columns.
+            # If none provided, construct our own from the class name
+            # and the data columns.
             self.name = (
                 self.__class__.__name__.replace("Metric", "", 1)
                 + " "
@@ -197,7 +195,7 @@ class BaseMetric(metaclass=MetricRegistry):
         # Default to only return one metric value per slice
         self.shape = 1
 
-    def run(self, data_slice, slice_point=None):
+    def run(self, data_slice, slice_point):
         """Calculate metric values.
 
         Parameters
@@ -207,11 +205,11 @@ class BaseMetric(metaclass=MetricRegistry):
            use to calculate metric values at each slice_point.
         slice_point : `dict` or None
            Dictionary of slice_point metadata passed to each metric.
-           E.g. the ra/dec of the healpix pixel or opsim fieldId.
+           E.g. the ra/dec of the healpix pixel.
 
         Returns
         -------
-        metricValue: `int` `float` or `object`
+        metricValue : `int` `float` or `object`
             The metric value at each slice_point.
         """
         raise NotImplementedError("Please implement your metric calculation.")

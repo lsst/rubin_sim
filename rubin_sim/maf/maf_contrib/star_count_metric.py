@@ -25,6 +25,7 @@ from .star_counts import starcount
 # There are stellar luminosity function maps available within MAF
 # that may supersede these StarCount functions
 
+
 class StarCountMetric(BaseMetric):
     """Find the number of stars in a given field between d1 and d2 in parsecs.
 

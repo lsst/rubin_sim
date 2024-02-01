@@ -12,38 +12,46 @@ from rubin_sim.maf.utils import m52snr
 from .periodic_star_metric import PeriodicStar
 
 """ This metric is based on the PeriodicStar metric
-    It was modified in a way to reproduce attempts to identify period/ phase modulation (Blazhko effect)
-    in RR Lyrae stars.
-    We are not implementing a period/ phase modulation in the light curve, but rather use short baselines
-    (e.g.: 20 days) of observations to test how well we can recover the period, phase and amplitude. We
-    do this as such an attempt is also useful for other purposes, i.e. if we want to test whether we
-    can just recover period, phase and amplitude from short baselines at all, without necessarily having
+    It was modified in a way to reproduce attempts to identify
+    phase modulation (Blazhko effect) in RR Lyrae stars.
+    We are not implementing a period/ phase modulation in the light curve,
+    but rather use short baselines (e.g.: 20 days) of observations to test
+    how well we can recover the period, phase and amplitude.
+    We do this as such an attempt is also useful for other purposes,
+    i.e. if we want to test whether we can just recover period, phase
+    and amplitude from short baselines at all, without necessarily having
     in mind to look for period/ phase modulations.
-    Like in the PeriodicStar metric, the light curve of an RR Lyrae star, or a periodic star in general,
-    is approximated as a simple sin wave. Other solutions might make use of light curve templates to
-    generate light curves.
-    Two other modifications we introduced for the PeriodicStarModulationMetric are:
-    In contrast to the PeriodicStar metric, we allow for a random phase offset to mimic observation
-    starting at random phase.
-    Also, we vary the periods and amplitudes within +/- 10 % to allow for a more realistic
-    sample of variable stars.
+    Like in the PeriodicStar metric, the light curve of an RR Lyrae star,
+    or a periodic star in general, is approximated as a simple sin wave.
+    Other solutions might make use of light curve templates
+    to generate light curves.
+    Two other modifications we introduced are:
+    In contrast to the PeriodicStar metric, we allow for a random phase
+    offset to mimic observation starting at random phase.
+    Also, we vary the periods and amplitudes within +/- 10 % to allow
+    for a more realistic sample of variable stars.
 
     This metric is based on the cadence note:
-    N. Hernitschek, K. Stassun, LSST Cadence Note: Cadence impacts on reliable classification
-    of standard-candle variable stars (2021) https://docushare.lsst.org/docushare/dsweb/Get/Document-37673
+    N. Hernitschek, K. Stassun, LSST Cadence Note:
+    "Cadence impacts on reliable classification of standard-candle
+    variable stars (2021)"
+     https://docushare.lsst.org/docushare/dsweb/Get/Document-37673
 """
 
 
 class PeriodicStarModulationMetric(BaseMetric):
-    """Evaluate how well a periodic source can be fit on a short baseline, using a Monte Carlo simulation.
+    """Evaluate how well a periodic source can be fit on a short baseline,
+    using a Monte Carlo simulation.
 
-    At each slice_point, run a Monte Carlo simulation to see how well a periodic source can be fit.
-    Assumes a simple sin-wave light-curve, and generates Gaussain noise based in the 5-sigma limiting depth
-    of each observation.
-    Light curves are evaluated piecewise to test how well we can recover the period, phase and amplitude
-    from shorter baselines. We allow for a random phase offset to mimic observation starting at random phase.
-    Also, we vary the periods and amplitudes within +/- 10 % to allow for a more realistic sample of
-    variable stars.
+    At each slice_point, run a Monte Carlo simulation to see how well a
+    periodic source can be fit.
+    Assumes a simple sin-wave light-curve, and generates Gaussain noise
+    based in the 5-sigma limiting depth of each observation.
+    Light curves are evaluated piecewise to test how well we can recover
+    the period, phase and amplitude from shorter baselines.
+    We allow for a random phase offset to mimic observation starting
+    at random phase. Also, we vary the periods and amplitudes
+    within +/- 10 % to allow for a more realistic sample of variable stars.
 
     Parameters
     ----------
@@ -56,11 +64,13 @@ class PeriodicStarModulationMetric(BaseMetric):
     random_phase : `bool`, opt
         a random phase is assigned (default False)
     time_interval : `float`, opt
-        days (default 50); the interval over which we want to evaluate the light curve
+        days (default 50);
+        the interval over which we want to evaluate the light curve
     n_monte : `int`, opt
         number of noise realizations to make in the Monte Carlo (default 1000)
     period_tol : `float`, opt
-        fractional tolerance on the period to demand for a star to be considered well-fit (default 0.05)
+        fractional tolerance on the period to demand
+        for a star to be considered well-fit (default 0.05)
     amp_tol : `float`, opt
         fractional tolerance on the amplitude to demand (default 0.10)
     means : `list` of `float`, opt
@@ -120,8 +130,8 @@ class PeriodicStarModulationMetric(BaseMetric):
 
     def run(self, data_slice, slice_point=None):
         # Bail if we don't have enough points
-        # (need to fit mean magnitudes in each of the available bands - self.means
-        # and for a period, amplitude, and phase)
+        # (need to fit mean magnitudes in each of the available bands
+        # - self.means and for a period, amplitude, and phase)
         if data_slice.size < self.means.size + 3:
             return self.badval
 
@@ -154,8 +164,9 @@ class PeriodicStarModulationMetric(BaseMetric):
                     mags = self.means + slice_point["distMod"]
                 else:
                     mags = self.means
-                # slightly different periods and amplitudes (+/- 10 %) to mimic true stars
-                # random phase offsets to mimic observation starting at random phase
+                # slightly different periods and amplitudes (+/- 10 %)
+                # to mimic true stars. random phase offsets to mimic
+                # observation starting at random phase
                 true_period = random.uniform(0.9, 1.1) * self.period
                 true_amplitude = random.uniform(0.9, 1.1) * self.amplitude
                 if np.isnan(self.phase):
@@ -178,7 +189,8 @@ class PeriodicStarModulationMetric(BaseMetric):
                     fit_obj = PeriodicStar(t_subrun["filter"])
                     with warnings.catch_warnings():
                         warnings.simplefilter("ignore")
-                        # If it fails to converge, save values that should fail later
+                        # If it fails to converge,
+                        # save values that should fail later
                         try:
                             parm_vals, pcov = curve_fit(
                                 fit_obj,
@@ -187,11 +199,12 @@ class PeriodicStarModulationMetric(BaseMetric):
                                 p0=true_params,
                                 sigma=dmag,
                             )
-                        except:
+                        except RuntimeError:
                             parm_vals = true_params * 0 + np.inf
                     fits[i, :] = parm_vals
 
-                # Throw out any magnitude fits if there are no observations in that filter
+                # Throw out any magnitude fits if there are no
+                # observations in that filter
                 ufilters = np.unique(data_slice[self.filter_col])
                 if ufilters.size < 9:
                     for key in list(self.filter2index.keys()):

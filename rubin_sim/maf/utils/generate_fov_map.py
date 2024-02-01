@@ -2,6 +2,7 @@ import numpy as np
 from rubin_scheduler.utils import gnomonic_project_tosky, gnomonic_project_toxy
 
 # Use the main stack to make a rough array.
+# This code needs an update to work without lsst.sims.
 
 if __name__ == "__main__":
     import lsst.sims.utils as simsUtils

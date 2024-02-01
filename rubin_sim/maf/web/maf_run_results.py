@@ -177,7 +177,6 @@ class MafRunResults:
         """
         if metrics is None:
             metrics = self.metrics
-        # this should be faster with pandas (and self.metrics.query('metric_id in @metric_ids'))
         metrics = metrics[np.in1d(metrics["metric_id"], metric_ids)]
         return metrics
 
@@ -449,7 +448,8 @@ class MafRunResults:
         Given an array of plots (for a single metric usually).
         Returns an ordered dict with 'plot_type' for interfacing with
         jinja2 templates.
-        plot_dict == {'SkyMap': {'plot_file': [], 'thumb_file', []}, 'Histogram': {}..}
+        plot_dict ==
+        {'SkyMap': {'plot_file': [], 'thumb_file', []}, 'Histogram': {}..}
 
         If no plot of a particular type, the plot_file and thumb_file
         are empty lists.

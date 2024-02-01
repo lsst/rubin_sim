@@ -7,16 +7,17 @@ import rubin_sim.maf.metrics as metrics
 
 class SNCadenceMetric(metrics.BaseMetric):
     """
-    Metric to estimate the redshift limit for faint supernovae (x1,color) = (-2.0,0.2)
+    Metric to estimate the redshift limit for faint supernovae
+    (x1,color) = (-2.0,0.2)
 
     Parameters
     ----------
-    list : str, optional
+    list : `str`, optional
         Name of the columns used to estimate the metric
-    coadd :  bool, optional
+    coadd :  `bool`, optional
         to make "coaddition" per night (uses snStacker)
         Default True
-    lim_sn : class, optional
+    lim_sn : `class`, optional
        Reference data used to estimate redshift values (interpolation)
     """
 

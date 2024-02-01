@@ -8,7 +8,8 @@ from rubin_sim.maf.metrics import BaseMetric, ExgalM5
 
 
 class GalaxyCountsMetric(BaseMetric):
-    """Estimate the number of galaxies expected at a particular coadded depth.
+    """Estimate the number of galaxies expected at a particular (extragalactic)
+    coadded depth.
     """
 
     def __init__(self, m5_col="fiveSigmaDepth", nside=128, metric_name="GalaxyCounts", **kwargs):

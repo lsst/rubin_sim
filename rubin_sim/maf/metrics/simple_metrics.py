@@ -290,7 +290,9 @@ class RobustRmsMetric(BaseMetric):
 
 
 class MaxPercentMetric(BaseMetric):
-    """Return the percent of data which matches the maximum value of the data."""
+    """Return the percent of data which matches the maximum value
+    of the data.
+    """
 
     def run(self, data_slice, slice_point=None):
         n_max = np.size(np.where(data_slice[self.colname] == np.max(data_slice[self.colname]))[0])
@@ -324,8 +326,9 @@ class FracAboveMetric(BaseMetric):
     """Find the fraction of data values above a given `cutoff`."""
 
     def __init__(self, col=None, cutoff=0.5, scale=1, metric_name=None, **kwargs):
-        # Col could just get passed in bundle with kwargs, but by explicitly pulling it out
-        #  first, we support use cases where class instantiated without explicit 'col=').
+        # Col could just get passed in bundle with kwargs,
+        # by explicitly pulling it out first, we support use cases where
+        # class instantiated without explicit 'col=').
         if metric_name is None:
             metric_name = "FracAbove %.2f in %s" % (cutoff, col)
         super(FracAboveMetric, self).__init__(col, metric_name=metric_name, **kwargs)

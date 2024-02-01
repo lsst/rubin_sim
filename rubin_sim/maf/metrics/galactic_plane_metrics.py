@@ -13,19 +13,24 @@ from rubin_sim.maf.maps.galactic_plane_priority_maps import gp_priority_map_comp
 
 from .base_metric import BaseMetric
 
-# These are a suite of metrics aimed at evaluating high-level quantities regarding galactic plane
-# coverage. The metrics here evaluate the coverage (just number of visits and exposure time per filter)
+# These are a suite of metrics aimed at evaluating high-level
+# quantities regarding galactic plane coverage.
+# The metrics here evaluate the coverage
+# (just number of visits and exposure time per filter)
 # in relation to the desired coverage from the galactic plane priority map.
-# There is a related metric in transientTimeSampling which evaluates the cadence weighted by this same map.
+# There is a related metric in transientTimeSampling which
+# evaluates the cadence weighted by this same map.
 
 TAU_OBS = np.array([2.0, 5.0, 11.0, 20.0, 46.5, 73.0])
 
 
 def galplane_nvisits_thresholds(tau_obs, nyears=10):
-    """ "Return estimated nvisits required to well-sample lightcurves that need sampling every tau_obs (days).
+    """Return estimated nvisits required to well-sample lightcurves
+    that need sampling every tau_obs (days).
 
-    This does a very basic estimate, just counting how many visits you would have if you distributed them
-    at tau_obs intervals for a period of nyears, assuming a season length of 6.5 years and that visits in
+    This does a very basic estimate, just counting how many visits you
+    would have if you distributed them at tau_obs intervals for a period
+    of nyears, assuming a season length of 6.5 years and that visits in
     each night are in pairs.
 
     Parameters
@@ -38,7 +43,8 @@ def galplane_nvisits_thresholds(tau_obs, nyears=10):
     Returns
     -------
     n_visits_thresholds : `np.ndarray`
-        Estimated number of visits required to well sample lightcurves which require sampling on tau_obs
+        Estimated number of visits required to well sample lightcurves
+        which require sampling on tau_obs
     """
     # How many nights in the survey
     nnights_total = 365.25 * nyears
@@ -50,7 +56,8 @@ def galplane_nvisits_thresholds(tau_obs, nyears=10):
 
 
 def galplane_priority_map_thresholds(science_map):
-    """Return minimum threshold for priority maps, when considering filter balance.
+    """Return minimum threshold for priority maps,
+    when considering filter balance.
 
     Parameters
     ----------
@@ -84,23 +91,26 @@ def help_set_reduce_func(obj, metricval, nvisits_thresh):
 
 
 class GalPlaneFootprintMetric(BaseMetric):
-    """Evaluate the survey overlap with desired regions in the Galactic Plane
-    and Magellanic Clouds, by referencing the pre-computed priority maps provided.
+    """Evaluate the survey overlap with desired regions in the
+    Galactic Plane and Magellanic Clouds, by referencing the
+    pre-computed priority maps provided.
     These priority maps are keyed by science area (science_map) and per filter.
     The returned metric values are summed over all filters.
 
     Parameters
     ----------
     science_map : `str`
-        Name of the priority footprint map key to use from the column headers contained in the
-        priority_GalPlane_footprint_map_data tables.
+        Name of the priority footprint map key to use from the column
+        headers contained in the priority_GalPlane_footprint_map_data tables.
     tau_obs : `np.ndarray` or `list` of `float`, opt
-        Timescales of minimum-required observations intervals for various classes of time variability.
-        Default (None), uses TAU_OBS. In general, this should be left as the default and consistent
-        across all galactic-plane oriented metrics.
+        Timescales of minimum-required observations intervals for
+        various classes of time variability.
+        Default (None), uses TAU_OBS. In general, this should be left as
+        the default and consistent across all galactic-plane oriented metrics.
     mag_cuts : `dict` of `float`, opt
         Magnitudes to use as cutoffs for individual image depths.
-        Default None uses a default set of values which correspond roughly to the 50th percentile.
+        Default None uses a default set of values which correspond
+        roughly to the 50th percentile.
     filter_col : `str`, opt
         Name of the filter column. Default 'filter'.
     m5_col : `str`, opt
@@ -173,11 +183,14 @@ class GalPlaneFootprintMetric(BaseMetric):
             self.reduce_order[r_name] = i + 2
 
     def run(self, data_slice, slice_point):
-        """Calculate the number of observations that meet the mag_cut values at each slice_point.
-        Also calculate the number of observations * the priority map summed over all filter.
-        Return both of these values as a dictionary.
+        """Calculate the number of observations that meet the mag_cut values
+        at each slice_point.
+
+        Also calculate the number of observations * the priority map summed
+        over all filter. Return both of these values as a dictionary.
         """
-        # Check if we want to evaluate this part of the sky, or if the weight is below threshold.
+        # Check if we want to evaluate this part of the sky,
+        # or if the weight is below threshold.
         mapkey = gp_priority_map_components_to_keys("sum", self.science_map)
         priority = slice_point[mapkey]
         if priority <= self.priority_map_threshold:
@@ -206,19 +219,23 @@ class GalPlaneFootprintMetric(BaseMetric):
 
 
 class GalPlaneTimePerFilterMetric(BaseMetric):
-    """Evaluate the fraction of exposure time spent in each filter as a fraction of the
-    total exposure time dedicated to that healpix in the weighted galactic plane priority maps.
+    """Evaluate the fraction of exposure time spent in each filter as a
+    fraction of the total exposure time dedicated to that healpix in the
+    weighted galactic plane priority maps.
 
     Parameters
     ----------
     scienceMap : `str`
-        Name of the priority footprint map key to use from the column headers contained in the
+        Name of the priority footprint map key to use from the column
+        headers contained in the
         priority_GalPlane_footprint_map_data tables.
     magCuts : `dict` of `float`, opt
         Magnitudes to use as cutoffs for individual image depths.
-        Default None uses a default set of values which correspond roughly to the 50th percentile.
+        Default None uses a default set of values which correspond
+        roughly to the 50th percentile.
     mjd_col : `str`, opt
-        Name of the observation start MJD column. Default 'observationStartMJD'.
+        Name of the observation start MJD column.
+        Default 'observationStartMJD'.
     exp_time_col : `str`, opt
         Name of the exposure time column. Default 'visitExposureTime'.
     filter_col : `str`, opt
@@ -282,14 +299,17 @@ class GalPlaneTimePerFilterMetric(BaseMetric):
 
     def run(self, data_slice, slice_point):
         """Calculate the ratio of the actual on-sky exposure time per filter
-        compared to the ideal on-sky exposure time per filter at this point on the sky across all filters.
+        compared to the ideal on-sky exposure time per filter at this point
+        on the sky across all filters.
         """
-        # Check if we want to evaluate this part of the sky, or if the weight is below threshold.
+        # Check if we want to evaluate this part of the sky,
+        # or if the weight is below threshold.
         weight_all_filters = slice_point[gp_priority_map_components_to_keys("sum", self.science_map)]
         if weight_all_filters <= self.priority_map_threshold:
             return self.badval
 
-        # Calculate the ideal weighting per filter compared to all filters at this point in the sky
+        # Calculate the ideal weighting per filter compared to all
+        # filters at this point in the sky
         relative_filter_weight = {}
         for f in self.filterlist:
             mapkey = gp_priority_map_components_to_keys(f, self.science_map)
@@ -313,19 +333,21 @@ class GalPlaneTimePerFilterMetric(BaseMetric):
             # provided, and additional data in other filters is usually welcome
             exp_time_per_filter[f] = data_slice[self.exp_time_col][match].sum()
 
-        # Calculate the time on-sky in each filter that overlaps this point, and meets mag_cuts
+        # Calculate the time on-sky in each filter that overlaps this point,
+        # and meets mag_cuts
         total_expt_mag_cut = 0
         for f in self.filterlist:
             total_expt_mag_cut += exp_time_per_filter[f].sum()
 
-        # normalize by the relative filter weight. Ideally metric results are close to 1.
+        # normalize by the relative filter weight.
+        # Ideally metric results are close to 1.
         normalized_exp_time = {}
         for f in self.filterlist:
             if total_expt_mag_cut == 0:
                 normalized_exp_time[f] = 0
             else:
-                # If no exposures are expected in this filter for this location,
-                # thais metric returns the mask val for this filter only.
+                # If no exposures are expected in this filter for this
+                # location, metric returns the mask val for this filter only.
                 if relative_filter_weight[f] > 0:
                     normalized_exp_time[f] = (
                         exp_time_per_filter[f] / total_expt_mag_cut / relative_filter_weight[f]

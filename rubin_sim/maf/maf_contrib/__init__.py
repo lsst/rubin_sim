@@ -19,7 +19,6 @@ from .static_probes_fom_summary_metric import *
 from .tdes_pop_metric import *
 from .triplet_metric import *
 from .var_depth_metric import *
-from .var_metrics import *
 from .xrb_metrics import *
 from .young_stellar_objects_metric import *
 from .calculate_lsst_field_visibility_astropy import *

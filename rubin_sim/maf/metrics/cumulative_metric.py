@@ -11,9 +11,9 @@ class CumulativeMetric(BaseMetric):
 
     Parameters
     ----------
-    interp_points : `np.array` (None)
-        The points to interpolate the cumulative number of observations to. If None,
-        then the range of the data is used with a stepsize of 1.
+    interp_points : `np.array`, (N,)  or None
+        The points to interpolate the cumulative number of observations to.
+        If None, then the range of the data is used with a stepsize of 1.
     """
 
     def __init__(

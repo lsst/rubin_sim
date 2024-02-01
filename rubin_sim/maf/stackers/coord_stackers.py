@@ -13,28 +13,28 @@ from .dither_stackers import wrap_ra
 def ra_dec2_alt_az(ra, dec, lat, lon, mjd, altonly=False):
     """Convert RA/Dec (and telescope site lat/lon) to alt/az.
 
-    This uses simple equations and ignores aberation, precession, nutation, etc.
+    This uses simple equations and ignores aberation, precession, nutation.
 
     Parameters
     ----------
-    ra : array_like
+    ra : `np.ndarray`, (N,)
         RA, in radians.
-    dec : array_like
+    dec : `np.ndarray`, (N,)
         Dec, in radians. Must be same length as `ra`.
-    lat : float
+    lat : `float`
         Latitude of the observatory in radians.
-    lon : float
+    lon : `float`
         Longitude of the observatory in radians.
-    mjd : float
+    mjd : `float`
         Modified Julian Date.
-    altonly : bool, optional
+    altonly : `bool`, optional
         Calculate altitude only.
 
     Returns
     -------
-    alt : numpy.array
+    alt : `np.ndarray`, (N,)
         Altitude, same length as `ra` and `dec`. Radians.
-    az : numpy.array
+    az : `np.ndarray`, (N,)
         Azimuth, same length as `ra` and `dec`. Radians.
     """
     lmst = calc_lmst(mjd, lon)
