@@ -18,8 +18,9 @@ class TdeLc:
 
     Parameters
     ----------
-    file_list : list of str (None)
-        List of file paths to load. If None, loads up all the files from data/tde/
+    file_list : `list` [`str`], opt
+        List of file paths to load.
+        If None, loads up all the files from $RUBIN_SIM_DATA/maf/tde/
     """
 
     def __init__(self, file_list=None):
@@ -97,7 +98,8 @@ class TdePopMetric(metrics.BaseMetric):
         Simple detection criteria
         """
         result = 0
-        # Simple alert criteria. Could make more in depth, or use reduce functions
+        # Simple alert criteria.
+        # Could make more in depth, or use reduce functions
         # to have multiple criteria checked.
         pre_peak_detected = np.where((t < 0) & (mags < data_slice[self.m5_col]))[0]
 
@@ -176,6 +178,31 @@ class TdePopMetric(metrics.BaseMetric):
 
 
 class TdePopMetricQuality(metrics.BaseMetric):
+    """Evaluate the likelihood of detecting a specific TDE.
+    Works with the TDEPopSlicer, which adds TDE events to the slice_points.
+
+    Returns 0 (not detected) or 1 (detected) for TDEs with various
+    detection criteria.
+    'some_color' requires 1 detection pre-peak, 3 detections in different
+    filters within 10 days of the peak, and 2 detections in different bands
+    within tmax post-peak. Averages 1 detection every other night.
+    'some_color_pu' has similar requirements, but constrains one
+    of the near-peak detections to be in u band and 1 of the
+    post-peak detections to be in u band.
+
+
+    Parameters
+    ----------
+    tmin : `float`, opt
+        Minimum time for first detection (days)
+    tmax : `float`, opt
+        Maximum time in the lightcurve for detection (days).
+    file_list : `list` [`str`], opt
+        The names of the TDE lightcurve data files.
+    mjd0 : `float`, opt
+        The start of the survey.
+    """
+
     def __init__(
         self,
         metric_name="TDEsPopMetricQuality",
@@ -212,7 +239,7 @@ class TdePopMetricQuality(metrics.BaseMetric):
             **kwargs,
         )
 
-    def _some_color_pnum_detect(self, data_slice, slice_point, mags, t):
+    def _some_color_pnum_detect(self, data_slice, mags, t):
         # 1 detection pre peak
         pre_peak_detected = np.where((t < -10) & (mags < data_slice[self.m5_col]))[0]
         if np.size(pre_peak_detected) < 1:
@@ -231,17 +258,20 @@ class TdePopMetricQuality(metrics.BaseMetric):
         # count number of data points in the light curve
         obs_points = np.where((t > self.tmin) & (t < self.tmax) & (mags < data_slice[self.m5_col]))[0]
 
-        # define the time range around peak in which the number of data points is measured
+        # define the time range around peak in which the number of
+        # data points is measured
         t_range = self.tmax - self.tmin
 
-        # number of data points / time range gives a "score" for light curve quality
+        # number of data points / time range gives a "score" for
+        # light curve quality
         # 0: did not pass some_color requirements;
-        # 1: passed some_color requirements and has 1 data point every other night
+        # 1: passed some_color requirements and has 1 data point
+        # every other night
         nresult = np.size(obs_points) / t_range
 
         return nresult
 
-    def _some_color_pu_pnum_detect(self, data_slice, slice_point, mags, t):
+    def _some_color_pu_pnum_detect(self, data_slice, mags, t):
         # 1 detection pre peak
         pre_peak_detected = np.where((t < -10) & (mags < data_slice[self.m5_col]))[0]
         if np.size(pre_peak_detected) < 1:
@@ -266,17 +296,20 @@ class TdePopMetricQuality(metrics.BaseMetric):
         # count number of data points in the light curve
         obs_points = np.where((t > self.tmin) & (t < self.tmax) & (mags < data_slice[self.m5_col]))[0]
 
-        # define the time range around peak in which the number of data points is measured
+        # define the time range around peak in which the number of
+        # data points is measured
         t_range = self.tmax - self.tmin
 
-        # number of data points / time range gives a "score" for light curve quality
+        # number of data points / time range gives a "score" for
+        # light curve quality
         # 0: did not pass some_color_pu requirements;
-        # 1: passed some_color_pu requirements and has 1 data point every other night
+        # 1: passed some_color_pu requirements and has 1 data point
+        # every other night
         nresult = np.size(obs_points) / t_range
 
         return nresult
 
-    def run(self, data_slice, slice_point=None):
+    def run(self, data_slice, slice_point):
         result = {}
         t = data_slice[self.mjd_col] - self.mjd0 - slice_point["peak_time"]
         mags = np.zeros(t.size, dtype=float)
@@ -287,8 +320,8 @@ class TdePopMetricQuality(metrics.BaseMetric):
             # Apply dust extinction on the light curve
             mags[infilt] += self.ax1[filtername] * slice_point["ebv"]
 
-        result["some_color_pnum"] = self._some_color_pnum_detect(data_slice, slice_point, mags, t)
-        result["some_color_pu_pnum"] = self._some_color_pu_pnum_detect(data_slice, slice_point, mags, t)
+        result["some_color_pnum"] = self._some_color_pnum_detect(data_slice, mags, t)
+        result["some_color_pu_pnum"] = self._some_color_pu_pnum_detect(data_slice, mags, t)
 
         return result
 
@@ -300,19 +333,20 @@ class TdePopMetricQuality(metrics.BaseMetric):
 
 
 def generate_tde_pop_slicer(t_start=1, t_end=3652, n_events=10000, seed=42, n_files=7):
-    """Generate a population of TDE events, and put the info about them into a UserPointSlicer object
+    """Generate a population of TDE events,
+    and put the info about them into a UserPointSlicer object.
 
     Parameters
     ----------
-    t_start : float (1)
+    t_start : `float`, opt
         The night to start tde events on (days)
-    t_end : float (3652)
+    t_end : `float`, opt
         The final night of TDE events
-    n_events : int (10000)
+    n_events : `int`, opt
         The number of TDE events to generate
-    seed : float
+    seed : `float`, opt
         The seed passed to np.random
-    n_files : int (7)
+    n_files : `int`, opt
         The number of different TDE lightcurves to use
     """
 

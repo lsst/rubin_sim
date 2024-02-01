@@ -3,7 +3,8 @@
 # Mike Lund - Vanderbilt University
 # mike.lund@gmail.com
 # Last edited 8/15/2015
-# Description: Calculates spectral types for stars on the main sequence as a function of stellar mass. For use with Field Star Count metric
+# Description: Calculates spectral types for stars on the main sequence as
+# a function of stellar mass. For use with Field Star Count metric
 import sys
 
 import numpy as np

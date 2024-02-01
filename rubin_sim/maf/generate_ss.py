@@ -95,7 +95,8 @@ def generate_ss_commands(
                 os.mkdir(out_dir)
             except FileExistsError:
                 pass
-            # Create the results DB so multiple threads don't try to create it later
+            # Create the results DB so multiple threads
+            # don't try to create it later
             # This isn't used in this script, but needs to exist on-disk.
             results_db = db.ResultsDb(out_dir=out_dir)
         for pop in pops:
@@ -126,8 +127,9 @@ def generate_ss_commands(
                 os.mkdir(out_dir)
             except FileExistsError:
                 pass
-            # Create the results DB so multiple threads don't try to create it later
-            results_db = db.ResultsDb(out_dir=out_dir)
+            # Create the results DB so multiple threads
+            # don't try to create it later
+            results_db = db.ResultsDb(out_dir=out_dir)  # noqa F841
             outfile = f"{run}_ss_script.sh"
             if split:
                 output_file = open(outfile, "w")
@@ -136,7 +138,8 @@ def generate_ss_commands(
                 if split:
                     splitfiles = glob.glob(os.path.join(data_dir, "split") + f"/*{pop}*")
                     outfile_split = outfile.replace(".sh", f"_{pop}_split.sh")
-                    # If the output split file already exists, remove it (as we append, not write)
+                    # If the output split file already exists, remove it
+                    # (as we append, not write)
                     if os.path.isfile(outfile_split):
                         os.remove(outfile_split)
                     for i, splitfile in enumerate(splitfiles):

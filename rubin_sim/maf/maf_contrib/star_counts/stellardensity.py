@@ -3,7 +3,8 @@
 # Mike Lund - Vanderbilt University
 # mike.lund@gmail.com
 # Last edited 8/15/2015
-# Description: Calculates the stellar density based off of Juric et al 2008 and Jackson et al 2002. For use with Field Star Count metric
+# Description: Calculates the stellar density based off of
+# Juric et al 2008 and Jackson et al 2002. For use with Field Star Count metric
 import math
 import sys
 

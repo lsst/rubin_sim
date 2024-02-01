@@ -3,7 +3,8 @@
 # Mike Lund - Vanderbilt University
 # mike.lund@gmail.com
 # Last edited 8/15/2015
-# Description: Calculates the number of stars in a given direction and between a given set of distances. For use with Field Star Count metric
+# Description: Calculates the number of stars in a given direction and
+# between a given set of distances. For use with Field Star Count metric
 import math
 import sys
 

@@ -3,8 +3,11 @@
 # Mike Lund - Vanderbilt University
 # mike.lund@gmail.com
 # Last edited 8/15/2015
-# Description: Takes a given set of galactic coordinates and a stellar mass range, then calculates the number of stars within that range that will be fainter than mag 16, and have sufficiently low noise in the given band. For use with Field Star Count metric
-import math
+# Description: Takes a given set of galactic coordinates and a stellar
+# mass range, then calculates the number of stars within that range
+# that will be fainter than mag 16, and have sufficiently low noise
+# in the given band. For use with Field Star Count metric
+
 import sys
 
 import numpy as np

@@ -37,9 +37,35 @@ class PeriodicStar:
 
 
 class PeriodicStarMetric(BaseMetric):
-    """At each slice_point, run a Monte Carlo simulation to see how well a periodic source can be fit.
-    Assumes a simple sin-wave light-curve, and generates Gaussain noise based in the 5-sigma limiting depth
+    """At each slice_point, run a Monte Carlo simulation to see how
+    well a periodic source can be fit. Assumes a simple sin-wave light-curve,
+    and generates Gaussain noise based in the 5-sigma limiting depth
     of each observation.
+
+    Parameters
+    ----------
+    period : `float`
+        The period to check, in days.
+    amplitude : `float`
+        The amplitude of the sinusoidal light curve, in mags.
+    phase : `float`
+        The phase of the lightcurve at the time of the first observation.
+    n_monte : `int`
+        The number of noise realizations to make in the Monte Carlo.
+    period_tol : `float`
+        The fractional tolerance on the period to require in order for a star
+        to be considered well-fit
+    amp_tol : `float`
+        The fractional tolerance on the amplitude.
+    means : `list` [`float`]
+        The mean magnitudes in ugrizy of the star.
+    mag_tol : `float`
+        The mean magnitude tolerance, in magnitudes, for the star to be
+        considered well-fit.
+    n_bands : `int`
+        Number of bands that must be within mag_tol.
+    seed : `int`
+        Random number seed for the noise realizations.
     """
 
     def __init__(
@@ -64,7 +90,8 @@ class PeriodicStarMetric(BaseMetric):
         period: days (default 10)
         amplitude: mags (default 1)
         n_monte: number of noise realizations to make in the Monte Carlo
-        period_tol: fractional tolerance on the period to demand for a star to be considered well-fit
+        period_tol: fractional tolerance on the period to demand for a star
+        to be considered well-fit
         amp_tol: fractional tolerance on the amplitude to demand
         means: mean magnitudes for ugrizy
         mag_tol: Mean magnitude tolerance (mags)
@@ -94,8 +121,8 @@ class PeriodicStarMetric(BaseMetric):
 
     def run(self, data_slice, slice_point=None):
         # Bail if we don't have enough points
-        # (need to fit mean magnitudes in each of the available bands - self.means
-        # and for a period, amplitude, and phase)
+        # (need to fit mean magnitudes in each of the available bands -
+        # self.means and for a period, amplitude, and phase)
         if data_slice.size < self.means.size + 3:
             return self.badval
 
@@ -128,11 +155,12 @@ class PeriodicStarMetric(BaseMetric):
                     parm_vals, pcov = curve_fit(
                         fit_obj, t["time"], true_lc + noise, p0=true_params, sigma=dmag
                     )
-                except:
+                except RuntimeError:
                     parm_vals = true_params * 0 + np.inf
             fits[i, :] = parm_vals
 
-        # Throw out any magnitude fits if there are no observations in that filter
+        # Throw out any magnitude fits if there are no observations
+        # in that filter
         ufilters = np.unique(data_slice[self.filter_col])
         if ufilters.size < 9:
             for key in list(self.filter2index.keys()):
