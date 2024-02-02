@@ -239,8 +239,13 @@ class CrowdingMagUncertMetric(BaseMetric):
         mag_vector = slice_point[f"starMapBins_{self.filtername}"][1:]
         lum_func = slice_point[f"starLumFunc_{self.filtername}"]
         # Magnitude uncertainty given crowding
+        # Use minimum here, however this may not be appropriate in all cases.
+        # (minimum makes value here match MagCrowding above, however
+        # the minimum seeing could also correlate with poor m5 values)
+        # Likely there should be some comparison between errors from crowding
+        # and errors from photometric noise that we're just not doing.
         dmag_crowd = _comp_crowd_error(
-            mag_vector, lum_func, data_slice[self.seeing_col], single_mag=self.rmag
+            mag_vector, lum_func, min(data_slice[self.seeing_col]), single_mag=self.rmag
         )
         result = np.mean(dmag_crowd)
         return result
