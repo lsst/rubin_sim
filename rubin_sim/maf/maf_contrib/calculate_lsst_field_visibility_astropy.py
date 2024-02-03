@@ -10,9 +10,7 @@ import astropy.units as u
 import numpy as np
 from astropy.coordinates import AltAz, EarthLocation, SkyCoord, get_sun
 from astropy.time import Time, TimeDelta
-
-from rubin_scheduler.utils import Site
-from rubin_scheduler.utils import approx_ra_dec2_alt_az
+from rubin_scheduler.utils import Site, approx_ra_dec2_alt_az
 
 
 def calculate_lsst_field_visibility(

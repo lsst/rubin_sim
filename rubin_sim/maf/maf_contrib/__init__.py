@@ -1,5 +1,6 @@
 # Add similar lines (from .filename import *) when you add new metrics,
 # stackers or slicers.
+from .calculate_lsst_field_visibility_astropy import *
 from .depth_limited_num_gal_metric import *
 from .filter_pair_t_gaps_metric import *
 from .grb_transient_metric import *
@@ -21,4 +22,3 @@ from .triplet_metric import *
 from .var_depth_metric import *
 from .xrb_metrics import *
 from .young_stellar_objects_metric import *
-from .calculate_lsst_field_visibility_astropy import *

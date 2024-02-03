@@ -7,6 +7,7 @@
 # between a given set of distances. For use with Field Star Count metric
 
 import numpy as np
+
 from . import coords, stellardensity
 
 skyarea = 41253.0

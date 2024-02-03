@@ -10,7 +10,7 @@
 
 
 import numpy as np
-from scipy.optimize import  newton
+from scipy.optimize import newton
 
 from . import abs_mag, spec_type
 from .starcount import starcount
