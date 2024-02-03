@@ -343,7 +343,7 @@ class LVDwarfsMetric(BaseMetric):
         if ngal_sqarcmin < 0 or nstar_sqarcmin < 0:
             print(
                 f"Here be a problem - ngals_sqarcmin {ngal_sqarcmin} or nstar_sqarcmin {nstar_sqarcmin} "
-                f'are negative. depths: {g5}, {i5}. '
+                f"are negative. depths: {g5}, {i5}. "
                 f'{slice_point["ra"], slice_point["dec"], slice_point["sid"]}'
             )
         # The number of stars required to reach nsigma is

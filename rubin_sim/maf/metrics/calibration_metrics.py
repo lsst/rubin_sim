@@ -99,9 +99,7 @@ class ParallaxMetric(BaseMetric):
             )
             self.comment += "divided by the minimum parallax uncertainty possible "
             self.comment += "(if all visits were six months apart). "
-            self.comment += "Values closer to 1 indicate more optimal "\
-                            "scheduling for parallax measurement."
-
+            self.comment += "Values closer to 1 indicate more optimal " "scheduling for parallax measurement."
 
     def _final_sigma(self, position_errors, ra_pi_amp, dec_pi_amp):
         """Assume parallax in RA and DEC are fit independently, then combined.

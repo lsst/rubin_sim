@@ -95,4 +95,3 @@ def gal_cyn(b_deg, l_deg, dist):
     R = np.power(x_new**2 + y**2, 0.5)
     rho = np.arctan(y / x)
     return R, rho, Z
-

@@ -28,4 +28,3 @@ def starcount(eq_ra, eq_dec, d1, d2):
     densities = [stellardensity.stellardensity(x[0], x[2]) for x in positions]
     totalcount = np.sum(np.asarray(volumes) * np.asarray(densities))
     return totalcount
-

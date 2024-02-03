@@ -99,8 +99,8 @@ class PhaseGapMetric(BaseMetric):
 #  To fit a periodic source well, you need to cover the full phase,
 #  and fit the amplitude.
 class PeriodicQualityMetric(BaseMetric):
-    """Evaluate phase coverage over a given period.
-    """
+    """Evaluate phase coverage over a given period."""
+
     def __init__(
         self,
         mjd_col="observationStartMJD",
@@ -119,8 +119,7 @@ class PeriodicQualityMetric(BaseMetric):
         )
 
     def _calc_phase(self, data_slice):
-        """1 is perfectly balanced phase coverage, 0 is no effective coverage.
-        """
+        """1 is perfectly balanced phase coverage, 0 is no effective coverage."""
         angles = data_slice[self.mjd_col] % self.period
         angles = angles / self.period * 2.0 * np.pi
         x = np.cos(angles)

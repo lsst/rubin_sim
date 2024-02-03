@@ -388,8 +388,7 @@ class HealpixHistogram(BasePlotter):
         self.base_hist = BaseHistogram()
 
     def __call__(self, metric_value, slicer, user_plot_dict, fignum=None):
-        """Histogram metric_value for all healpix points.
-        """
+        """Histogram metric_value for all healpix points."""
         if "Healpix" not in slicer.slicer_name:
             raise ValueError("HealpixHistogram is for use with healpix slicer.")
         plot_dict = {}
