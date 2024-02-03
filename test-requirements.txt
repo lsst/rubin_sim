@@ -1,5 +1,6 @@
-pytest
+pytest<8.0.0
+black>=23.0.0,<24.0.0
+ruff
 pytest-cov
 pytest-black
-black
-ruff
+
