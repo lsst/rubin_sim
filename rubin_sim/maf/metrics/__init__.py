@@ -15,6 +15,7 @@ from .fft_metric import *
 from .galactic_plane_metrics import *
 from .galplane_time_sampling_metrics import *
 from .hourglass_metric import *
+from .incremental_template_metric import *
 from .kuiper_metrics import *
 from .long_gap_agn_metric import *
 from .mo_metrics import *
