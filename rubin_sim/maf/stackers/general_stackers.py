@@ -11,8 +11,10 @@ __all__ = (
 
 import warnings
 
+import astropy.units as u
 import numpy as np
-import palpy
+from astropy.coordinates import GCRS, SkyCoord
+from astropy.time import Time
 from rubin_scheduler.utils import Site, m5_flat_sed
 
 from rubin_sim.maf.utils import load_inst_zeropoints
@@ -258,24 +260,21 @@ class ParallaxFactorStacker(BaseStacker):
             return sim_data
         ra_pi_amp = np.zeros(np.size(sim_data), dtype=[("ra_pi_amp", "float")])
         dec_pi_amp = np.zeros(np.size(sim_data), dtype=[("dec_pi_amp", "float")])
-        ra_geo1 = np.zeros(np.size(sim_data), dtype="float")
-        dec_geo1 = np.zeros(np.size(sim_data), dtype="float")
-        ra_geo = np.zeros(np.size(sim_data), dtype="float")
-        dec_geo = np.zeros(np.size(sim_data), dtype="float")
         ra = sim_data[self.ra_col]
         dec = sim_data[self.dec_col]
         if self.degrees:
             ra = np.radians(ra)
             dec = np.radians(dec)
 
-        for i, ack in enumerate(sim_data):
-            mtoa_params = palpy.mappa(2000.0, sim_data[self.date_col][i])
-            # Object with a 1 arcsec parallax
-            ra_geo1[i], dec_geo1[i] = palpy.mapqk(ra[i], dec[i], 0.0, 0.0, 1.0, 0.0, mtoa_params)
-            # Object with no parallax
-            ra_geo[i], dec_geo[i] = palpy.mapqk(ra[i], dec[i], 0.0, 0.0, 0.0, 0.0, mtoa_params)
-        x_geo1, y_geo1 = self._gnomonic_project_toxy(ra_geo1, dec_geo1, ra, dec)
-        x_geo, y_geo = self._gnomonic_project_toxy(ra_geo, dec_geo, ra, dec)
+        times = Time(sim_data[self.date_col], format="mjd")
+        c = SkyCoord(ra * u.rad, dec * u.rad, obstime=times)
+        geo_far = c.transform_to(GCRS)
+        c_near = SkyCoord(ra * u.rad, dec * u.rad, distance=1 * u.pc, obstime=times)
+        geo_near = c_near.transform_to(GCRS)
+
+        x_geo1, y_geo1 = self._gnomonic_project_toxy(geo_near.ra.rad, geo_near.dec.rad, ra, dec)
+        x_geo, y_geo = self._gnomonic_project_toxy(geo_far.ra.rad, geo_far.dec.rad, ra, dec)
+
         # Return ra_pi_amp and dec_pi_amp in arcseconds.
         ra_pi_amp[:] = np.degrees(x_geo1 - x_geo) * 3600.0
         dec_pi_amp[:] = np.degrees(y_geo1 - y_geo) * 3600.0

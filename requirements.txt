@@ -8,7 +8,6 @@ numexpr
 scipy
 sqlalchemy
 astropy
-palpy
 pytables
 h5py
 openorb
