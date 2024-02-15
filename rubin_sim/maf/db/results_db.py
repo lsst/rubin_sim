@@ -162,7 +162,7 @@ class ResultsDb:
     and any summary statistics output.
     """
 
-    def __init__(self, out_dir=None, database=None, verbose=False):
+    def __init__(self, out_dir=None, database=None, verbose=False, timeout=180):
         """
         Set up the resultsDb database.
         """
@@ -198,7 +198,7 @@ class ResultsDb:
         already_file = os.path.isfile(self.database)
         db_address = url.URL.create(self.driver, database=self.database)
 
-        engine = create_engine(db_address, echo=verbose)
+        engine = create_engine(db_address, echo=verbose, connect_args={'timeout': timeout})
         self.Session = sessionmaker(bind=engine)
         self.open()
         # Create the tables, if they don't already exist.
