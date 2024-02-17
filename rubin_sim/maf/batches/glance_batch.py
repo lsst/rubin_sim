@@ -177,6 +177,20 @@ def glanceBatch(
     )
     bundle_list.append(bundle)
 
+    # alt,az pf ToO
+
+    sql = "note like 'ToO%'"
+    metric = metrics.CountMetric(colmap["mjd"], metric_name="Nvisits long")
+    bundle = metric_bundles.MetricBundle(
+        metric,
+        slicer,
+        sql,
+        plot_funcs=plotFuncs,
+        display_dict=displayDict,
+        plot_dict=plotDict,
+    )
+    bundle_list.append(bundle)
+
     # Things to check per night
     # Open Shutter per night
     displayDict = {"group": "Pointing Efficency", "order": 2}
@@ -486,6 +500,49 @@ def glanceBatch(
             summary_metrics=summary_stat,
             plot_funcs=subsetPlots,
             plot_dict={"color_max": 10},
+        )
+        bundle_list.append(bundle)
+
+    # Some ToO stats
+    displayDict = {"group": "ToO", "order": 1}
+    slicer = spatial_slicer(
+        nside=nside,
+        lat_col=colmap["dec"],
+        lon_col=colmap["ra"],
+        lat_lon_deg=colmap["raDecDeg"],
+    )
+    for filtername in filternames:
+        sql = "filter='%s' and note like 'ToO%%'" % filtername
+        metric = metrics.CountMetric(col=colmap["mjd"], metric_name="N ToO")
+        bundle = metric_bundles.MetricBundle(
+            metric,
+            slicer,
+            sql,
+            display_dict=displayDict,
+            summary_metrics=extended_stats,
+            plot_funcs=subsetPlots,
+            plot_dict={},
+        )
+        bundle_list.append(bundle)
+
+    too_sqls = ["note like 'ToO, %" + "t%i'" % hour for hour in [0, 1, 2, 4, 24, 48]] + ["note like 'ToO, %'"]
+    slicer = slicers.UniSlicer()
+    for sql in too_sqls:
+        metric = metrics.CountMetric(col="night")
+        bundle = metric_bundles.MetricBundle(
+            metric,
+            slicer,
+            sql,
+            display_dict=displayDict,
+        )
+        bundle_list.append(bundle)
+
+        metric = metrics.CountUniqueMetric(col="night")
+        bundle = metric_bundles.MetricBundle(
+            metric,
+            slicer,
+            sql,
+            display_dict=displayDict,
         )
         bundle_list.append(bundle)
 

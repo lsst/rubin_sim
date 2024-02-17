@@ -198,7 +198,7 @@ class ResultsDb:
         already_file = os.path.isfile(self.database)
         db_address = url.URL.create(self.driver, database=self.database)
 
-        engine = create_engine(db_address, echo=verbose, connect_args={'timeout': timeout})
+        engine = create_engine(db_address, echo=verbose, connect_args={"timeout": timeout})
         self.Session = sessionmaker(bind=engine)
         self.open()
         # Create the tables, if they don't already exist.
