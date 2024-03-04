@@ -127,21 +127,23 @@ class GalaxyCountsMetricExtended(BaseMetric):
         # calculate the change in the power law constant based on the band
         # colors assumed here: (u-g)=(g-r)=(r-i)=(i-z)= (z-y)=0.4
         factor = 0.4
-        band_correction_dict = {'u': -3.0 * factor,
-                           'g': -2.0 * factor,
-                           'r': -1.0 * factor,
-                           'i': 0.0,
-                           'z': factor,
-                           'y': 2.0 * factor}
+        band_correction_dict = {
+            "u": -3.0 * factor,
+            "g": -2.0 * factor,
+            "r": -1.0 * factor,
+            "i": 0.0,
+            "z": factor,
+            "y": 2.0 * factor,
+        }
         if self.filter_band not in band_correction_dict:
-            warnings.warn("Invalid band in GalaxyCountsMetricExtended. "
-                          "Assuming i-band instead.")
+            warnings.warn("Invalid band in GalaxyCountsMetricExtended. " "Assuming i-band instead.")
         band_correction = band_correction_dict.get(self.filter_band, 0.0)
 
         # check to make sure that the z-bin assigned is valid.
         if (self.redshift_bin != "all") and (self.redshift_bin not in list(self.power_law_const_a.keys())):
-            warnings.warn("Invalid redshift bin in GalaxyCountsMetricExtended. "
-                          "Defaulting to all redshifts.")
+            warnings.warn(
+                "Invalid redshift bin in GalaxyCountsMetricExtended. " "Defaulting to all redshifts."
+            )
             self.redshift_bin = "all"
 
         # consider the power laws

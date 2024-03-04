@@ -88,7 +88,7 @@ class MetricBundle:
     * constraint (an optional definition of a large subset of data)
 
     Together these define a unique combination of an opsim benchmark,
-    or "metric bundle". 
+    or "metric bundle".
     An example would be:
     a CountMetric, a HealpixSlicer, and a constraint of 'filter="r"'.
 

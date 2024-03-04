@@ -172,6 +172,7 @@ class MoMetricBundle(MetricBundle):
     opsim run name, and relevant stackers and maps
     to apply when calculating the metric values.
     """
+
     def __init__(
         self,
         metric,
@@ -373,6 +374,7 @@ class MoMetricBundleGroup:
     verbose : `bool`, opt
         Flag to turn on/off verbose feedback.
     """
+
     def __init__(self, bundle_dict, out_dir=".", results_db=None, verbose=True):
         self.verbose = verbose
         self.bundle_dict = bundle_dict

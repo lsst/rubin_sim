@@ -266,6 +266,7 @@ class NObsNoSinglesMetric(BaseMoMetric):
         determined using the _calcVis method (completeness calculation).
         If not None, the snr is calculated and used as a flat cutoff instead.
     """
+
     def __init__(self, snr_limit=None, **kwargs):
         super().__init__(**kwargs)
         self.snr_limit = snr_limit
@@ -291,6 +292,7 @@ class NNightsMetric(BaseMoMetric):
         determined using the _calcVis method (completeness calculation).
         If not None, the snr is calculated and used as a flat cutoff instead.
     """
+
     def __init__(self, snr_limit=None, **kwargs):
         super().__init__(**kwargs)
         self.snr_limit = snr_limit
@@ -314,6 +316,7 @@ class ObsArcMetric(BaseMoMetric):
         determined using the _calcVis method (completeness calculation).
         If not None, the snr is calculated and used as a flat cutoff instead.
     """
+
     def __init__(self, snr_limit=None, **kwargs):
         super().__init__(**kwargs)
         self.snr_limit = snr_limit
@@ -487,6 +490,7 @@ class DiscoveryNChancesMetric(BaseChildMetric):
     badval : `float`, opt
         Value to return when metric cannot be calculated.
     """
+
     def __init__(
         self,
         parent_discovery_metric,
@@ -524,6 +528,7 @@ class DiscoveryNObsMetric(BaseChildMetric):
     badval : `float`, opt
         Value to return when metric cannot be calculated.
     """
+
     def __init__(self, parent_discovery_metric, badval=0, **kwargs):
         super().__init__(parent_discovery_metric, badval=badval, **kwargs)
         # The number of the discovery chance to use.
