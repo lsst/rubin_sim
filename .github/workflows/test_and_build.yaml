@@ -72,7 +72,7 @@ jobs:
 
       - name: run black
         shell: bash -l {0}
-        run: black --check
+        run: black --check .
 
       - name: run tests
         shell: bash -l {0}
