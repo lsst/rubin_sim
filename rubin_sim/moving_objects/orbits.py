@@ -7,12 +7,12 @@ import pandas as pd
 
 
 class Orbits:
-    """Orbits reads, checks for required values, and stores orbit parameters for moving objects.
-
-    Instantiate the class and then use read_orbits or set_orbits to set the orbit values.
+    """Orbits reads, checks for required values, and stores orbit
+    parameters for moving objects.
 
     self.orbits stores the orbital parameters, as a pandas dataframe.
-    self.dataCols defines the columns required, although obj_id, H, g, and sed_filename are optional.
+    self.dataCols defines the columns required,
+    although obj_id, H, g, and sed_filename are optional.
     """
 
     def __init__(self):
@@ -98,11 +98,15 @@ class Orbits:
         """Set and validate orbital parameters contain all required values.
 
         Sets self.orbits and self.orb_format.
-        If objid is not present in orbits, a sequential series of integers will be used.
-        If H is not present in orbits, a default value of 20 will be used.
-        If g is not present in orbits, a default value of 0.15 will be used.
-        If sed_filename is not present in orbits, either C or S type will be assigned,
-        according to the semi-major axis value.
+        If objid is not present in orbits,
+        a sequential series of integers will be used.
+        If H is not present in orbits,
+        a default value of 20 will be used.
+        If g is not present in orbits,
+        a default value of 0.15 will be used.
+        If sed_filename is not present in orbits,
+        either C or S type will be assigned according to the
+        semi-major axis value.
 
         Parameters
         ----------
@@ -117,10 +121,11 @@ class Orbits:
             # Passed a numpy array, convert to DataFrame.
             orbits = pd.DataFrame.from_records(orbits)
         elif isinstance(orbits, np.record):
-            # This was a single object in a numpy array and we should be a bit fancy.
+            # This was a single object in a numpy array
             orbits = pd.DataFrame.from_records([orbits], columns=orbits.dtype.names)
         elif isinstance(orbits, pd.DataFrame):
-            # This was a pandas dataframe .. but we probably want to drop the index and recount.
+            # This was a pandas dataframe ..
+            # but we probably want to drop the index and recount.
             orbits.reset_index(drop=True, inplace=True)
 
         if "index" in orbits:
@@ -128,7 +133,8 @@ class Orbits:
 
         n_sso = len(orbits)
 
-        # Error if orbits is empty (this avoids hard-to-interpret error messages from pyoorb).
+        # Error if orbits is empty
+        # (this avoids hard-to-interpret error messages from pyoorb).
         if n_sso == 0:
             raise ValueError("Length of the orbits dataframe was 0.")
 
@@ -138,7 +144,8 @@ class Orbits:
             if ~(orbits["FORMAT"] == orbits["FORMAT"].iloc[0]).all():
                 raise ValueError("All orbital elements in the set should have the same FORMAT.")
             self.orb_format = orbits["FORMAT"].iloc[0]
-            # Backwards compatibility .. a bit. CART is deprecated, so swap it to CAR.
+            # Backwards compatibility .. a bit.
+            # CART is deprecated, so swap it to CAR.
             if self.orb_format == "CART":
                 self.orb_format = "CAR"
             del orbits["FORMAT"]
@@ -167,9 +174,11 @@ class Orbits:
                     "with columns: \n%s" % orbits.columns
                 )
 
-        # Check that the orbit epoch is within a 'reasonable' range, to detect possible column mismatches.
+        # Check that the orbit epoch is within a 'reasonable' range,
+        # to detect possible column mismatches.
         general_epoch = orbits["epoch"].head(1).values[0]
-        # Look for epochs between 1800 and 2200 - this is primarily to check if people used MJD (and not JD).
+        # Look for epochs between 1800 and 2200 -
+        # this is primarily to check if people used MJD (and not JD).
         expect_min_epoch = -21503.0
         expect_max_epoch = 124594.0
         if general_epoch < expect_min_epoch or general_epoch > expect_max_epoch:
@@ -179,7 +188,8 @@ class Orbits:
                 % (general_epoch, expect_min_epoch, expect_max_epoch)
             )
 
-        # If these columns are not available in the input data, auto-generate them.
+        # If these columns are not available in the input data,
+        # auto-generate them.
         if "obj_id" not in orbits:
             obj_id = np.arange(0, n_sso, 1)
             orbits = orbits.assign(obj_id=obj_id)
@@ -206,7 +216,8 @@ class Orbits:
         self.orbits = orbits
 
     def assign_sed(self, orbits, random_seed=None):
-        """Assign either a C or S type SED, depending on the semi-major axis of the object.
+        """Assign either a C or S type SED,
+        depending on the semi-major axis of the object.
         P(C type) = 0 (a<2); 0.5*a - 1 (2<a<4); 1 (a > 4),
         based on figure 23 from Ivezic et al 2001 (AJ, 122, 2749).
 
@@ -232,7 +243,7 @@ class Orbits:
         elif "q" in orbits:
             a = orbits["q"] / (1 - orbits["e"])
         elif "x" in orbits:
-            # This definitely isn't right, but it's a placeholder to make it work for now.
+            # This isn't right, but it's a placeholder to make it work for now.
             a = np.sqrt(orbits["x"] ** 2 + orbits["y"] ** 2 + orbits["z"] ** 2)
         else:
             raise ValueError("Need either a or q (plus e) in orbit data frame.")
@@ -250,56 +261,71 @@ class Orbits:
         return sedvals
 
     def read_orbits(self, orbit_file, delim=None, skiprows=None):
-        """Read orbits from a file, generating a pandas dataframe containing columns matching dataCols,
-        for the appropriate orbital parameter format (currently accepts COM, KEP or CAR formats).
+        """Read orbits from a file.
 
-        After reading and standardizing the column names, calls self.set_orbits to validate the
-        orbital parameters. Expects angles in orbital element formats to be in degrees.
+        This generates a pandas dataframe containing columns matching dataCols,
+        for the appropriate orbital parameter format.
+        (currently accepts COM, KEP or CAR formats).
 
-        Note that readOrbits uses pandas.read_csv to read the data file with the orbital parameters.
+        After reading and standardizing the column names,
+        calls self.set_orbits to validate the
+        orbital parameters.
+        Expects angles in orbital element formats to be in degrees.
+
+        Note that readOrbits uses pandas.read_csv to read the data file
+        with the orbital parameters.
         Thus, it should have column headers specifying the column names ..
         unless skiprows = -1 or there is just no header line at all.
-        in which case it is assumed to be a standard DES format file, with no header line.
+        in which case it is assumed to be a standard DES format file,
+        with no header line.
 
         Parameters
         ----------
         orbit_file : `str`
-            The name of the input file containing orbital parameter information.
+            The name of the input file with orbital parameter information.
         delim : `str`, optional
-            The delimiter for the input orbit file. Default is None, will use delim_whitespace=True.
+            The delimiter for the input orbit file.
+            Default is None, will use delim_whitespace=True.
         skiprows : `int`, optional
-            The number of rows to skip before reading the header information for pandas.
-            Default is None, which will trigger a check of the file to look for the header columns.
+            The number of rows to skip before reading the header information.
+            Default is None, which will trigger a search of the file for
+            the header columns.
         """
         names = None
 
-        # If skiprows is set, then we will assume the user has handled this so that the
-        # first line read has the header information.
-        # But, if skiprows is not set, then we have to do some checking to see if there is
-        # header information and which row it might start in.
+        # If skiprows is set, then we will assume the user has
+        # handled this so that the first line read has the header information.
+        # But, if skiprows is not set, then we have to do some checking to
+        # see if there is header information and which row it might start in.
         if skiprows is None:
             skiprows = -1
-            # Figure out whether the header is in the first line, or if there are rows to skip.
-            # We need to do a bit of juggling to do this before pandas reads the whole orbit file though.
+            # Figure out whether the header is in the first line,
+            # or if there are rows to skip.
+            # We need to do a bit of juggling to do this before pandas
+            # reads the whole orbit file.
             with open(orbit_file, "r") as fp:
                 headervalues = None
                 for line in fp:
                     values = line.split()
                     try:
-                        # If it is a valid orbit line, we expect column 3 to be a number.
+                        # If it is a valid orbit line,
+                        # we expect column 3 to be a number.
                         float(values[3])
-                        # And if it worked, we're done here (it's an orbit) - go on to parsing header values.
+                        # And if it worked, we're done here (it's an orbit) -
+                        # go on to parsing header values.
                         break
                     except (ValueError, IndexError):
-                        # This wasn't a valid number or there wasn't anything in the third value.
-                        # So this is either the header line or it's a comment line before the header columns.
+                        # This wasn't a valid number or there wasn't
+                        # anything in the third value.
+                        # So this is either the header line or it's a
+                        # comment line before the header columns.
                         skiprows += 1
                         headervalues = values
 
             if headervalues is not None:  # (and skiprows > -1)
-                # There is a header, but we also need to check if there is a comment key at the start
-                # of the proper header line.
-                # ... Because this varies as well, and is sometimes separated from header columns.
+                # There is a header, but we also need to check if there
+                # is a comment key at the start of the proper header line.
+                # (Because this varies as well).
                 linestart = headervalues[0]
                 if linestart == "#" or linestart == "!!" or linestart == "##":
                     names = headervalues[1:]
@@ -308,7 +334,8 @@ class Orbits:
                 # Add 1 to skiprows, so that we skip the header column line.
                 skiprows += 1
 
-        # So now skiprows is a value. If it is -1, then there is no header information.
+        # So now skiprows is a value.
+        # If it is -1, then there is no header information.
         if skiprows == -1:
             # No header; assume it's a typical DES file -
             # we'll assign the column names based on the FORMAT.
@@ -374,7 +401,8 @@ class Orbits:
             else:
                 orbits = pd.read_csv(orbit_file, sep=delim, skiprows=skiprows, names=names)
 
-        # Drop some columns that are typically present in DES files but that we don't need.
+        # Drop some columns that are typically present in DES files
+        # but that we don't need.
         if "INDEX" in orbits:
             del orbits["INDEX"]
         if "N_PAR" in orbits:
@@ -386,12 +414,13 @@ class Orbits:
         if "tmp" in orbits:
             del orbits["tmp"]
 
-        # Normalize the column names to standard values and identify the orbital element types.
+        # Normalize the column names to standard values and
+        # identify the orbital element types.
         sso_cols = orbits.columns.values.tolist()
 
         # These are the alternative possibilities for various column headers
         # (depending on file version, origin, etc.)
-        # that might need remapping from the on-file values to our standardized values.
+        # that might need remapping to our standardized names.
         alt_names = {}
         alt_names["obj_id"] = [
             "obj_id",
@@ -449,7 +478,7 @@ class Orbits:
         # Assign the new column names back to the orbits dataframe.
         orbits.columns = sso_cols
 
-        # Failing on negaitive inclinations.
+        # Failing on negative inclinations.
         if "inc" in orbits.keys():
             if np.min(orbits["inc"]) < 0:
                 negative_incs = np.where(orbits["inc"].values < 0)[0]
@@ -460,10 +489,13 @@ class Orbits:
         self.set_orbits(orbits)
 
     def update_orbits(self, neworb):
-        """Update existing orbits with new values, leaving OrbitIds, H, g, and sed_filenames in place.
+        """Update existing orbits with new values,
+        leaving OrbitIds, H, g, and sed_filenames in place.
 
-        Example use: transform orbital parameters (using PyOrbEphemerides) and then replace original values.
-        Example use: propagate orbital parameters (using PyOrbEphemerides) and then replace original values.
+        Example use: transform orbital parameters (using PyOrbEphemerides)
+        and then replace original values.
+        Example use: propagate orbital parameters (using PyOrbEphemerides)
+        and then replace original values.
 
         Parameters
         ----------

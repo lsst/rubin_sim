@@ -10,22 +10,25 @@ from rubin_sim.maf.utils import radec2pix
 
 
 def eb_vhp(nside, ra=None, dec=None, pixels=None, interp=False, map_path=None):
-    """
-    Read in a healpix dust map and return values for given RA, Dec values.
+    """Read in a healpix dust map and return values for given RA, Dec values.
 
     This is primarily a tool for the rubin_sim.maf.DustMap class.
 
     nside : `int`
         Healpixel resolution (2^x).
     ra : `np.ndarray` or `float`, opt
-        RA (can take numpy array). Default None sets up healpix array of nside. Radians.
+        RA (can take numpy array).
+        Default None sets up healpix array of nside. Radians.
     dec : `np.ndarray` or `float`, opt
-        Dec (can take numpy array). Default None set up healpix array of nside. Radians.
+        Dec (can take numpy array).
+        Default None set up healpix array of nside. Radians.
     pixels : `np.ndarray`, opt
-        Healpixel IDs, to sub-select particular healpix points. Default uses all points.
+        Healpixel IDs, to sub-select particular healpix points.
+        Default uses all points.
         NOTE - to use a healpix map, set pixels and not ra/dec.
     interp : `bool`, opt
-        Should returned values be interpolated (True) or just nearest neighbor (False)
+        Should returned values be interpolated (True)
+        or just nearest neighbor (False)
     map_path : `str`, opt
         Path to directory containing dust map files.
     """

@@ -45,7 +45,7 @@ jobs:
         run: |
           echo `pwd`
           ls ${{ github.workspace }}
-          python -m pip install . --no-deps
+          python -m pip install -e . --no-deps
 
       - name: Access rubin-sim-data cache
         id: cache-rs
@@ -70,11 +70,14 @@ jobs:
         shell: bash -l {0}
         run: conda list
 
+      - name: run black
+        shell: bash -l {0}
+        run: black --check .
+
       - name: run tests
         shell: bash -l {0}
         run: |
           export RUBIN_SIM_DATA_DIR=~/rubin_sim_data
-          #pytest -r a -v 
           pytest -r a -v --cov=rubin_sim --cov=tests --cov-report=xml --cov-report=term --cov-branch
 
       - name: Upload coverage to codecov

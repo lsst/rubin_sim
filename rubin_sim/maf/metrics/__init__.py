@@ -17,7 +17,6 @@ from .galplane_time_sampling_metrics import *
 from .hourglass_metric import *
 from .incremental_template_metric import *
 from .kuiper_metrics import *
-from .long_gap_agn_metric import *
 from .mo_metrics import *
 from .mo_summary_metrics import *
 from .night_pointing_metric import *
@@ -30,7 +29,6 @@ from .scaling_metrics import *
 from .season_metrics import *
 from .simple_metrics import *
 from .sky_sat_metric import *
-from .slew_metrics import *
 from .sn_cadence_metric import *
 from .sn_n_sn_metric import *
 from .sn_sl_metric import *

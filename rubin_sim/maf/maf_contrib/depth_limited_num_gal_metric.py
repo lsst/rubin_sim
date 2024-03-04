@@ -7,36 +7,42 @@ from rubin_sim.maf.maf_contrib.lss_obs_strategy.galaxy_counts_metric_extended im
 
 
 class DepthLimitedNumGalMetric(metrics.BaseMetric):
-    """
-    This metric calculates the number of galaxies while accounting for the extragalactic footprint.
+    """This metric calculates the number of galaxies while accounting for the
+    extragalactic footprint.
 
     Parameters
     ----------
-    m5_col: str, optional
+    m5_col : `str`, optional
         Name of column for depth in the data. Default: 'fiveSigmaDepth'
-    filter_col: str, optional
+    filter_col : `str`, optional
         Name of column for filter in the data. Default: 'filter'
-    maps: list, optional
+    maps : `list` [`str`], optional
         List of map names. Default: ['DustMap']
-    nside: int, optional
-        HEALpix resolution parameter. Default: 256. This should match slicer nside.
-    filter_band: str, optional
-        Filter to use to calculate galaxy counts. Any one of 'u', 'g', 'r', 'i', 'z', 'y'. Default: 'i'
-    redshiftBin: str, optional
+    nside : `int`, optional
+        HEALpix resolution parameter. Default: 256.
+        This should match slicer nside.
+    filter_band : `str`, optional
+        Filter to use to calculate galaxy counts.
+        Any one of 'u', 'g', 'r', 'i', 'z', 'y'. Default: 'i'
+    redshiftBin: `str`, optional
         options include '0.<z<0.15', '0.15<z<0.37', '0.37<z<0.66, '0.66<z<1.0',
-        '1.0<z<1.5', '1.5<z<2.0', '2.0<z<2.5', '2.5<z<3.0','3.0<z<3.5', '3.5<z<4.0',
-        'all' for no redshift restriction (so consider 0.<z<4.0)
+        '1.0<z<1.5', '1.5<z<2.0', '2.0<z<2.5', '2.5<z<3.0','3.0<z<3.5',
+        '3.5<z<4.0', 'all' for no redshift restriction
+        (so consider 0.<z<4.0)
         Default: 'all'
-    nfilters_needed: int, optional
+    nfilters_needed : `int`, optional
         Number of filters in which to require coverage. Default: 6
-    lim_mag_i_ptsrc: float, optional
-        Point-source limiting mag for the i-band coadded dust-corrected depth. Default: 26.0
-    lim_ebv: float, optional
+    lim_mag_i_ptsrc : `float`, optional
+        Point-source limiting mag for the i-band coadded dust-corrected depth.
+        Default: 26.0
+    lim_ebv : `float`, optional
         Limiting EBV value. Default: 0.2
 
     Returns
     -------
-    Number of galaxies in healpix if the slice_point passes the extragalactic cuts; otherwise self.badval
+    ngal : `float`
+        Number of galaxies in healpix if the slice_point passes the
+        extragalactic cuts; otherwise self.badval
     """
 
     def __init__(
@@ -57,10 +63,13 @@ class DepthLimitedNumGalMetric(metrics.BaseMetric):
         self.filter_col = filter_col
         self.filter_band = filter_band
         # set up the extended source limiting mag
-        # galaxies are x2 as seeing: seeing is generally 0.7arcsec and a typical galaxies is 1arcsec
-        # => for extended source limiting mag of x, we'd need x + 0.7 as the point-source limiting mag;
+        # galaxies are x2 as seeing: seeing is generally 0.7arcsec
+        # and a typical galaxies is 1arcsec
+        # => for extended source limiting mag of x, we'd need x + 0.7
+        # as the point-source limiting mag;
         # 0.7 comes from $\sqrt{1/2}$;
-        # basically have x2 difference in magnitudes between point source and extended source.
+        # basically have x2 difference in magnitudes between
+        # point source and extended source.
         lim_mag_i_extsrc = lim_mag_i_ptsrc - 0.7
         # set up the metric for galaxy counts
         self.galmetric = GalaxyCountsMetric(

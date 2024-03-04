@@ -19,7 +19,7 @@ try:
     from sncosmo import Model, TimeSeriesSource, read_griddata_ascii
 except ImportError:
     pass
-from astropy.cosmology import Planck15 as cosmo
+from astropy.cosmology import Planck15 as cosmo  # noqa N813
 
 from rubin_sim.maf.metrics import BaseMetric
 from rubin_sim.maf.utils import m52snr
@@ -35,43 +35,43 @@ class TransientAsciiSEDMetric(BaseMetric):
 
     Parameters
     -----------
-    ascii_file : str
+    ascii_file : `str`
         The ascii file containing the inputs for the SED. The file must
         contain three columns - ['phase', 'wave', 'flux'] -
         of phase/epoch (in days), wavelength (Angstroms), and
         flux (ergs/s/Angstrom).
-    metric_name : str, optional
+    metric_name : `str`, optional
         Name of the metric, can be overwritten by user or child metric.
-    survey_duration : float, optional
+    survey_duration : `float`, optional
         Length of survey (years).
         Default 10 or maximum of timespan of observations.
-    survey_start : float, optional
+    survey_start : `float`, optional
         MJD for the survey start date.
         Default None (uses the time of the first observation at each pointing).
-    detect_snr : dict, optional
+    detect_snr : `dict`, optional
         An observation will be counted toward the discovery criteria if the
         light curve SNR is higher than detect_snr (specified per bandpass).
         Values must be provided for each filter which should be considered
         in the lightcurve.
         Default is {'u': 5, 'g': 5, 'r': 5, 'i': 5, 'z': 5, 'y': 5}
-    z: float, optional
+    z : `float`, optional
         Cosmological redshift at which to consider observations of the
         tranisent SED.
-    num_pre_time : int, optional
+    num_pre_time : `int`, optional
         Number of observations (in any filter(s)) to demand before pre_time,
         before saying a transient has been detected.
         Default 0.
-    pre_time : float, optional
+    pre_time : `float`, optional
         The time by which num_pre_time detections are required (in days).
         Default 5.0.
-    num_filters : int, optional
+    num_filters : `int`, optional
         Number of filters that need to be observed for an object to be
         counted as detected. Default 1. (if num_per_lightcurve is 0, then
         this will be reset to 0).
-    filter_time : float, optional
+    filter_time : `float`, optional
         The time within which observations in at least num_filters are
         required (in days). Default None (no time constraint).
-    num_per_lightcurve : int, optional
+    num_per_lightcurve : `int`, optional
         Number of sections of the light curve that must be sampled above
         the detect_snr theshold for the light curve to be counted.
         For example, num_per_lightcurve = 2 means a light curve is only
@@ -79,12 +79,12 @@ class TransientAsciiSEDMetric(BaseMetric):
         half of the LC, and at least one in the second half of the LC.
         num_per_lightcurve = 4 means each quarter of the light curve must
         be detected to count. Default 1.
-    num_phases_to_run : int, optional
+    num_phases_to_run : `int`, optional
         Sets the number of phases that should be checked.
         One can imagine pathological cadences where many objects pass the
         detection criteria, but would not if the observations were offset
         by a phase-shift. Default 1.
-    output_data : bool, optional
+    output_data : `bool`, optional
         If True, metric returns full lightcurve at each point. Note that
         this will potentially create a very large metric output data file.
         If False, metric returns the number of transients detected.
@@ -144,7 +144,8 @@ class TransientAsciiSEDMetric(BaseMetric):
         if self.num_per_lightcurve == 0:
             self.num_filters = 0
         self.num_phases_to_run = num_phases_to_run
-        # Read ascii lightcurve template here. It doesn't change per slice_point.
+        # Read ascii lightcurve template here.
+        # It doesn't change per slice_point.
         self.read_sed(ascii_file)
 
     def read_sed(self, ascii_file):
@@ -157,7 +158,7 @@ class TransientAsciiSEDMetric(BaseMetric):
 
         Parameters
         -----------
-        ascii_file: str
+        ascii_file : `str`
             string containing the path to the ascii file containing the
             SED evolution.
 
@@ -177,9 +178,10 @@ class TransientAsciiSEDMetric(BaseMetric):
     def make_model(self):
         """
         Wrapper function to take the phase, wave, and flux information from the
-        provided ascii file and create an sncosmo Model object, and consistently
-        redshift that model given initialization Parameters. This sets the
-        transient model in rest frame, and transient model in observer frame,
+        provided ascii file and create an sncosmo Model object,
+        and consistently redshift that model given initialization Parameters.
+        This sets the transient model in rest frame, and transient model in
+        observer frame,
         i.e., it is cosmologically redshifted.
         """
         # Set the source model with sncosmo API.
@@ -188,7 +190,7 @@ class TransientAsciiSEDMetric(BaseMetric):
         # Use deepcopy to make ensure full class is saved as attribute of new
         # class.
         self.transient_model = deepcopy(Model(source=source))
-        # With the Model set, apply the cosmological redshift specfied at
+        # With the Model set, apply the cosmological redshift specified at
         # initialization.
         self.set_redshift()
 
@@ -223,14 +225,14 @@ class TransientAsciiSEDMetric(BaseMetric):
 
         Parameters
         ----------
-        time : `numpy.ndarray`
+        time : `np.ndarray`, (N,)
             The times of the observations.
         filters : `list` [`str`]
             The filters of the observations. ['u','g','r',...] format.
 
         Returns
         -------
-        light_curve_mags : `numpy.ndarray`
+        light_curve_mags : `np.ndarray`, (N,)
              The magnitudes of the object at the times and in the filters of
              the observations.
         """
@@ -250,8 +252,8 @@ class TransientAsciiSEDMetric(BaseMetric):
             # to sncosmo documentation.
             for obs_time in flt_times:
                 filter_mag.append(redshifted_model.bandmag("lsst" + flt, "ab", obs_time))
-            # Set light_curve_mags for array indices corresponding to observations of the
-            # current filter.
+            # Set light_curve_mags for array indices corresponding to
+            # observations of the current filter.
             light_curve_mags[np.where(filters == flt)[0]] = np.array(filter_mag)
             self.light_curve_mags = light_curve_mags
 
@@ -262,16 +264,16 @@ class TransientAsciiSEDMetric(BaseMetric):
 
         Parameters
         -----------
-        data_slice : numpy.array
+        data_slice : `np.array`
             Numpy structured array containing the data related to the visits
             provided by the slicer.
 
         Returns
         --------
-        transient_detected: np.array, `bool`
+        transient_detected : `np.array`, (`bool`,)
             Array containing `bool` tracking variable whether transient is
             detected by passing all criteria.
-        num_detected: int
+        num_detected : `int`
             Scalar value of the number of transients that were detected in
             total between all phase shifts considered.
 
@@ -294,23 +296,27 @@ class TransientAsciiSEDMetric(BaseMetric):
             ]
 
             self.evaluate_pre_time_detection_criteria(t_id)
-            # Check if previous condition passed. If not, move to next transient.
+            # Check if previous condition passed.
+            # If not, move to next transient.
             if not self.transient_detected[t_id]:
                 continue
 
             self.evaluate_phase_section_detection_criteria(t_id)
-            # Check if previous condition passed. If not, move to next transient.
+            # Check if previous condition passed.
+            # If not, move to next transient.
             if not self.transient_detected[t_id]:
                 continue
 
             self.evaluate_number_filters_detection_criteria(data_slice, start_ind, end_ind, t_id)
-            # Check if previous condition passed. If not, move to next transient.
+            # Check if previous condition passed.
+            # If not, move to next transient.
             if not self.transient_detected[t_id]:
                 continue
 
             self.evaluate_filter_in_time_detection_criteria(t_id)
-            # Check if previous condition passed. If not, move to next transient.
-            # Note: this last if block is techinically unnecessary but if
+            # Check if previous condition passed.
+            # If not, move to next transient.
+            # Note: this last if block is technically unnecessary but if
             # further criteria are added then the if block should be copied
             # afterwards.
             if not self.transient_detected[t_id]:
@@ -329,8 +335,8 @@ class TransientAsciiSEDMetric(BaseMetric):
 
         Parameters
         -----------
-        t_id: int
-            The transient id of the currently evaluted transient.
+        t_id : `int`
+            The transient id of the currently evaluated transient.
         """
         # If we did not get enough detections before pre_time, set
         # transient_detected to False.
@@ -345,8 +351,8 @@ class TransientAsciiSEDMetric(BaseMetric):
 
         Parameters
         -----------
-        t_id: int
-            The transient id of the currently evaluted transient.
+        t_id : `int`
+            The transient id of the currently evaluated transient.
         """
         # If we did not get detections over enough sections of the
         # lightcurve, set tranisent_detected to False.
@@ -358,22 +364,22 @@ class TransientAsciiSEDMetric(BaseMetric):
 
     def evaluate_number_filters_detection_criteria(self, data_slice, start_ind, end_ind, t_id):
         """
-        Function to evaluate if the current transient passes the required number
-        of detections in different filters.
+        Function to evaluate if the current transient passes the required
+        number of detections in different filters.
 
         Parameters
         -----------
-        data_slice : numpy.array
+        data_slice : `np.array`, (N,)
             Numpy structured array containing the data related to the visits
             provided by the slicer.
-        start_ind: int
+        start_ind : `int`
             Starting index for observations of the specific transient being
             evaluated.
-        end_ind: int
+        end_ind : `int`
             Ending index for observations of the specific transient being
             evaluated.
-        t_id: int
-            The transient id of the currently evaluted transient.
+        t_id : `int`
+            The transient id of the currently evaluated transient.
         """
         # If we did not get detections in enough filters, set transient
         # detected to False.
@@ -391,7 +397,7 @@ class TransientAsciiSEDMetric(BaseMetric):
 
         Parameters
         -----------
-        t_id: int
+        t_id : `int`
             The transient id of the currently evaluted transient.
         """
         # If we did not get detections in enough filters within required
@@ -417,36 +423,36 @@ class TransientAsciiSEDMetric(BaseMetric):
 
     def setup_phase_shift_dependent_variables(self, time_shift, data_slice):
         """
-        Wrapper function to initilaize variables that will change for each
+        Wrapper function to initialize variables that will change for each
         phase shift that is considered.
 
         Parameters
         -----------
-        time_shift: float
+        time_shift : `float`
             The offset given the currently considered phase shift by which
             to cyclically shift the SED evolution.
-        data_slice : numpy.array
+        data_slice : `np.array`, (N,)
             Numpy structured array containing the data related to the visits
             provided by the slicer.
 
         Returns
         ----------
-        max_num_transients: int
+        max_num_transients : `int`
             Updated number of the total simulated transients.
-        observation_epoch: np.array
+        observation_epoch : `np.array`, (N,)
             Array of transient light curve phases of observations of
             transients within this phase shift cycle.
-        transient_id: np.array, int
+        transient_id : `np.array`, (N,)
             Array of all the transient ids within this phase shift cycle,
-            regardless of whether it is observed.
-        transient_id_start: int
+            regardless of whether it is observed. dtype int.
+        transient_id_start : `int`
             Updated starting id for next phase shift loop.
-        transient_start_index: np.array, int
+        transient_start_index : `np.array`, (N,)
             Array of the indicies for each transient that are the start of
-            their observations in the observation array.
-        transient_end_index: np.array, int
+            their observations in the observation array. dtype int.
+        transient_end_index: `np.array`, (N,)
             Array of the indicies for each transient that are the end of
-            their observations in the observation array.
+            their observations in the observation array. dtype int.
         """
         # Update the maximum possible transients that could have been
         # observed during survey_duration.
@@ -471,23 +477,23 @@ class TransientAsciiSEDMetric(BaseMetric):
 
     def setup_run_metric_variables(self, data_slice):
         """
-        Wrapper function to handle basic initialization of variables used to run
-        this metric.
+        Wrapper function to handle basic initialization of variables used
+        to run this metric.
 
         Parameters
         -----------
-        data_slice : numpy.array
+        data_slice : `np.array`, (N,)
             Numpy structured array containing the data related to the visits
             provided by the slicer.
 
         Returns
         ---------
-        data_slice : numpy.array
+        data_slice : `np.array`, (N,)
             Now sorted in time.
-        survey_duration: float
+        survey_duration : `float`
             Defaults to the maximum between the chosen slicer and the user
             specified duration given to the metric.
-        survey_start: float
+        survey_start : `float`
             Defaults to user specified, or metric default, however if it is
             not defined sets to the earliest time in the given slicer.
         """
@@ -514,21 +520,21 @@ class TransientAsciiSEDMetric(BaseMetric):
 
         Parameters
         -----------
-        data_slice : numpy.array
+        data_slice : `np.array`, (N,)
             Numpy structured array containing the data related to the visits
             provided by the slicer.
 
         Returns
         ---------
-        time_phase_shifts: np.array
+        time_phase_shifts : `np.array`, (N,)
             The phase offsets over which to iterate detections given the
             specfied number of phases to run.
-        num_detected: int
+        num_detected : `int`
             Initialized variable for the number detected, set to zero.
-        max_num_transients: int
+        max_num_transients : `int`
             Initialized variable for the total transients that are simulated
             counting the multiplicity due to phase shifts.
-        transient_id_start: int
+        transient_id_start : `int`
             The starting id for simulated transients that are observed. This
             accounts for if the requested length of the data_slice and the
             number of simulated transient observations mismatch the number
@@ -541,7 +547,7 @@ class TransientAsciiSEDMetric(BaseMetric):
         self.time_phase_shifts = (
             np.arange(self.num_phases_to_run) * self.transient_duration / float(self.num_phases_to_run)
         )
-        # Total number of transient which have reached detection threshholds.
+        # Total number of transient which have reached detection thresholds.
         self.num_detected = 0
         # Total number of transients which could possibly be detected,
         # given survey duration and transient duration.
@@ -554,26 +560,26 @@ class TransientAsciiSEDMetric(BaseMetric):
 
     def evaluate_snr_thresholds(self, data_slice):
         """
-        Take the given data_slice and the set SNR thresholds for observations to
-        be considered in further detections and compute which observations
+        Take the given data_slice and the set SNR thresholds for observations
+        to be considered in further detections and compute which observations
         pass.
 
         Parameters
         -----------
-        data_slice : numpy.array
+        data_slice : `np.array`, (N,)
             Numpy structured array containing the data related to the visits
             provided by the slicer.
 
         Returns
         --------
-        obs_above_SNR_threshold: np.array, `bool`
+        obs_above_SNR_threshold: `np.array`, (N,)
             `bool` array corresponding to all observations and whether or
             not, given their filter specified SNR threshold, they pass this
             thresholding cut.
         """
         # Initilize array for observations below or above SNR threshold
         self.obs_above_snr_threshold = np.zeros(len(self.light_curve_SNRs), dtype=bool)
-        # Identify which detections rise above the required SNR threshhold
+        # Identify which detections rise above the required SNR threshold
         # in each filter.
         for filt in np.unique(data_slice[self.filter_col]):
             # Find the indices for observations in current filter.
@@ -595,16 +601,16 @@ class TransientAsciiSEDMetric(BaseMetric):
 
         Parameters
         ----------
-        data_slice : numpy.array
+        data_slice : `np.array`, (N,)
             Numpy structured array containing the data related to the visits
             provided by the slicer.
-        slice_point : dict, optional
+        slice_point : `dict`, optional
             Dictionary containing information about the slice_point currently
             active in the slicer.
 
         Returns
         -------
-        float or dict
+        result : `float` or `dict`
             The fraction of transients that could be detected.
             (if output_data is False) Otherwise, a dictionary
             with arrays of 'transient_id', 'lcMag', 'detected', 'expMJD',
@@ -625,11 +631,12 @@ class TransientAsciiSEDMetric(BaseMetric):
 
             # Check observations above the defined threshold for detection.
             self.evaluate_snr_thresholds(data_slice)
-            # With useable observations computed, evaluate all detection criteria
+            # With useable observations computed,
+            # evaluate all detection criteria
             self.evaluate_all_detection_criteria(data_slice)
 
         if self.output_data:
-            # Output all the light curves, regardless of detection threshhold,
+            # Output all the light curves, regardless of detection threshold,
             # but indicate which were 'detected'.
             # Only returns for one phase shift, not all.
             return {

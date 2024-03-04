@@ -23,20 +23,21 @@ def chebeval(x, p, interval=(-1.0, 1.0), do_velocity=True, mask=False):
 
     Parameters
     ----------
-    x: `scalar` or `np.ndarray`
+    x : `scalar` or `np.ndarray`
         Points at which to evaluate the polynomial.
-    p:  `np.ndarray`
+    p :  `np.ndarray`
         Chebyshev polynomial coefficients, as returned by chebfit.
-    interval: 2-element list/tuple
+    interval : 2-element list/tuple
         Bounds the x-interval on which the Chebyshev coefficients were fit.
-    do_velocity: `bool`
+    do_velocity : `bool`
         If True, compute the first derivative at points x.
-    mask: `bool`
+    mask : `bool`
         If True, return Nans when the x goes beyond 'interval'.
         If False, extrapolate fit beyond 'interval' limits.
+
     Returns
     -------
-    y, v: `float` or `np.ndarray`, `float` or `np.ndarray` (or None)
+    y, v : `float` or `np.ndarray`, `float` or `np.ndarray` (or None)
         Y (position) and velocity values (if computed)
     """
     if len(interval) != 2:
@@ -102,37 +103,45 @@ def chebeval(x, p, interval=(-1.0, 1.0), do_velocity=True, mask=False):
 def make_cheb_matrix(n_points, n_poly, weight=0.16):
     """Compute C1^(-1)C2 using Newhall89 approach.
 
-    Utility function for fitting chebyshev polynomials to x(t) and dx/dt(t) forcing
-    equality at the end points.  This function computes the matrix (C1^(-1)C2).
-    Multiplying this matrix by the x and dx/dt values to be fit produces the chebyshev
-    coefficient. This function need only be called once for a given polynomial degree and
+    Utility function for fitting chebyshev polynomials to
+    x(t) and dx/dt(t) forcing equality at the end points.
+    This function computes the matrix (C1^(-1)C2).
+    Multiplying this matrix by the x and dx/dt values to be fit
+    produces the chebyshev coefficient.
+    This function need only be called once for a given polynomial degree and
     number of points.
 
     The matrices returned are of shape(n_points+1)x(n_poly).
     The coefficients fitting the n_points+1 points, X, are found by:
-    A = xMultiplier * x  +  dxMultiplier * dxdt if derivative information is known, or
-    A = xMultiplier * x  if no derivative information is known.
-    The xMultiplier matrices are different, depending on whether derivative information is known.
+    A = xMultiplier * x  +  dxMultiplier * dxdt
+    if derivative information is known, or
+    A = xMultiplier * x
+    if no derivative information is known.
+    The xMultiplier matrices are different,
+    depending on whether derivative information is known.
     Use function make_cheb_matrix_only_x if derviative is not known.
     See Newhall, X. X. 1989, Celestial Mechanics, 45, p. 305-310 for details.
 
     Parameters
     ----------
-    n_points: `int`
+    n_points : `int`
         Number of point to be fits. Must be greater than 2.
-    n_poly:  `int`
+    n_poly :  `int`
         Number of polynomial terms. Polynomial degree + 1
-    weight: `float`, optional
+    weight : `float`, optional
         Weight to allow control of relative effectos of position and velocity
-        values. Newhall80 found best results are obtained with velocity weighted
-        at 0.4 relative to position, giving W the form (1.0, 0.16, 1.0, 0.16,...)
+        values. Newhall80 found best results are obtained with
+        velocity weighted at 0.4 relative to position,
+        giving W the form (1.0, 0.16, 1.0, 0.16,...)
 
     Returns
     -------
     c1c2: `np.ndarray`
-        xMultiplier, C1^(-1)C2 even rows of shape (n_points+1)x(n_poly) to be multiplied by x values.
+        xMultiplier, C1^(-1)C2 even rows of shape (n_points+1)x(n_poly) to
+        be multiplied by x values.
     c1c2: `np.ndarray`
-        dxMultiplier, C1^(-1)C2 odd rows of shape (n_points+1)x(n_poly) to be multiplied by dx/dy values
+        dxMultiplier, C1^(-1)C2 odd rows of shape (n_points+1)x(n_poly) to
+        be multiplied by dx/dy values
     """
     tmat = np.zeros([n_points, n_poly])
     tdot = np.zeros([n_points, n_poly])
@@ -187,13 +196,16 @@ def make_cheb_matrix(n_points, n_poly, weight=0.16):
 def make_cheb_matrix_only_x(n_points, n_poly):
     """Compute C1^(-1)C2 using Newhall89 approach without dx/dt
 
-    Compute xMultiplier using only the equality constraint of the x-values at the endpoints.
+    Compute xMultiplier using only the equality constraint of the x-values
+    at the endpoints.
     To be used when first derivatives are not available.
     If chebyshev approximations are strung together piecewise only the x-values
     and not the first derivatives will be continuous at the boundaries.
     Multiplying this matrix by the x-values to be fit produces the chebyshev
-    coefficients. This function need only be called once for a given polynomial degree and
-    number of points. See Newhall, X. X. 1989, Celestial Mechanics, 45, p. 305-310.
+    coefficients. This function need only be called once for a given
+    polynomial degree and
+    number of points.
+    See Newhall, X. X. 1989, Celestial Mechanics, 45, p. 305-310.
 
     Parameters
     ----------
@@ -205,7 +217,8 @@ def make_cheb_matrix_only_x(n_points, n_poly):
     Returns
     -------
     c1c2: `np.ndarray`
-        xMultiplier, Even rows of C1^(-1)C2 w/ shape (n_points+1)x(n_poly) to be multiplied by x values
+        xMultiplier, Even rows of C1^(-1)C2 w/ shape (n_points+1)x(n_poly)
+        to be multiplied by x values
     """
 
     tmat = np.zeros([n_points, n_poly])
@@ -239,7 +252,8 @@ def make_cheb_matrix_only_x(n_points, n_poly):
 
 
 def chebfit(t, x, dxdt=None, x_multiplier=None, dx_multiplier=None, n_poly=7):
-    """Fit Chebyshev polynomial constrained at endpoints using Newhall89 approach.
+    """Fit Chebyshev polynomial constrained at endpoints using
+    Newhall89 approach.
 
     Return Chebyshev coefficients and statistics from fit
     to array of positions (x) and optional velocities (dx/dt).
@@ -247,8 +261,9 @@ def chebfit(t, x, dxdt=None, x_multiplier=None, dx_multiplier=None, n_poly=7):
     derivative of the interpolating polynomial at the
     endpoints will be exactly equal to the input endpoint values.
     Many approximations may be piecewise strung together and the function value
-    and its first derivative will be continuous across boundaries. If derivatives
-    are not provided, only the function value will be continuous across boundaries.
+    and its first derivative will be continuous across boundaries.
+    If derivatives are not provided, only the function value will be
+    continuous across boundaries.
 
     If x_multiplier and dx_multiplier are not provided or
     are an inappropriate shape for t and x, they will be recomputed.
@@ -280,7 +295,8 @@ def chebfit(t, x, dxdt=None, x_multiplier=None, dx_multiplier=None, n_poly=7):
     a_n : `np.ndarray`
         Array of chebyshev coefficients with length=n_poly.
     residuals : `np.ndarray`
-        Array of residuals of the tabulated function x minus the approximated function.
+        Array of residuals of the tabulated function x minus the
+        approximated function.
     rms : `float`
         The rms of the residuals in the fit.
     maxresid : `float`

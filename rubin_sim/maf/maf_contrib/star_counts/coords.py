@@ -3,9 +3,12 @@
 # Mike Lund - Vanderbilt University
 # mike.lund@gmail.com
 # Last edited 8/15/2015
-# Description: Provides the coordinate conversions between equatorial and galactic coordinates, as well as to galactic cylindrical coordinates. Two different functions are present that do the conversion, and a third that uses ephem package, for redundancy purposes. For use with Field Star Count metric
-import math
-import sys
+# Description: Provides the coordinate conversions between equatorial and
+# galactic coordinates, as well as to galactic cylindrical coordinates.
+# Two different functions are present that do the conversion, and a third
+# that uses ephem package, for redundancy purposes.
+# For use with Field Star Count metric
+
 
 import numpy as np
 from scipy.optimize import fsolve
@@ -20,23 +23,23 @@ def eq_gal(eq_ra, eq_dec):
     a = np.radians(eq_ra)
 
     def equations(p):
-        b, l, x = p
+        b, ll, x = p
         f1a = np.cos(d) * (np.cos(a - rad1))
         f2a = np.sin(d) * np.sin(rad2) + np.cos(d) * np.sin(a - rad1) * np.cos(rad2)
         f3a = np.sin(d) * np.cos(rad2) - np.cos(d) * np.sin(a - rad1) * np.sin(rad2)
-        f1 = np.cos(b) * np.cos(l - rad3) - f1a
-        f2 = np.cos(b) * np.sin(l - rad3) - f2a
+        f1 = np.cos(b) * np.cos(ll - rad3) - f1a
+        f2 = np.cos(b) * np.sin(ll - rad3) - f2a
         f3 = np.sin(b) - f3a
         return (f1, f2, f3)
 
-    b, l, x = fsolve(equations, (0, 0, 0))
+    b, ll, x = fsolve(equations, (0, 0, 0))
     b_deg = np.degrees(b) % 360  # galactic latitude
     if b_deg >= 270:
         b_deg = b_deg - 360
     if b_deg > 90:
         b_deg = 180 - b_deg
-        l = l + np.pi
-    l_deg = np.degrees(l) % 360  # galactic longitude
+        ll = ll + np.pi
+    l_deg = np.degrees(ll) % 360  # galactic longitude
     return b_deg, l_deg
     # http://scienceworld.wolfram.com/astronomy/GalacticCoordinates.html
 
@@ -44,7 +47,6 @@ def eq_gal(eq_ra, eq_dec):
 def eq_gal2(eq_ra, eq_dec):
     d = np.radians(eq_dec)
     p = np.radians(eq_ra)
-    AC = np.radians(90.0) - d
     AB = np.radians(62.8717)
     CAB = np.radians(192.8585) - p
     cos_bc = np.sin(d) * np.cos(AB) + np.cos(d) * np.sin(AB) * np.cos(CAB)
@@ -59,9 +61,7 @@ def eq_gal2(eq_ra, eq_dec):
         cos_cbd = -1
     CBD = np.arccos(cos_cbd)
     b_deg = 90.0 - np.degrees(BC)
-    ad = np.radians(90.0)
     cad = np.radians(282.8595) - p
-    coscd = np.cos(cad) * np.cos(d)
     coscbd = np.cos(cad) * np.cos(d) / np.sin(BC)
     if coscbd > 1:
         coscbd = 1
@@ -95,10 +95,3 @@ def gal_cyn(b_deg, l_deg, dist):
     R = np.power(x_new**2 + y**2, 0.5)
     rho = np.arctan(y / x)
     return R, rho, Z
-
-
-if __name__ == "__main__":
-    gal_lat, gal_lon = eq_gal2(float(sys.argv[1]), float(sys.argv[2]))
-    print(gal_lat, gal_lon)
-    R, rho, z = gal_cyn(gal_lat, gal_lon, float(sys.argv[3]))
-    print(R, rho, z)

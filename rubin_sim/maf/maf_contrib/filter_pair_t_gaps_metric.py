@@ -6,26 +6,31 @@ from ..metrics.base_metric import BaseMetric
 
 
 class FilterPairTGapsMetric(BaseMetric):
-    """
-    figure of merit to measure the coverage the time gaps in same and different filter pairs;
+    """Figure of merit to measure the coverage the time gaps in same
+    and different filter pairs;
+
     FoM is defined as sum of Nv / standard deviation after a clip;
-    Parameters:
-        colname: list, ['observationStartMJD', 'filter', 'fiveSigmaDepth']
-        fltpairs: filter pair, default ['uu', 'ug', 'ur', 'ui', 'uz','uy',
-                                        'gg', 'gr', 'gi', 'gz', 'gy',
-                                        'rr', 'ri', 'rz', 'ry',
-                                        'ii', 'iz', 'iy',
-                                        'zz', 'zy',
-                                        'yy']
-        mag_lim: list, fiveSigmaDepth threshold each filter, default {'u':18, 'g':18, 'r':18, 'i':18, 'z':18, 'y':18}
-        bins_same: np.array, bins to get histogram for same-filter pair ;
-        bins_diff: np.array, bins to get histogram for diff-filter pair ;
-        nv_clip: number of visits of pairs to clip, std is calculated below nv_clip
-        allgaps: boolean, all possible pairs if True, else consider only nearest
 
-    Returns:
-        result: sum of fom for all filterpairs,
+    Parameters
+    ----------
+    fltpairs : `list` [`str`], optional
+        List of filter pair sets to search for.
+    mag_lim : `list` [`float`]
+        FiveSigmaDepth threshold each filter,
+        default {'u':18, 'g':18, 'r':18, 'i':18, 'z':18, 'y':18}
+    bins_same : `np.ndarray`, (N,)
+        Bins to get histogram for same-filter pair.
+    bins_diff : `np.ndarray`, (N,)
+        Bins to get histogram for diff-filter pair.
+    nv_clip : `int`, optional
+        Number of visits of pairs to clip, std is calculated below nv_clip.
+    allgaps : `bool``, optional
+        All possible pairs if True, else consider only nearest
 
+    Returns
+    -------
+    result : `float`
+        sum of fom for all filterpairs,
     """
 
     def __init__(
@@ -95,7 +100,7 @@ class FilterPairTGapsMetric(BaseMetric):
 
         self.allgaps = allgaps
 
-        # number of visits to clip, default got from 1/10th of baseline_v2.0 WFD
+        # number of visits to clip, default from 1/10th of baseline_v2.0 WFD
         self.nv_clip = nv_clip
 
         super().__init__(col=[self.mjd_col, self.filter_col, self.m5_col], **kwargs)
@@ -127,7 +132,8 @@ class FilterPairTGapsMetric(BaseMetric):
                 d_t = dt_tri[dt_tri != 0]  # flatten lower triangle
             else:
                 # d_t = diffmat.flatten()
-                dtmax = np.max(self.bins_diff)  # time gaps window for measure color
+                dtmax = np.max(self.bins_diff)
+                # time gaps window for measure color
                 d_t = []
                 for time_col in time_col0:
                     time_col_in_window = time_col1[

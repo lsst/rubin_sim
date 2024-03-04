@@ -6,13 +6,33 @@ import numpy as np
 import sqlalchemy as sqla
 from rubin_scheduler.data import get_data_dir
 
-# Tools for using an all-sky sqlite DB with cannon and photodiode data from the site.
+# Tools for using an all-sky sqlite DB with cannon
+# and photodiode data from the site.
 
 
 def all_sky_db(date_id, sql_q=None, dtypes=None, db_address=None, filt="R"):
     """
-    Take in a date_id (that corresponds to a single MJD, and
-    return the star and sky magnitudes in a numpy structured array.
+    Fetch star and sky magnitudes from a processed all-sky sqlite database.
+
+    Parameters
+    ----------
+    date_id : `float`
+        Date (MJD) to fetch star observation information from the database.
+    sql_q : `str`
+        Sql query to use. None will use a default query to get all star info.
+    dtypes : `list` [`str`, `dtype`]
+        Data types expected from the database. None will use the defaults.
+    db_address : `str`
+        Database data path. Default uses db in $RUBIN_SIM_DATA/skybrightness.
+    filt : `str`
+        Filter in which to fetch stellar observation data.
+
+    Returns
+    -------
+    data : `np.ndarray`, (N,)
+        Stellar observation data.
+    mjd : `float`
+        MJD of the observations.
     """
     if db_address is None:
         data_path = os.path.join(get_data_dir(), "skybrightness")
@@ -46,6 +66,7 @@ def all_sky_db(date_id, sql_q=None, dtypes=None, db_address=None, filt="R"):
 
 
 def diode_sky_db(mid_mjd, sql_q=None, dtypes=None, db_address=None, clean=True):
+    """Fetch diode measurements of skybrightness."""
     if db_address is None:
         data_path = os.getenv("SIMS_SKYBRIGHTNESS_DATA_DIR")
         db_address = "sqlite:///" + os.path.join(data_path, "photometry", "skydata.sqlite")

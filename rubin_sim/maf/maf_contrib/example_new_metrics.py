@@ -9,7 +9,14 @@ from rubin_sim.maf.metrics import BaseMetric
 
 
 class NightsWithNFiltersMetric(BaseMetric):
-    """Count how many times more than NFilters are used within the same night, for this set of visits."""
+    """Count how many times more than NFilters are used within the same night,
+    for this set of visits.
+
+    Parameters
+    ----------
+    n_filters : `int`, optional
+        How many filters to look for, within the same night.
+    """
 
     def __init__(self, night_col="night", filter_col="filter", n_filters=3, **kwargs):
         """

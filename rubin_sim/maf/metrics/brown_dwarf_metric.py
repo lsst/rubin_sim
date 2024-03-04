@@ -43,32 +43,42 @@ def bd_colors(spec_type):
 
 
 class BDParallaxMetric(BaseMetric):
-    """Calculate the distance to which one could reach a parallax SNR for a given object
-    Modification of ParallaxMetric, illustrated in
-    https://github.com/jgizis/LSST-BD-Cadence/blob/main/bd_allLT_baseline_17.ipynb
+    """Calculate the distance to which one could reach a parallax SNR for a
+    given object
 
-    Uses columns ra_pi_amp and dec_pi_amp, calculated by the ParallaxFactorStacker.
+    Modification of ParallaxMetric, illustrated in
+    https://github.com/jgizis/
+    LSST-BD-Cadence/blob/main/bd_allLT_baseline_17.ipynb
+
+    Uses columns ra_pi_amp and dec_pi_amp,
+    calculated by the ParallaxFactorStacker.
 
     Parameters
     ----------
     metricName : `str`, opt
         Default 'parallax'.
     m5_col : `str`, opt
-        The default column name for m5 information in the input data. Default fiveSigmaDepth.
+        The default column name for m5 information in the input data.
+        Default fiveSigmaDepth.
     filter_col : `str`, opt
         The column name for the filter information. Default filter.
     seeing_col : `str`, opt
-        The column name for the seeing information. Since the astrometry errors are based on the physical
-        size of the PSF, this should be the FWHM of the physical psf. Default seeingFwhmGeom.
-    mags : `dict` (None)
-        The absolute magnitude of the obeject in question. Keys of filter name, values in mags.
+        The column name for the seeing information.
+        Since the astrometry errors are based on the physical
+        size of the PSF, this should be the FWHM of the physical psf.
+        Default seeingFwhmGeom.
+    mags : `dict` or None
+        The absolute magnitude of the object in question.
+        Keys of filter name, values in mags.
         Defaults to an L7 spectral type if None.
-    distances : np.array
+    distances : `np.array`, (N,)
         Distances to try putting the object at (pc).
     atm_err : `float`, opt
-        The expected centroiding error due to the atmosphere, in arcseconds. Default 0.01.
+        The expected centroiding error due to the atmosphere, in arcseconds.
+        Default 0.01.
     badval : `float`, opt
-        The value to return when the metric value cannot be calculated. Default 0.
+        The value to return when the metric value cannot be calculated.
+        Default 0.
     """
 
     def __init__(
@@ -107,7 +117,8 @@ class BDParallaxMetric(BaseMetric):
 
     def _final_sigma(self, position_errors, ra_pi_amp, dec_pi_amp):
         """Assume parallax in RA and DEC are fit independently, then combined.
-        All inputs assumed to be arcsec"""
+        All inputs assumed to be arcsec.
+        """
         sigma_a = position_errors / ra_pi_amp
         sigma_b = position_errors / dec_pi_amp
         sigma_ra = np.sqrt(1.0 / np.sum(1.0 / sigma_a**2, axis=1))
@@ -139,7 +150,7 @@ class BDParallaxMetric(BaseMetric):
 
 
 class VolumeSumMetric(BaseMetric):
-    """Compute the total volume assuming a metric has values of distance"""
+    """Compute the total volume assuming a metric has values of distance."""
 
     def __init__(self, col=None, metric_name="VolumeSum", nside=None, **kwargs):
         super(VolumeSumMetric, self).__init__(col=col, metric_name=metric_name, **kwargs)

@@ -10,61 +10,65 @@ import rubin_sim.maf.metrics as metrics
 
 
 class GRBTransientMetric(metrics.BaseMetric):
-    """Detections for on-axis GRB afterglows decaying as
-        F(t) = F(1min)((t-t0)/1min)^-alpha.  No jet break, for now.
+    """Evaluate the likelihood of detecting a GRB optical counterpart.
 
-        Derived from TransientMetric, but calculated with reduce functions to
+    Detections for an on-axis GRB afterglows decaying as
+    F(t) = F(1min)((t-t0)/1min)^-alpha.  No jet break, for now.
+
+    Derived from TransientMetric, but calculated with reduce functions to
     enable-band specific counts.
-        Burst parameters taken from 2011PASP..123.1034J.
+    Burst parameters taken from 2011PASP..123.1034J.
 
-        Simplifications:
-        no color variation or evolution encoded yet.
-        no jet breaks.
-        not treating off-axis events.
+    Simplifications:
+    * no color variation or evolution encoded yet.
+    * no jet breaks.
+    * not treating off-axis events.
 
     Parameters
     ----------
-    alpha : float,
+    alpha : `float`,
         temporal decay index
         Default = 1.0
-    apparent_mag_1min_mean : float,
+    apparent_mag_1min_mean : `float`,
         mean magnitude at 1 minute after burst
         Default = 15.35
-    apparent_mag_1min_sigma : float,
+    apparent_mag_1min_sigma : `float`,
         std of magnitudes at 1 minute after burst
         Default = 1.59
-    trans_duration : float, optional
+    trans_duration : `float`, optional
         How long the transient lasts (days). Default 10.
-    survey_duration : float, optional
+    survey_duration : `float`, optional
         Length of survey (years).
         Default 10.
-    survey_start : float, optional
+    survey_start : `float`, optional
         MJD for the survey start date.
         Default None (uses the time of the first observation).
-    detect_m5_plus : float, optional
-        An observation will be used if the light curve magnitude is brighter than m5+detect_m5_plus.
+    detect_m5_plus : `float`, optional
+        An observation will be used if the light curve magnitude is brighter
+        than m5+detect_m5_plus.
         Default 0.
-    n_per_filter : int, optional
+    n_per_filter : `int`, optional
         Number of separate detections of the light curve above the
         detect_m5_plus theshold (in a single filter) for the light curve
         to be counted.
         Default 1.
-    n_filters : int, optional
+    n_filters : `int`, optional
         Number of filters that need to be observed n_per_filter times,
         with differences min_delta_mag,
         for an object to be counted as detected.
         Default 1.
-    min_delta_mag : float, optional
+    min_delta_mag : `float`, optional
        magnitude difference between detections in the same filter required
        for second+ detection to be counted.
        For example, if min_delta_mag = 0.1 mag and two consecutive observations
        differ only by 0.05 mag, those two detections will only count as one.
        (Better would be a SNR-based discrimination of lightcurve change.)
        Default 0.
-    n_phase_check : int, optional
+    n_phase_check : `int`, optional
         Sets the number of phases that should be checked.
-        One can imagine pathological cadences where many objects pass the detection criteria,
-        but would not if the observations were offset by a phase-shift.
+        One can imagine pathological cadences where many objects pass the
+        detection criteria, but would not if the observations were offset
+        by a phase-shift.
         Default 1.
     """
 
@@ -139,27 +143,17 @@ class GRBTransientMetric(metrics.BaseMetric):
         return lc_mags
 
     def run(self, data_slice, slice_point=None):
-        """ "
-        Calculate the detectability of a transient with the specified lightcurve.
-
-        Parameters
-        ----------
-        data_slice : numpy.array
-            Numpy structured array containing the data related to the visits provided by the slicer.
-        slice_point : dict, optional
-            Dictionary containing information about the slice_point currently active in the slicer.
-
-        Returns
-        -------
-        float
-            The total number of transients that could be detected.
+        """
+        Calculate the detectability of a transient with the
+        specified lightcurve.
         """
         # Total number of transients that could go off back-to-back
         n_trans_max = np.floor(self.survey_duration / (self.trans_duration / 365.25))
         tshifts = np.arange(self.n_phase_check) * self.trans_duration / float(self.n_phase_check)
         n_trans_max = 0
         for tshift in tshifts:
-            # Compute the total number of back-to-back transients are possible to detect
+            # Compute the total number of back-to-back transients
+            # are possible to detect
             # given the survey duration and the transient duration.
             n_trans_max += np.floor(self.survey_duration / (self.trans_duration / 365.25))
             if tshift != 0:
@@ -212,7 +206,7 @@ class GRBTransientMetric(metrics.BaseMetric):
                     lc_points = lc_mags[le:ri][wdetfilt]
                     dlc = np.abs(np.diff(lc_points))
 
-                    # number of detections in band, requring that for
+                    # number of detections in band, requiring that for
                     # nPerFilter > 1 that points have more than minDeltaMag
                     # change
                     nbanddet = np.sum(dlc > self.min_delta_mag) + 1

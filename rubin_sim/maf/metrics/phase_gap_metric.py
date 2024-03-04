@@ -8,21 +8,26 @@ from .base_metric import BaseMetric
 
 
 class PhaseGapMetric(BaseMetric):
-    """
-    Measure the maximum gap in phase coverage for observations of periodic variables.
+    """Measure the maximum gap in phase coverage for
+    observations of periodic variables.
 
     Parameters
     ----------
-    col: str, optional
+    col : `str`, optional
         Name of the column to use for the observation times (MJD)
-    n_periods: int, optional
+    n_periods : `int`, optional
         Number of periods to test
-    period_min: float, optional
+    period_min : `float`, optional
         Minimum period to test, in days.
-    period_max: float, optional
+    period_max : `float`, optional
         Maximum period to test, in days
-    n_visits_min: int, optional
+    n_visits_min : `int`, optional
         Minimum number of visits necessary before looking for the phase gap.
+
+    Returns
+    -------
+    metric_value : `dict` {`periods`: `float`, `maxGaps` : `float`}
+        Calculates a dictionary of max gap in phase coverage for each period.
     """
 
     def __init__(
@@ -91,8 +96,31 @@ class PhaseGapMetric(BaseMetric):
         return np.max(metric_val["maxGaps"])
 
 
-#  To fit a periodic source well, you need to cover the full phase, and fit the amplitude.
+#  To fit a periodic source well, you need to cover the full phase,
+#  and fit the amplitude.
 class PeriodicQualityMetric(BaseMetric):
+    """Evaluate phase coverage over a given period.
+
+    Parameters
+    ----------
+    mjd_col : `str`, opt
+        Name of the MJD column in the observations.
+    period : `float`, opt
+        Period to check.
+    m5_col : `str`, opt
+        Name of the m5 column in the observations.
+    metric_name : `str`, opt
+        Name of the metric.
+    star_mag : `float`, opt
+        Magnitude of the star to simulate coverage for.
+
+    Returns
+    -------
+    value : `float`
+        Value representing phase_coverage * amplitude_snr.
+        Ranges from 0 (poor) to 1.
+    """
+
     def __init__(
         self,
         mjd_col="observationStartMJD",
@@ -111,7 +139,9 @@ class PeriodicQualityMetric(BaseMetric):
         )
 
     def _calc_phase(self, data_slice):
-        """1 is perfectly balanced phase coverage, 0 is no effective coverage."""
+        """1 is perfectly balanced phase coverage,
+        0 is no effective coverage.
+        """
         angles = data_slice[self.mjd_col] % self.period
         angles = angles / self.period * 2.0 * np.pi
         x = np.cos(angles)
@@ -125,7 +155,9 @@ class PeriodicQualityMetric(BaseMetric):
         return 1.0 - vector_off
 
     def _calc_amp(self, data_slice):
-        """Fractional SNR on the amplitude, testing for a variety of possible phases"""
+        """Fractional SNR on the amplitude,
+        testing for a variety of possible phases.
+        """
         phases = np.arange(0, np.pi, np.pi / 8.0)
         snr = m52snr(self.star_mag, data_slice[self.m5_col])
         amp_snrs = np.sin(data_slice[self.mjd_col] / self.period * 2 * np.pi + phases[:, np.newaxis]) * snr

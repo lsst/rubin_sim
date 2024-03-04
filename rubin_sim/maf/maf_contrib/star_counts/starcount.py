@@ -3,16 +3,13 @@
 # Mike Lund - Vanderbilt University
 # mike.lund@gmail.com
 # Last edited 8/15/2015
-# Description: Calculates the number of stars in a given direction and between a given set of distances. For use with Field Star Count metric
-import math
-import sys
+# Description: Calculates the number of stars in a given direction and
+# between a given set of distances. For use with Field Star Count metric
 
 import numpy as np
-from scipy.optimize import fsolve
 
 from . import coords, stellardensity
 
-# from rubin_sim.coordUtils import AstronomyBase
 skyarea = 41253.0
 distancebins = 51
 
@@ -26,21 +23,8 @@ def star_vols(d1, d2, area):
 
 def starcount(eq_ra, eq_dec, d1, d2):
     volumes, distances = star_vols(d1, d2, 9.62)
-    # b_deg, l_deg=coords.eq_gal2(eq_ra, eq_dec)
-    # b_deg, l_deg=AstrometryBase.equatorialToGalactic(eq_ra, eq_dec)
     b_deg, l_deg = coords.eq_gal3(eq_ra, eq_dec)
     positions = [coords.gal_cyn(b_deg, l_deg, x) for x in distances]
     densities = [stellardensity.stellardensity(x[0], x[2]) for x in positions]
     totalcount = np.sum(np.asarray(volumes) * np.asarray(densities))
     return totalcount
-
-
-if __name__ == "__main__":
-    print(
-        starcount(
-            float(sys.argv[1]),
-            float(sys.argv[2]),
-            float(sys.argv[3]),
-            float(sys.argv[4]),
-        )
-    )

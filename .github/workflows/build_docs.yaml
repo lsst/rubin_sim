@@ -30,7 +30,7 @@ jobs:
         run: |
           mamba install --quiet --file=requirements.txt          
           mamba install --quiet pip
-          pip install "documenteer[pipelines]"
+          pip install "documenteer[guide]"
 
       - name: install rubin_sim
         shell: bash -l {0}
@@ -66,16 +66,14 @@ jobs:
         shell: bash -l {0}
         run: |
           export RUBIN_SIM_DATA_DIR=~/rubin_sim_data
-          cd doc
-          python metric_list.py
+          cd docs
           make html
-          #package-docs build
 
       - name: upload documentation
         uses: lsst-sqre/ltd-upload@v1
         with:
           project: "rubin-sim"
-          dir: "doc/_build/html"
+          dir: "docs/_build/html"
           username: ${{ secrets.ltd_username }}
           password: ${{ secrets.ltd_password }}
 

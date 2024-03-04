@@ -21,26 +21,15 @@ def create_empty_metric_bundle():
 
     Returns
     -------
-    MetricBundle
-        An empty metric bundle, configured with just the :class:`BaseMetric` and :class:`BaseSlicer`.
+    MetricBundle : `MetricBundle`
+        An empty metric bundle,
+        configured with just the :class:`BaseMetric` and :class:`BaseSlicer`.
     """
     return MetricBundle(metrics.BaseMetric(), slicers.BaseSlicer(), "")
 
 
 class MetricBundle:
-    """The MetricBundle is defined by a combination of a (single) metric, slicer and
-    constraint - together these define a unique combination of an opsim benchmark.
-    An example would be: a CountMetric, a HealpixSlicer, and a constraint 'filter="r"'.
-
-    After the metric is evaluated over the slice_points of the slicer, the resulting
-    metric values are saved in the MetricBundle.
-
-    The MetricBundle also saves the summary metrics to be used to generate summary
-    statistics over those metric values, as well as the resulting summary statistic values.
-
-    Plotting parameters and display parameters (for showMaf) are saved in the MetricBundle,
-    as well as additional info_label such as the opsim run name, and relevant stackers and maps
-    to apply when calculating the metric values.
+    """Define a metric bundle combination of metric, slicer, and constraint.
 
     Parameters
     ----------
@@ -49,34 +38,71 @@ class MetricBundle:
     slicer : `~rubin_sim.maf.slicer`
         The Slicer to apply to the incoming visit data (the observations).
     constraint : `str` or None, opt
-        A (sql-style) constraint to apply to the visit data, to apply a broad sub-selection.
-    stacker_list : `list` of `~rubin_sim.maf.stacker`, opt
-        A list of pre-configured stackers to use to generate additional columns per visit.
-        These will be generated automatically if needed, but pre-configured versions will override these.
+        A (sql-style) constraint to apply to the visit data, to apply a
+        broad sub-selection.
+    stacker_list : `list` [`~rubin_sim.maf.stacker`], opt
+        A list of pre-configured stackers to use to generate additional
+        columns per visit.
+        These will be generated automatically if needed, but pre-configured
+        versions will override these.
     run_name : `str`, opt
-        The name of the simulation being run. This will be added to output files and plots.
-        Setting it prevents file conflicts when running the same metric on multiple simulations, and
+        The name of the simulation being run.
+        This will be added to output files and plots.
+        Setting it prevents file conflicts when running the same
+        metric on multiple simulations, and
         provides a way to identify which simulation is being analyzed.
     metadata : `str`, opt
         A deprecated version of info_label (below).
-        Values set by metadata will be used for info_label. If both are set, info_label is used.
+        Values set by metadata will be used for info_label.
+        If both are set, info_label is used.
     info_label : `str` or None, opt
         Information to add to the output metric data file name and plot labels.
-        If this is not provided, it will be auto-generated from the constraint (if any).
-        Setting this provides an easy way to specify different configurations of a metric, a slicer,
+        If this is not provided, it will be auto-generated from the
+        constraint (if any).
+        Setting this provides an easy way to specify different
+        configurations of a metric, a slicer,
         or just to rewrite your constraint into friendlier terms.
-        (i.e. a constraint like 'note not like "%DD%"' can become "non-DD" in the file name and plot labels
+        (i.e. a constraint like 'note not like "%DD%"' can become
+        "non-DD" in the file name and plot labels
         by specifying info_label).
     plot_dict : `dict` of plotting parameters, opt
         Specify general plotting parameters, such as x/y/color limits.
     display_dict : `dict` of display parameters, opt
-        Specify parameters for showMaf web pages, such as the side bar labels and figure captions.
-        Keys: 'group', 'subgroup', 'caption', and 'order' (such as to set metrics in filter order, etc)
+        Specify parameters for show_maf web pages, such as the
+        side bar labels and figure captions.
+        Keys: 'group', 'subgroup', 'caption', and 'order'
+        (such as to set metrics in filter order, etc)
     summary_metrics : `list` of `~rubin_sim.maf.metrics`
-        A list of summary metrics to run to summarize the primary metric, such as MedianMetric, etc.
+        A list of summary metrics to run to summarize the
+        primary metric, such as MedianMetric, etc.
     maps_list : `list` of `~rubin_sim.maf.maps`
-        A list of pre-configured maps to use for the metric. This will be auto-generated if specified
+        A list of pre-configured maps to use for the metric.
+        This will be auto-generated if specified
         by the metric class, but pre-configured versions will override these.
+
+    Notes
+    -----
+    Define the "thing" you are measuring, with a combination of
+    * metric (calculated per data_slice)
+    * slicer (how to create the data_slices)
+    * constraint (an optional definition of a large subset of data)
+
+    Together these define a unique combination of an opsim benchmark,
+    or "metric bundle".
+    An example would be:
+    a CountMetric, a HealpixSlicer, and a constraint of 'filter="r"'.
+
+    After the metric is evaluated at each slice_point created by the
+    slicer, the resulting metric values are saved in the MetricBundle.
+
+    The MetricBundle also saves the summary metrics to be used
+    to generate summary statistics over those metric values,
+    as well as the resulting summary statistic values.
+
+    Plotting parameters and display parameters (for show_maf) are saved
+    in the MetricBundle, as well as additional info_label such as the
+    opsim run name, and relevant stackers and maps
+    to apply when calculating the metric values.
     """
 
     col_info = ColInfo()
@@ -144,7 +170,7 @@ class MetricBundle:
         map_names = [map_name.__class__.__name__ for map_name in self.maps_list]
         if hasattr(self.metric, "maps"):
             for map_needed in self.metric.maps:
-                if type(map_needed) == str:
+                if isinstance(map_needed, str):
                     if map_needed not in map_names:
                         temp_map = getattr(maps, map_needed)()
                         self.maps_list.append(temp_map)
@@ -215,7 +241,8 @@ class MetricBundle:
 
     def _build_metadata(self, info_label, metadata=None):
         """If no info_label is provided, process the constraint
-        (by removing extra spaces, quotes, the word 'filter' and equal signs) to make a info_label version.
+        (by removing extra spaces, quotes, the word 'filter' and equal signs)
+        to make a info_label version.
         e.g. 'filter = "r"' becomes 'r'
         """
         # Pass the deprecated version into info_label if info_label is not set
@@ -234,7 +261,8 @@ class MetricBundle:
 
     def _build_file_root(self):
         """
-        Build an auto-generated output filename root (i.e. minus the plot type or .npz ending).
+        Build an auto-generated output filename root
+        (i.e. minus the plot type or .npz ending).
         """
         # Build basic version.
         self.file_root = "_".join(
@@ -250,10 +278,10 @@ class MetricBundle:
 
     def _find_req_cols(self):
         """Find the columns needed by the metrics, slicers, and stackers.
-        If there are any additional stackers required, instatiate them and add them to
-        the self.stackers list.
-        (default stackers have to be instantiated to determine what additional columns
-        are needed from database).
+        If there are any additional stackers required, instatiate them
+        and add them to the self.stackers list.
+        (default stackers have to be instantiated to determine
+        what additional columns are needed from database).
         """
         # Find all the columns needed by metric and slicer.
         known_cols = self.slicer.columns_needed + list(self.metric.col_name_arr)
@@ -268,7 +296,8 @@ class MetricBundle:
             if self.col_info.get_data_source(col) == self.col_info.default_data_source:
                 self.db_cols.add(col)
             else:
-                # New default stackers could come from metric/slicer or stackers.
+                # New default stackers could come from metric/slicer
+                # or stackers.
                 new_stackers.add(self.col_info.get_data_source(col))
         # Remove already-specified stackers from default list.
         for s in self.stacker_list:
@@ -304,7 +333,7 @@ class MetricBundle:
 
         Parameters
         ----------
-        summary_metrics : `List` of [`BaseMetric`]
+        summary_metrics : `List` [`BaseMetric`]
             Instantiated summary metrics to use to calculate
             summary statistics for this metric.
         """
@@ -448,9 +477,9 @@ class MetricBundle:
 
         Parameters
         ----------
-        run_name: `str`
+        run_name : `str`
             Run Name, which will become part of the fileRoot.
-        fileRoot: `bool`, optional
+        fileRoot : `bool`, optional
             Flag to update the fileRoot with the run_name.
         """
         self.run_name = run_name
@@ -508,7 +537,8 @@ class MetricBundle:
             self.write_db(results_db=results_db)
 
     def output_json(self):
-        """Set up and call the baseSlicer outputJSON method, to output to IO string.
+        """Set up and call the baseSlicer outputJSON method,
+        to output to IO string.
 
         Returns
         -------
@@ -581,7 +611,7 @@ class MetricBundle:
 
         Parameters
         ----------
-        filename : str
+        filename : `str`
            The file from which to read the metric bundle data.
         """
         metric_bundle = cls(metrics.BaseMetric(), slicers.BaseSlicer(), "")
@@ -589,28 +619,32 @@ class MetricBundle:
         return metric_bundle
 
     def compute_summary_stats(self, results_db=None):
-        """Compute summary statistics on metric_values, using summaryMetrics (metricbundle list).
+        """Compute summary statistics on metric_values,
+        using summaryMetrics (metricbundle list).
 
         Parameters
         ----------
         results_db : Optional[ResultsDb]
-            ResultsDb object to use to store the summary statistic values on disk.
+            ResultsDb object to use to store the
+            summary statistic values on disk.
         """
         if self.summary_values is None:
             self.summary_values = {}
         if self.summary_metrics is not None:
-            # Build array of metric values, to use for (most) summary statistics.
+            # Build array of metric values, to use for  summary statistics.
             rarr_std = np.array(
                 list(zip(self.metric_values.compressed())),
                 dtype=[("metricdata", self.metric_values.dtype)],
             )
             for m in self.summary_metrics:
-                # The summary metric colname should already be set to 'metricdata', but in case it's not:
+                # The summary metric colname should already be set
+                # to 'metricdata', but in case it's not:
                 m.colname = "metricdata"
                 summary_name = m.name.replace(" metricdata", "").replace(" None", "")
                 if hasattr(m, "mask_val"):
-                    # summary metric requests to use the mask value, as specified by itself,
-                    #  rather than skipping masked vals.
+                    # summary metric requests to use the mask value,
+                    # as specified by itself,
+                    # rather than skipping masked vals.
                     rarr = np.array(
                         list(zip(self.metric_values.filled(m.mask_val))),
                         dtype=[("metricdata", self.metric_values.dtype)],
@@ -644,25 +678,28 @@ class MetricBundle:
         reduce_display_dict=None,
     ):
         """Run 'reduceFunc' (any function that operates on self.metric_values).
-        Typically reduceFunc will be the metric reduce functions, as they are tailored to expect the
-        metric_values format.
-        reduceDisplayDict and reducePlotDicts are displayDicts and plotDicts to be
-        applied to the new metricBundle.
+
+        Typically reduceFunc will be the metric reduce functions,
+        as they are tailored to expect the metric_values format.
+        reduceDisplayDict and reducePlotDicts are displayDicts
+        and plotDicts to be applied to the new metricBundle.
 
         Parameters
         ----------
-        reduce_func : Func
-            Any function that will operate on self.metric_values (typically metric.reduce* function).
-        reduce_plot_dict : Optional[dict]
+        reduce_func : `Func`
+            Any function that will operate on self.metric_values
+            (typically metric.reduce* function).
+        reduce_plot_dict : `dict`, opt
             Plot dictionary for the results of the reduce function.
-        reduce_display_dict : Optional[dict]
+        reduce_display_dict : `dict`, opt
             Display dictionary for the results of the reduce function.
 
         Returns
         -------
-        MetricBundle
-           New metric bundle, inheriting info_label from this metric bundle, but containing the new
-           metric values calculated with the 'reduceFunc'.
+        newmetric_bundle: `MetricBundle`
+           New metric bundle, inheriting info_label from this metric bundle,
+           but containing the new metric values calculated with
+           the 'reduceFunc'.
         """
         # Generate a name for the metric values processed by the reduceFunc.
         if reduce_func_name is not None:
@@ -670,7 +707,8 @@ class MetricBundle:
         else:
             r_name = reduce_func.__name__.replace("reduce_", "")
         reduce_name = self.metric.name + "_" + r_name
-        # Set up metricBundle to store new metric values, and add plot_dict/display_dict.
+        # Set up metricBundle to store new metric values,
+        # and add plot_dict/display_dict.
         newmetric = deepcopy(self.metric)
         newmetric.name = reduce_name
         newmetric.metric_dtype = "float"
@@ -693,22 +731,27 @@ class MetricBundle:
         )
         # Build a new output file root name.
         newmetric_bundle._build_file_root()
-        # Add existing plot_dict (except for title/xlabels etc) into new plot_dict.
+        # Add existing plot_dict (except for title/xlabels etc)
+        # into new plot_dict.
         for k, v in self.plot_dict.items():
             if k not in newmetric_bundle.plot_dict:
                 newmetric_bundle.plot_dict[k] = v
-        # Update newmetric_bundle's plot dictionary with any set explicitly by reducePlotDict.
+        # Update newmetric_bundle's plot dictionary with
+        # any set explicitly by reducePlotDict.
         newmetric_bundle.set_plot_dict(reduce_plot_dict)
         # Copy the parent metric's display dict into the reduce display dict.
         newmetric_bundle.set_display_dict(self.display_dict)
-        # Set the reduce function display 'order' (this is set in the BaseMetric
-        # by default, but can be overriden in a metric).
+        # Set the reduce function display 'order'
+        # (this is set in the BaseMetric by default,
+        # but can be overriden in a metric).
         order = newmetric.reduce_order[r_name]
         newmetric_bundle.display_dict["order"] = order
-        # And then update the newmetric_bundle's display dictionary with any set
+        # And then update the newmetric_bundle's
+        # display dictionary with any set
         # explicitly by reduceDisplayDict.
         newmetric_bundle.set_display_dict(reduce_display_dict)
-        # Set up new metricBundle's metric_values masked arrays, copying metricValue's mask.
+        # Set up new metricBundle's metric_values masked arrays,
+        # copying metricValue's mask.
         newmetric_bundle.metric_values = ma.MaskedArray(
             data=np.empty(len(self.slicer), "float"),
             mask=self.metric_values.mask.copy(),
@@ -726,24 +769,29 @@ class MetricBundle:
 
     def plot(self, plot_handler=None, plot_func=None, outfile_suffix=None, savefig=False):
         """
-        Create all plots available from the slicer. plotHandler holds the output directory info, etc.
+        Create all plots available from the slicer.
+        plotHandler holds the output directory info, etc.
 
         Parameters
         ----------
-        plot_handler : Optional[PlotHandler]
-           The plot_handler saves the output location and results_db connection for a set of plots.
-        plot_func : Optional[BasePlotter]
-           Any plotter function. If not specified, the plotters in self.plotFuncs will be used.
-        outfile_suffix : Optional[str]
+        plot_handler : `~maf.plots.plot_handler`, opt
+           The plot_handler saves the output location
+           and results_db connection for a set of plots.
+        plot_func : `maf.plots.BasePlotter`, opt
+           Any plotter function.
+           If not specified, the plotters in self.plotFuncs will be used.
+        outfile_suffix : `str`, opt
            Optional string to append to the end of the plot output files.
            Useful when creating sequences of images for movies.
-        savefig : Optional[bool]
-           Flag indicating whether or not to save the figure to disk. Default is False.
+        savefig : `bool`, opt
+           Flag indicating whether or not to save the figure to disk.
+           Default is False.
 
         Returns
         -------
-        dict
-            Dictionary of plot_type:figure number key/value pairs, indicating what plots were created
+        made_plots : `dict`
+            Dictionary of plot_type:figure number key/value pairs,
+            indicating what plots were created
             and what matplotlib figure numbers were used.
         """
         # Generate a plot_handler if none was set.

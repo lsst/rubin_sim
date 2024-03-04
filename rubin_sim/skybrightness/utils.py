@@ -57,7 +57,7 @@ def spec2mags(spectra_list, wave):
         for j, filtName in enumerate(keys):
             try:
                 result["mags"][i][j] = tempSed.calc_mag(filters[filtName])
-            except:
+            except ValueError:
                 pass
     return result, filterwave
 
@@ -66,8 +66,8 @@ def recalc_mags(data_dir=None):
     """Recalculate the magnitudes for sky brightness components.
 
     DANGER:  Overwrites data files in place. The rubin_sim_data/skybrightness
-    folder will need to be packaged and updated after running this to propigate
-    changes ot rest of users.
+    folder will need to be packaged and updated after running this to propagate
+    changes to other users.
     """
     dirs = ["Airglow", "MergedSpec", "ScatteredStarLight", "Zodiacal", "LowerAtm", "Moon", "UpperAtm"]
 

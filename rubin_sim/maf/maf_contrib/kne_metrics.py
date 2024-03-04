@@ -438,17 +438,19 @@ def generate_kn_pop_slicer(
         The seed passed to np.random
     n_files : `int`, optional
         The number of different kilonova lightcurves to use
-        This should match the length of the filenames list passed to the KNePopMetric directly.
+        This should match the length of the filenames list passed
+        to the KNePopMetric directly.
     d_min : `float` or `int`, optional
         Minimum luminosity distance (Mpc)
     d_max : `float` or `int`, optional
         Maximum luminosity distance (Mpc)
     ra, dec : `np.ndarray`, (N,) or None
-        The ra and dec to use for event positions. Generates uniformly on the spehere if None. (degrees)
+        The ra and dec to use for event positions.
+        Generates uniformly on the spehere if None. (degrees)
     """
 
     def rndm(a, b, g, size=1):
-        """Power-law gen for pdf(x) \propto x^{g-1} for a<=x<=b"""
+        """Power-law gen for pdf(x) propto x^{g-1} for a<=x<=b"""
         r = np.random.random(size=size)
         ag, bg = a**g, b**g
         return (ag + (bg - ag) * r) ** (1.0 / g)

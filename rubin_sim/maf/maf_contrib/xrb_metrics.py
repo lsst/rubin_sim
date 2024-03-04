@@ -24,8 +24,10 @@ class XrbLc:
     def lmxb_abs_mags(self, size=1):
         """Return LMXB absolute magnitudes per LSST filter.
 
-        Absolute magnitude relation is taken from Casares 2018 (2018MNRAS.473.5195C)
-        Colors are taken from M. Johnson+ 2019 (2019MNRAS.484...19J)
+        Absolute magnitude relation is taken from Casares 2018
+        (2018MNRAS.473.5195C)
+        Colors are taken from M. Johnson+ 2019
+        (2019MNRAS.484...19J)
 
         Parameters
         ----------
@@ -42,7 +44,7 @@ class XrbLc:
 
         # Derive random orbital periods from the sample in Casares 18 Table 4
         # Since there are significant outliers from a single Gaussian sample,
-        # take random choices with replacement and then perturb them fractionally
+        # take random choices with replacement, then perturb them fractionally
         catalog__porb = np.array(
             [
                 33.85,
@@ -153,7 +155,8 @@ class XrbLc:
         return amplitude * np.exp(2 * np.sqrt(tau_rise / tau_decay)) * np.exp(-tau_rise / t - t / tau_decay)
 
     def lightcurve(self, t, filtername, params):
-        """Generate an XRB outburst lightcurve for given times and a single filter.
+        """Generate an XRB outburst lightcurve for given times
+        and a single filter.
 
         Uses a simple fast-rise, exponential decay with parameters taken from
         Chen, Shrader, & Livio 1997 (ApJ 491, 312).
@@ -173,7 +176,8 @@ class XrbLc:
         Returns
         -------
         lc : `array`
-            Magnitudes of the outburst at the specified times in the given filter
+            Magnitudes of the outburst at the specified times in
+            the given filter
         """
 
         # fill lightcurve with nondetections
@@ -194,7 +198,8 @@ class XrbLc:
         return lc
 
     def detectable_duration(self, params, ebv, distance):
-        """Determine time range an outburst is detectable with perfect sampling.
+        """Determine time range an outburst is detectable with
+        perfect sampling.
 
         Does not consider visibility constraints.
 
@@ -210,9 +215,11 @@ class XrbLc:
         Returns
         ----------
         visible_start_time : `float`
-            first time relative to outburst start that the outburst could be detected
+            first time relative to outburst start that the outburst
+            could be detected
         visible_end_time : `float`
-            last time relative to outburst start that the outburst could be detected
+            last time relative to outburst start that the outburst
+            could be detected
         """
 
         nmodelt = 10000
@@ -256,6 +263,24 @@ class XrbLc:
 
 
 class XRBPopMetric(BaseMetric):
+    """Evaluate whether a given XRB would be detectable.
+
+    Includes a variety of detection criteria options, including if the
+    XRB is possible to detect, if it is detected at least pts_needed times,
+    or if it is detected pts_early times within t_early days of the start of
+    the outburst.
+
+    Parameters
+    ----------
+    pts_needed : `int`, opt
+        Minimum number of detections, for simple `detected` option.
+    mjd0 : `float`, opt
+        Start of survey.
+    output_lc : `bool`, opt
+        If True, output lightcurve points.
+        If False, just return metric values.
+    """
+
     def __init__(
         self,
         metric_name="XRBPopMetric",
@@ -264,6 +289,8 @@ class XRBPopMetric(BaseMetric):
         filter_col="filter",
         night_col="night",
         pts_needed=2,
+        pts_early=2,
+        t_early=2,
         mjd0=None,
         output_lc=False,
         badval=-666,
@@ -275,6 +302,8 @@ class XRBPopMetric(BaseMetric):
         self.filter_col = filter_col
         self.night_col = night_col
         self.pts_needed = pts_needed
+        self.pts_early = pts_early
+        self.t_early = t_early
         # `bool` variable, if True the light curve will be exported
         self.output_lc = output_lc
 
@@ -296,7 +325,9 @@ class XRBPopMetric(BaseMetric):
         self.comment = "Number or characterization of XRBs."
 
     def _ever_detect(self, where_detected):
-        """Simple detection criteria: detect at least a certain number of times"""
+        """Simple detection criteria: detect at least a certain number
+        of times.
+        """
         # Detected data points
         return np.size(where_detected) >= self.pts_needed
 
@@ -324,12 +355,14 @@ class XRBPopMetric(BaseMetric):
         return np.sum(time[where_detected] <= early_window_days) >= n_early_detections
 
     def _mean_time_between_detections(self, t):
-        """Calculate the mean time between detections over the visible interval.
+        """Calculate the mean time between detections over the
+        visible interval.
 
         Parameters
         ----------
         t : `array`
-            Times of detections, bracketed by the start and end visibility times
+            Times of detections, bracketed by the start and
+            end visibility times
 
         Return
         ----------
@@ -340,7 +373,8 @@ class XRBPopMetric(BaseMetric):
         return np.mean(np.sort(np.diff(t)))
 
     def _possible_to_detect(self, visible_duration):
-        """Return True if the outburst is ever bright enough for LSST to detect
+        """Return True if the outburst is ever bright enough
+        for LSST to detect.
 
         Parameters
         ----------
@@ -379,7 +413,7 @@ class XRBPopMetric(BaseMetric):
 
         result["possible_to_detect"] = self._possible_to_detect(slice_point["visible_duration"])
         result["ever_detect"] = self._ever_detect(where_detected)
-        result["early_detect"] = self._early_detect(where_detected, t)
+        result["early_detect"] = self._early_detect(where_detected, t, self.t_early, self.pts_early)
         result["number_of_detections"] = self._number_of_detections(where_detected)
 
         if result["number_of_detections"] > 1:
@@ -430,7 +464,7 @@ class XRBPopMetric(BaseMetric):
 
 def generate_xrb_pop_slicer(t_start=1, t_end=3652, n_events=10000, seed=42):
     """Generate a population of XRB events, and put the info about them
-    into a UserPointSlicer object
+    into a UserPointSlicer object.
 
     Parameters
     ----------

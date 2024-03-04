@@ -157,8 +157,10 @@ class FOArea(BaseMetric):
 
 
 class IdentityMetric(BaseMetric):
-    """
-    Return the metric value itself .. this is primarily useful as a summary statistic for UniSlicer metrics.
+    """Return the metric value.
+
+    This is primarily useful as a summary statistic for UniSlicer metrics,
+    to propagate the ~MetricBundle.metric_value into the results database.
     """
 
     def run(self, data_slice, slice_point=None):

@@ -23,7 +23,8 @@ def setup_args(parser=None):
     Parameters
     ----------
     parser: argparse.ArgumentParser, optional
-        Generally left at the default (None), but a user could set up their own parser if desired.
+        Generally left at the default (None), but a user could set up
+        their own parser if desired.
 
     Returns
     -------

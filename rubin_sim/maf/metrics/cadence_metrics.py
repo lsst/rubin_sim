@@ -24,14 +24,17 @@ class FSMetric(BaseMetric):
         super().__init__(cols=cols, metric_name=metric_name, units="fS", **kwargs)
 
     def run(self, data_slice, slice_point=None):
-        # We could import this from the m5_flat_sed values, but it makes sense to calculate the m5
-        # directly from the throughputs. This is easy enough to do and will allow variation of
+        # We could import this from the m5_flat_sed values,
+        # but it makes sense to calculate the m5
+        # directly from the throughputs. This is easy enough to do and
+        # will allow variation of
         # the throughput curves and readnoise and visit length, etc.
         pass
 
 
 class TemplateExistsMetric(BaseMetric):
-    """Calculate the fraction of images with a previous template image of desired quality."""
+    """Calculate the fraction of images with a previous template
+    image of desired quality."""
 
     def __init__(
         self,
@@ -52,7 +55,8 @@ class TemplateExistsMetric(BaseMetric):
         data_slice.sort(order=self.observation_start_mjd_col)
         # Find the minimum seeing up to a given time
         seeing_mins = np.minimum.accumulate(data_slice[self.seeing_col])
-        # Find the difference between the seeing and the minimum seeing at the previous visit
+        # Find the difference between the seeing and the minimum seeing
+        # at the previous visit
         seeing_diff = data_slice[self.seeing_col] - np.roll(seeing_mins, 1)
         # First image never has a template; check how many others do
         good = np.where(seeing_diff[1:] >= 0.0)[0]
@@ -63,14 +67,16 @@ class TemplateExistsMetric(BaseMetric):
 class UniformityMetric(BaseMetric):
     """Calculate how uniformly the observations are spaced in time.
 
-    This is based on how a KS-test works: look at the cumulative distribution of observation dates,
+    This is based on how a KS-test works:
+    look at the cumulative distribution of observation dates,
     and compare to a perfectly uniform cumulative distribution.
     Perfectly uniform observations = 0, perfectly non-uniform = 1.
 
     Parameters
     ----------
     mjd_col : `str`, optional
-        The column containing time for each observation. Default "observationStartMJD".
+        The column containing time for each observation.
+        Default "observationStartMJD".
     survey_length : `float`, optional
         The overall duration of the survey. Default 10.
     """
@@ -85,7 +91,8 @@ class UniformityMetric(BaseMetric):
         # If only one observation, there is no uniformity
         if data_slice[self.mjd_col].size == 1:
             return 1
-        # Scale dates to lie between 0 and 1, where 0 is the first observation date and 1 is surveyLength
+        # Scale dates to lie between 0 and 1,
+        # where 0 is the first observation date and 1 is surveyLength
         dates = (data_slice[self.mjd_col] - data_slice[self.mjd_col].min()) / (self.survey_length * 365.25)
         dates.sort()  # Just to be sure
         n_cum = np.arange(1, dates.size + 1) / float(dates.size)
@@ -96,7 +103,8 @@ class UniformityMetric(BaseMetric):
 class GeneralUniformityMetric(BaseMetric):
     """Calculate how uniformly any values are distributed.
 
-    This is based on how a KS-test works: look at the cumulative distribution of data,
+    This is based on how a KS-test works:
+    look at the cumulative distribution of data,
     and compare to a perfectly uniform cumulative distribution.
     Perfectly uniform observations = 0, perfectly non-uniform = 1.
     To be "perfectly uniform" here, the endpoints need to be included.
@@ -105,7 +113,8 @@ class GeneralUniformityMetric(BaseMetric):
     ----------
     col : `str`, optional
         The column of data to use for the metric.
-        The default is "observationStartMJD" as this is most typically used with time.
+        The default is "observationStartMJD" as this is most
+        typically used with time.
     min_value : `float`, optional
         The minimum value expected for the data.
         Default None will calculate use the minimum value in this dataslice
@@ -117,7 +126,6 @@ class GeneralUniformityMetric(BaseMetric):
     """
 
     def __init__(self, col="observationStartMJD", units="", min_value=None, max_value=None, **kwargs):
-        """survey_length = time span of survey (years)"""
         self.col = col
         super().__init__(col=self.col, units=units, **kwargs)
         self.min_value = min_value
@@ -127,7 +135,8 @@ class GeneralUniformityMetric(BaseMetric):
         # If only one observation, there is no uniformity
         if data_slice[self.col].size == 1:
             return 1
-        # Scale values to lie between 0 and 1, where 0 is the min_value and 1 is max_value
+        # Scale values to lie between 0 and 1,
+        # where 0 is the min_value and 1 is max_value
         if self.min_value is None:
             min_value = data_slice[self.col].min()
         else:
@@ -144,9 +153,11 @@ class GeneralUniformityMetric(BaseMetric):
 
 
 class RapidRevisitUniformityMetric(BaseMetric):
-    """Calculate uniformity of time between consecutive visits on short timescales (for RAV1).
+    """Calculate uniformity of time between consecutive visits on
+    short timescales (for RAV1).
 
-    Uses a the same 'uniformity' calculation as the UniformityMetric, based on the KS-test.
+    Uses the same 'uniformity' calculation as the UniformityMetric,
+    based on the KS-test.
     A value of 0 is perfectly uniform; a value of 1 is purely non-uniform.
 
     Parameters
@@ -154,7 +165,8 @@ class RapidRevisitUniformityMetric(BaseMetric):
     mjd_col : `str`, optional
         The column containing the 'time' value. Default observationStartMJD.
     min_nvisits : `int`, optional
-        The minimum number of visits required within the time interval (d_tmin to d_tmax).
+        The minimum number of visits required within the
+        time interval (d_tmin to d_tmax).
         Default 100.
     d_tmin : `float`, optional
         The minimum dTime to consider (in days). Default 40 seconds.
@@ -176,7 +188,8 @@ class RapidRevisitUniformityMetric(BaseMetric):
         self.d_tmin = d_tmin
         self.d_tmax = d_tmax
         super().__init__(col=self.mjd_col, metric_name=metric_name, **kwargs)
-        # Update min_nvisits, as 0 visits will crash algorithm and 1 is nonuniform by definition.
+        # Update min_nvisits, as 0 visits will crash algorithm
+        # and 1 is nonuniform by definition.
         if self.min_nvisits <= 1:
             self.min_nvisits = 2
 
@@ -230,16 +243,19 @@ class RapidRevisitMetric(BaseMetric):
 
 
 class NRevisitsMetric(BaseMetric):
-    """Calculate the number of consecutive visits with time differences less than d_t.
+    """Calculate the number of consecutive visits with
+    time differences less than d_t.
 
     Parameters
     ----------
     d_t : `float`, optional
         The time interval to consider (in minutes). Default 30.
     normed : `bool`, optional
-        Flag to indicate whether to return the total number of consecutive visits with time
-        differences less than d_t (False), or the fraction of overall visits (True).
-        Note that we would expect (if all visits occur in pairs within d_t) this fraction would be 0.5!
+        Flag to indicate whether to return the total number of
+        consecutive visits with time differences less than d_t (False),
+        or the fraction of overall visits (True).
+        Note that we would expect (if all visits occur in pairs within d_t)
+        this fraction would be 0.5!
     """
 
     def __init__(self, mjd_col="observationStartMJD", d_t=30.0, normed=False, metric_name=None, **kwargs):
@@ -267,12 +283,14 @@ class NRevisitsMetric(BaseMetric):
 
 class IntraNightGapsMetric(BaseMetric):
     """
-    Calculate the (reduce_func) of the gap between consecutive observations within a night, in hours.
+    Calculate the (reduce_func) of the gap between consecutive
+    observations within a night, in hours.
 
     Parameters
     ----------
     reduce_func : function, optional
-        Function that can operate on array-like structures. Typically numpy function.
+        Function that can operate on array-like structures.
+        Typically numpy function.
         Default np.median.
     """
 
@@ -306,12 +324,14 @@ class IntraNightGapsMetric(BaseMetric):
 
 
 class InterNightGapsMetric(BaseMetric):
-    """Calculate the (reduce_func) of the gap between consecutive observations in different nights, in days.
+    """Calculate the (reduce_func) of the gap between consecutive
+    observations in different nights, in days.
 
     Parameters
     ----------
     reduce_func : function, optional
-        Function that can operate on array-like structures. Typically numpy function.
+        Function that can operate on array-like structures.
+        Typically numpy function.
         Default np.median.
     """
 
@@ -344,16 +364,18 @@ class InterNightGapsMetric(BaseMetric):
 
 
 class VisitGapMetric(BaseMetric):
-    """Calculate the (reduce_func) of the gap between any consecutive observations, in hours,
-    regardless of night boundaries.
+    """Calculate the (reduce_func) of the gap between any
+    consecutive observations, in hours, regardless of night boundaries.
 
-    Different from inter-night and intra-night gaps, between this is really just counting
-    all of the times between consecutive observations (not time between nights or time within a night).
+    Different from inter-night and intra-night gaps,
+    because this is really just counting all of the times between consecutive
+    observations (not time between nights or time within a night).
 
     Parameters
     ----------
     reduce_func : function, optional
-        Function that can operate on array-like structures. Typically numpy function.
+        Function that can operate on array-like structures.
+        Typically numpy function.
         Default np.median.
     """
 

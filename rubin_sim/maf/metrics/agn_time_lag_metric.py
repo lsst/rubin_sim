@@ -50,7 +50,8 @@ class AgnTimeLagMetric(BaseMetric):
             **kwargs,
         )
 
-    # Calculate NQUIST value for time-lag and sampling time (redshift is included in formula if desired)
+    # Calculate NQUIST value for time-lag and sampling time
+    # (redshift is included in formula if desired)
     def _get_nquist_value(self, caden, lag, z):
         return lag / ((1 + z) * caden)
 

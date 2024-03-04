@@ -29,16 +29,18 @@ def twilight_func(xdata, *args, amCut=1.0):
     az should be relative to the sun (i.e., sun is at az zero.
 
     based on what I've seen, here's my guess for how to fit the twilight:
-    args[0] = ratio of (zenith twilight flux at sun_alt = -12) and dark sky zenith flux
+    args[0] = ratio of (zenith twilight flux at sun_alt = -12) and dark sky
+    zenith flux
     args[1] = decay slope for all pixels (mags/radian)
-    args[2] = airmass term for hemisphere away from the sun. (factor to multiply max brightness at zenith by)
+    args[2] = airmass term for hemisphere away from the sun.
+    (factor to multiply max brightness at zenith by)
     args[3] = az term for hemisphere towards sun
     args[4] = zenith dark sky flux
-    args[5:] = zenith dark sky times constant (optionall)
+    args[5:] = zenith dark sky times constant (optional)
 
     amCut : float (1.0)
-        The airmass cut to apply to use only the away from sun fit. Was set to 1.1
-        previously for not very clear reasons.
+        The airmass cut to apply to use only the away from sun fit.
+        Was set to 1.1 previously for not very clear reasons.
 
     """
 
@@ -54,7 +56,8 @@ def twilight_func(xdata, *args, amCut=1.0):
     flux[towards] *= 10.0 ** (args[3] * np.cos(az[towards]) * (airmass[towards] - 1.0))
 
     # This let's one fit the dark sky background simultaneously.
-    # It assumes the dark sky is a function of airmass only. Forced to be args[4] at zenith.
+    # It assumes the dark sky is a function of airmass only.
+    # Forced to be args[4] at zenith.
     if np.size(args) >= 6:
         flux[away] += args[4] * np.exp(args[5:][xdata["hpid"][away]] * (airmass[away] - 1.0))
         flux[towards] += args[4] * np.exp(args[5:][xdata["hpid"][towards]] * (airmass[towards] - 1.0))
@@ -64,11 +67,14 @@ def twilight_func(xdata, *args, amCut=1.0):
 
 def zenith_twilight(alpha, *args):
     """
-    The flux at zenith as a linear combination of a twilight component and a constant:
+    The flux at zenith as a linear combination of a twilight component
+    and a constant:
     alpha = sun altitude (radians)
-    args[0] = ratio of (zenith twilight flux at sunAlt = -12) and dark sky zenith flux
+    args[0] = ratio of (zenith twilight flux at sunAlt = -12) and
+    dark sky zenith flux
     args[1] = decay slope for all pixels (mags/radian)
-    args[2] = airmass term for hemisphere away from the sun. (factor to multiply max brightness at zenith by)
+    args[2] = airmass term for hemisphere away from the sun.
+    (factor to multiply max brightness at zenith by)
     args[3] = az term for hemisphere towards sun
     args[4] = zenith dark sky flux
     """

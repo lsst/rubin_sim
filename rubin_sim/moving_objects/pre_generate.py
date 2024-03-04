@@ -7,6 +7,7 @@ from rubin_sim.data import get_data_dir
 from rubin_sim.moving_objects import DirectObs, Orbits
 
 if __name__ == "__main__":
+    """Pre-generate a series of nightly ephemerides with a 1-night timestep."""
     mjd_start = 60676.0
     length = 365.25 * 12  # How long to pre-compute for
     dtime = 1

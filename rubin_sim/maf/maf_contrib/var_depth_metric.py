@@ -11,7 +11,23 @@ from rubin_sim.maf.metrics import BaseMetric
 
 
 class VarDepth(BaseMetric):
-    """Calculate the survey depth that a variable star can be reliably identified."""
+    """Calculate the survey depth that a variable star can be
+    reliably identified.
+
+    Parameters
+    ----------
+    completeness : `float`, opt
+        Fractional desired completeness of recovered variable sample.
+    contamination : `float`, opt
+        Fractional allowed incompleteness of recovered nonvariables.
+    numruns : `int`, opt
+        Number of simulated realizations of noise.
+        Most computationally expensive part of metric.
+    signal : `float`, opt
+        Sqrt total pulsational power meant to be recovered.
+    magres : `float`, opt
+        desired resolution of variability depth result.
+    """
 
     def __init__(
         self,
@@ -24,15 +40,6 @@ class VarDepth(BaseMetric):
         magres=0.01,
         **kwargs,
     ):
-        """
-        Instantiate metric.
-
-        :m5col: the column name of the individual visit m5 data.
-        :completeness: fractional desired completeness of recovered variable sample.
-        :contamination: fractional allowed incompleteness of recovered nonvariables.
-        :numruns: number of simulated realizations of noise (most computationally espensive part).
-        :signal: sqrt total pulsational power meant to be recovered.
-        :magres: desired resolution of variability depth result."""
         self.m5col = m5_col
         self.completeness = completeness
         self.contamination = contamination
@@ -70,19 +77,20 @@ class VarDepth(BaseMetric):
 
         # Since we are treating the underlying signal being representable by a
         # fixed-width gaussian, its variance pdf is a Chi-squared distribution
-        # with the degrees of freedom = visits. Since variances add, the variance
+        # with the degrees of freedom=visits. Since variances add, the variance
         # pdfs convolve. The cumulative distribution function of the sum of two
         # random deviates is the convolution of one pdf with a cdf.
 
-        # We'll consider the cdf of the noise-only variances because it's easier
-        # to interpolate
+        # We'll consider the cdf of the noise-only variances
+        # because it's easier to interpolate
         noisesorted = np.sort(noiseonlyvar)
         # linear interpolation
         interpnoisecdf = UnivariateSpline(
             noisesorted, np.arange(self.numruns) / float(self.numruns), k=1, s=0
         )
 
-        # We need a binned, signal-only variance probability distribution function for numerical convolution
+        # We need a binned, signal-only variance probability
+        # distribution function for numerical convolution
         numsignalsamples = 100
         xsig = np.linspace(chi2.ppf(0.001, N), chi2.ppf(0.999, N), numsignalsamples)
         signalpdf = chi2.pdf(xsig, N)
@@ -90,7 +98,8 @@ class VarDepth(BaseMetric):
         xsig = (self.signal**2.0) * xsig / N
         pdfstepsize = xsig[1] - xsig[0]
         # Since everything is going to use this stepsize down the line,
-        # normalize so the pdf integrates to 1 when summed (no factor of stepsize needed)
+        # normalize so the pdf integrates to 1 when summed
+        # (no factor of stepsize needed)
         signalpdf /= np.sum(signalpdf)
 
         # run through the sample magnitudes, calculate distance between cont
@@ -112,11 +121,14 @@ class VarDepth(BaseMetric):
             # Only do calculation if near the solution:
             if (len(xnoise) > numsignalsamples / 10) and (not solutionfound):
                 noisecdf = interpnoisecdf(xnoise / scalefact)
-                noisepdf = noisecdf[1:] - noisecdf[:-1]  # turn into a noise pdf
+                # turn into a noise pdf
+                noisepdf = noisecdf[1:] - noisecdf[:-1]
                 noisepdf /= np.sum(noisepdf)
-                xnoise = (xnoise[1:] + xnoise[:-1]) / 2.0  # from cdf to pdf conversion
+                # from cdf to pdf conversion
+                xnoise = (xnoise[1:] + xnoise[:-1]) / 2.0
 
-                # calculate and plot the convolution = signal+noise variance dist.
+                # calculate and plot the convolution =
+                # signal+noise variance dist.
                 convolution = 0
                 if len(noisepdf) > len(signalpdf):
                     convolution = np.convolve(noisepdf, signalpdf)

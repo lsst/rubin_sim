@@ -5,8 +5,7 @@ import numpy as np
 from rubin_scheduler.data import get_data_dir
 
 import rubin_sim.phot_utils.signaltonoise as snr
-from rubin_sim.phot_utils import Bandpass, PhotometricParameters, Sed
-from rubin_sim.phot_utils.utils import set_m5
+from rubin_sim.phot_utils import Bandpass, PhotometricParameters, Sed, scale_sky_m5
 
 
 class TestSNRmethods(unittest.TestCase):
@@ -201,7 +200,7 @@ class TestSNRmethods(unittest.TestCase):
             sky_dummy = Sed()
             sky_dummy.read_sed_flambda(os.path.join(get_data_dir(), "throughputs", "baseline", "darksky.dat"))
 
-            normalized_sky_dummy = set_m5(
+            normalized_sky_dummy = scale_sky_m5(
                 m5,
                 sky_dummy,
                 bp,
@@ -259,7 +258,7 @@ class TestSNRmethods(unittest.TestCase):
             sky_dummy = Sed()
             sky_dummy.read_sed_flambda(os.path.join(get_data_dir(), "throughputs", "baseline", "darksky.dat"))
 
-            normalized_sky_dummy = set_m5(
+            normalized_sky_dummy = scale_sky_m5(
                 m5,
                 sky_dummy,
                 bp,

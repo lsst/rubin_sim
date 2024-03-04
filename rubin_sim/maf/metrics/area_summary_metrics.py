@@ -8,21 +8,23 @@ from .base_metric import BaseMetric
 
 class AreaSummaryMetric(BaseMetric):
     """
-    Find the min/max of a value in the best area. This is a handy substitute for when
-    users want to know "the WFD value".
+    Find the min/max of a value over the area with the 'best' results
+    in the metric.
+    This is a handy substitute for when users want to know "the WFD value".
 
     Parameters
     ----------
-    area : float (18000)
+    area : `float`
         The area to consider (sq degrees)
-    decreasing : bool (True)
-        Should the values be sorted by increasing or decreasing order. For values where
-        "larger is better", decreasing is probably what you want. For metrics where
-        "smaller is better" (e.g., astrometric precission), set decreasing to False.
+    decreasing : `bool`
+        Should the values be sorted by increasing or decreasing order.
+        For values where "larger is better", decreasing (True) is probably
+        what you want. For metrics where "smaller is better"
+        (e.g., astrometric precission), set decreasing to False.
     reduce_func : None
-        The function to reduce the clipped values by. Will default to min/max depending on
-        the bool val of the decreasing kwarg.
-
+        The function to reduce the clipped values by.
+        Will default to min/max depending on the bool val of the decreasing
+        kwarg.
     """
 
     def __init__(
@@ -64,11 +66,12 @@ class AreaSummaryMetric(BaseMetric):
 
 
 class AreaThresholdMetric(BaseMetric):
-    """
-    Find the amount of area on the sky that meets a given threshold value.
+    """Find the amount of area on the sky that meets a given threshold value.
 
-    The area per pixel is determined from the size of the metric_values array passed to the summary metric.
-    This assumes that both all values are passed and that the metric was calculated with a healpix slicer.
+    The area per pixel is determined from the size of the metric_values
+    array passed to the summary metric.
+    This assumes that both all values are passed and that the metric was
+    calculated with a healpix slicer.
 
     Parameters
     ----------

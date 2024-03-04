@@ -7,17 +7,21 @@ import numpy as np
 
 # Modifying createStarDensityMap to use GAIA DR1 catalog
 
-# Use the catsim framework to loop over a healpy map and generate a stellar density map
+# Use the catsim framework to loop over a healpy map and generate a
+# stellar density map
 
-# Connect to fatboy with: ssh -L 51433:fatboy.phys.washington.edu:1433 gateway.astro.washington.edu
+# Connect to fatboy with: ssh -L 51433:fatboy.phys.washington.edu:1433
+# gateway.astro.washington.edu
 # If non-astro user, use simsuser@gateway.astro.washington.edu
+
+# NOTE: fatboy is no longer operative
 
 if __name__ == "__main__":
     # Hide imports here so documentation builds
-    from rubin_sim.catalogs.db import DBObject
-    from rubin_sim.utils import angular_separation, halfSpaceFromRaDec
+    from lsst.sims.catalogs.db import DBObject
+    from lsst.sims.utils import angular_separation, halfSpaceFromRaDec
 
-    # from rubin_sim.catalogs.generation.db import CatalogDBObject
+    # from lsst.sims.catalogs.generation.db import CatalogDBObject
     # Import the bits needed to get the catalog to work
     # from rubin_sim.catUtils.baseCatalogModels import *
     # from rubin_sim.catUtils.exampleCatalogDefinitions import *
@@ -61,7 +65,7 @@ if __name__ == "__main__":
         over_max_mask = data["over_max_mask"].copy()
 
     print("")
-    # Look at a cirular area the same area as the healpix it's centered on.
+    # Look at a circular area the same area as the healpix it's centered on.
     bound_length = hpsize_deg / np.pi**0.5
     radius = bound_length
 
@@ -76,12 +80,14 @@ if __name__ == "__main__":
     chunk_size = 10000
     for i in np.arange(indx_min, int(npix)):
         last_cp = ""
-        # wonder what the units of bound_length are...degrees! And it's a radius
+        # wonder what the units of bound_length are...degrees!
+        # And it's a radius
         # The newer interface:
         # obs_metadata = ObservationMetaData(bound_type='circle',
         ##                                   pointing_ra=np.degrees(ra[i]),
         #                                   pointing_dec=np.degrees(dec[i]),
-        #                                   bound_length=bound_length, mjd=5700)
+        #                                   bound_length=bound_length,
+        #                                   mjd=5700)
 
         # t = dbobj.getCatalog('ref_catalog_star', obs_metadata=obs_metadata)
         hs = halfSpaceFromRaDec(ra[i], dec[i], radius)
@@ -106,18 +112,18 @@ if __name__ == "__main__":
         results = gaia_db.get_arbitrary_chunk_iterator(query, dtype=dtype, chunk_size=10000)
         result = list(results)[0]
 
-        distances = angular_separation(result["ra"], result["dec"], ra[i], dec[i])  # Degrees
+        distances = angular_separation(result["ra"], result["dec"], ra[i], dec[i])
         result = result[np.where(distances < radius)]
 
-        import pdb
-
-        pdb.set_trace()
-        # I could think of setting the chunksize to something really large, then only doing one chunk?
-        # Or maybe setting up a way to break out of the loop if everything gets really dense?
+        # I could think of setting the chunksize to something really large,
+        # then only doing one chunk?
+        # Or maybe setting up a way to break out of the loop if
+        # everything gets really dense?
         temp_hist = np.zeros(np.size(bins) - 1, dtype=float)
         counter = 0
+        col_name = "phot_g_mean_mag"
         for chunk in results:
-            chunk_hist, bins = np.histogram(chunk[colName], bins)
+            chunk_hist, bins = np.histogram(chunk[col_name], bins)
             temp_hist += chunk_hist
             counter += chunk_size
             if counter >= break_limit:

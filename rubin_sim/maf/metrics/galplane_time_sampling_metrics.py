@@ -1,8 +1,8 @@
-################################################################################################
+###################################################################
 # Metric to evaluate the transientTimeSamplingMetric
 #
 # Author - Rachel Street: rstreet@lco.global
-################################################################################################
+###################################################################
 __all__ = (
     "calc_interval_decay",
     "GalPlaneVisitIntervalsTimescaleMetric",
@@ -48,17 +48,19 @@ class GalPlaneVisitIntervalsTimescaleMetric(BaseMetric):
     Parameters
     ----------
     science_map : `str`
-        Name of the priority footprint map key to use from the column headers contained in the
-        priority_GalPlane_footprint_map_data tables.
+        Name of the priority footprint map key to use from the column
+        headers contained in the priority_GalPlane_footprint_map_data tables.
     tau_obs : `np.ndarray` or `list` of `float`, opt
-        Timescales of minimum-required observations intervals for various classes of time variability.
-        Default (None), uses TAU_OBS. In general, this should be left as the default and consistent
-        across all galactic-plane oriented metrics.
+        Timescales of minimum-required observations intervals for various
+        classes of time variability.
+        Default (None), uses TAU_OBS. In general, this should be left as the
+        default and consistent across all galactic-plane oriented metrics.
     mag_limit : `float`, opt
         Magnitude limit to use as a cutoff for various observations.
         Default 22.0.
     mjd_col : `str`, opt
-        The name of the observation start MJD column. Default 'observationStartMJD'.
+        The name of the observation start MJD column.
+        Default 'observationStartMJD'.
     m5_col : `str', opt
         The name of the five sigma depth column. Default 'fiveSigmaDepth'.
     """
@@ -80,7 +82,8 @@ class GalPlaneVisitIntervalsTimescaleMetric(BaseMetric):
             self.tau_obs = tau_obs
         else:
             self.tau_obs = TAU_OBS
-        # Create reduce functions for the class that are return the metric for each value in tau_obs
+        # Create reduce functions for the class that are return the metric
+        # for each value in tau_obs
 
         self.mag_limit = mag_limit
         self.mjd_col = mjd_col
@@ -105,7 +108,8 @@ class GalPlaneVisitIntervalsTimescaleMetric(BaseMetric):
             self.reduce_order[f"reduceTau_{tau:.1f}".replace(".", "_").replace("reduce", "")] = i
 
     def run(self, data_slice, slice_point=None):
-        # Check if we want to evaluate this part of the sky, or if the weight is below threshold.
+        # Check if we want to evaluate this part of the sky,
+        # or if the weight is below threshold.
         if (
             slice_point[gp_priority_map_components_to_keys("sum", self.science_map)]
             <= self.priority_map_threshold
@@ -114,14 +118,16 @@ class GalPlaneVisitIntervalsTimescaleMetric(BaseMetric):
         # Select observations in the time sequence that fulfill the
         # S/N requirements:
         match = np.where(data_slice[self.m5_col] >= self.mag_limit)[0]
-        # We need at least two visits which match these requirements to calculate visit gaps
+        # We need at least two visits which match these requirements
+        # to calculate visit gaps
         if len(match) < 2:
             return self.badval
         # Find the time gaps between visits (in any filter)
         times = data_slice[self.mjd_col][match]
         times.sort()
         delta_tobs = np.diff(times)
-        # Compare the time gap distribution to the time gap required to characterize variability
+        # Compare the time gap distribution to the time gap required
+        # to characterize variability
         metric_data = {}
         for tau in self.tau_obs:
             # Normalize
@@ -130,18 +136,20 @@ class GalPlaneVisitIntervalsTimescaleMetric(BaseMetric):
 
 
 class GalPlaneSeasonGapsTimescaleMetric(BaseMetric):
-    """Metric to evaluate the gap between sequential seasonal gaps in
+    """Evaluate the gap between sequential seasonal gaps in
     observations in a lightcurve relative to the scientifically desired
     sampling interval.
 
     Parameters
     ----------
     science_map : `str`
-        Name of the priority footprint map key to use from the column headers contained in the
+        Name of the priority footprint map key to use from the column
+        headers contained in the
         priority_GalPlane_footprint_map_data tables.
     tau_var : `np.ndarray` or `list` of `float`, opt
         Timescales of variability for various classes of time variability.
-        Default (None), uses TAU_OBS * 5. In general, this should be left as the default and consistent
+        Default (None), uses TAU_OBS * 5. In general, this should be left
+        as the default and consistent
         across all galactic-plane oriented metrics.
     mag_limit : `float`, opt
         Magnitude limit to use as a cutoff for various observations.
@@ -150,7 +158,8 @@ class GalPlaneSeasonGapsTimescaleMetric(BaseMetric):
         The typical season gap expected for a galactic plane field in days.
         The default, 145 days, is typical for a bulge field.
     mjd_col : `str`, opt
-        The name of the observation start MJD column. Default 'observationStartMJD'.
+        The name of the observation start MJD column.
+        Default 'observationStartMJD'.
     m5_col : `str', opt
         The name of the five sigma depth column. Default 'fiveSigmaDepth'.
     """
@@ -168,14 +177,16 @@ class GalPlaneSeasonGapsTimescaleMetric(BaseMetric):
         self.science_map = science_map
         self.priority_map_threshold = galplane_priority_map_thresholds(self.science_map)
         # tau_obs is an array of minimum-required observation intervals for
-        # four categories of time variability; tau_var is the related timescale for the variability
-        # (tau_var is approximately 5 * tau_obs, in general)
+        # four categories of time variability; tau_var is the related timescale
+        # for the variability (tau_var is approximately 5*tau_obs, in general)
         if tau_var is not None:
             self.tau_var = tau_var
         else:
             self.tau_var = TAU_OBS * 5
-        ### NOTE: I would recommend dropping tau_var 10 and 25 from this analysis unless the metric is changed
-        ### these intervals are so short they will *always* be dropped during the season gap
+        ### NOTE: I would recommend dropping tau_var 10 and 25 from this
+        # analysis unless the metric is changed
+        # these intervals are so short they will *always* be dropped
+        # during the season gap
         self.mag_limit = mag_limit
         self.expected_season_gap = expected_season_gap
         self.mjd_col = mjd_col
@@ -194,7 +205,8 @@ class GalPlaneSeasonGapsTimescaleMetric(BaseMetric):
             self.reduce_order[f"reduce_Tau_{tau:.1f}".replace(".", "_").replace("reduce", "")] = i
 
     def run(self, data_slice, slice_point):
-        # Check if we want to evaluate this part of the sky, or if the weight is below threshold.
+        # Check if we want to evaluate this part of the sky,
+        # or if the weight is below threshold.
         if (
             slice_point[gp_priority_map_components_to_keys("sum", self.science_map)]
             <= self.priority_map_threshold
@@ -204,17 +216,20 @@ class GalPlaneSeasonGapsTimescaleMetric(BaseMetric):
         times = data_slice[self.mjd_col]
         times.sort()
         # data = np.sort(data_slice[self.mjd_col], order=self.mjd_col)
-        # SlicePoints ra/dec are always in radians - convert to degrees to calculate season
+        # SlicePoints ra/dec are always in radians -
+        # convert to degrees to calculate season
         seasons = calc_season(np.degrees(slice_point["ra"]), times)
         first_of_season, last_of_season = find_season_edges(seasons)
-        # season_lengths = times[last_of_season] - times[first_of_season]  # would this match interval calc better?
+        # season_lengths = times[last_of_season] -  times[first_of_season]
+        # would this match interval calc better?
         season_gaps = times[first_of_season][1:] - times[last_of_season][:-1]
         if len(season_gaps) == 0:
             return self.badval
         metric_data = {}
         for i, tau in enumerate(self.tau_var):
             metric_data[tau] = calc_interval_decay(season_gaps, tau)
-            # if the season gap is shorter than the expected season gap, count this as 'good'
+            # if the season gap is shorter than the expected season gap,
+            # count this as 'good'
             good_season_gaps = np.where(season_gaps <= self.expected_season_gap)
             metric_data[tau][good_season_gaps] = 1
             metric_data[tau] = metric_data[tau].sum() / len(season_gaps)

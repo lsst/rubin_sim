@@ -14,18 +14,21 @@ class DustValues:
 
     Parameters
     ----------
-    R_v : float (3.1)
+    R_v : `float`
         Extinction law parameter (3.1).
-    bandpassDict : dict (None)
-        A dict with keys of filtername and values of rubin_sim.phot_utils.Bandpass objects. Default
-        of None will load the standard ugrizy bandpasses.
-    ref_ev : float (1.)
+    bandpassDict : `dict`
+        A dict with keys of filtername and values of
+        rubin_sim.phot_utils.Bandpass objects.
+        Default of None will load the standard ugrizy bandpasses.
+    ref_ev : `float`
         The reference E(B-V) value to use. Things in MAF assume 1.
 
-    Note: the value that dust_values calls "ax1" is actually equivalent to r_x in any filter.
-    And then it's more clear that r_x * ebv = A_x (the extinction due to dust in any bandpass).
-    DustValues.r_x is also provided as a copy of DustValues.ax1 .. eventually ax1 may be deprecated
-    in favor of r_x.
+    Note
+    ----
+    The value that dust_values calls "ax1" is equivalent  to r_x in any filter.
+    And  r_x * ebv = A_x (the extinction due to dust in any bandpass).
+    DustValues.r_x is also provided as a copy of DustValues.ax1 ..
+    eventually ax1 may be deprecated in favor of r_x.
     """
 
     def __init__(self, r_v=3.1, bandpass_dict=None, ref_ebv=1.0):
@@ -49,7 +52,8 @@ class DustValues:
             # Add dust
             a, b = testsed.setup_ccm_ab()
             testsed.add_dust(a, b, ebv=self.ref_ebv, r_v=r_v)
-            # Calculate difference due to dust when EBV=1.0 (m_dust = m_nodust - Ax, Ax > 0)
+            # Calculate difference due to dust when EBV=1.0
+            # (m_dust = m_nodust - Ax, Ax > 0)
             self.ax1[filtername] = testsed.calc_mag(bandpass_dict[filtername]) - flatmag
         # Add the R_x term, to start to transition toward this name.
         self.r_x = self.ax1.copy()
@@ -70,7 +74,7 @@ class DefaultPhotometricParameters:
     Users should not access this class (which is why it is
     not included in the __all__ declaration for this file).
 
-    It is only used to initialize PhotometricParameters off of
+    It is only used to initialize PhotometricParameters for
     a bandpass name.
     """
 
@@ -148,76 +152,59 @@ class PhotometricParameters:
         sigma_sys=None,
         bandpass=None,
     ):
+        """Store photometric parameters for SNR calculations.
+
+        Parameters
+        ----------
+        exptime : `float`
+            Exposure time in seconds (per exposure).
+            None will default to value from DefaultPhotometricParameters.
+        nexp : `int`
+            Number of exposures per visit.
+            None will default to value from DefaultPhotometricParameters.
+        effarea : `float`
+            Effective area in cm^2.
+            None will default to value from DefaultPhotometricParameters.
+        gain : `float`
+            Electrons per ADU.
+            None will default to value from DefaultPhotometricParameters.
+        readnoise : `float`
+            Electrons per pixel per exposure.
+            None will default to value from DefaultPhotometricParameters.
+        darkcurrent : `float`
+            Electons per pixel per second.
+            None will default to value from DefaultPhotometricParameters.
+        othernoise : `float`
+            Electrons per pixel per exposure.
+            None will default to value from DefaultPhotometricParameters.
+        platescale : `float`
+            Arcseconds per pixel.
+            None will default to value from DefaultPhotometricParameters.
+        sigma_sys : `float`
+            Systematic error in magnitudes.
+            None will default to value from DefaultPhotometricParameters.
+        bandpass : `str`
+            The name of the bandpass for these parameters.
+
+        Examples
+        --------
+        If `bandpass` is set to an LSST bandpass,
+        the constructor will initialize
+        PhotometricParameters to LSST default values for that bandpass,
+        excepting any parameters that have been set by hand.  e.g.
+
+        >>> myPhotParams = PhotometricParameters(nexp=3, bandpass='u')
+
+        will initialize a PhotometricParameters object to `u` band defaults,
+        except with 3 exposures instead of 2. A bandpass value of None
+        will use defaults from LSST `r` band where appropriate.
         """
-        Parameters
-        ----------
-        exptime : `Unknown`
-            exposure time in seconds (defaults to LSST value)
-
-        Parameters
-        ----------
-        nexp : `Unknown`
-            number of exposures (defaults to LSST value)
-
-        Parameters
-        ----------
-        effarea : `Unknown`
-            effective area in cm^2 (defaults to LSST value)
-
-        Parameters
-        ----------
-        gain : `Unknown`
-            electrons per ADU (defaults to LSST value)
-
-        Parameters
-        ----------
-        readnoise : `Unknown`
-            electrons per pixel per exposure (defaults to LSST value)
-
-        Parameters
-        ----------
-        darkcurrent : `Unknown`
-            electons per pixel per second (defaults to LSST value)
-
-        Parameters
-        ----------
-        othernoise : `Unknown`
-            electrons per pixel per exposure (defaults to LSST value)
-
-        Parameters
-        ----------
-        platescale : `Unknown`
-            arcseconds per pixel (defaults to LSST value)
-
-        Parameters
-        ----------
-        sigma_sys : `Unknown`
-            systematic error in magnitudes
-            (defaults to LSST value)
-
-        Parameters
-        ----------
-        bandpass : `Unknown`
-            is the name of the bandpass to which these parameters
-            correspond.  If set to an LSST bandpass, the constructor will initialize
-            PhotometricParameters to LSST default values for that bandpass, excepting
-            any parameters that have been set by hand, i.e
-
-        myPhotParams = PhotometricParameters(nexp=3, bandpass='u')
-
-        will initialize a PhotometricParameters object to u bandpass defaults, except
-        with 3 exposures instead of 2.
-
-        If bandpass is left as None, other parameters will default to LSST r band
-        values (except for those values set by hand).  The bandpass member variable
-        of PhotometricParameters will, however, remain None.
-        """
-
         # readnoise, darkcurrent and othernoise are measured in electrons.
         # This is taken from the specifications document LSE-30 on Docushare
-        # Section 3.4.2.3 states that the total noise per pixel shall be 12.7 electrons per visit
-        # which the defaults sum to (remember to multply darkcurrent by the number
-        # of seconds in an exposure=15). [9 e- per 15 second exposure]
+        # Section 3.4.2.3 states that the total noise per pixel shall
+        # be 12.7 electrons per visit which the defaults sum to
+        # (remember to multply darkcurrent by the number of seconds
+        # in an exposure=15). [9 e- per 15 second exposure]
 
         self._exptime = None
         self._nexp = None
@@ -323,7 +310,8 @@ class PhotometricParameters:
     @property
     def bandpass(self):
         """
-        The name of the bandpass associated with these parameters (can be None)
+        The name of the bandpass associated with these parameters.
+        Can be None.
         """
         return self._bandpass
 

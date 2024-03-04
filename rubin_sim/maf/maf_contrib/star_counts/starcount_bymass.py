@@ -3,14 +3,16 @@
 # Mike Lund - Vanderbilt University
 # mike.lund@gmail.com
 # Last edited 8/15/2015
-# Description: Takes a given set of galactic coordinates and a stellar mass range, then calculates the number of stars within that range that will be fainter than mag 16, and have sufficiently low noise in the given band. For use with Field Star Count metric
-import math
-import sys
+# Description: Takes a given set of galactic coordinates and a stellar
+# mass range, then calculates the number of stars within that range
+# that will be fainter than mag 16, and have sufficiently low noise
+# in the given band. For use with Field Star Count metric
+
 
 import numpy as np
-from scipy.optimize import fsolve, minimize, newton
+from scipy.optimize import newton
 
-from . import abs_mag, coords, spec_type, stellardensity
+from . import abs_mag, spec_type
 from .starcount import starcount
 
 xi = 1.0
@@ -88,15 +90,3 @@ def starcount_bymass(eq_ra, eq_dec, m1, m2, band):
     distances = [dist_calc(x, band) for x in masses[:-1]]
     starcounts = [y * starcount(eq_ra, eq_dec, x[0], x[1]) for x, y in zip(distances, massfractions)]
     return sum(starcounts)
-
-
-if __name__ == "__main__":
-    print(
-        starcount_bymass(
-            float(sys.argv[1]),
-            float(sys.argv[2]),
-            float(sys.argv[3]),
-            float(sys.argv[4]),
-            sys.argv[5],
-        )
-    )

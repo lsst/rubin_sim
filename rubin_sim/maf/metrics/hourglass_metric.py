@@ -15,8 +15,10 @@ def nearest_val(A, val):
 
 
 class HourglassMetric(BaseMetric):
-    """Plot the filters used as a function of time. Must be used with the Hourglass Slicer.
-    Will totally fail in the arctic circle."""
+    """Plot the filters used as a function of time.
+    Must be used with the Hourglass Slicer.
+    Will totally fail in the arctic circle.
+    """
 
     def __init__(
         self,
@@ -68,15 +70,18 @@ class HourglassMetric(BaseMetric):
         perfilter["mjd"] = data_slice[self.mjd_col][good]
         perfilter["filter"] = data_slice[self.filter_col][good]
 
-        # brute force compute midnight times for all days between start and enc of data_slice
+        # brute force compute midnight times for all days between
+        # start and enc of data_slice
         times = Time(mjds, format="mjd")
-        # let's just find the midnight before and after each of the pre_night MJD values
+        # let's just find the midnight before and after each of the
+        # pre_night MJD values
         m_after = self.observer.midnight(times, "next")
         m_before = self.observer.midnight(times, "previous")
         midnights = np.unique(np.concatenate([m_before.mjd, m_after.mjd]))
         # calculating midnight can return nans? That seems bad.
         midnights = midnights[np.isfinite(midnights)]
-        # chop off any repeats. Need to round because observe.midnight values are not repeatable
+        # chop off any repeats. Need to round because observe.midnight
+        # values are not repeatable
         m10 = np.round(midnights * 10)
         _temp, indx = np.unique(m10, return_index=True)
         midnights = midnights[indx]
@@ -105,12 +110,8 @@ class HourglassMetric(BaseMetric):
         perfilter["midnight"] = midnights[indx]
         temp_indx = np.where(d1 < d2)
         perfilter["midnight"][temp_indx] = midnights[indx - 1][temp_indx]
-        try:
-            mtime = Time(pernight["midnight"], format="mjd")
-        except:
-            import pdb
+        mtime = Time(pernight["midnight"], format="mjd")
 
-            pdb.set_trace()
         pernight["twi12_rise"] = self.observer.twilight_morning_nautical(mtime, which="next").mjd
         pernight["twi12_set"] = self.observer.twilight_evening_nautical(mtime, which="previous").mjd
 

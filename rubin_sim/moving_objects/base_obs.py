@@ -19,39 +19,50 @@ class BaseObs:
     Parameters
     ----------
     footPrint: `str`, optional
-        Specify the footprint for the FOV. Options include "camera", "circle", "rectangle".
-        'Camera' means use the actual LSST camera footprint (following a rough cut with a circular FOV).
+        Specify the footprint for the FOV.
+        Options include "camera", "circle", "rectangle".
+        'Camera' means use the actual LSST camera footprint
+        (following a rough cut with a circular FOV).
         Default is camera FOV.
     r_fov : `float`, optional
         If footprint is "circular", this is the radius of the fov (in degrees).
         Default 1.75 degrees (only used for circular fov).
     x_tol : `float`, optional
-        If footprint is "rectangular", this is half of the width of the (on-sky) fov in the RA
-        direction (in degrees).
-        Default 5 degrees. (so size of footprint in degrees will be 10 degrees in the RA direction).
+        If footprint is "rectangular", this is half of the width
+        of the (on-sky) fov in the RA direction (in degrees).
+        Default 5 degrees.
     y_tol : `float`, optional
-        If footprint is "rectangular", this is half of the width of the fov in Declination (in degrees).
-        Default is 3 degrees (so size of footprint in degrees will be 6 degrees in the Dec direction).
+        If footprint is "rectangular", this is half of the width of
+        the fov in Declination (in degrees).
+        Default is 3 degrees
     eph_mode: `str`, optional
         Mode for ephemeris generation - nbody or 2body. Default is nbody.
     eph_type: `str`, optional
         Type of ephemerides to generate - full or basic.
-        Full includes all values calculated by openorb; Basic includes a more basic set.
-        Default is Basic.  (this includes enough information for most standard MAF metrics).
+        Full includes all values calculated by openorb;
+        Basic includes a more basic set.
+        Default is Basic.
     eph_file: `str` or None, optional
-        The name of the planetary ephemerides file to use for ephemeris generation.
+        The name of the planetary ephemerides file to use
+        for ephemeris generation.
         Default (None) will use the default for PyOrbEphemerides.
     obs_code: `str`, optional
-        Observatory code for ephemeris generation. Default is "I11" - Cerro Pachon.
+        Observatory code for ephemeris generation.
+        Default is "I11" - Cerro Pachon.
     obs_time_col: `str`, optional
-        Name of the time column in the obsData. Default 'observationStartMJD'.
+        Name of the time column in the obsData.
+        Default 'observationStartMJD'.
     obs_time_scale: `str`, optional
-        Type of timescale for MJD (TAI or UTC currently). Default TAI.
+        Type of timescale for MJD (TAI or UTC currently).
+        Default TAI.
     seeing_col: `str`, optional
-        Name of the seeing column in the obsData. Default 'seeingFwhmGeom'.
-        This should be the geometric/physical seeing as it is used for the trailing loss calculation.
+        Name of the seeing column in the obsData.
+        Default 'seeingFwhmGeom'.
+        This should be the geometric/physical seeing
+        as it is used for the trailing loss calculation.
     visit_exp_time_col: `str`, optional
-        Name of the visit exposure time column in the obsData. Default 'visitExposureTime'.
+        Name of the visit exposure time column in the obsData.
+        Default 'visitExposureTime'.
     obs_ra: `str`, optional
         Name of the RA column in the obsData. Default 'fieldRA'.
     obs_dec: `str`, optional
@@ -59,13 +70,15 @@ class BaseObs:
     obs_rot_sky_pos: `str`, optional
         Name of the Rotator column in the obsData. Default 'rotSkyPos'.
     obs_degrees: `bool`, optional
-        Whether the observational data is in degrees or radians. Default True (degrees).
+        Whether the observational data is in degrees or radians.
+        Default True (degrees).
     outfile_name : `str`, optional
         The output file name.
         Default is 'lsst_obs.dat'.
     obs_info : `str`, optional
         A string that captures provenance information about the observations.
-        For example: 'baseline_v2.0_10yrs, years 0-5' or 'baseline2018a minus NES'
+        For example: 'baseline_v2.0_10yrs, years 0-5'
+        or 'baseline2018a minus NES'
         Default ''.
     """
 
@@ -145,19 +158,23 @@ class BaseObs:
         self.camera = LsstCameraFootprint(units="degrees", footprint_file=camera_footprint_file)
 
     def setup_ephemerides(self):
-        """Initialize the ephemeris generator. Save the setup PyOrbEphemeris class.
+        """Initialize the ephemeris generator.
+        Save the setup PyOrbEphemeris class.
 
-        This uses the default engine, pyoorb - however this could be overwritten to use another generator.
+        This uses the default engine, pyoorb -
+        however this could be overwritten to use another generator.
         """
         self.ephems = PyOrbEphemerides(ephfile=self.eph_file)
 
     def generate_ephemerides(self, sso, times, eph_mode=None, eph_type=None):
-        """Generate ephemerides for 'sso' at times 'times' (assuming MJDs, with timescale self.obs_time_scale).
+        """Generate ephemerides for 'sso' at times 'times'
+        (assuming MJDs, with timescale self.obs_time_scale).
 
-        The default engine here is pyoorb, however this method could be overwritten to use another ephemeris
-        generator, such as ADAM.
+        The default engine here is pyoorb, however other ephemeris generation
+        could be used with a matching API to PyOrbEphemerides.
 
-        The initialized pyoorb class (PyOrbEphemerides) is saved, to skip setup on subsequent calls.
+        The initialized pyoorb class (PyOrbEphemerides) is saved,
+        to skip setup on subsequent calls.
 
         Parameters
         ----------
@@ -166,13 +183,15 @@ class BaseObs:
         times: `np.ndarray`
             The times at which to generate ephemerides. MJD.
         eph_mode: `str` or None, optional
-            Potentially override default eph_mode (self.eph_mode). Must be '2body' or 'nbody'.
+            Potentially override default eph_mode (self.eph_mode).
+            Must be '2body' or 'nbody'.
 
         Returns
         -------
         ephs : `pd.Dataframe`
-            Results from propigating the orbit(s) to the specified times. Columns like:
-            obj_id, sedname, time, ra, dec, dradt, ddecdt, phase, solarelon, etc
+            Results from propigating the orbit(s) to the specified times.
+            Columns like:
+            obj_id, sedname, time, ra, dec, dradt, ddecdt, phase, solarelon.
         """
         if not hasattr(self, "ephems"):
             self.setup_ephemerides()
@@ -194,16 +213,19 @@ class BaseObs:
     def calc_trailing_losses(self, velocity, seeing, texp=30.0):
         """Calculate the detection and SNR trailing losses.
 
-        'Trailing' losses = loss in sensitivity due to the photons from the source being
-        spread over more pixels; thus more sky background is included when calculating the
-        flux from the object and thus the SNR is lower than for an equivalent brightness
-        stationary/PSF-like source. dmagTrail represents this loss.
+        'Trailing' losses = loss in sensitivity due to the photons from the
+        source being spread over more pixels; thus more sky background is
+        included when calculating the flux from the object and thus the SNR
+        is lower than for an equivalent brightness stationary/PSF-like source.
+        dmagTrail represents this loss.
 
-        'Detection' trailing losses = loss in sensitivity due to the photons from the source being
-        spread over more pixels, in a non-stellar-PSF way, while source detection is (typically) done
-        using a stellar PSF filter and 5-sigma cutoff values based on assuming peaks from stellar PSF's
-        above the background; thus the SNR is lower than for an equivalent brightness stationary/PSF-like
-        source (and by a greater factor than just the simple SNR trailing loss above).
+        'Detection' trailing losses = loss in sensitivity due to the photons
+        from the source being spread over more pixels, in a non-stellar-PSF
+        way, while source detection is (typically) done using a stellar PSF
+        filter and 5-sigma cutoff values based on assuming peaks from
+        stellar PSF's above the background; thus the SNR is lower than for an
+        equivalent brightness stationary/PSF-like source (and by a greater
+        factor than just the simple SNR trailing loss above).
         dmag_detect represents this loss.
 
         Parameters
@@ -217,8 +239,10 @@ class BaseObs:
 
         Returns
         -------
-        dmag Trail, dmag_detect : (`np.ndarray`, `np.ndarray`) or (`float`, `float`)
-            dmag_trail and dmag_detect for each set of velocity/seeing/texp values.
+        dmag Trail, dmag_detect : (`np.ndarray` `np.ndarray`)
+        or (`float`, `float`)
+            dmag_trail and dmag_detect for each set of
+            velocity/seeing/texp values.
         """
         a_trail = 0.761
         b_trail = 1.162
@@ -238,10 +262,10 @@ class BaseObs:
         v_dir=None,
         v_filter="harris_V.dat",
     ):
-        """
-        Read (LSST) and Harris (V) filter throughput curves.
+        """Read (LSST) and Harris (V) filter throughput curves.
 
-        Only the defaults are LSST specific; this can easily be adapted for any survey.
+        Only the defaults are LSST specific;
+        this can easily be adapted for any survey.
 
         Parameters
         ----------
@@ -250,8 +274,9 @@ class BaseObs:
             Default set by 'LSST_THROUGHPUTS_BASELINE' env variable.
         bandpass_root : `str`, optional
             Rootname of the throughput curves in filterlist.
-            E.g. throughput curve names are bandpass_root + filterlist[i] + bandpass_suffix
-            Default total\_ (appropriate for LSST throughput repo).
+            E.g. throughput curve names are bandpass_root + filterlist[i]
+            + bandpass_suffix
+            Default `total_` (appropriate for LSST throughput repo).
         bandpass_suffix : `str`, optional
             Suffix for the throughput curves in filterlist.
             Default '.dat' (appropriate for LSST throughput repo).
@@ -260,7 +285,7 @@ class BaseObs:
             Default ('u', 'g', 'r', 'i', 'z', 'y')
         v_dir : `str`, optional
             Directory containing the V band throughput curve.
-            Default None = $SIMS_MOVINGOBJECTS_DIR/data.
+            Default None = $RUBIN_SIM_DATA_DIR/movingObjects
         v_filter : `str`, optional
             Name of the V band filter curve.
             Default harris_V.dat.
@@ -281,10 +306,11 @@ class BaseObs:
     def calc_colors(self, sedname="C.dat", sed_dir=None):
         """Calculate the colors for a given SED.
 
-        If the sedname is not already in the dictionary self.colors, this reads the
-        SED from disk and calculates all V-[filter] colors for all filters in self.filterlist.
-        The result is stored in self.colors[sedname][filter], so will not be recalculated if
-        the SED + color is reused for another object.
+        If the sedname is not already in the dictionary self.colors,
+        this reads the SED from disk and calculates all V-[filter] colors
+        for all filters in self.filterlist.
+        The result is stored in self.colors[sedname][filter], so will not
+        be recalculated if the SED + color is reused for another object.
 
         Parameters
         ----------
@@ -292,12 +318,12 @@ class BaseObs:
             Name of the SED. Default 'C.dat'.
         sed_dir : `str`, optional
             Directory containing the SEDs of the moving objects.
-            Default None = $SIMS_MOVINGOBJECTS_DIR/data.
+            Default None = $RUBIN_SIM_DATA_DIR/movingObjects,
 
         Returns
         -------
-        colors : `dict`
-            Dictionary of the colors in self.filterlist for this particular Sed.
+        colors : `dict` {'filter': color}}
+            Dictionary of the colors in self.filterlist.
         """
         if sedname not in self.colors:
             if sed_dir is None:
@@ -311,7 +337,8 @@ class BaseObs:
         return self.colors[sedname]
 
     def sso_in_circle_fov(self, ephems, obs_data):
-        """Determine which observations are within a circular fov for a series of observations.
+        """Determine which observations are within a circular fov
+        for a series of observations.
         Note that ephems and obs_data must be the same length.
 
         Parameters
@@ -324,7 +351,8 @@ class BaseObs:
         Returns
         -------
         indices : `np.ndarray`
-            Returns the indexes of the numpy array of the object observations which are inside the fov.
+            Returns the indexes of the numpy array of the object
+            observations which are inside the fov.
         """
         return self._sso_in_circle_fov(ephems, obs_data, self.r_fov)
 
@@ -347,7 +375,8 @@ class BaseObs:
         return idx_obs
 
     def sso_in_rectangle_fov(self, ephems, obs_data):
-        """Determine which observations are within a rectangular FoV for a series of observations.
+        """Determine which observations are within a rectangular FoV
+        for a series of observations.
         Note that ephems and obs_data must be the same length.
 
         Parameters
@@ -360,7 +389,8 @@ class BaseObs:
         Returns
         -------
         indices : `np.ndarray`
-            Returns the indexes of the numpy array of the object observations which are inside the fov.
+            Returns the indexes of the numpy array of the object
+            observations which are inside the fov.
         """
         return self._sso_in_rectangle_fov(ephems, obs_data, self.x_tol, self.y_tol)
 
@@ -371,7 +401,8 @@ class BaseObs:
         return idx_obs
 
     def sso_in_camera_fov(self, ephems, obs_data):
-        """Determine which observations are within the actual camera footprint for a series of observations.
+        """Determine which observations are within the actual
+        camera footprint for a series of observations.
         Note that ephems and obs_data must be the same length.
 
         Parameters
@@ -384,7 +415,8 @@ class BaseObs:
         Returns
         -------
         indices : `np.ndarray`
-            Returns the indexes of the numpy array of the object observations which are inside the fov.
+            Returns the indexes of the numpy array of the object
+            observations which are inside the fov.
         """
         if not hasattr(self, "camera"):
             self._setup_camera()
@@ -408,7 +440,8 @@ class BaseObs:
         return idx
 
     def sso_in_fov(self, ephems, obs_data):
-        """Convenience layer - determine which footprint method to apply (from self.footprint) and use it.
+        """Convenience layer - determine which footprint method to
+        apply (from self.footprint) and use it.
 
         Parameters
         ----------
@@ -420,7 +453,8 @@ class BaseObs:
         Returns
         -------
         indices : `np.ndarray`
-            Returns the indexes of the numpy array of the object observations which are inside the fov.
+            Returns the indexes of the numpy array of the object
+            observations which are inside the fov.
         """
         if self.footprint == "camera":
             return self.sso_in_camera_fov(ephems, obs_data)

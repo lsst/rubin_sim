@@ -7,6 +7,8 @@ from rubin_sim.maf.maps import BaseMap
 
 
 class GalCoordsMap(BaseMap):
+    """Add `gall` and `galb` (in radians) to the slice point dictionaries."""
+
     def __init__(self):
         self.keynames = ["gall", "galb"]
 

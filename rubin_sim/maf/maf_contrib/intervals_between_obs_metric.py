@@ -1,13 +1,22 @@
 # Example for IntervalsBetweenObsMetric
 # Somayeh Khakpash - Lehigh University
 # Last edited : 10/21/2020
-# Calculates statistics (mean or median or standard deviation) of intervals between observations during simultaneous windows/Inter-seasonal gap of another survey.
-# SurveyIntervals is the list of the survey observing window/Inter-seasonal gap intervals. It should be in the format:
-# SurveyIntervals = [ [YYYY-MM-DD, YYYY-MM-DD] , [YYYY-MM-DD, YYYY-MM-DD] , ... , [YYYY-MM-DD, YYYY-MM-DD] ]
+# Calculates statistics (mean or median or standard deviation) of intervals
+# between observations during simultaneous windows/Inter-seasonal gap of
+# another survey.
+# SurveyIntervals is the list of the survey observing window/Inter-seasonal
+# gap intervals. It should be in the format:
+# SurveyIntervals = [ [YYYY-MM-DD, YYYY-MM-DD] , [YYYY-MM-DD, YYYY-MM-DD] ,
+# ... , [YYYY-MM-DD, YYYY-MM-DD] ]
 # We are interested in calculating this metric in each of the LSST passbands.
-# The difference between this metric and the VisitGapMetric metric is that VisitGapMetric calculates reduceFunc of gaps between observations of a data_slice throughout the whole
-# baseline, but IntervalsBetweenObsMetric calculates the gaps between observations during another survey observing window. This metric combined with surveys footprint
-# overlap can determine how many often another survey footprint is observed by LSST during specific time intervals.
+# The difference between this metric and the VisitGapMetric metric is that
+# VisitGapMetric calculates reduceFunc of gaps between observations of a
+# data_slice throughout the whole
+# baseline, but IntervalsBetweenObsMetric calculates the gaps between
+# observations during another survey observing window.
+# This metric combined with surveys footprint
+# overlap can determine how many often another survey footprint is
+# observed by LSST during specific time intervals.
 __all__ = ("IntervalsBetweenObsMetric",)
 
 import numpy as np

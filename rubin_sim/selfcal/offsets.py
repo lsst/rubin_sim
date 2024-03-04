@@ -41,24 +41,27 @@ class OffsetSys(BaseOffset):
 
 
 class OffsetClouds(BaseOffset):
-    """Offset based on cloud structure. XXX--not fully implamented."""
+    """Offset based on cloud structure.
+    Not used, as not fully implemented in this version (ArmaSf).
+    """
 
     def __init__(self, sampling=256, fov=3.5):
         self.fov = fov
         self.newkey = "dmag_cloud"
-        self.SF = ArmaSf()
-        self.cloud = Clouds()
+        # self.SF = ArmaSf()
+        self.SF = None
+        # self.cloud = Clouds()
+        self.cloud = None
 
     def __call__(self, stars, visits, **kwargs):
         # XXX-Double check extinction is close to the Opsim transparency
         extinc_mags = visits["transparency"]
         if extinc_mags != 0.0:
-            # need to decide on how to get extinc_mags from Opsim
-            # Maybe push some of these params up to be setable?
             sf_theta, sf_sf = self.SF.CloudSf(500.0, 300.0, 5.0, extinc_mags, 0.55)
             # Call the Clouds
             self.cloud.makeCloudImage(sf_theta, sf_sf, extinc_mags, fov=self.fov)
-            # Interpolate clouds to correct position.  Nearest neighbor for speed?
+            # Interpolate clouds to correct position.
+            # Nearest neighbor for speed?
             nim = self.cloud.cloudimage[0, :].size
             # calc position in cloud image of each star
             starx_interp = (np.degrees(stars["x"]) + self.fov / 2.0) * 3600.0 / self.cloud.pixscale
@@ -81,9 +84,12 @@ class OffsetClouds(BaseOffset):
 
 
 class OffsetSNR(BaseOffset):
-    """Generate offsets based on the 5-sigma limiting depth of an observation and the brightness of the star.
+    """Generate offsets based on the 5-sigma limiting depth of an observation
+    and the brightness of the star.
+
     Note that this takes into account previous offsets that have been applied
-    (so run this after things like vingetting)."""
+    (so run this after things like vignetting).
+    """
 
     def __init__(self, lsst_filter="r"):
         self.lsst_filter = lsst_filter
@@ -104,8 +110,9 @@ class OffsetSNR(BaseOffset):
         if dmags is None:
             dmags = {}
         temp_mag = stars[self.lsst_filter + "mag"].copy()
-        # calc what magnitude the star has when it hits the silicon. Thus we compute the SNR noise
-        # AFTER things like cloud extinction and vingetting.
+        # calc what magnitude the star has when it hits the silicon.
+        # Thus we compute the SNR noise
+        # AFTER things like cloud extinction and vignetting.
         for key in list(dmags.keys()):
             temp_mag = temp_mag + dmags[key]
         dmag = self.calc_mag_errors(temp_mag, visit["fiveSigmaDepth"])

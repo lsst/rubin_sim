@@ -12,16 +12,24 @@ from . import BaseMap
 
 
 class StellarDensityMap(BaseMap):
-    """
-    Return the cumulative stellar luminosity function for each slice_point. Units of stars per sq degree.
-    Uses a healpix map of nside=64. Uses the nearest healpix point for other ra,dec values.
+    """Read and hold the cumulative stellar luminosity function for
+    each slice point.
+
+    The underlying stellar luminosity function map is nside = 64, and contains
+    stars per sq degree at a series of magnitudes (the map contains
+    `starLumFunc_<filter>` and `starMapBins_<filter>`).
+    For slice points which do not match nside=64, the map uses the nearest
+    healpix point on the nside=64 grid.
+
+    The stellar luminosity function comes from the GalFast model.
 
     Parameters
     ----------
     startype : `str` ('allstars', 'wdstars')
-        Load the luminosity function for all stars ('allstars'), which includes main-sequence stars
-        white dwarfs, blue horozontal branch, RR Lyrae, and Cepheids. The 'wdstars' option only includes
-        white dwarf stars.
+        Load the luminosity function for all stars ('allstars'),
+        which includes main-sequence stars
+        white dwarfs, blue horozontal branch, RR Lyrae, and Cepheids.
+        The 'wdstars' option only includes white dwarf stars.
     filtername : `str`
         Filter to use. Options of u,g,r,i,z,y
     """

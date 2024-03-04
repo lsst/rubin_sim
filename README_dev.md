@@ -53,10 +53,12 @@ To update the source contents of the data files:
 
 Process for updating pre-computed files if system throughputs change.
 
-1) update rubin_sim_data/throughputs files
-2) update rubin_sim/rubin_sim/utils/sys_eng_vals.py
-3) recompute sky brightness files with rubin_sim.skybrightness.recalc_mags
-4) remake skybrightness_pre files with rubin_sim/rubin_sim/skybrightness_pre/data/generate_hdf5.py
-5) remake dark sky map with rubin_sim/rubin_sim/skybrightness_pre/data/generate_dark_sky.py
-6) tar and update files at SDF (throughputs, skybrightness, skybrightness_pre)
+0) update the throughputs in syseng_throughputs (this should be the original trigger to update throughputs anywhere downstream)
+1) update the throughputs in lsst/throughputs (including new tag)
+2) update rubin_sim_data/throughputs data files
+3) update rubin_scheduler.utils.sys_eng_vals.py - there is a notebook in syseng_throughputs which generates this file 
+4) recompute sky brightness files with rubin_sim.skybrightness.recalc_mags
+5) remake skybrightness_pre files with rubin_sim/rubin_sim/skybrightness_pre/data/generate_hdf5.py
+6) remake dark sky map with rubin_sim/rubin_sim/skybrightness_pre/data/generate_dark_sky.py
+7) tar and update files at SDF (throughputs, skybrightness, skybrightness_pre)
 

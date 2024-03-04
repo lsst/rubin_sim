@@ -51,31 +51,38 @@ class StarDensity:
 
 
 class NYoungStarsMetric(BaseMetric):
-    """Calculate the distance or number of stars with color uncertainty defined by mags/snrs.
+    """Calculate the distance or number of stars with
+    color uncertainty defined by mags/snrs.
 
     Parameters
     ----------
-    metric_name : str, opt
+    metric_name : `str`, opt
         Default 'young_stars'.
-    m5_col : str, opt
-        The default column name for m5 information in the input data. Default fiveSigmaDepth.
-    filter_col : str, opt
+    m5_col : `str`, opt
+        The default column name for m5 information in the input data.
+        Default fiveSigmaDepth.
+    filter_col : `str`, opt
         The column name for the filter information. Default filter.
-    mags : dict
-        The absolute magnitude of the object in question. Keys of filter name, values in mags.
+    mags : `dict`, opt
+        The absolute magnitude of the object in question.
+        Keys of filter name, values in mags.
         Default is for a 0.3 solar mass star at age = 100 Myr.
-    snrs : dict
+    snrs : `dict`, opt
         The SNR to demand for each filter.
-    galb_limit : float, opt
-        The galactic latitude above which to return zero (degrees). Default 90.
-    badval : float, opt
-        The value to return when the metric value cannot be calculated. Default 0.
-    return_distance : bool, opt
-        Whether the metric will return the maximum distance that can be reached for each slice_point,
+    galb_limit : `float`, opt
+        The galactic latitude above which to return zero (degrees).
+        Default 90.
+    badval : `float`, opt
+        The value to return when the metric value cannot be calculated.
+        Default 0.
+    return_distance : `bool`, opt
+        Whether the metric will return the maximum distance that
+        can be reached for each slice_point,
         or the total number of stars down to mags/snrs.
-    crowding_error: float, opt
+    crowding_error : `float`, opt
         Crowding error that gets passed to CrowdingM5Metric. Default 0.25.
-    use_2D_extinction: Uses the 2D extinction map instead of the 3D one. Default False.
+    use_2D_extinction : `bool`, opt
+        Uses the 2D extinction map instead of the 3D one. Default False.
     """
 
     def __init__(
@@ -109,7 +116,7 @@ class NYoungStarsMetric(BaseMetric):
         self.return_distance = return_distance
         units = "kpc" if self.return_distance else "N stars"
         super().__init__(cols, metric_name=metric_name, maps=maps, units=units, badval=badval, **kwargs)
-        # Save R_x values for on-the-fly calculation of dust extinction with map
+        # Save R_x values for on-the-fly calculation of dust extinction
         self.r_x = DustValues().r_x.copy()
         # set return type
         self.m5_col = m5_col
@@ -141,8 +148,8 @@ class NYoungStarsMetric(BaseMetric):
             sky_area = np.pi * (np.radians(1.75)) ** 2
 
         # if we are outside the galb_limit, return nothing
-        # Note we could make this a more complicated function that returns an expected density of
-        # star forming regions
+        # Note we could make this a more complicated function that
+        # returns an expected density of star forming regions
         if np.abs(slice_point["galb"]) > self.galb_limit:
             return self.badval
 
@@ -179,7 +186,8 @@ class NYoungStarsMetric(BaseMetric):
                     filtername=filtername,
                 )
             distances.append(dist)
-        # compute the final distance, limited by whichever filter is most shallow
+        # compute the final distance, limited by whichever filter is
+        # most shallow
         final_distance = np.min(distances, axis=-1) / 1e3  # to kpc
         if self.return_distance:
             return final_distance

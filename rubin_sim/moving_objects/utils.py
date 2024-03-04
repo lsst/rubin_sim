@@ -1,11 +1,8 @@
 __all__ = ("read_observations",)
 
 import logging
-import os
 
 from rubin_sim.maf.utils import get_sim_data
-
-from .orbits import Orbits
 
 
 def read_observations(simfile, colmap, constraint=None, dbcols=None):
@@ -18,16 +15,17 @@ def read_observations(simfile, colmap, constraint=None, dbcols=None):
     colmap : `dict`
         colmap dictionary (from rubin_sim.maf.batches.ColMapDict)
     constraint : `str`, optional
-        Optional SQL constraint (minus 'where') on the opsim data to read from db.
+        Optional SQL constraint (minus 'where') on the data to read from db.
         Default is None.
-    dbcols : `list` of `str`, optional
-        List of additional columns to query from the db and add to the output observations.
+    dbcols : `list` of [`str`], optional
+        List of additional columns to query from the db and add to the
+        output observations.
         Default None.
 
     Returns
     -------
-    np.ndarray, dictionary
-        The OpSim data read from the database, and the dictionary mapping the column names to the data.
+    simdata : `np.ndarray`, (N)
+        The OpSim data read from the database.
     """
     if "rotSkyPos" not in colmap:
         colmap["rotSkyPos"] = "rotSkyPos"

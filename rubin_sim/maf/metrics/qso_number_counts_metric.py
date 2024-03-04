@@ -12,13 +12,16 @@ from .exgal_m5 import ExgalM5
 
 
 class QSONumberCountsMetric(BaseMetric):
-    """
-    Calculate the number of quasars expected with SNR>=5 according to the Shen et al. (2020) QLF -
-    model A in the redshift range zmin < z < zmax. The 5 sigma depths are obtained using the ExgalM5 metric.
+    """Calculate the number of quasars expected with SNR>=5
+    according to the Shen et al. (2020) QLF - model A in the redshift
+    range zmin < z < zmax.
+
+    The 5 sigma depths are obtained using the ExgalM5 metric.
     Only quasars fainter than the saturation magnitude are counted.
 
-    By default, zmin is 0.3 and zmax is the minimum between 6.7 and the redshift at which the Lyman break
-    matches the effective wavelength of the band. For bands izy, zmax is 6.7. This default choice is to
+    By default, zmin is 0.3 and zmax is the minimum between 6.7 and the
+    redshift at which the Lyman break matches the effective wavelength
+    of the band. For bands izy, zmax is 6.7. This default choice is to
     match Table 10.2 for i-band quasar counts in the LSST Science book.
     """
 
@@ -47,7 +50,8 @@ class QSONumberCountsMetric(BaseMetric):
             "y": 971.0,
         }
 
-        # Dust Extinction limit. Regions with larger extinction and dropped from the counting.
+        # Dust Extinction limit.
+        # Regions with larger extinction and dropped from the counting.
         self.extinction_cut = extinction_cut
 
         # Save the filter information.
@@ -55,9 +59,11 @@ class QSONumberCountsMetric(BaseMetric):
         self.lsst_filter = lsst_filter
 
         # Save zmin and zmax, or set zmax to the default value.
-        # The default zmax is the lower number between 6.7 and the redshift at which the
-        # Lyman break (91.2nm) hits the effective wavelength of the filter.
-        # Note that this means that for i, z and y the default value for zmax is 6.7
+        # The default zmax is the lower number between 6.7 and the
+        # redshift at which the Lyman break (91.2nm) hits the
+        # effective wavelength of the filter.
+        # Note that this means that for i, z and y,
+        # the default value for zmax is 6.7
         self.zmin = zmin
         if zmax is None:
             zmax = np.min([6.7, self.effwavelen[self.lsst_filter] / 91.2 - 1.0])
@@ -71,8 +77,9 @@ class QSONumberCountsMetric(BaseMetric):
         self.qlf_model = qlf_model
         self.sed_model = sed_model
 
-        # Read the long tables, which the number of quasars expected for a given band,
-        # qlf_module and qlf_model in a range of redshifts and magnitudes.
+        # Read the long tables, which the number of quasars expected
+        # for a given band, qlf_module and qlf_model in a range of
+        # redshifts and magnitudes.
         table_name = "Long_Table.LSST{0}.{1}.{2}.{3}.txt".format(
             self.lsst_filter, self.qlf_module, self.qlf_model, self.sed_model
         )
@@ -90,7 +97,8 @@ class QSONumberCountsMetric(BaseMetric):
         c_mz_data = np.cumsum(c_mz_data, axis=1)
 
         # Create a 2D interpolation object for the long table.
-        # self.nqso_cumulative = interpolate.interp2d(zs[:-1], mags[:-1], #c_mz_data[:-1, :-1], kind="cubic")
+        # self.nqso_cumulative = interpolate.interp2d(zs[:-1], mags[:-1],
+        # #c_mz_data[:-1, :-1], kind="cubic")
         self.nqso_cumulative_aux = interpolate.RectBivariateSpline(
             zs[:-1], mags[:-1], c_mz_data[:-1, :-1].T, kx=3, ky=3
         )

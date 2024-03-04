@@ -50,6 +50,7 @@ base_default_plot_dict = {
     "n_ticks": 10,
     "color_min": None,
     "color_max": None,
+    "extend": "neither",
     "x_min": None,
     "x_max": None,
     "y_min": None,
@@ -144,16 +145,18 @@ class HealpixSkyMap(BasePlotter):
         """
         Parameters
         ----------
-        metric_value : numpy.ma.MaskedArray
-        slicer : rubin_sim.maf.slicers.HealpixSlicer
-        user_plot_dict: dict
-            Dictionary of plot parameters set by user (overrides default values).
-        fignum : int
-            Matplotlib figure number to use (default = None, starts new figure).
+        metric_value : `numpy.ma.MaskedArray`
+        slicer : `rubin_sim.maf.slicers.HealpixSlicer`
+        user_plot_dict: `dict`
+            Dictionary of plot parameters set by user
+            (overrides default values).
+        fignum : `int`
+            Matplotlib figure number to use
+            (default = None, starts new figure).
 
         Returns
         -------
-        int
+        fignum : `int`
            Matplotlib figure number used to create the plot.
         """
         # Override the default plotting parameters with user specified values.
@@ -247,7 +250,8 @@ class HealpixSkyMap(BasePlotter):
         visufunc_params.update(self.healpy_visufunc_params)
         self.healpy_visufunc(metric_value.filled(badval), **visufunc_params)
 
-        # Add colorbar (not using healpy default colorbar because we want more tickmarks).
+        # Add colorbar
+        # (not using healpy default colorbar because we want more tickmarks).
         self.ax = plt.gca()
         im = self.ax.get_images()[0]
 
@@ -258,16 +262,21 @@ class HealpixSkyMap(BasePlotter):
         # Add label.
         if plot_dict["label"] is not None:
             plt.figtext(0.8, 0.8, "%s" % (plot_dict["label"]))
-        # Make a color bar. Supress silly colorbar warnings.
+        # Make a color bar. Suppress excessive colorbar warnings.
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
             # The vertical colorbar is primarily aimed at the movie
             # but may be useful for other purposes
+            if plot_dict["extend"] != "neither":
+                extendrect = False
+            else:
+                extendrect = True
             if plot_dict["cbar_orientation"].lower() == "vertical":
                 cb = plt.colorbar(
                     im,
                     shrink=0.5,
-                    extendrect=True,
+                    extendrect=extendrect,
+                    extend=plot_dict["extend"],
                     location="right",
                     format=plot_dict["cbar_format"],
                 )
@@ -280,7 +289,8 @@ class HealpixSkyMap(BasePlotter):
                     pad=0.1,
                     orientation="horizontal",
                     format=plot_dict["cbar_format"],
-                    extendrect=True,
+                    extendrect=extendrect,
+                    extend=plot_dict["extend"],
                 )
             cb.set_label(plot_dict["xlabel"], fontsize=plot_dict["fontsize"])
             if plot_dict["labelsize"] is not None:
@@ -308,8 +318,8 @@ class HealpixPowerSpectrum(BasePlotter):
         self.default_plot_dict.update({"maxl": None, "removeDipole": True, "linestyle": "-"})
 
     def __call__(self, metric_value, slicer, user_plot_dict, fignum=None):
-        """
-        Generate and plot the power spectrum of metric_value (calculated on a healpix grid).
+        """Generate and plot the power spectrum of metric_values
+        (for metrics calculated on a healpix grid).
         """
         if "Healpix" not in slicer.slicer_name:
             raise ValueError("HealpixPowerSpectrum for use with healpix metricBundles.")
@@ -354,7 +364,8 @@ class HealpixPowerSpectrum(BasePlotter):
             plt.tick_params(axis="y", labelsize=plot_dict["labelsize"])
         if plot_dict["title"] is not None:
             plt.title(plot_dict["title"])
-        # Return figure number (so we can reuse/add onto/save this figure if desired).
+        # Return figure number
+        # (so we can reuse/add onto/save this figure if desired).
         return fig.number
 
 
@@ -377,9 +388,7 @@ class HealpixHistogram(BasePlotter):
         self.base_hist = BaseHistogram()
 
     def __call__(self, metric_value, slicer, user_plot_dict, fignum=None):
-        """
-        Histogram metric_value for all healpix points.
-        """
+        """Histogram metric_value for all healpix points."""
         if "Healpix" not in slicer.slicer_name:
             raise ValueError("HealpixHistogram is for use with healpix slicer.")
         plot_dict = {}

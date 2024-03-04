@@ -34,23 +34,25 @@ def get_oorb_data_dir():
 
 
 class PyOrbEphemerides:
-    """Generate ephemerides and propagate orbits using the python interface to Oorb.
+    """Generate ephemerides and propagate orbits,
+    using the python interface to Oorb.
 
-    Typical usage:
-    pyephs = PyOrbEphemerides()
-    # Set the orbital parameters, using an lsst.sims.movingObjects.Orbits object
-    pyephs.setOrbits(orbits)
-    # Generate ephemerides at times 'times'.
-    ephs = pyephs.generateEphemerides(times, timeScale='UTC', obscode='I11')
-
-    This class handles the packing and unpacking of the fortran style arrays that
-    pyoorb uses, to and from more user-friendly pandas arrays.
+    PyOrbEphemerides handles the packing and unpacking of the fortran style
+    arrays that pyoorb uses, to and from more user-friendly pandas arrays.
 
     Parameters
     ----------
     ephfile : `str`, optional
         Planetary ephemerides file for Oorb (i.e. de430 or de405).
         Default $OORB_DATA/de430.dat  ($OORB_DATA = $OORB_DIR/data).
+
+    Examples
+    --------
+    Typical usage:
+
+    >>> pyephs = PyOrbEphemerides()
+    >>> pyephs.setOrbits(orbits)
+    >>> ephs = pyephs.generateEphemerides(times, timeScale, obscode)
     """
 
     def __init__(self, ephfile=None):
@@ -74,7 +76,8 @@ class PyOrbEphemerides:
     def set_orbits(self, orbit_obj):
         """Set the orbits, to be used to generate ephemerides.
 
-        Immediately calls self._convertOorbElem to translate to the 'packed' oorb format.
+        Immediately calls self._convertOorbElem to translate to the
+        'packed' oorb format.
 
         Parameters
         ----------
@@ -86,27 +89,33 @@ class PyOrbEphemerides:
         self._convert_to_oorb_elem(orbit_obj.orbits, orbit_obj.orb_format)
 
     def _convert_to_oorb_elem(self, orbit_dataframe, orb_format):
-        """Convert orbital elements into the numpy fortran-format array OpenOrb requires.
+        """Convert orbital elements into the numpy fortran-format
+        array OpenOrb requires.
 
-        The OpenOrb element format is a single array with elemenets:
+        The OpenOrb element format is a single array with elements:
         0 : orbitId (cannot be a string)
         1-6 : orbital elements, using radians for angles
-        7 : element 'type' code (1 = CAR, 2 = COM, 3 = KEP, 4 = DELauny, 5 = EQX (equinoctial))
+        7 : element 'type' code
+        (1 = CAR, 2 = COM, 3 = KEP, 4 = DELauny, 5 = EQX (equinoctial))
         8 : epoch
-        9 : timescale for epoch (1 = UTC, 2 = UT1, 3 = TT, 4 = TAI : always assumes TT)
+        9 : timescale for epoch
+        (1 = UTC, 2 = UT1, 3 = TT, 4 = TAI : always assumes TT)
         10 : magHv
         11 : g
 
-        Sets self.oorb_elem, the orbit parameters in an array formatted for OpenOrb.
+        Sets self.oorb_elem, the orbit parameters in an array
+        formatted for OpenOrb.
         """
         oorb_elem = np.zeros([len(orbit_dataframe), 12], dtype=np.double, order="F")
-        # Put in simple values for objid, or add method to test if any obj_id is a string.
+        # Put in simple values for objid, or add method to test if
+        # any obj_id is a string.
         # NOTE THAT THIS MEANS WE'VE LOST THE OBJID
         oorb_elem[:, 0] = np.arange(0, len(orbit_dataframe), dtype=int) + 1
         # Add the appropriate element and epoch types:
         oorb_elem[:, 7] = np.zeros(len(orbit_dataframe), float) + self.elem_type[orb_format]
         oorb_elem[:, 9] = np.zeros(len(orbit_dataframe), float) + self.time_scales["TT"]
-        # Convert other elements INCLUDING converting inclination, node, argperi to RADIANS
+        # Convert other elements INCLUDING converting inclination,
+        # node, argperi to RADIANS
         if orb_format == "KEP":
             oorb_elem[:, 1] = orbit_dataframe["a"]
             oorb_elem[:, 2] = orbit_dataframe["e"]
@@ -137,17 +146,14 @@ class PyOrbEphemerides:
         self.orb_format = orb_format
 
     def convert_from_oorb_elem(self):
-        """Translate pyoorb-style orbital element array back into dataframe.
-
-        Parameters
-        ----------
-        oorbElem : `np.ndarray`
-            The orbital elements in OpenOrb format.
+        """Translate pyoorb-style (fortran packed) orbital element array
+        into a pandas dataframe. Operates on self.oorb_elem.
 
         Returns
         -------
         new_orbits : `pd.DataFrame`
-            A DataFrame with the appropriate subset of columns relating to orbital elements.
+            A DataFrame with the appropriate subset of columns
+            relating to orbital elements.
         """
         if self.orb_format == "KEP":
             new_orbits = pd.DataFrame(
@@ -215,16 +221,19 @@ class PyOrbEphemerides:
         del new_orbits["elem_type"]
         del new_orbits["epoch_type"]
         del new_orbits["oorbId"]
-        # To incorporate with original Orbits object, need to swap back to original obj_ids
-        # as well as put back in original SEDs.
+        # To incorporate with original Orbits object, need to swap
+        # back to original obj_ids as well as put back in original SEDs.
         return new_orbits
 
     def convert_orbit_format(self, orb_format="CAR"):
-        """Convert orbital elements from the format in orbitObj into 'format'.
+        """Convert orbital elements into `format`.
+
+        Example: converts from self.oorb_elem[orb_format] (such as KEP)
+        to oorb_format (such as CAR).
 
         Parameters
         ----------
-        format : `str`, optional
+        orb_format : `str`, optional
             Format to convert orbital elements into.
         """
         oorb_elem, err = oo.pyoorb.oorb_element_transformation(
@@ -238,14 +247,16 @@ class PyOrbEphemerides:
         return
 
     def _convert_times(self, times, time_scale="UTC"):
-        """Generate an oorb-format array of the times desired for the ephemeris generation.
+        """Generate an oorb-format array of the times desired for the
+        ephemeris generation.
 
         Parameters
         ----------
         times : `np.ndarray` or `float`
             The ephemeris times (MJD) desired
         time_scale : `str`, optional
-            The timescale (UTC, UT1, TT, TAI) of the ephemeris MJD values. Default = UTC, MJD.
+            The timescale (UTC, UT1, TT, TAI) of the ephemeris MJD values.
+            Default = UTC, MJD.
 
         Returns
         -------
@@ -268,10 +279,14 @@ class PyOrbEphemerides:
 
         Parameters
         ----------
-        ephtimes : `np.ndarray`
+        eph_times : `np.ndarray`
             Ephemeris times in oorb format (see self.convertTimes)
         obscode : `int` or `str`, optional
-            The observatory code for ephemeris generation. Default=I11 (Cerro Pachon).
+            The observatory code for ephemeris generation.
+            Default=I11 (Cerro Pachon).
+        eph_mode : `str`, optional
+            What dynamical mode to use for generating ephemerides -
+            "N" (n-body) or "2" (2-body).
 
         Returns
         -------
@@ -289,10 +304,39 @@ class PyOrbEphemerides:
         return oorb_ephems
 
     def _convert_oorb_ephs_full(self, oorb_ephs, by_object=True):
-        """Converts oorb ephemeris array to numpy recarray, with labeled columns.
+        """Converts oorb ephemeris array to np.ndarray.
 
-        The oorb ephemeris array is a 3-d array organized as: (object / times / eph@time)
-        [objid][time][ephemeris information @ that time] with ephemeris elements
+        Here we convert to a numpy.ndarray, grouped either by object (default)
+        or by time (if by_object=False).
+        The resulting array is composed of columns (of each ephemeris element),
+        where each column is 2-d array with first axes either 'object'
+        or 'time'.
+        - if by_object = True : [ephemeris elements][object][time]
+        (i.e. the 'ra' column = 2-d array, where the [0] axis (length)
+        equals the number of ephTimes)
+        - if by_object = False : [ephemeris elements][time][object]
+        (i.e. the 'ra' column = 2-d arrays, where the [0] axis (length)
+        equals the number of objects)
+
+        Parameters
+        ----------
+        oorb_ephs : `np.ndarray`
+            The oorb-formatted ephemeris values
+        by_object : `bool`, optional
+            If True (default), resulting converted ephemerides are grouped
+            by object.
+            If False, resulting converted ephemerides are grouped by time.
+
+        Returns
+        -------
+        ephemerides : `np.ndarray`
+            The re-arranged ephemeris values, in a 3-d array.
+
+        Notes
+        -----
+        The oorb ephemeris array is a 3-d array organized as:
+        (object / times / eph@time)
+        [objid][time][ephemeris information @ that time] with elements
         ! (1) modified julian date
         ! (2) right ascension (deg)
         ! (3) declination (deg)
@@ -318,37 +362,15 @@ class PyOrbEphemerides:
         ! (23) lunar phase [0...1]
         ! (24) lunar elongation (deg, distance between the target and the Moon)
         ! (25) heliocentric ecliptic cartesian x coordinate for the object (au)
-        ! (26) heliocentric ecliptic cartesian y coordinate for the object (au)
-        ! (27) heliocentric ecliptic cartesian z coordinate for the objects (au)
-        ! (28) heliocentric ecliptic cartesian x rate for the object (au/day))
-        ! (29) heliocentric ecliptic cartesian y rate for the object (au/day)
-        ! (30) heliocentric ecliptic cartesian z rate for the objects (au/day)
-        ! (31) heliocentric ecliptic cartesian coordinates for the observatory (au)
-        ! (32) heliocentric ecliptic cartesian coordinates for the observatory (au)
-        ! (33) heliocentric ecliptic cartesian coordinates for the observatory (au)
+        ! (26) helio ecliptic cartesian y coordinate for the object (au)
+        ! (27) helio ecliptic cartesian z coordinate for the objects (au)
+        ! (28) helio ecliptic cartesian x rate for the object (au/day))
+        ! (29) helio ecliptic cartesian y rate for the object (au/day)
+        ! (30) helio ecliptic cartesian z rate for the objects (au/day)
+        ! (31) helio ecliptic cartesian coordinates for the observatory (au)
+        ! (32) helio ecliptic cartesian coordinates for the observatory (au)
+        ! (33) helio ecliptic cartesian coordinates for the observatory (au)
         ! (34) true anomaly (currently only a dummy value)
-
-        Here we convert to a numpy recarray, grouped either by object (default)
-        or by time (if by_object=False).
-        The resulting numpy recarray is composed of columns (of each ephemeris element),
-        where each column is 2-d array with first axes either 'object' or 'time'.
-        - if by_object = True : [ephemeris elements][object][time]
-        (i.e. the 'ra' column = 2-d array, where the [0] axis (length) equals the number of ephTimes)
-        - if by_object = False : [ephemeris elements][time][object]
-        (i.e. the 'ra' column = 2-d arrays, where the [0] axis (length) equals the number of objects)
-
-        Parameters
-        ----------
-        oorb_ephs : `np.ndarray`
-            The oorb-formatted ephemeris values
-        by_object : `bool`, optional
-            If True (default), resulting converted ephemerides are grouped by object.
-            If False, resulting converted ephemerides are grouped by time.
-
-        Returns
-        -------
-        ephemerides : `np.ndarray`
-            The re-arranged ephemeris values, in a 3-d array.
         """
         ephs = np.swapaxes(oorb_ephs, 2, 0)
         velocity = np.sqrt(ephs[3] ** 2 + ephs[4] ** 2)
@@ -408,7 +430,8 @@ class PyOrbEphemerides:
         ephtimes : `np.ndarray`
             Ephemeris times in oorb format (see self.convertTimes).
         obscode : `int` or `str`, optional
-            The observatory code for ephemeris generation. Default=I11 (Cerro Pachon).
+            The observatory code for ephemeris generation.
+            Default=I11 (Cerro Pachon).
 
         Returns
         -------
@@ -426,10 +449,29 @@ class PyOrbEphemerides:
         return oorb_ephems
 
     def _convert_oorb_ephs_basic(self, oorb_ephs, by_object=True):
-        """Converts oorb ephemeris array to numpy recarray, with labeled columns.
+        """Converts oorb ephemeris array to numpy recarray,
+        with labeled columns.
 
-        The oorb ephemeris array is a 3-d array organized as: (object / times / eph@time)
-        [objid][time][ephemeris information @ that time] with ephemeris elements
+        Parameters
+        ----------
+        oorb_ephs : `np.ndarray`
+            The oorb-formatted ephemeris values
+        by_object : `bool`, optional
+            If True (default), resulting converted ephemerides are grouped
+            by object.
+            If False, resulting converted ephemerides are grouped by time.
+
+        Returns
+        -------
+        ephs : `np.ndarray`
+            The re-arranged ephemeris values, in a 3-d array.
+
+        Notes
+        -----
+        The oorb ephemeris array is a 3-d array organized as:
+        (object / times / eph@time)
+        [objid][time][ephemeris information @ that time] with ephemeris
+        elements
         ! (1) modified julian date
         ! (2) right ascension (deg)
         ! (3) declination (deg)
@@ -442,27 +484,17 @@ class PyOrbEphemerides:
         ! (10) predicted apparent V-band magnitude
         ! (11) true anomaly (currently only a dummy value)
 
-        Here we convert to a numpy recarray, grouped either by object (default)
+        Here we convert to a numpy array, grouped either by object (default)
         or by time (if by_object=False).
-        The resulting numpy recarray is composed of columns (of each ephemeris element),
-        where each column is 2-d array with first axes either 'object' or 'time'.
+        The resulting array is composed of columns (of each ephemeris element),
+        where each column is 2-d array with first axes either 'object'
+        or 'time'.
         - if by_object = True : [ephemeris elements][object][time]
-        (i.e. the 'ra' column = 2-d array, where the [0] axis (length) equals the number of ephTimes)
+        (i.e. the 'ra' column = 2-d array, where the [0] axis (length)
+        equals the number of ephTimes)
         - if by_object = False : [ephemeris elements][time][object]
-        (i.e. the 'ra' column = 2-d arrays, where the [0] axis (length) equals the number of objects)
-
-        Parameters
-        ----------
-        oorb_ephs : `np.ndarray`
-            The oorb-formatted ephemeris values
-        by_object : `bool`, optional
-            If True (default), resulting converted ephemerides are grouped by object.
-            If False, resulting converted ephemerides are grouped by time.
-
-        Returns
-        -------
-        ephs : `np.ndarray`
-            The re-arranged ephemeris values, in a 3-d array.
+        (i.e. the 'ra' column = 2-d arrays, where the [0] axis (length)
+        equals the number of objects)
         """
         ephs = np.swapaxes(oorb_ephs, 2, 0)
         velocity = np.sqrt(ephs[3] ** 2 + ephs[4] ** 2)
@@ -502,40 +534,49 @@ class PyOrbEphemerides:
     ):
         """Calculate ephemerides for all orbits at times `times`.
 
-        This is a public method, wrapping self._convert_times, self._generateOorbEphs
-        and self._convertOorbEphs (which include dealing with oorb-formatting of arrays).
-
-        The return ephemerides are in a numpy recarray, with axes
-        - if by_object = True : [ephemeris values][object][@time]
-        (i.e. the 'ra' column = 2-d array, where the [0] axis (length) equals the number of eph_times)
-        - if by_object = False : [ephemeris values][time][@object]
-        (i.e. the 'ra' column = 2-d arrays, where the [0] axis (length) equals the number of objects)
-
-        The ephemeris values returned to the user (== columns of the recarray) are:
-        ['delta', 'ra', 'dec', 'magV', 'time', 'dradt', 'ddecdt', 'phase', 'solarelon', 'velocity']
-        where positions/angles are all in degrees, velocities are deg/day, and delta is the
-        distance between the Earth and the object in AU.
+        All returned positions and angles are in degrees, velocities
+        are degrees/day and distances are in AU.
 
         Parameters
         ----------
-        ephtimes : `np.ndarray`
-            Ephemeris times in oorb format (see self.convertTimes)
+        times : `np.ndarray`, (N,)
+            Ephemeris times.
+        time_scale : `str`, optional
+            Time scale (UTC, TT, TAI) of times.
         obscode : `int` or `str`, optional
-            The observatory code for ephemeris generation. Default=807 (Cerro Tololo).
+            The observatory code for ephemeris generation.
         by_object : `bool`, optional
-            If True (default), resulting converted ephemerides are grouped by object.
+            If True (default), resulting converted ephemerides are
+            grouped by object.
             If False, resulting converted ephemerides are grouped by time.
         eph_mode : `str`, optional
             Dynamical model to use for ephemeris generation - nbody or 2body.
             Accepts 'nbody', '2body', 'N' or '2'. Default nbody.
         eph_type : `str`, optional
-            Generate full (more data) ephemerides or basic (less data) ephemerides.
+            Generate full (more data) ephemerides or basic (less data)
+            ephemerides.
             Default basic.
 
         Returns
         -------
         ephemerides : `np.ndarray`
             The ephemeris values, organized as chosen by the user.
+
+
+        Notes
+        -----
+        The returned ephemerides are a numpy array that can be grouped
+        by object or by time.
+
+        If they are grouped by object (by_object = True), the array
+        is organized as `ephemeris_values[object][time]`.
+        Here the "ra" column is a 2-d array where the [0] axis
+        length equals the number of ephemeris times.
+
+        If they are grouped by time (by_object=False), the array
+        is organized as `ephemeris_values[time][object]`.
+        Here the "ra" column is a 2-d array where the [0] axis length
+        equals the number of objects.
         """
         if eph_mode.lower() in ("nbody", "n"):
             eph_mode = "N"
@@ -547,7 +588,6 @@ class PyOrbEphemerides:
         # t = time.time()
         eph_times = self._convert_times(times, time_scale=time_scale)
         if eph_type.lower() == "basic":
-            # oorb_ephs = self._generate_oorb_ephs_basic(eph_times, obscode=obscode, eph_mode=eph_mode)
             oorb_ephs, err = oo.pyoorb.oorb_ephemeris_basic(
                 in_orbits=self.oorb_elem,
                 in_obscode=obscode,
@@ -561,7 +601,8 @@ class PyOrbEphemerides:
         else:
             raise ValueError("eph_type must be full or basic")
         # dt, t = dtime(t)
-        # logging.debug("# Calculating ephemerides for %d objects over %d times required %f seconds"
+        # logging.debug("# Calculating ephemerides for %d objects over %d times
+        # required %f seconds"
         #              % (len(self.oorb_elem), len(times), dt))
         return ephs
 

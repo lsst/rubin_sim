@@ -97,11 +97,9 @@ class ParallaxMetric(BaseMetric):
                 "This normalized version of the metric displays the "
                 "estimated uncertainty in the parallax measurement, "
             )
-            self.comment += "divided by the minimum parallax uncertainty possible " "(if all visits were six "
-            self.comment += (
-                "months apart). Values closer to 1 indicate more optimal "
-                "scheduling for parallax measurement."
-            )
+            self.comment += "divided by the minimum parallax uncertainty possible "
+            self.comment += "(if all visits were six months apart). "
+            self.comment += "Values closer to 1 indicate more optimal " "scheduling for parallax measurement."
 
     def _final_sigma(self, position_errors, ra_pi_amp, dec_pi_amp):
         """Assume parallax in RA and DEC are fit independently, then combined.
@@ -127,7 +125,8 @@ class ParallaxMetric(BaseMetric):
         position_errors = mafUtils.astrom_precision(data_slice[self.seeing_col], snr, self.atm_err)
         sigma = self._final_sigma(position_errors, data_slice["ra_pi_amp"], data_slice["dec_pi_amp"])
         if self.normalize:
-            # Leave the dec parallax as zero since one can't have ra and dec maximized at the same time.
+            # Leave the dec parallax as zero since one can't have
+            # ra and dec maximized at the same time.
             sigma = (
                 self._final_sigma(
                     position_errors,
@@ -146,32 +145,41 @@ class ProperMotionMetric(BaseMetric):
 
     Parameters
     ----------
-    metricName : str, optional
+    metricName : `str`, optional
         Default 'properMotion'.
-    m5_col : str, optional
-        The default column name for m5 information in the input data. Default fiveSigmaDepth.
-    mjd_col : str, optional
+    m5_col : `str`, optional
+        The default column name for m5 information in the input data.
+        Default fiveSigmaDepth.
+    mjd_col : `str`, optional
         The column name for the exposure time. Default observationStartMJD.
-    filterCol : str, optional
+    filterCol : `str`, optional
         The column name for the filter information. Default filter.
-    seeing_col : str, optional
-        The column name for the seeing information. Since the astrometry errors are based on the physical
-        size of the PSF, this should be the FWHM of the physical psf. Default seeingFwhmGeom.
-    rmag : float, optional
-        The r magnitude of the fiducial star in r band. Other filters are sclaed using sedTemplate keyword.
+    seeing_col : `str`, optional
+        The column name for the seeing information.
+        Since the astrometry errors are based on the physical
+        size of the PSF, this should be the FWHM of the physical psf.
+        Default seeingFwhmGeom.
+    rmag : `float`, optional
+        The r magnitude of the fiducial star in r band.
+        Other filters are sclaed using sedTemplate keyword.
         Default 20.0
-    SedTemplate : str, optional
-        The template to use. This can be 'flat' or 'O','B','A','F','G','K','M'. Default flat.
-    atm_err : float, optional
-        The expected centroiding error due to the atmosphere, in arcseconds. Default 0.01.
+    SedTemplate : `str`, optional
+        The template to use. This can be 'flat' or 'O','B','A','F','G','K','M'.
+        Default flat.
+    atm_err : `float`, optional
+        The expected centroiding error due to the atmosphere, in arcseconds.
+        Default 0.01.
     normalize : `bool`, optional
-        Compare the astrometric uncertainty to the uncertainty that would result if half the observations
-        were taken at the start and half at the end. A perfect survey will have a value close to 1, while
+        Compare the astrometric uncertainty to the uncertainty that would
+        result if half the observations were taken at the start and half
+        at the end. A perfect survey will have a value close to 1, while
         a poorly scheduled survey will be close to 0. Default False.
-    baseline : float, optional
-        The length of the survey used for the normalization, in years. Default 10.
-    badval : float, optional
-        The value to return when the metric value cannot be calculated. Default -666.
+    baseline : `float`, optional
+        The length of the survey used for the normalization, in years.
+        Default 10.
+    badval : `float`, optional
+        The value to return when the metric value cannot be calculated.
+        Default -666.
     """
 
     def __init__(
@@ -225,8 +233,8 @@ class ProperMotionMetric(BaseMetric):
             self.comment += (
                 "This normalized version of the metric represents " "the estimated uncertainty in the proper "
             )
-            self.comment += "motion divided by the minimum uncertainty possible " "(if all visits were "
-            self.comment += "obtained on the first and last days of the survey). "
+            self.comment += "motion divided by the minimum uncertainty possible "
+            self.comment += "(if all visits were obtained on the first and last days of the survey). "
             self.comment += "Values closer to 1 indicate more optimal scheduling."
 
     def run(self, data_slice, slice_point=None):
@@ -257,50 +265,61 @@ class ProperMotionMetric(BaseMetric):
 
 
 class ParallaxCoverageMetric(BaseMetric):
-    """
-    Check how well the parallax factor is distributed. Subtracts the weighted mean position of the
+    """Check how well the parallax factor is distributed.
+
+    Subtracts the weighted mean position of the
     parallax offsets, then computes the weighted mean radius of the points.
-    If points are well distributed, the mean radius will be near 1. If phase coverage is bad,
-    radius will be close to zero.
+    If points are well distributed, the mean radius will be near 1.
+    If phase coverage is bad, radius will be close to zero.
 
-    For points on the Ecliptic, uniform sampling should result in a metric value of ~0.5.
+    For points on the Ecliptic, uniform sampling should result in a
+    metric value of ~0.5.
     At the poles, uniform sampling would result in a metric value of ~1.
-    Conceptually, it is helpful to remember that the parallax motion of a star at the pole is
-    a (nearly circular) ellipse while the motion of a star on the ecliptic is a straight line. Thus, any
-    pair of observations separated by 6 months will give the full parallax range for a star on the pole
-    but only observations on very specific dates will give the full range for a star on the ecliptic.
+    Conceptually, it is helpful to remember that the parallax motion of a
+    star at the pole is a (nearly circular) ellipse while the motion of a
+    star on the ecliptic is a straight line. Thus, any pair of observations
+    separated by 6 months will give the full parallax range for a star on
+    the pole but only observations on very specific dates will give the
+    full range for a star on the ecliptic.
 
-    Optionally also demand that there are observations above the snr_limit kwarg spanning theta_range radians.
+    Optionally also demand that there are observations above the snr_limit
+    kwarg spanning theta_range radians.
 
     Parameters
     ----------
-    m5_col: str, optional
+    m5_col : `str`, optional
         Column name for individual visit m5. Default fiveSigmaDepth.
-    mjd_col: str, optional
+    mjd_col : `str`, optional
         Column name for exposure time dates. Default observationStartMJD.
-    filter_col: str, optional
+    filter_col : `str`, optional
         Column name for filter. Default filter.
-    seeing_col: str, optional
+    seeing_col : `str`, optional
         Column name for seeing (assumed FWHM). Default seeingFwhmGeom.
-    rmag: float, optional
-        Magnitude of fiducial star in r filter.  Other filters are scaled using sedTemplate keyword.
+    rmag : `float`, optional
+        Magnitude of fiducial star in r filter.
+        Other filters are scaled using sedTemplate keyword.
         Default 20.0
-    sedTemplate: str, optional
-        Template to use (can be 'flat' or 'O','B','A','F','G','K','M'). Default 'flat'.
-    atm_err: float, optional
-        Centroiding error due to atmosphere in arcsec. Default 0.01 (arcseconds).
-    theta_range: float, optional
-        Range of parallax offset angles to demand (in radians). Default=0 (means no range requirement).
-    snr_limit: float, optional
-        Only include points above the snr_limit when computing theta_range. Default 5.
+    sedTemplate : `str`, optional
+        Template to use (can be 'flat' or 'O','B','A','F','G','K','M').
+        Default 'flat'.
+    atm_err : `float`, optional
+        Centroiding error due to atmosphere in arcsec.
+        Default 0.01 (arcseconds).
+    theta_range : `float`, optional
+        Range of parallax offset angles to demand (in radians).
+        Default=0 (means no range requirement).
+    snr_limit : `float`, optional
+        Only include points above the snr_limit when computing theta_range.
+        Default 5.
 
     Returns
     --------
-    metricValue: float
+    metricValu e: `float`
         Returns a weighted mean of the length of the parallax factor vectors.
         Values near 1 imply that the points are well distributed.
         Values near 0 imply that the parallax phase coverage is bad.
-        Near the ecliptic, uniform sampling results in metric values of about 0.5.
+        Near the ecliptic, uniform sampling results in metric values
+        of about 0.5.
 
     Notes
     -----
@@ -354,7 +373,7 @@ class ParallaxCoverageMetric(BaseMetric):
         theta = theta - np.min(theta)
         result = 0.0
         if np.max(theta) >= self.theta_range:
-            # Check that things are in differnet quadrants
+            # Check that things are in different quadrants
             theta = (theta + np.pi) % 2.0 * np.pi
             theta = theta - np.min(theta)
             if np.max(theta) >= self.theta_range:
@@ -397,36 +416,42 @@ class ParallaxCoverageMetric(BaseMetric):
 
 
 class ParallaxDcrDegenMetric(BaseMetric):
-    """Use the full parallax and DCR displacement vectors to find if they are degenerate.
+    """Use the full parallax and DCR displacement vectors to find if they
+    are degenerate.
 
     Parameters
     ----------
-    metricName : str, optional
+    metricName : `str`, optional
         Default 'ParallaxDcrDegenMetric'.
-    seeing_col : str, optional
+    seeing_col : `str`, optional
         Default 'FWHMgeom'
-    m5_col : str, optional
+    m5_col : `str`, optional
         Default 'fiveSigmaDepth'
-    filter_col : str
+    filter_col : `str`
         Default 'filter'
-    atm_err : float
-        Minimum error in photometry centroids introduced by the atmosphere (arcseconds). Default 0.01.
-    rmag : float
+    atm_err : `float`
+        Minimum error in photometry centroids introduced by the atmosphere
+        (arcseconds). Default 0.01.
+    rmag : `float`
         r-band magnitude of the fiducual star that is being used (mag).
-    SedTemplate : str
-        The SED template to use for fiducia star colors, passed to rubin_scheduler.utils.stellarMags.
+    SedTemplate : `str`
+        The SED template to use for fiducia star colors,
+        passed to rubin_scheduler.utils.stellarMags.
         Default 'flat'
-    tol : float
-        Tolerance for how well curve_fit needs to work before believing the covariance result.
+    tol : `float`
+        Tolerance for how well curve_fit needs to work before
+        believing the covariance result.
         Default 0.05.
 
     Returns
     -------
-    metricValue : float
-        Returns the correlation coefficient between the best-fit parallax amplitude and DCR amplitude.
-        The RA and Dec offsets are fit simultaneously. Values close to zero are good, values close to +/- 1
-        are bad. Experience with fitting Monte Carlo simulations suggests the astrometric fits start
-        becoming poor around a correlation of 0.7.
+    metricValue : `float`
+        Returns the correlation coefficient between the best-fit parallax
+        amplitude and DCR amplitude.
+        The RA and Dec offsets are fit simultaneously.
+        Values close to zero are good, values close to +/- 1 are bad.
+        Experience with fitting Monte Carlo simulations suggests the
+        astrometric fits start becoming poor around a correlation of 0.7.
     """
 
     def __init__(
@@ -465,39 +490,46 @@ class ParallaxDcrDegenMetric(BaseMetric):
         self.atm_err = atm_err
 
     def _positions(self, x, a, b):
-        """
-        Function to find parallax and dcr amplitudes
+        """Function to find parallax and dcr amplitudes
 
-        x should be a vector with [[parallax_x1, parallax_x2..., parallax_y1, parallax_y2...],
+        x should be a vector with [[parallax_x1, parallax_x2...,
+        parallax_y1, parallax_y2...],
         [dcr_x1, dcr_x2..., dcr_y1, dcr_y2...]]
         """
         result = a * x[0, :] + b * x[1, :]
         return result
 
     def run(self, data_slice, slice_point=None):
-        # The idea here is that we calculate position errors (in RA and Dec) for all observations.
-        # Then we generate arrays of the parallax offsets (delta RA parallax = ra_pi_amp, etc)
-        #  and the DCR offsets (delta RA DCR = ra_dcr_amp, etc), and just add them together into one
-        #  RA  (and Dec) offset. Then, we try to fit for how we combined these offsets, but while
-        #  considering the astrometric noise. If we can figure out that we just added them together
-        # (i.e. the curve_fit result is [a=1, b=1] for the function _positions above)
-        # then we should be able to disentangle the parallax and DCR offsets when fitting 'for real'.
+        # The idea here is that we calculate position errors (in RA and Dec)
+        # for all observations. Then we generate arrays of the parallax
+        # offsets (delta RA parallax = ra_pi_amp, etc) and the DCR offsets
+        # (delta RA DCR = ra_dcr_amp, etc), and just add them together into one
+        # RA (and Dec) offset. Then, we try to fit for how we combined these
+        # offsets, but while considering the astrometric noise. If we can
+        # figure out that we just added them together
+        # (i.e. the curve_fit result is [a=1, b=1] for the function
+        # _positions above) then we should be able to disentangle the
+        # parallax and DCR offsets when fitting 'for real'.
         # compute SNR for all observations
         snr = np.zeros(len(data_slice), dtype="float")
         for filt in np.unique(data_slice[self.filter_col]):
             in_filt = np.where(data_slice[self.filter_col] == filt)
             snr[in_filt] = mafUtils.m52snr(self.mags[filt], data_slice[self.m5_col][in_filt])
         # Compute the centroiding uncertainties
-        # Note that these centroiding uncertainties depend on the physical size of the PSF, thus
-        # we are using seeingFwhmGeom for these metrics, not seeingFwhmEff.
+        # Note that these centroiding uncertainties depend on the physical
+        # size of the PSF, thus we are using seeingFwhmGeom for these metrics,
+        # not seeingFwhmEff.
         position_errors = mafUtils.astrom_precision(data_slice[self.seeing_col], snr, self.atm_err)
-        # Construct the vectors of RA/Dec offsets. xdata is the "input data". ydata is the "output".
+        # Construct the vectors of RA/Dec offsets. xdata is the "input data".
+        # ydata is the "output".
         xdata = np.empty((2, data_slice.size * 2), dtype=float)
         xdata[0, :] = np.concatenate((data_slice["ra_pi_amp"], data_slice["dec_pi_amp"]))
         xdata[1, :] = np.concatenate((data_slice["ra_dcr_amp"], data_slice["dec_dcr_amp"]))
         ydata = np.sum(xdata, axis=0)
-        # Use curve_fit to compute covariance between parallax and dcr amplitudes
-        # Set the initial guess slightly off from the correct [1,1] to make sure it iterates.
+        # Use curve_fit to compute covariance between parallax
+        # and dcr amplitudes
+        # Set the initial guess slightly off from the correct [1,1] to
+        # make sure it iterates.
         popt, pcov = curve_fit(
             self._positions,
             xdata,
@@ -511,7 +543,8 @@ class ParallaxDcrDegenMetric(BaseMetric):
             return self.badval
         # Covariance between best fit parallax amplitude and DCR amplitude.
         cov = pcov[1, 0]
-        # Convert covarience between parallax and DCR amplitudes to normalized correlation
+        # Convert covariance between parallax and DCR amplitudes to normalized
+        # correlation
         perr = np.sqrt(np.diag(pcov))
         correlation = cov / (perr[0] * perr[1])
         result = correlation
@@ -522,13 +555,26 @@ class ParallaxDcrDegenMetric(BaseMetric):
 
 
 def calc_dist_cosines(ra1, dec1, ra2, dec2):
-    # Taken from simSelfCalib.py
     """Calculates distance on a sphere using spherical law of cosines.
 
-    Give this function RA/Dec values in radians. Returns angular distance(s), in radians.
-    Note that since this is all numpy, you could input arrays of RA/Decs."""
+    Note: floats can be replaced by numpy arrays of RA/Dec.
+    For very small distances, rounding errors may cause distance errors.
+
+    Parameters
+    ----------
+    ra1, dec1 : `float`, `float`
+        RA and Dec of one point. (radians)
+    ra2, dec2 : `float`, `float`
+        RA and Dec of another point. (radians)
+
+    Returns
+    -------
+    distance : `float`
+        Angular distance between the points in radians.
+    """
     # This formula can have rounding errors for case where distances are small.
-    # Oh, the joys of wikipedia - http://en.wikipedia.org/wiki/Great-circle_distance
+    # Oh, the joys of wikipedia -
+    # http://en.wikipedia.org/wiki/Great-circle_distance
     # For the purposes of these calculations, this is probably accurate enough.
     D = np.sin(dec2) * np.sin(dec1) + np.cos(dec1) * np.cos(dec2) * np.cos(ra2 - ra1)
     D = np.arccos(D)
@@ -536,7 +582,9 @@ def calc_dist_cosines(ra1, dec1, ra2, dec2):
 
 
 class RadiusObsMetric(BaseMetric):
-    """find the radius in the focal plane. returns things in degrees."""
+    """Evaluate slice point radial position in the focal plane of each visit,
+    reducing to the mean, rms and full range of these radial distances.
+    """
 
     def __init__(
         self, metric_name="radiusObs", ra_col="fieldRA", dec_col="fieldDec", units="radians", **kwargs

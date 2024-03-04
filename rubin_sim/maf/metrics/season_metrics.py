@@ -1,5 +1,6 @@
-"""A group of metrics that work together to evaluate season characteristics (length, number, etc).
-In addition, these supports the time delay metric calculation for strong lensing.
+"""A group of metrics that work together to evaluate season characteristics
+(length, number, etc).
+In addition, these support the time delay metric for strong lensing.
 """
 __all__ = (
     "find_season_edges",
@@ -22,13 +23,13 @@ def find_season_edges(seasons):
 
     Parameters
     ----------
-    seasons: np.ndarray
+    seasons : `np.ndarray`, (N,)
         Seasons, such as calculated by calc_season.
         Note that seasons should be sorted!!
 
     Returns
     -------
-    np.ndarray, np.ndarray
+    first, last : `np.ndarray`, (N,), `np.ndarray`, (N,)
         The indexes of the first and last date in the season.
     """
     int_seasons = np.floor(seasons)
@@ -41,17 +42,24 @@ def find_season_edges(seasons):
 
 
 class SeasonLengthMetric(BaseMetric):
-    """
-    Calculate the length of LSST seasons, in days.
+    """Calculate the length of LSST seasons, in days.
 
     Parameters
     ----------
-    min_exp_time: float, optional
-        Minimum visit exposure time to count for a 'visit', in seconds. Default 20.
+    min_exp_time : `float`, optional
+        Minimum visit exposure time to count for a 'visit', in seconds.
+        Default 20.
     reduce_func : function, optional
-       Function that can operate on array-like structures. Typically numpy function.
-       This reduces the season length in each season from 10 separate values to a single value.
+       Function that can operate on array-like structures.
+       Typically numpy function.
+       This reduces the season length in each season from 10 separate
+       values to a single value.
        Default np.median.
+
+    Returns
+    -------
+    seasonlength : `float`
+        The (reduceFunc) of the length of each season, in days.
     """
 
     def __init__(
@@ -73,28 +81,13 @@ class SeasonLengthMetric(BaseMetric):
         )
 
     def run(self, data_slice, slice_point):
-        """Calculate the (reduceFunc) of the length of each season.
-        Uses the slice_point RA/Dec to calculate the position in question, then uses the times of the visits
-        to assign them into seasons (based on where the sun is relative to the slice_point RA).
-
-        Parameters
-        ----------
-        data_slice : numpy.array
-            Numpy structured array containing the data related to the visits provided by the slicer.
-        slice_point : dict
-            Dictionary containing information about the slice_point currently active in the slicer.
-
-        Returns
-        -------
-        float
-           The (reduceFunc) of the length of each season, in days.
-        """
         # Order data Slice/times and exclude visits which are too short.
         long = np.where(data_slice[self.exp_time_col] > self.min_exp_time)
         if len(long[0]) == 0:
             return self.badval
         data = np.sort(data_slice[long], order=self.mjd_col)
-        # SlicePoints ra/dec are always in radians - convert to degrees to calculate season
+        # SlicePoints ra/dec are always in radians -
+        # convert to degrees to calculate season
         seasons = calc_season(np.degrees(slice_point["ra"]), data[self.mjd_col])
         first_of_season, last_of_season = find_season_edges(seasons)
         seasonlengths = data[self.mjd_col][last_of_season] - data[self.mjd_col][first_of_season]
@@ -103,7 +96,8 @@ class SeasonLengthMetric(BaseMetric):
 
 
 class CampaignLengthMetric(BaseMetric):
-    """Calculate the number of seasons (roughly, years) a pointing is observed for.
+    """Calculate the number of seasons (roughly, years) a pointing is observed.
+
     This corresponds to the 'campaign length' for lensed quasar time delays.
     """
 
@@ -129,7 +123,9 @@ class CampaignLengthMetric(BaseMetric):
 
 
 class MeanCampaignFrequencyMetric(BaseMetric):
-    """Calculate the mean separation between nights, within a season - then the mean over the campaign.
+    """Calculate the mean separation between nights, within a season -
+    then the mean over the campaign.
+
     Calculate per season, to avoid any influence from season gaps.
     """
 
@@ -154,7 +150,8 @@ class MeanCampaignFrequencyMetric(BaseMetric):
         if len(long[0]) == 0:
             return self.badval
         data = np.sort(data_slice[long], order=self.mjd_col)
-        # SlicePoints ra/dec are always in radians - convert to degrees to calculate season
+        # SlicePoints ra/dec are always in radians -
+        # convert to degrees to calculate season
         seasons = calc_season(np.degrees(slice_point["ra"]), data[self.mjd_col])
         first_of_season, last_of_season = find_season_edges(seasons)
         season_means = np.zeros(len(first_of_season), float)
@@ -168,49 +165,54 @@ class MeanCampaignFrequencyMetric(BaseMetric):
 
 
 class TdcMetric(BaseMetric):
-    """Calculate the Time Delay Challenge metric, as described in Liao et al 2015
-    (https://arxiv.org/pdf/1409.1254.pdf).
+    """Calculate the Time Delay Challenge metric,
+    as described in Liao et al 2015 (https://arxiv.org/pdf/1409.1254.pdf).
 
-    This combines the MeanCampaignFrequency/MeanNightSeparation, the SeasonLength, and the CampaignLength
+    This combines the MeanCampaignFrequency/MeanNightSeparation,
+    the SeasonLength, and the CampaignLength
     metrics above, but rewritten to calculate season information only once.
 
     cad_norm = in units of days
     sea_norm = in units of months
     camp_norm = in units of years
 
-    This metric also adds a requirement to achieve limiting magnitudes after galactic dust extinction,
-    in various bandpasses, in order to exclude visits which are not useful for detecting quasars
-    (due to being short or having high sky brightness, etc.) and to reject regions with
-    high galactic dust extinction.
+    This metric also adds a requirement to achieve limiting magnitudes
+    after galactic dust extinction, in various bandpasses,
+    in order to exclude visits which are not useful for detecting quasars
+    (due to being short or having high sky brightness, etc.) and to
+    reject regions with high galactic dust extinction.
 
     Parameters
     ----------
-    mjd_col: str, optional
+    mjd_col : `str`, optional
         Column name for mjd. Default observationStartMJD.
-    night_col: str, optional
+    night_col : `str`, optional
         Column name for night. Default night.
-    filter_col: str, optional
+    filter_col : `str`, optional
         Column name for filter. Default filter.
-    m5_col: str, optional
+    m5_col : `str`, optional
         Column name for five-sigma depth. Default fiveSigmaDepth.
-    mag_cuts: dict, optional
-        Dictionary with filtername:mag limit (after dust extinction). Default None in kwarg.
-        Defaults set within metric: {'u': 22.7, 'g': 24.1, 'r': 23.7, 'i': 23.1, 'z': 22.2, 'y': 21.4}
-    metricName: str, optional
+    mag_cuts : `dict`, optional
+        Dictionary with filtername:mag limit (after dust extinction).
+        Default None in kwarg.
+        Defaults set within metric:
+        {'u': 22.7, 'g': 24.1, 'r': 23.7, 'i': 23.1, 'z': 22.2, 'y': 21.4}
+    metricName : `str`, optional
         Metric Name. Default TDC.
-    cad_norm: float, optional
+    cad_norm : `float`, optional
         Cadence normalization constant, in units of days. Default 3.
-    sea_norm: float, optional
+    sea_norm : `float`, optional
         Season normalization constant, in units of months. Default 4.
-    camp_norm: float, optional
+    camp_norm : `float`, optional
         Campaign length normalization constant, in units of years. Default 5.
-    badval: float, optional
+    badval : `float`, optional
         Return this value instead of the dictionary for bad points.
 
     Returns
     -------
-    dictionary
-        Dictionary of values for {'rate', 'precision', 'accuracy'} at this point in the sky.
+    TDCmetrics : `dict`
+        Dictionary of values for {'rate', 'precision', 'accuracy'}
+        at this point in the sky.
     """
 
     def __init__(
@@ -250,7 +252,8 @@ class TdcMetric(BaseMetric):
                 raise Exception("mag_cuts should be a dictionary")
         # Set up dust map requirement
         maps = ["DustMap"]
-        # Set the default wavelength limits for the lsst filters. These are approximately correct.
+        # Set the default wavelength limits for the lsst filters.
+        # These are approximately correct.
         dust_properties = DustValues()
         self.ax1 = dust_properties.ax1
         super().__init__(
@@ -275,7 +278,8 @@ class TdcMetric(BaseMetric):
         if len(idxs[0]) == 0:
             return self.badval
         data = np.sort(data_slice[idxs], order=self.mjd_col)
-        # SlicePoints ra/dec are always in radians - convert to degrees to calculate season
+        # SlicePoints ra/dec are always in radians -
+        # convert to degrees to calculate season
         seasons = calc_season(np.degrees(slice_point["ra"]), data[self.mjd_col])
         int_seasons = np.floor(seasons)
         first_of_season, last_of_season = find_season_edges(seasons)

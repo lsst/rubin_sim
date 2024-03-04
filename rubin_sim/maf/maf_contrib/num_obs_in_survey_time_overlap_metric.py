@@ -1,9 +1,12 @@
 # Example for numObsInSurveyTimeOverlap
 # Somayeh Khakpash - Lehigh University
 # Last edited : 10/21/2020
-# Calculates number of observations during simultaneous windows of another survey.
-# SurveyObsWin is the list of the survey observing window/inter-seasonal gap intervals. It should be in the format:
-# SurveyObsWin = [ [YYYY-MM-DD, YYYY-MM-DD] , [YYYY-MM-DD, YYYY-MM-DD] , ... , [YYYY-MM-DD, YYYY-MM-DD] ]
+# Calculates number of observations during simultaneous windows of another
+# survey.
+# SurveyObsWin is the list of the survey observing window/inter-seasonal
+# gap intervals. It should be in the format:
+# SurveyObsWin = [ [YYYY-MM-DD, YYYY-MM-DD] ,
+# [YYYY-MM-DD, YYYY-MM-DD] , ... , [YYYY-MM-DD, YYYY-MM-DD] ]
 
 __all__ = ("NumObsInSurveyTimeOverlapMetric",)
 

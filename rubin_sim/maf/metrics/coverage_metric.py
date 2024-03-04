@@ -6,22 +6,26 @@ from .base_metric import BaseMetric
 
 
 class YearCoverageMetric(BaseMetric):
-    """Count the number of bins covered by night_col -- default bins are 'years'.
-    Handy for checking that a point on the sky gets observed every year, as the default settings
-    result in the metric returning the number years in the data_slice (when used with a HealpixSlicer).
+    """Count the number of `bins` covered by night_col.
+
+    The default `bins` cover years 0 to 10.
+    Handy for checking that a point on the sky gets observed every year,
+    as the default settings result in the metric returning the number years
+    in the data_slice (when used with a HealpixSlicer).
 
     Parameters
     ----------
-    night_col: str, optional
+    night_col : `str`, opt
         Data column to histogram. Default 'night'.
-    bins: numpy.ndarray, optional
-        Bins to use in the histogram. Default corresponds to years 0-10 (with 365.25 nights per year).
-    units: str, optional
+    bins : `np.ndarray`, (N,), opt
+        Bins to use in the histogram. Default corresponds to years 0-10
+        (with 365.25 nights per year).
+    units : `str`, opt
         Units to use for the metric result. Default 'N years'.
 
     Returns
     -------
-    integer
+    nbins : `int`
         Number of histogram bins where the histogram value is greater than 0.
         Typically this will be the number of years in the 'night_col'.
     """

@@ -13,6 +13,7 @@ __all__ = (
     "mag_error_from_snr",
     "calc_mag_error_m5",
     "calc_mag_error_sed",
+    "scale_sky_m5",
 )
 
 import numpy
@@ -100,7 +101,7 @@ def calc_instr_noise_sq(phot_params):
 
     Parameters
     ----------
-    phot_params : `PhotometricParameters`
+    phot_params : `rubin_sim.phot_utils.PhotometricParameters`
         A PhotometricParameters object that carries details about the
         photometric response of the telescope.
 
@@ -128,14 +129,14 @@ def calc_total_non_source_noise_sq(sky_sed, hardwarebandpass, phot_params, fwhm_
 
     Parameters
     ----------
-    sky_sed : `Sed`
+    sky_sed : `rubin_sim.phot_utils.Sed`
         A Sed object representing the sky (normalized so that
         sky_sed.calc_mag() gives the sky brightness in
         magnitudes per square arcsecond)
-    hardwarebandpass : `Bandpass`
+    hardwarebandpass : `rubin_sim.phot_utils.Bandpass`
         A Bandpass object containing just the instrumentation
         throughputs (no atmosphere)
-    phot_params : `PhotometricParameters`
+    phot_params : `rubin_sim.phot_utils.PhotometricParameters`
         A PhotometricParameters object containing information
         about the photometric properties of the telescope.
     fwhm_eff : `float`
@@ -189,10 +190,10 @@ def calc_sky_counts_per_pixel_for_m5(m5target, total_bandpass, phot_params, fwhm
     ----------
     m5target : `float`
         The desired value of m5.
-    total_bandpass : `Bandpass`
+    total_bandpass : `rubin_sim.phot_utils.Bandpass`
         A bandpass object representing the total throughput of the telescope
         (instrumentation plus atmosphere).
-    phot_params : `PhotometricParameters`
+    phot_params : `rubin_sim.phot_utils.PhotometricParameters`
         A photometric parameters object containing the photometric response
         information for Rubin.
     fwhm_eff : `float`
@@ -247,21 +248,21 @@ def calc_sky_counts_per_pixel_for_m5(m5target, total_bandpass, phot_params, fwhm
 
 
 def calc_m5(skysed, total_bandpass, hardware, phot_params, fwhm_eff=0.83):
-    """Calculate the AB magnitude of a 5-sigma source above sky background source.
+    """Calculate the AB magnitude of a 5-sigma source above sky background.
 
     Parameters
     ----------
-    skysed : `Sed`
+    skysed : `rubin_sim.phot_utils.Sed`
         An SED representing the sky background emission, normalized such that
         skysed.calc_mag(Bandpass) returns the expected sky brightness in
         magnitudes per sq arcsecond.
-    total_bandpass : `Bandpass`
+    total_bandpass : `rubin_sim.phot_utils.Bandpass`
         The Bandpass representing the total throughput of the telescope
         (instrument plus atmosphere).
-    hardware : `Bandpass`
+    hardware : `rubin_sim.phot_utils.Bandpass`
         The Bandpass representing the throughput of the telescope instrument
         only (no atmosphere).
-    phot_params : `PhotometricParameters`
+    phot_params : `rubin_sim.phot_utils.PhotometricParameters`
         The PhotometricParameters class that carries details about the
         photometric response of the telescope.
     fwhm_eff : `float`
@@ -396,12 +397,12 @@ def calc_snr_m5(magnitude, bandpass, m5, phot_params, gamma=None):
     ----------
     magnitude : `float` or `np.ndarray`, (N,)
         Magnitudes of the sources whose signal to noise you are calculating.
-    bandpass : `Bandpass`
+    bandpass : `rubin_sim.phot_utils.Bandpass`
         The Bandpass in which the magnitude was calculated
         (total instrument + atmosphere).
     m5 : `float`
         The 5-sigma point source limiting magnitude of the exposure.
-    phot_params : `PhotometricParameters`
+    phot_params : `rubin_sim.phot_utils.PhotometricParameters`
         The PhotometricParameters class that carries details about the
         photometric response of the telescope.
     gamma : `float`, opt
@@ -438,12 +439,12 @@ def calc_mag_error_m5(magnitude, bandpass, m5, phot_params, gamma=None):
     ----------
     magnitude : `float`
         Magnitude of the source.
-    bandpass : `Bandpass`
+    bandpass : `rubin_sim.phot_utils.Bandpass`
         The Bandpass in which to calculate the magnitude error
         (total instrument + atmosphere).
     m5 : `float`
         The 5-sigma point source limiting magnitude.
-    phot_params : `PhotometricParameters`
+    phot_params : `rubin_sim.phot_utils.PhotometricParameters`
         The PhotometricParameters class that carries details about the
         photometric response of the telescope.
     gamma : `float`, optional
@@ -486,20 +487,20 @@ def calc_snr_sed(
 
     Parameters
     ----------
-    source_sed : `Sed`
+    source_sed : `rubin_sim.phot_utils.Sed`
         A SED representing the source, normalized such that source_sed.calc_mag
         gives the desired magnitude.
-    total_bandpass : `Bandpass`
+    total_bandpass : `rubin_sim.phot_utils.Bandpass`
         The Bandpass representing the total throughput of the telescope
         (instrument plus atmosphere).
-    sky_sed : `Sed`
+    sky_sed : `rubin_sim.phot_utils.Sed`
         A SED representing the sky background emission, normalized such that
         skysed.calc_mag(Bandpass) returns the expected sky brightness in
         magnitudes per sq arcsecond.
-    hardware : `Bandpass`
+    hardware : `rubin_sim.phot_utils.Bandpass`
         The Bandpass representing the throughput of the telescope instrument
         only (no atmosphere).
-    phot_params : `PhotometricParameters`
+    phot_params : `rubin_sim.phot_utils.PhotometricParameters`
         The PhotometricParameters class that carries details about the
         photometric response of the telescope.
     fwhm_eff : `float`
@@ -562,20 +563,20 @@ def calc_mag_error_sed(
 
     Parameters
     ----------
-    source_sed : `Sed`
+    source_sed : `rubin_sim.phot_utils.Sed`
         A SED representing the source, normalized such that source_sed.calc_mag
         gives the desired magnitude.
-    total_bandpass : `Bandpass`
+    total_bandpass : `rubin_sim.phot_utils.Bandpass`
         The Bandpass representing the total throughput of the telescope
         (instrument plus atmosphere).
-    sky_sed : `Sed`
+    sky_sed : `rubin_sim.phot_utils.Sed`
         A SED representing the sky background emission, normalized such that
         skysed.calc_mag(Bandpass) returns the expected sky brightness in
         magnitudes per sq arcsecond.
-    hardware_bandpass : `Bandpass`
+    hardware_bandpass : `rubin_sim.phot_utils.Bandpass`
         The Bandpass representing the throughput of the telescope instrument
         only (no atmosphere).
-    phot_params : `PhotometricParameters`
+    phot_params : `rubin_sim.phot_utils.PhotometricParameters`
         The PhotometricParameters class that carries details about the
         photometric response of the telescope.
     fwhm_eff : `float`
@@ -635,15 +636,18 @@ def calc_astrometric_error(mag, m5, fwhm_geom=0.7, nvisit=1, systematic_floor=10
     astrom_err : `float`
         Astrometric error for a given SNR, in mas.
     """
-    # The astrometric error can be applied to parallax or proper motion (for n_visit>1).
-    # If applying to proper motion, should also divide by the # of years of the survey.
+    # The astrometric error can be applied to parallax or proper motion
+    # (for n_visit>1).
+    # If applying to proper motion, should also divide by the # of years
+    # of the survey.
     # This is also referenced in the astroph/0805.2366 paper.
-    # D. Monet suggests sqrt(Nvisit/2) for first 3 years, sqrt(N) for longer, in reduction of error
-    # because of the astrometric measurement method, the systematic and random error are both reduced.
+    # D. Monet suggests sqrt(Nvisit/2) for first 3 years, sqrt(N) for longer,
+    # in reduction of error.
     # Zeljko says 'be conservative', so removing this reduction for now.
     rgamma = 0.039
     xval = numpy.power(10, 0.4 * (mag - m5))
-    # The average fwhm_eff is 0.7" (or 700 mas), but user can specify. Convert to mas.
+    # The average fwhm_eff is 0.7" (or 700 mas), but user can specify.
+    # Convert to mas.
     seeing = fwhm_geom * 1000.0
     error_rand = seeing * numpy.sqrt((0.04 - rgamma) * xval + rgamma * xval * xval)
     error_rand = error_rand / numpy.sqrt(nvisit)
@@ -651,3 +655,41 @@ def calc_astrometric_error(mag, m5, fwhm_geom=0.7, nvisit=1, systematic_floor=10
     error_sys = systematic_floor
     astrom_error = numpy.sqrt(error_sys * error_sys + error_rand * error_rand)
     return astrom_error
+
+
+def scale_sky_m5(m5target, skysed, total_bandpass, hardware, phot_params, fwhm_eff=0.83):
+    """
+    Take an SED representing the sky and normalize it so that
+    m5 (the magnitude at which an object is detected in this
+    bandpass at 5-sigma) is set to some specified value.
+
+    The 5-sigma limiting magnitude (m5) for an observation is
+    determined by a combination of the telescope and camera parameters
+    (such as diameter of the mirrors and the readnoise) together with the
+    sky background. This method (set_m5) scales a provided sky background
+    Sed so that an observation would have a target m5 value, for the
+    provided hardware parameters. Using the resulting Sed in the
+    'calcM5' method will return this target value for m5.
+
+    Note that the returned SED will be renormalized such that calling the
+    method self.calcADU(hardwareBandpass) on it will yield the number of
+    counts per square arcsecond in a given bandpass.
+    """
+
+    # This is based on the LSST SNR document (v1.2, May 2010)
+    # www.astro.washington.edu/users/ivezic/Astr511/LSST_SNRdoc.pdf
+
+    sky_counts_target = calc_sky_counts_per_pixel_for_m5(
+        m5target, total_bandpass, fwhm_eff=fwhm_eff, phot_params=phot_params
+    )
+
+    sky_sed_out = Sed(wavelen=numpy.copy(skysed.wavelen), flambda=numpy.copy(skysed.flambda))
+
+    sky_counts = (
+        sky_sed_out.calc_adu(hardware, phot_params=phot_params)
+        * phot_params.platescale
+        * phot_params.platescale
+    )
+    sky_sed_out.multiply_flux_norm(sky_counts_target / sky_counts)
+
+    return sky_sed_out

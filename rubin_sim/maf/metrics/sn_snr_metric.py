@@ -246,7 +246,6 @@ class SNSNRMetric(metrics.BaseMetric):
 
         # tile m5, MJDs, and seasons to estimate all fluxes and SNR at once
         m5_vals = np.tile(data_slice[self.m5_col], (len(time_for_lc), 1))
-        season_vals = np.tile(data_slice[self.season_col], (len(time_for_lc), 1))
 
         # estimate fluxes and snr in SNR function
         fluxes_tot, snr = self.snr(time_for_lc, m5_vals, flag, t0_lc)
@@ -613,14 +612,14 @@ class SNSNRMetric(metrics.BaseMetric):
                 tot_label = []
                 tot_label_snr = []
 
-        labs = [l.get_label() for l in tot_label]
+        labs = [ll.get_label() for ll in tot_label]
         ax[0].legend(tot_label, labs, ncol=1, loc="best", prop={"size": fontsize}, frameon=False)
         ax[0].set_ylabel("Flux [e.sec$^{-1}$]", fontsize=fontsize)
 
         ax[1].set_xlabel("MJD", fontsize=fontsize)
         ax[1].set_ylabel("SNR", fontsize=fontsize)
         ax[1].legend()
-        labs = [l.get_label() for l in tot_label_snr]
+        labs = [ll.get_label() for ll in tot_label_snr]
         ax[1].legend(
             tot_label_snr,
             labs,
