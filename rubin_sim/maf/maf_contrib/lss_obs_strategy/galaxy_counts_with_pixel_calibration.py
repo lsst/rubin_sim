@@ -37,8 +37,7 @@ def galaxy_counts_with_pixel_calibration(
     cfhtls_counts=False,
     normalized_mock_catalog_counts=True,
 ):
-    """
-    Estimate galaxy counts for a given HEALpix pixel directly
+    """Estimate galaxy counts for a given HEALpix pixel directly
     (without a slicer).
 
     Parameters

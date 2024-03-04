@@ -71,7 +71,7 @@ class BaseObs:
         Name of the Rotator column in the obsData. Default 'rotSkyPos'.
     obs_degrees: `bool`, optional
         Whether the observational data is in degrees or radians.
-         Default True (degrees).
+        Default True (degrees).
     outfile_name : `str`, optional
         The output file name.
         Default is 'lsst_obs.dat'.

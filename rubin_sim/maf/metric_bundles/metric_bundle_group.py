@@ -19,40 +19,26 @@ from .metric_bundle import MetricBundle, create_empty_metric_bundle
 
 def make_bundles_dict_from_list(bundle_list):
     """Utility to convert a list of MetricBundles into a dictionary,
-    keyed by the fileRoot names.
+    keyed by the file_root names.
 
-    Raises an exception if the fileroot duplicates another metricBundle.
+    Raises an exception if the file_root duplicates another metricBundle.
     (Note this should alert to potential cases of filename duplication).
 
     Parameters
     ----------
     bundle_list : `list` [`MetricBundles`]
+        List of metric bundles to convert into a dict.
     """
     b_dict = {}
     for b in bundle_list:
         if b.file_root in b_dict:
-            raise NameError("More than one metricBundle is using the same fileroot, %s" % (b.file_root))
+            raise NameError("More than one metric_bundle is using the same file_root, %s" % (b.file_root))
         b_dict[b.file_root] = b
     return b_dict
 
 
 class MetricBundleGroup:
     """Calculate all values for a group of MetricBundles.
-
-    The MetricBundleGroup will query data from a single database table
-    (for multiple constraints), use that data to calculate metric values
-    for multiple slicers, and calculate summary statistics and
-    generate plots for all metrics included in
-    the dictionary passed to the MetricBundleGroup.
-
-    We calculate the metric values here, rather than in the
-    individual MetricBundles, because it is much more efficient to step
-    through a slicer once (and calculate all the relevant metric values
-    at each point) than it is to repeat this process multiple times.
-
-    The MetricBundleGroup also determines how to efficiently group
-    the MetricBundles to reduce the number of sql queries of the database,
-    grabbing larger chunks of data at once.
 
     Parameters
     ----------
@@ -88,6 +74,23 @@ class MetricBundleGroup:
     db_table : `str`, opt
         The name of the table in the db_obj to query for data.
         For modern opsim outputs, this table is `observations` (default None).
+
+    Notes
+    -----
+    The MetricBundleGroup will query data from a single database table
+    (for multiple constraints), use that data to calculate metric values
+    for multiple slicers, and calculate summary statistics and
+    generate plots for all metrics included in
+    the dictionary passed to the MetricBundleGroup.
+
+    We calculate the metric values here, rather than in the
+    individual MetricBundles, because it is much more efficient to step
+    through a slicer once (and calculate all the relevant metric values
+    at each point) than it is to repeat this process multiple times.
+
+    The MetricBundleGroup also determines how to efficiently group
+    the MetricBundles to reduce the number of sql queries of the database,
+    grabbing larger chunks of data at once.
     """
 
     def __init__(
@@ -141,12 +144,6 @@ class MetricBundleGroup:
     def _check_compatible(self, metric_bundle1, metric_bundle2):
         """Check if two MetricBundles are "compatible".
 
-        Compatible indicates that the sql constraints, the slicers,
-        and the maps are the same, and
-        that the stackers do not interfere with each other
-        (i.e. are not trying to set the same column in different ways).
-        Returns True if the MetricBundles are compatible, False if not.
-
         Parameters
         ----------
         metric_bundle1 : `MetricBundle`
@@ -155,6 +152,14 @@ class MetricBundleGroup:
         Returns
         -------
         match : `bool`
+
+        Notes
+        -----
+        Compatible indicates that the sql constraints, the slicers,
+        and the maps are the same, and
+        that the stackers do not interfere with each other
+        (i.e. are not trying to set the same column in different ways).
+        Returns True if the MetricBundles are compatible, False if not.
         """
         if metric_bundle1.constraint != metric_bundle2.constraint:
             return False
@@ -209,11 +214,8 @@ class MetricBundleGroup:
         self.compatible_lists = compatible_lists
 
     def run_all(self, clear_memory=False, plot_now=False, plot_kwargs=None):
-        """Runs all the metricBundles in the metricBundleGroup,
-        over all constraints.
-
-        Calculates metric values, then runs reduce functions and summary
-        statistics for all MetricBundles.
+        """Calculates metric values, then runs reduce functions and summary
+        statistics for all MetricBundles, over all constraints.
 
         Parameters
         ----------
@@ -246,6 +248,11 @@ class MetricBundleGroup:
             constraint will be included in a subset identified as the
             currentBundleDict.
             These are the active metrics to be calculated and plotted, etc.
+
+        Notes
+        -----
+        This is useful, for the context of running only a specific set
+        of metric bundles so that the user can provide `sim_data` directly.
         """
         if constraint is None:
             constraint = ""
@@ -267,10 +274,7 @@ class MetricBundleGroup:
         plot_now=False,
         plot_kwargs=None,
     ):
-        """Run all the metricBundles which match this constraint in the
-        metricBundleGroup.
-
-        Calculates the metric values, then runs reduce functions and
+        """Calculates the metric values, then runs reduce functions and
         summary statistics for metrics in the current set only
         (see self.setCurrent).
 
@@ -278,18 +282,23 @@ class MetricBundleGroup:
         ----------
         constraint : `str`
            constraint to use to set the currently active metrics
-        sim_data : `np.ndarray`, ops
+        sim_data : `np.ndarray`, opt
            If simData is not None, then this numpy structured array is used
            instead of querying data from the dbObj.
-        clear_memory : `bool`, ops
+        clear_memory : `bool`, opt
            If True, metric values are deleted from memory after they are
            calculated (and saved to disk).
-        plot_now : `bool`, ops
+        plot_now : `bool`, opt
            Plot immediately after calculating metric values
            (instead of the usual procedure, which is to plot after metric
            values are calculated for all constraints).
-        plot_kwargs : kwargs, ops
+        plot_kwargs : kwargs, opt
            Plotting kwargs to pass to plotCurrent.
+
+        Notes
+        -----
+        This is useful, for the context of running only a specific set
+        of metric bundles so that the user can provide `sim_data` directly.
         """
         self.set_current(constraint)
 
@@ -390,7 +399,7 @@ class MetricBundleGroup:
             print("Found %i visits" % (self.sim_data.size))
 
     def _run_compatible(self, compatible_list):
-        """Runs a set of 'compatible' metricbundles in the MetricBundleGroup
+        """Runs a set of 'compatible' metric_bundles in the MetricBundleGroup
         dictionary identified by 'compatible_list' keys.
 
         A compatible list of MetricBundles is a subset of the

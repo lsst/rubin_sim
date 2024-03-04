@@ -330,16 +330,18 @@ class SNNSNMetric(BaseMetric):
         Parameters
         -----------
         seasons : `list` [`int`]
-          list of seasons to process
+            list of seasons to process
         data_slice : `np.ndarray`, (N,)`
-          array of observations
+            array of observations
+        zseason : `pd.DataFrame`
+            redshift infos per season
 
         Returns
         --------
         seasons : `list` [`int`]
-          list of seasons to process
-        dur_z : `pandas.DataFrame`
-          season lengths vs z
+            list of seasons to process
+        dur_z : `pd.DataFrame`
+            season lengths vs z
         """
         # if seasons = -1: process the seasons seen in data
         if seasons == [-1]:
@@ -370,16 +372,16 @@ class SNNSNMetric(BaseMetric):
 
         Parameters
         --------------
-        dfa : pandas df
-          dat to process
-        zseason : pandas df
-          redshift infos per season
+        dfa : `pd.DataFrame`
+            data to process
+        zseason : `pd.DataFrame`
+            redshift infos per season
         min_duration : `float`, opt
-          min season length to be accepted (default: 60 days)
+            min season length to be accepted (default: 60 days)
 
         Returns
         --------
-        pandas df with season length infos
+        season_info : `pd.DataFrame` with season length infos
 
         """
 
@@ -409,13 +411,13 @@ class SNNSNMetric(BaseMetric):
         Parameters
         ---------------
         obs : array
-          observations
+            observations
         gen_par : array
-          simulation parameters
+            simulation parameters
         x1 : `float`, opt
-           stretch value (default: -2.0)
+            stretch value (default: -2.0)
         color : `float`, opt
-          color value (default: 0.2)
+            color value (default: 0.2)
 
         Returns
         ----------
@@ -431,12 +433,12 @@ class SNNSNMetric(BaseMetric):
 
         Parameter
         -------------
-        lc: pandas df
+        lc: `pd.DataFrame`
            light curves
 
         Returns
         -----------
-        pandas df with efficiencies
+        `pd.DataFrame` with efficiencies
 
         """
         sn_effis = (
@@ -476,7 +478,7 @@ class SNNSNMetric(BaseMetric):
 
         Parameters
         ----------
-        sn_effis : pandas df
+        sn_effis : `pd.DataFrame`
           data with efficiencies of observation
         dur_z :  array
           array of season length
@@ -500,13 +502,13 @@ class SNNSNMetric(BaseMetric):
 
         Parameters
         --------------
-        grp : pandas df group
+        grp : `pd.DataFrame` group
         min_duration : `float`
           minimal duration for a season to be considered
 
         Returns
         ---------
-        pandas df with the following cols:
+        `pd.DataFrame` with the following cols:
         - Nvisits: number of visits for this group
         - N_xx:  number of visits in xx where xx is defined in self.bandstat
 
@@ -542,17 +544,17 @@ class SNNSNMetric(BaseMetric):
 
         Parameters
         --------------
-        grp : pandas df group
+        grp : `pd.DataFrame` group
           data to process: season infos
         min_duration : `float`, opt
           min season length for a season to be processed (deafult: 60 days)
 
         Returns
         ----------
-        pandas df with season_length, z, T0_min and T0_max cols
+        `pd.DataFrame` with season_length, z, T0_min and T0_max cols
 
         """
-
+        ## IS THIS CALLED FROM ANYWHERE?
         daymin = grp["MJD_min"].values
         daymax = grp["MJD_max"].values
         dur_z = pd.DataFrame(self.zrange, columns=["z"])
@@ -579,7 +581,7 @@ class SNNSNMetric(BaseMetric):
 
         Parameters
         --------------
-        grp: group (pandas df sense)
+        grp: group (`pd.DataFrame` sense)
             group of data to process with the following cols:
             t0_min: T0 min value (per season)
             t0_max: T0 max value (per season)
@@ -588,7 +590,7 @@ class SNNSNMetric(BaseMetric):
 
         Returns
         ----------
-        pandas df with daymax, min_rf_phase, max_rf_phase values
+        `pd.DataFrame` with daymax, min_rf_phase, max_rf_phase values
 
         """
 
@@ -614,9 +616,9 @@ class SNNSNMetric(BaseMetric):
 
         Parameters
         ---------------
-        grp : pandas group
+        grp : pd group
           observations to process
-        gen_par_orig : pandas df
+        gen_par_orig : `pd.DataFrame`
           simulation parameters
         x1 : `float`
           SN stretch
@@ -625,7 +627,7 @@ class SNNSNMetric(BaseMetric):
 
         Returns
         ----------
-        light curves as pandas df
+        light curves as `pd.DataFrame`
 
         """
         season = grp.name
@@ -655,12 +657,12 @@ class SNNSNMetric(BaseMetric):
 
         Parameters
         ---------------
-        lc : pandas grp
+        lc : pd grp
           light curve
 
         Returns
         ----------
-        pandas df of sn efficiencies vs z
+        `pd.DataFrame` of sn efficiencies vs z
         """
 
         if self.verbose:
@@ -773,10 +775,10 @@ class SNNSNMetric(BaseMetric):
 
         Parameters
         ---------------
-        grp: pandas df of flux derivatives wrt SN parameters
+        grp: `pd.DataFrame` of flux derivatives wrt SN parameters
         Returns
         ----------
-        Diagonal elements of the inverted matrix (as pandas df)
+        Diagonal elements of the inverted matrix (as `pd.DataFrame`)
         """
 
         # params = ['x0', 'x1', 'daymax', 'color']
@@ -817,7 +819,7 @@ class SNNSNMetric(BaseMetric):
 
         Parameters
         ---------------
-        df: pandas df
+        df: `pd.DataFrame`
           data to process
 
         """
@@ -980,7 +982,7 @@ class SNNSNMetric(BaseMetric):
         if seasons == [-1]:
             seasons = np.unique(data_slice[self.season_col])
 
-        # pandas df with zmin, zmax, zstep per season
+        # `pd.DataFrame` with zmin, zmax, zstep per season
         zseason = pd.DataFrame(seasons, columns=["season"])
         zseason["zmin"] = self.zmin
         zseason["zmax"] = self.zmax
@@ -1007,12 +1009,12 @@ class SNNSNMetric(BaseMetric):
 
         Parameters
         ---------------
-        grp: pandas df
+        grp: `pd.DataFrame`
           data to process
 
         Returns
         -----------
-        pandas df with z and nsn_expected as cols
+        `pd.DataFrame` with z and nsn_expected as cols
 
         """
         durinterp_z = interp1d(
@@ -1044,7 +1046,7 @@ class SNNSNMetric(BaseMetric):
         Parameters
         ------------
         data : `pd.DataFrame`
-            pandas df of observations
+            `pd.DataFrame` of observations
 
         Returns
         -------
@@ -1143,12 +1145,12 @@ class SNNSNMetric(BaseMetric):
 
         Parameters
         --------------
-        grp: pandas df group
+        grp: `pd.DataFrame` group
           data to process: season infos
 
         Returns
         ----------
-        pandas df with season_length, z, nsn_expected cols
+        `pd.DataFrame` with season_length, z, nsn_expected cols
 
         """
 
@@ -1176,12 +1178,12 @@ class SNNSNMetric(BaseMetric):
 
         Parameters
         ---------------
-        effi: pandas df
-          data to process
-        sntype: str, opt
-          type of SN to consider for estimation (default: faint)
-        zlim: float, opt
-          redshift limit
+        effi : `pd.DataFrame`
+            data to process
+        sntype : `str`, opt
+            type of SN to consider for estimation (default: faint)
+        zlim : `float`, opt
+            redshift limit
 
         Returns
         -----------
@@ -1238,13 +1240,13 @@ class SNNSNMetric(BaseMetric):
 
         Parameters
         ---------------
-        grp: pandas group
+        grp: pd group
         sn_type: str, opt
           type of SN to estimate zlim (default: faint)
 
         Returns
         ------------
-        pandas df with the metric as cols
+        zcomp : `pd.DataFrame` with the metric as cols
         """
         zcomp = -1
 
@@ -1259,13 +1261,14 @@ class SNNSNMetric(BaseMetric):
 
         Parameters
         ---------------
-        grp: pandas group
+        grp: pd group
         sn_type: str, opt
           type of SN to estimate zlim (default: medium)
 
         Returns
         ------------
-        pandas df with the metric as cols
+        nsn : `pd.DataFrame`
+            Dataframe with the metric as cols
         """
         nsn = -1
 
@@ -1276,26 +1279,25 @@ class SNNSNMetric(BaseMetric):
 
     def get_nsn(self, effi, durinterp_z, zmin, zmax, zstep):
         """
-         Method to estimate to total number of SN: NSN = Sum(effi(z)*rate(z))
+        Method to estimate to total number of SN: NSN = Sum(effi(z)*rate(z))
 
-         Parameters
-         ---------------
-         effi: 1D interpolator
-           efficiencies vs z
-         durinterp_z: 1D interpolator
-          duration vs z
-         zmin: float
-           redshift min
-         zmax: float
-           redshift max
-         zstep: float
-           redshift step
+        Parameters
+        -----------
+        effi : 1D interpolator
+            efficiencies vs z
+        durinterp_z : 1D interpolator
+            duration vs z
+        zmin : `float`
+            redshift min
+        zmax : `float`
+            redshift max
+        zstep : `float`
+            redshift step
 
         Returns
         ----------
-         total number of SN up to zmax
-
-
+        tot_sn : `int`
+            total number of SN up to zmax
         """
 
         zz, rate, err_rate, nsn, err_nsn = self.rate_sn(
@@ -1320,14 +1322,15 @@ class SNNSNMetric(BaseMetric):
 
         Parameters
         ----------------
-        dur_z: pandas df
+        dur_z: `pd.DataFrame`
           data to process
         nmin: int, opt
           minimal number of redshift points per season (default: 2)
 
         Returns
         -----------
-        pandas df with seasons having at least nmin points in redshift
+        dur_z_subset : `pd.DataFrame`
+            dur_z but only with seasons having at least nmin points in redshift
 
         """
 

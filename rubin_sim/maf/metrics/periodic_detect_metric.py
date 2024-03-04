@@ -19,18 +19,24 @@ class PeriodicDetectMetric(BaseMetric):
 
     Parameters
     ----------
-    period : `float` or `array`
+    mjd_col : `str`, opt
+        Name of the MJD column in the observations.
+    periods : `float` or `np.ndarray`, (N,), opt
         The period of the star (days).
-        Can be a single value, or an array. If an array, amplitude and starMag
-        should be arrays of equal length.
-    amplitude : `float`
+        Can be a single value, or an array.
+        If an array, amplitude and starMag should be arrays of equal length.
+    amplitudes : `float`, opt
         The amplitude of the stellar variability, (mags).
-    starMag : `float`
+    m5_col : `str`, opt
+        The name of the m5 limiting magnitude column in the observations.
+    metric_name : `str`, opt
+        The name for the metric.
+    starMags : `float`, opt
         The mean magnitude of the star in r (mags).
-    sig_level : `float`
+    sig_level : `float`, opt
         The value to use to compare to the p-value when deciding
         if we can reject the null hypothesis.
-    sed_template : `str`
+    sed_template : `str`, opt
         The stellar SED template to use to generate realistic colors
         (default is an F star, so RR Lyrae-like)
 

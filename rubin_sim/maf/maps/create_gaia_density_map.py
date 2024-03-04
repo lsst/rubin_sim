@@ -115,9 +115,6 @@ if __name__ == "__main__":
         distances = angular_separation(result["ra"], result["dec"], ra[i], dec[i])
         result = result[np.where(distances < radius)]
 
-        import pdb
-
-        pdb.set_trace()
         # I could think of setting the chunksize to something really large,
         # then only doing one chunk?
         # Or maybe setting up a way to break out of the loop if

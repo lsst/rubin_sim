@@ -16,18 +16,14 @@ class LsqrSolver:
     ----------
     observations : `np.array`
         A numpy array of the observations.
-        Should have columns id, patch_id, observed_mag, mag_uncert
-    patch_out : `str` ("solved_patches.npz")
-        Output file for patch solutions, can be set to None
-    star_out : `str` ("solved_stars.npz")
-        Output file for star solutions, can be set to None
-    atol : `float` (1e-8)
-        Tolerance passed to lsqr
-    btol : `float` (1e-8)
-        Tolerance passed to lsqr
-    iter_lim : `int` (None)
-        Iteration limit passed to lsqr
-    show : `bool` (False)
+        Should have columns id, patch_id, observed_mag, mag_uncert.
+    atol : `float`
+        Tolerance passed to lsqr.
+    btol : `float`
+        Tolerance passed to lsqr.
+    iter_lim : `int`
+        Iteration limit passed to lsqr.
+    show : `bool`
         Should the lsqr solver print some iteration logs (False).
     """
 

@@ -185,9 +185,13 @@ class PhotometricParameters:
             None will default to value from DefaultPhotometricParameters.
         bandpass : `str`
             The name of the bandpass for these parameters.
-            If set to an LSST bandpass, the constructor will initialize
-            PhotometricParameters to LSST default values for that bandpass,
-            excepting any parameters that have been set by hand.  e.g.
+
+        Examples
+        --------
+        If `bandpass` is set to an LSST bandpass,
+        the constructor will initialize
+        PhotometricParameters to LSST default values for that bandpass,
+        excepting any parameters that have been set by hand.  e.g.
 
         >>> myPhotParams = PhotometricParameters(nexp=3, bandpass='u')
 

@@ -19,6 +19,7 @@
 
 __all__ = ("GalaxyCountsMetricExtended",)
 
+import warnings
 import numpy as np
 import scipy
 
@@ -31,12 +32,10 @@ from rubin_sim.maf.metrics import BaseMetric, Coaddm5Metric, ExgalM5
 
 
 class GalaxyCountsMetricExtended(BaseMetric):
-    """
+    """Estimate galaxy counts per HEALpix pixel.
 
-    Estimate galaxy counts per HEALpix pixel.
     Accommodates for dust extinction, magnitude cuts,
     and specification of the galaxy LF to specific redshift bin to consider.
-
     Dependency (aside from MAF): constantsForPipeline.py
 
     Parameters
@@ -126,31 +125,22 @@ class GalaxyCountsMetricExtended(BaseMetric):
     def _gal_count(self, apparent_mag, coaddm5):
         # calculate the change in the power law constant based on the band
         # colors assumed here: (u-g)=(g-r)=(r-i)=(i-z)= (z-y)=0.4
-        if self.filter_band == "u":
-            # dimmer than i: u-g= 0.4 => g= u-0.4 => i= u-0.4*3
-            band_correction = -0.4 * 3.0
-        elif self.filter_band == "g":
-            # dimmer than i: g-r= 0.4 => r= g-0.4 => i= g-0.4*2
-            band_correction = -0.4 * 2.0
-        elif self.filter_band == "r":
-            # dimmer than i: i= r-0.4
-            band_correction = -0.4
-        elif self.filter_band == "i":
-            # i
-            band_correction = 0.0
-        elif self.filter_band == "z":
-            # brighter than i: i-z= 0.4 => i= z+0.4
-            band_correction = 0.4
-        elif self.filter_band == "y":
-            # brighter than i: z-y= 0.4 => z= y+0.4 => i= y+0.4*2
-            band_correction = 0.4 * 2.0
-        else:
-            print("ERROR: Invalid band in GalaxyCountsMetricExtended. Assuming i-band.")
-            band_correction = 0
+        factor = 0.4
+        band_correction_dict = {'u': -3.0 * factor,
+                           'g': -2.0 * factor,
+                           'r': -1.0 * factor,
+                           'i': 0.0,
+                           'z': factor,
+                           'y': 2.0 * factor}
+        if self.filter_band not in band_correction_dict:
+            warnings.warn("Invalid band in GalaxyCountsMetricExtended. "
+                          "Assuming i-band instead.")
+        band_correction = band_correction_dict.get(self.filter_band, 0.0)
 
         # check to make sure that the z-bin assigned is valid.
         if (self.redshift_bin != "all") and (self.redshift_bin not in list(self.power_law_const_a.keys())):
-            print("ERROR: Invalid redshift bin in GalaxyCountsMetricExtended. Defaulting to all redshifts.")
+            warnings.warn("Invalid redshift bin in GalaxyCountsMetricExtended. "
+                          "Defaulting to all redshifts.")
             self.redshift_bin = "all"
 
         # consider the power laws

@@ -25,7 +25,7 @@ def calculate_lsst_field_visibility(
     ----------
     ra : `float`
         RA in decimal degrees.
-    dec : `float
+    dec : `float`
         Declination in decimal degrees
     start_date : `astropy.time.Time`
         Start date for calculations
@@ -125,7 +125,7 @@ def calculate_lsst_field_visibility_fast(
     ----------
     ra : `float`
         RA in decimal degrees.
-    dec : `float
+    dec : `float`
         Declination in decimal degrees
     start_date : `astropy.time.Time`
         Start date for calculations

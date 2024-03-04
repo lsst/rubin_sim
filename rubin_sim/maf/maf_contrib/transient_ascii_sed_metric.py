@@ -19,7 +19,7 @@ try:
     from sncosmo import Model, TimeSeriesSource, read_griddata_ascii
 except ImportError:
     pass
-from astropy.cosmology import Planck15 as cosmo  # # noqa N813
+from astropy.cosmology import Planck15 as cosmo  # noqa N813
 
 from rubin_sim.maf.metrics import BaseMetric
 from rubin_sim.maf.utils import m52snr

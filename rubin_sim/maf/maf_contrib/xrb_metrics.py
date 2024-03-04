@@ -270,15 +270,15 @@ class XRBPopMetric(BaseMetric):
     or if it is detected pts_early times within t_early days of the start of
     the outburst.
 
-     Parameters
-     ----------
-     pts_needed : `int`, opt
-         Minimum number of detections, for simple `detected` option.
-     mjd0 : `float`, opt
-         Start of survey.
-     output_lc : `bool`, opt
-         If True, output lightcurve points.
-         If False, just return metric values.
+    Parameters
+    ----------
+    pts_needed : `int`, opt
+        Minimum number of detections, for simple `detected` option.
+    mjd0 : `float`, opt
+        Start of survey.
+    output_lc : `bool`, opt
+        If True, output lightcurve points.
+        If False, just return metric values.
     """
 
     def __init__(

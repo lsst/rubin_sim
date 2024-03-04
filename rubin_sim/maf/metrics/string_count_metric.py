@@ -21,27 +21,29 @@ class Keylookerupper:
 class StringCountMetric(BaseMetric):
     """Count up the number of times each string appears in a column.
 
-    Dynamically builds reduce functions for each unique string value, so summary sats can be
-    named the same as strings in the simData array without knowing the values of those trings ahead of time.
+    Dynamically builds reduce functions for each unique string value,
+    so summary stats can be named the same as strings in the
+    simData array without knowing the values of those strings ahead of time.
+
+
+    Parameters
+    ----------
+    metric_name : `str`, opt
+        Name of the metric.
+    col : `str`, opt
+        Column name that has strings to look at.
+    percent : `bool`, opt
+        Normalize and return results as percents rather than raw count.
     """
 
     def __init__(self, metric_name="stringCountMetric", col="filter", percent=False, **kwargs):
-        """
-        Parameters
-        ----------
-
-        col: str ('filter')
-            Column name that has strings to look at
-        percent : bool (False)
-            Normalize and return results as percents ranther than raw count
-        """
         if percent:
             units = "percent"
         else:
             units = "count"
         self.percent = percent
         cols = [col]
-        super(StringCountMetric, self).__init__(cols, metric_name, units=units, metric_dtype=object, **kwargs)
+        super().__init__(cols, metric_name, units=units, metric_dtype=object, **kwargs)
         self.col = col
 
     def run(self, data_slice, slice_point=None):
@@ -58,7 +60,8 @@ class StringCountMetric(BaseMetric):
                 metric_value[key] = counter[key]
         if self.percent:
             norm = sum(metric_value[0]) / 100.0
-            # Not sure I really like having to loop here, but the dtype is inflexible
+            # Not sure I really like having to loop here,
+            # but the dtype is inflexible
             for key in metric_value.dtype.names:
                 metric_value[key] = metric_value[key] / norm
 

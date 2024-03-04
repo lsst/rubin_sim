@@ -41,6 +41,61 @@ def _set_vis(sso_obs, snr_limit, snr_col, vis_col):
 class BaseMoMetric(BaseMetric):
     """Base class for the moving object metrics.
     Intended to be used with the Moving Object Slicer.
+
+    Parameters
+    ----------
+    cols : `list` [`str`] or None
+        List of the column names needed to run the metric.
+        These columns must be in the moving object data files.
+    metric_name : `str` or None
+        Name of the metric.
+        If None, a name is created based on the class name.
+    units : `str`, opt
+        Units for the resulting metric values.
+    badval : `float`, opt
+        Flag "bad" value returned if the metric cannot be calculated.
+    comment : `str` or None, opt
+        A default comment to use for the DisplayDict (display caption)
+        if no value is provided elsewhere.
+    child_metrics : `list` [`~BaseChildMetric`] or None, opt
+        A list of child metrics to run on the results of (this) metric.
+        Child metrics take the metric results from this metric and
+        add some additional processing or pull out a particular value.
+        The results of the child metric are passed to a new MoMetricBundle.
+    app_mag_col : `str`, opt
+        Name of the apparent magnitude column
+        in the object observations. Typically added by a stacker.
+    app_mag_v_col : `str`, opt
+        Name of the apparent magnitude V band column
+        in the objects observations.
+    m5_col : `str`, opt
+        Name of the m5 limiting magnitude column
+        in the objects observations.
+    night_col : `str`, opt
+        Name of the night column in the objects observations.
+    mjd_col : `str`, opt
+        Name of the MJD column in the objects observations.
+    snr_col : `str`, opt
+        Name of the column describing the SNR of this object in a given
+        observation, in the objects observations. Added by a stacker.
+    vis_col : `str`, opt
+        Name of the column describing the probability of detecting
+        this object in a given observation. Added by a stacker.
+    ra_col : `str`, opt
+        Name of the column describing the RA of this object
+        in the objects observations.
+    dec_col : `str`, opt
+        Name of the column describing the Declination of this object
+        in the objects observations.
+    seeing_col : `str`, opt
+        Name of the column describing the seeing to be used in
+        evaluations of this object, in the objects observations.
+        Tpyically this is the geometric seeing, for evaluating streak length.
+    exp_time_col : `str`, opt
+        Name of the exposure time column in the objects observations.
+    filter_col : `str`, opt
+        Name of the column describing the filter used for a given observation,
+        in the objects observations.
     """
 
     def __init__(
@@ -139,8 +194,8 @@ class BaseChildMetric(BaseMoMetric):
     ----------
     parentDiscoveryMetric : `~BaseMoMetric`
         The 'parent' metric which generated the metric data used
-         calculate this 'child' metric.
-    badval : `float`, optional
+        calculate this 'child' metric.
+    badval : `float`, opt
         Value to return when metric cannot be calculated.
     """
 
@@ -203,8 +258,14 @@ class NObsMetric(BaseMoMetric):
 class NObsNoSinglesMetric(BaseMoMetric):
     """Count the number of observations for an SSobject, without singles.
     Don't include observations where it was a single observation on a night.
-    """
 
+    Parameters
+    ----------
+    snr_limit : `float` or None
+        If the snr_limit is None, detection of the object in a visit is
+        determined using the _calcVis method (completeness calculation).
+        If not None, the snr is calculated and used as a flat cutoff instead.
+    """
     def __init__(self, snr_limit=None, **kwargs):
         super().__init__(**kwargs)
         self.snr_limit = snr_limit
@@ -221,8 +282,15 @@ class NObsNoSinglesMetric(BaseMoMetric):
 
 
 class NNightsMetric(BaseMoMetric):
-    """Count the number of distinct nights an SSobject is observed."""
+    """Count the number of distinct nights an SSobject is observed.
 
+    Parameters
+    ----------
+    snr_limit : `float` or None
+        If the snr_limit is None, detection of the object in a visit is
+        determined using the _calcVis method (completeness calculation).
+        If not None, the snr is calculated and used as a flat cutoff instead.
+    """
     def __init__(self, snr_limit=None, **kwargs):
         super().__init__(**kwargs)
         self.snr_limit = snr_limit
@@ -238,8 +306,14 @@ class NNightsMetric(BaseMoMetric):
 class ObsArcMetric(BaseMoMetric):
     """Calculate the difference in time between the first and last observation
     of an SSobject.
-    """
 
+    Parameters
+    ----------
+    snr_limit : `float` or None
+        If the snr_limit is None, detection of the object in a visit is
+        determined using the _calcVis method (completeness calculation).
+        If not None, the snr is calculated and used as a flat cutoff instead.
+    """
     def __init__(self, snr_limit=None, **kwargs):
         super().__init__(**kwargs)
         self.snr_limit = snr_limit
@@ -257,26 +331,26 @@ class DiscoveryMetric(BaseMoMetric):
 
     Parameters
     ----------
-    n_obs_per_night : `int`, optional
+    n_obs_per_night : `int`, opt
         Number of observations required within a single night. Default 2.
-    t_min : `float`, optional
+    t_min : `float`, opt
         Minimum time span between observations in a single night, in days.
         Default 5 minutes (5/60/24).
-    t_max : `float`, optional
+    t_max : `float`, opt
         Maximum time span between observations in a single night, in days.
         Default 90 minutes.
-    n_nights_per_window : `int`, optional
+    n_nights_per_window : `int`, opt
         Number of nights required with observations, within the track window.
         Default 3.
-    t_window : `int`, optional
+    t_window : `int`, opt
         Number of nights included in the track window. Default 15.
-    snr_limit : None or `float`, optional
+    snr_limit : None or `float`, opt
         SNR limit to use for observations.
         If snr_limit is None, (default), then it uses
         the completeness calculation added to the 'vis' column
         (probabilistic visibility, based on 5-sigma limit).
         If snr_limit is not None, it uses this SNR value as a cutoff.
-    metricName : `str`, optional
+    metricName : `str`, opt
         The metric name to use.
         Default will be to construct
         Discovery_nObsPerNightxnNightsPerWindowintWindow.
@@ -404,8 +478,15 @@ class DiscoveryNChancesMetric(BaseChildMetric):
 
     Returns total number of discovery opportunities.
     Child metric to be used with the Discovery Metric.
-    """
 
+    Parameters
+    ----------
+    parentDiscoveryMetric : `~BaseMoMetric`
+        The 'parent' metric which generated the metric data used
+        calculate this 'child' metric.
+    badval : `float`, opt
+        Value to return when metric cannot be calculated.
+    """
     def __init__(
         self,
         parent_discovery_metric,
@@ -434,8 +515,15 @@ class DiscoveryNChancesMetric(BaseChildMetric):
 class DiscoveryNObsMetric(BaseChildMetric):
     """Calculates the number of observations in the first discovery
     track of an SSobject.
-    """
 
+    Parameters
+    ----------
+    parentDiscoveryMetric : `~BaseMoMetric`
+        The 'parent' metric which generated the metric data used
+        calculate this 'child' metric.
+    badval : `float`, opt
+        Value to return when metric cannot be calculated.
+    """
     def __init__(self, parent_discovery_metric, badval=0, **kwargs):
         super().__init__(parent_discovery_metric, badval=badval, **kwargs)
         # The number of the discovery chance to use.
@@ -451,7 +539,16 @@ class DiscoveryNObsMetric(BaseChildMetric):
 
 
 class DiscoveryTimeMetric(BaseChildMetric):
-    """Returns the time of the first discovery track of an SSobject."""
+    """Returns the time of the first discovery track of an SSobject.
+
+    Parameters
+    ----------
+    parentDiscoveryMetric : `~BaseMoMetric`
+        The 'parent' metric which generated the metric data used
+        calculate this 'child' metric.
+    badval : `float`, opt
+        Value to return when metric cannot be calculated.
+    """
 
     def __init__(self, parent_discovery_metric, t_start=None, badval=-999, **kwargs):
         super().__init__(parent_discovery_metric, badval=badval, **kwargs)
@@ -475,7 +572,16 @@ class DiscoveryTimeMetric(BaseChildMetric):
 
 
 class DiscoveryDistanceMetric(BaseChildMetric):
-    """Returns the distance of the first discovery track of an SSobject."""
+    """Returns the distance of the first discovery track of an SSobject.
+
+    Parameters
+    ----------
+    parentDiscoveryMetric : `~BaseMoMetric`
+        The 'parent' metric which generated the metric data used
+        calculate this 'child' metric.
+    badval : `float`, opt
+        Value to return when metric cannot be calculated.
+    """
 
     def __init__(self, parent_discovery_metric, distance_col="geo_dist", badval=-999, **kwargs):
         super().__init__(parent_discovery_metric, badval=badval, **kwargs)
@@ -497,7 +603,16 @@ class DiscoveryDistanceMetric(BaseChildMetric):
 
 
 class DiscoveryRadecMetric(BaseChildMetric):
-    """Returns the RA/Dec of the first discovery track of an SSobject."""
+    """Returns the RA/Dec of the first discovery track of an SSobject.
+
+    Parameters
+    ----------
+    parentDiscoveryMetric : `~BaseMoMetric`
+        The 'parent' metric which generated the metric data used
+        calculate this 'child' metric.
+    badval : `float`, opt
+        Value to return when metric cannot be calculated.
+    """
 
     def __init__(self, parent_discovery_metric, badval=None, **kwargs):
         super().__init__(parent_discovery_metric, badval=badval, **kwargs)
@@ -520,7 +635,16 @@ class DiscoveryRadecMetric(BaseChildMetric):
 
 class DiscoveryEclonlatMetric(BaseChildMetric):
     """Returns the ecliptic lon/lat and solar elong of the first discovery
-    track of an SSobject."""
+    track of an SSobject.
+
+    Parameters
+    ----------
+    parentDiscoveryMetric : `~BaseMoMetric`
+        The 'parent' metric which generated the metric data used
+        calculate this 'child' metric.
+    badval : `float`, opt
+        Value to return when metric cannot be calculated.
+    """
 
     def __init__(self, parent_discovery_metric, badval=None, **kwargs):
         super().__init__(parent_discovery_metric, badval=badval, **kwargs)
@@ -543,7 +667,16 @@ class DiscoveryEclonlatMetric(BaseChildMetric):
 
 
 class DiscoveryVelocityMetric(BaseChildMetric):
-    """Returns the sky velocity of the first discovery track of an SSobject."""
+    """Returns the sky velocity of the first discovery track of an SSobject.
+
+    Parameters
+    ----------
+    parentDiscoveryMetric : `~BaseMoMetric`
+        The 'parent' metric which generated the metric data used
+        calculate this 'child' metric.
+    badval : `float`, opt
+        Value to return when metric cannot be calculated.
+    """
 
     def __init__(self, parent_discovery_metric, badval=-999, **kwargs):
         super().__init__(parent_discovery_metric, badval=badval, **kwargs)
@@ -570,6 +703,24 @@ class ActivityOverTimeMetric(BaseMoMetric):
     Splits observations into time periods set by 'window',
     then looks for observations within each window,
     and reports what fraction of the total windows receive 'nObs' visits.
+
+    Parameters
+    ----------
+    window : `float`
+        The (repeated) time period to search for activity.
+    snr_limit : None or `float`, opt
+        SNR limit to use for observations.
+        If snr_limit is None, then it uses
+        the completeness calculation added to the 'vis' column
+        (probabilistic visibility, based on 5-sigma limit).
+        If snr_limit is not None, it uses this SNR value as a cutoff.
+    survey_years : `float`, opt
+        The length of time of the survey. The test `window` is repeated
+        over `survey_years`, and then a fraction calculated from the
+        number of bins in which observations were acquired compared to the
+        total number of bins.
+    metric_name : `str` or None, opt
+        Name for the metric. If None, one is created from the class name.
     """
 
     def __init__(self, window, snr_limit=5, survey_years=10.0, metric_name=None, **kwargs):
@@ -601,6 +752,30 @@ class ActivityOverPeriodMetric(BaseMoMetric):
 
     Count the fraction of the orbit (when split into n_bins) that receive
     observations, in order to have a chance to detect activity.
+
+    Parameters
+    ----------
+    bin_size : `float`
+        Like `window` for the ActivityOverTimeMetric,
+        but describes how much of the orbit
+        (considered in mean motion) should be included in a given bin.
+        In degrees.
+    snr_limit : None or `float`, opt
+        SNR limit to use for observations.
+        If snr_limit is None, then it uses
+        the completeness calculation added to the 'vis' column
+        (probabilistic visibility, based on 5-sigma limit).
+        If snr_limit is not None, it uses this SNR value as a cutoff.
+    q_col : `str`, opt
+        The name of the q column in the objects orbit data.
+    e_col : `str`, opt
+        The name of the eccentricity column in the objects orbit data.
+    t_peri_col : `str`, opt
+        The name of the time of perihelion column in the objects orbit data.
+    anomaly_col : `str`, opt
+        The name of the mean anomaly column in the objects orbit data.
+    metric_name : `str` or None, opt
+        Name for the metric. If None, one is created from the class name.
     """
 
     def __init__(
@@ -744,19 +919,18 @@ class HighVelocityNightsMetric(BaseMoMetric):
 
     Parameters
     ----------
-    psf_facto r: `float`, optional
+    psf_factor: `float`, opt
         Object velocity (deg/day) must be
         >= 24 * psf_factor * seeingGeom (") / visitExpTime (s).
         Default is 2 (i.e. object trailed over 2 psf's).
-    n_obs_per_night : `int`, optional
+    n_obs_per_night : `int`, opt
         Number of observations per night required. Default 2.
     snr_limit : `float` or None
         If snr_limit is set as a float, then requires object to be above
         snr_limit SNR in the image.
         If snr_limit is None, this uses the probabilistic 'visibility'
         calculated by the vis stacker, which means SNR ~ 5.
-         Default is None.
-    velocity_col : `str`, optional
+    velocity_col : `str`, opt
         Name of the velocity column in the obs file.
         Default 'velocity'. (note this is deg/day).
 
@@ -806,8 +980,33 @@ class LightcurveInversionAsteroidMetric(BaseMoMetric):
     lightcurve inversion. This metric is generally applicable only to inner
     solar system objects (NEOs, MBAs).
 
-    Determine if the cumulative sum of observations of a target are
-    enough to enable lightcurve inversion for shape modeling.
+    Parameters
+    ----------
+    weight_det : `float`, opt
+        The SNR-weighted number of detections required (per bandpass in any
+        ONE of the filters in filterlist).
+        Default 50.
+    snr_limit : `float` or None, opt
+        If snr_limit is set as a float, then requires object to be
+        above snr_limit SNR in the image.
+        If snr_limit is None, this uses the probabilistic 'visibility'
+        calculated by the vis stacker,
+        which means SNR ~ 5.   Default is None.
+    snr_max : `float`, opt
+        Maximum value toward the SNR-weighting to consider. Default 100.
+    filterlist : `list` [`str`], opt
+        The filters which the lightcurve inversion could be based on.
+        Requirements must be met in one of these filters.
+
+    Returns
+    -------
+    metric_value : `int`
+        0 (could not perform lightcurve inversion) or 1 (could)
+
+    Notes
+    -----
+    This metric determines if the cumulative sum of observations of a
+    target are enough to enable lightcurve inversion for shape modeling.
     For this to be true, multiple conditions need to be
     satisfied:
 
@@ -828,29 +1027,6 @@ class LightcurveInversionAsteroidMetric(BaseMoMetric):
 
     Contributed by Steve Chesley, Wes Fraser, Josef Durech, and the
     inner solar system working group.
-
-    Parameters
-    ----------
-    weight_det : `float`, optional
-        The SNR-weighted number of detections required (per bandpass in any
-        ONE of the filters in filterlist).
-        Default 50.
-    snr_limit : `float` or None, optional
-        If snr_limit is set as a float, then requires object to be
-        above snr_limit SNR in the image.
-        If snr_limit is None, this uses the probabilistic 'visibility'
-        calculated by the vis stacker,
-        which means SNR ~ 5.   Default is None.
-    snr_max : `float`, optional
-        Maximum value toward the SNR-weighting to consider. Default 100.
-    filterlist : `list` [`str`], optional
-        The filters which the lightcurve inversion could be based on.
-        Requirements must be met in one of these filters.
-
-    Returns
-    -------
-    metric_value : `int`
-        0 (could not perform lightcurve inversion) or 1 (could)
     """
 
     def __init__(
@@ -909,34 +1085,20 @@ class ColorAsteroidMetric(BaseMoMetric):
     object.  This metric is appropriate for MBAs and NEOs,
     and other inner solar system objects.
 
-    The metric evaluates if the SNR-weighted number of observations are
-    enough to determine an approximate lightcurve and phase function --
-    and from this, then a color for the asteroid can be determined.
-    The assumption is that you must fit the lightcurve/phase function
-    in each bandpass, and could do this well-enough if you have at least
-    weight_det SNR-weighted observations in the bandpass.
-    e.g. to find a g-r color, you must have 10 (SNR-weighted) obs in g
-    and 10 in r.
-
-    For more details, see
-    https://docs.google.com/document/d/1GAriM7trpTS08uanjUF7PyKALB2JBTjVT7Y6R30i0-8/edit?usp=sharing
-
-    Contributed by Wes Fraser, Steven Chesley
-    & the inner solar system working group.
 
     Parameters
     ----------
-    weight_det: float, optional
+    weight_det: float, opt
         The SNR-weighted number of detections required (per bandpass in any
         ONE of the filters in filterlist).
         Default 10.
-    snr_limit: float or None, optional
+    snr_limit: float or None, opt
         If snr_limit is set as a float, then requires object to be above
         snr_limit SNR in the image.
         If snr_limit is None, this uses the probabilistic 'visibility'
         calculated by the vis stacker,
         which means SNR ~ 5.   Default is None.
-    snr_max: float, optional
+    snr_max: float, opt
         Maximum value toward the SNR-weighting to consider. Default 20.
 
     Returns
@@ -951,6 +1113,23 @@ class ColorAsteroidMetric(BaseMoMetric):
          i.e. colors = g-r, r-i, i-z, OR r-i, i-z, z-y..
         3 = All 5 from grizy. i.e. colors g-r, r-i, i-z, z-y.
         4 = All 6 filters (ugrizy) -- best possible! add u-g.
+
+    Notes
+    -----
+    The metric evaluates if the SNR-weighted number of observations are
+    enough to determine an approximate lightcurve and phase function --
+    and from this, then a color for the asteroid can be determined.
+    The assumption is that you must fit the lightcurve/phase function
+    in each bandpass, and could do this well-enough if you have at least
+    weight_det SNR-weighted observations in the bandpass.
+    e.g. to find a g-r color, you must have 10 (SNR-weighted) obs in g
+    and 10 in r.
+
+    For more details, see
+    https://docs.google.com/document/d/1GAriM7trpTS08uanjUF7PyKALB2JBTjVT7Y6R30i0-8/edit?usp=sharing
+
+    Contributed by Wes Fraser, Steven Chesley
+    & the inner solar system working group.
     """
 
     def __init__(self, weight_det=10, snr_max=20, snr_limit=None, **kwargs):
@@ -1016,6 +1195,36 @@ class LightcurveColorOuterMetric(BaseMoMetric):
     """Calculate the liklihood of being able to calculate a color and
     lightcurve for outer solar system objects.
 
+    Parameters
+    ----------
+    snr_limit : `float` or None, opt
+        If snr_limit is set as a float, then requires object to be above
+        snr_limit SNR in the image.
+        If snr_limit is None, this uses the probabilistic 'visibility'
+        calculated by the vis stacker,
+        which means SNR ~ 5.   Default is None.
+    num_req : `int`, opt
+        Number of observations required for a lightcurve fitting. Default 30.
+    num_sec_filt : `int`, opt
+        Number of observations required in a secondary band for color only.
+        Default 20.
+    filterlist : `list` [`str`], opt
+        Filters that the primary/secondary measurements can be in.
+
+    Returns
+    -------
+    flag : `int`
+        A flag that indicates whether a color/lightcurve was generated in:
+        0 = no lightcurve
+        (although may have had 'color' in one or more band)
+        1 = a lightcurve in a single filter
+        (but no additional color information)
+        2+ = lightcurves in more than one filter  (or lightcurve + color)
+        e.g. lightcurve in 2 bands,
+        with additional color information in another = 3.
+
+    Notes
+    -----
     This metric is appropriate for outer solar system objects,
     such as TNOs and SDOs.
 
@@ -1029,34 +1238,6 @@ class LightcurveColorOuterMetric(BaseMoMetric):
     bandpasses in filterlist.
 
     Contributed by Wes Fraser.
-
-    Parameters
-    ----------
-    snr_limit : `float` or None, optional
-        If snr_limit is set as a float, then requires object to be above
-        snr_limit SNR in the image.
-        If snr_limit is None, this uses the probabilistic 'visibility'
-        calculated by the vis stacker,
-        which means SNR ~ 5.   Default is None.
-    num_req : `int`, optional
-        Number of observations required for a lightcurve fitting. Default 30.
-    num_sec_filt : `int`, optional
-        Number of observations required in a secondary band for color only.
-        Default 20.
-    filterlist : `list` [`str`], optional
-        Filters that the primary/secondary measurements can be in.
-
-    Returns
-    -------
-    flag : `ont`
-        A flag that indicates whether a color/lightcurve was generated in:
-        0 = no lightcurve
-        (although may have had 'color' in one or more band)
-        1 = a lightcurve in a single filter
-        (but no additional color information)
-        2+ = lightcurves in more than one filter  (or lightcurve + color)
-        e.g. lightcurve in 2 bands,
-        with additional color information in another = 3.
     """
 
     def __init__(
@@ -1100,27 +1281,23 @@ class InstantaneousColorMetric(BaseMoMetric):
     """Identify SSobjects which could have observations suitable to
     determine instanteous colors.
 
-    Generally, this is not the mode LSST would work in -
-    the lightcurves of the objects mean that the time interval would have to
-    be quite short.
-
     This is roughly defined as objects which have more than n_pairs pairs
     of observations with SNR greater than snr_limit,
     in bands bandOne and bandTwo, within n_hours.
 
     Parameters
     ----------
-    n_pairs : `int`, optional
+    n_pairs : `int`, opt
         The number of pairs of observations (in each band) that must be
         within n_hours. Default 1.
-    snr_limit : `float`, optional
+    snr_limit : `float`, opt
         The SNR limit for the observations. Default 10.
-    n_hours : `float`, optional
+    n_hours : `float`, opt
         The time interval between observations in the two bandpasses (hours).
         Default 0.5 hours.
-    b_one : `str`, optional
+    b_one : `str`, opt
         The first bandpass for the color. Default 'g'.
-    b_two : `str`, optional
+    b_two : `str`, opt
         The second bandpass for the color. Default 'r'.
 
     Returns
@@ -1183,51 +1360,51 @@ class KnownObjectsMetric(BaseMoMetric):
     The default values are calibrated using the NEOs larger than 140m
     discovered in the last 20 years and assuming a 30% completeness in 2017.
 
-    Note: the default parameteres here were set up in ~2012, and are likely
+    Note: the default parameters here were set up in ~2012, and are likely
     out of date (potentially adding another epoch of discovery).
 
     Parameters
     -----------
-    elong_thresh : `float`, optional
+    elong_thresh : `float`, opt
         The cutoff in solar elongation to consider an object 'visible'.
         Default 100 deg.
-    v_mag_thresh1 : `float`, optional
+    v_mag_thresh1 : `float`, opt
         The magnitude threshold for previously known objects. Default 20.0.
-    eff1 : `float`, optional
+    eff1 : `float`, opt
         The likelihood of actually achieving each individual input observation.
         If the input observations include one observation per day,
         an 'eff' value of 0.3 would mean that (on average) only one third
         of these observations would be achieved. This is similar to the level
         for LSST, which can cover the visible sky every 3-4 days.
         Default 0.1
-    t_switch1 : `float`, optional
+    t_switch1 : `float`, opt
         The (MJD) time to switch between v_mag_thresh1 + eff1 to
         v_mag_thresh2 + eff2, e.g. the end of the first period.
         Default 53371 (2005).
-    v_mag_thresh2 : `float`, optional
+    v_mag_thresh2 : `float`, opt
         The magnitude threshhold for previously known objects. Default 22.0.
         This is based on assuming PS and other surveys will be efficient
         down to V=22.
-    eff2 : `float`, optional
+    eff2 : `float`, opt
         The efficiency of observations during the second period of time.
         Default 0.1
-    t_switch2 : `float`, optional
+    t_switch2 : `float`, opt
         The (MJD) time to switch between v_mag_thresh2 + eff2 to
         v_mag_thresh3 + eff3.
         Default 57023 (2015).
-    v_mag_thresh3 : `float`, optional
+    v_mag_thresh3 : `float`, opt
         The magnitude threshold during the third period.
         Default 22.0, based on PS1 + Catalina.
-    eff3 : `float`, optional
+    eff3 : `float`, opt
         The efficiency of observations during the third period. Default 0.1
-    t_switch3 : `float`, optional
+    t_switch3 : `float`, opt
         The (MJD) time to switch between v_mag_thresh3 + eff3
         to v_mag_thresh4 + eff4.
         Default 59580 (2022).
-    v_mag_thresh4 : `float`, optional
+    v_mag_thresh4 : `float`, opt
         The magnitude threshhold during the fourth (last) period.
         Default 22.0, based on PS1 + Catalina.
-    eff4 : `float`, optional
+    eff4 : `float`, opt
         The efficiency of observations during the fourth (last) period.
         Default 0.2
     """

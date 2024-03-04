@@ -25,7 +25,7 @@ def create_empty_mo_metric_bundle():
 
     Returns
     -------
-    ~rubin_sim.maf.metricBundles.MoMetricBundle
+    MoMetricBundle : `~rubin_sim.maf.metricBundles.MoMetricBundle`
         An empty metric bundle, configured with just
         the :class:`BaseMetric` and :class:`BaseSlicer`.
     """
@@ -33,16 +33,12 @@ def create_empty_mo_metric_bundle():
 
 
 def make_completeness_bundle(bundle, completeness_metric, h_mark=None, results_db=None):
-    """Make a mock metric bundle from a bundle which had
-    MoCompleteness or MoCumulativeCompleteness summary
-    metrics run. This lets us use the plotHandler + plots.MetricVsH
-    to generate plots.
-    Will also work with completeness metric run in order to calculate
-    fraction of the population, or with MoCompletenessAtTime metric.
+    """Evaluate a MoMetricBundle with a completeness-style metric, and
+    downsample into a new MoMetricBundle marginalized over the population.
 
     Parameters
     ----------
-    bundle : `~rubin_sim.maf.metricBundles.MetricBundle`
+    bundle : `~rubin_sim.maf.metricBundles.MoMetricBundle`
         The metric bundle with a completeness summary statistic.
     completeness_metric : `~rubin_sim.maf.metric`
         The summary (completeness) metric to run on the bundle.
@@ -56,6 +52,19 @@ def make_completeness_bundle(bundle, completeness_metric, h_mark=None, results_d
     Returns
     -------
     mo_metric_bundle : `~rubin_sim.maf.metricBundles.MoMetricBundle`
+
+    Notes
+    -----
+    This utility turns a metric bundle which could evaluate a metric over
+    the population, into a secondary or mock metric bundle, using either
+    MoCompleteness or MoCumulativeCompleteness summary
+    metrics to marginalize over the population of moving objects.
+    This lets us use the plotHandler + plots.MetricVsH
+    to generate plots across the population, using the completeness
+    information.
+    This utility will also work with completeness metric run in order
+    to calculate fraction of the population,
+    or with MoCompletenessAtTime metric.
     """
     bundle.set_summary_metrics(completeness_metric)
     # This step adds summary values at each point to the original metric -
@@ -99,6 +108,70 @@ def make_completeness_bundle(bundle, completeness_metric, h_mark=None, results_d
 
 
 class MoMetricBundle(MetricBundle):
+    """Define a moving object metric bundle combination of
+    moving-object metric, moving-object slicer, and constraint.
+
+    Parameters
+    ----------
+    metric : `~rubin_sim.maf.metric`
+        The Metric class to run per slice_point
+    slicer : `~rubin_sim.maf.slicer`
+        The Slicer to apply to the incoming visit data (the observations).
+    constraint : `str` or None, opt
+        A (sql-style) constraint to apply to the visit data, to apply a
+        broad sub-selection.
+    stacker_list : `list` [`~rubin_sim.maf.stacker`], opt
+        A list of pre-configured stackers to use to generate additional
+        columns per visit.
+        These will be generated automatically if needed, but pre-configured
+        versions will override these.
+    run_name : `str`, opt
+        The name of the simulation being run.
+        This will be added to output files and plots.
+        Setting it prevents file conflicts when running the same
+        metric on multiple simulations, and
+        provides a way to identify which simulation is being analyzed.
+    info_label : `str` or None, opt
+        Information to add to the output metric data file name and plot labels.
+        If this is not provided, it will be auto-generated from the
+        constraint (if any).
+        Setting this provides an easy way to specify different
+        configurations of a metric, a slicer,
+        or just to rewrite your constraint into friendlier terms.
+        (i.e. a constraint like 'note not like "%DD%"' can become
+        "non-DD" in the file name and plot labels
+        by specifying info_label).
+    plot_dict : `dict` of plotting parameters, opt
+        Specify general plotting parameters, such as x/y/color limits.
+    display_dict : `dict` of display parameters, opt
+        Specify parameters for show_maf web pages, such as the
+        side bar labels and figure captions.
+        Keys: 'group', 'subgroup', 'caption', and 'order'
+        (such as to set metrics in filter order, etc)
+    child_metrics : `list` of `~rubin_sim.maf.metrics`
+        A list of child metrics to run to summarize the
+        primary metric, such as Discovery_At_Time, etc.
+    summary_metrics : `list` of `~rubin_sim.maf.metrics`
+        A list of summary metrics to run to summarize the
+        primary or child metric, such as CompletenessAtH, etc.
+
+    Notes
+    -----
+    Define the "thing" you are measuring, with a combination of
+    * metric (calculated per object)
+    * slicer (contains information on the moving objects
+    and their observations)
+    * constraint (an optional definition of a large subset of data)
+
+    The MoMetricBundle also saves the child metrics to be used
+    to generate summary statistics over those metric values,
+    as well as the resulting summary statistic values.
+
+    Plotting parameters and display parameters (for show_maf) are saved
+    in the MoMetricBundle, as well as additional info_label such as the
+    opsim run name, and relevant stackers and maps
+    to apply when calculating the metric values.
+    """
     def __init__(
         self,
         metric,
@@ -208,11 +281,18 @@ class MoMetricBundle(MetricBundle):
         raise NotImplementedError
 
     def set_child_bundles(self, child_metrics=None):
-        """
-        Identify any child metrics to be run on this (parent) bundle.
+        """Identify any child metrics to be run on this (parent) bundle.
         and create the new metric bundles that will hold the child values,
         linking to this bundle.
         Remove the summaryMetrics from self afterwards.
+
+        Parameters
+        ----------
+        child_metrics : `~maf.MoMetric`
+            Child metrics work like reduce functions for non-moving objects.
+            They pull out subsets of the original metric values, typically
+            do more processing on those values, and then save them in
+            new metric bundles.
         """
         self.child_bundles = {}
         if child_metrics is None:
@@ -235,9 +315,13 @@ class MoMetricBundle(MetricBundle):
             self.summary_metrics = []
 
     def compute_summary_stats(self, results_db=None):
-        """
-        Compute summary statistics on metric_values, using summaryMetrics,
+        """Compute summary statistics on metric_values, using summaryMetrics,
         for self and child bundles.
+
+        Parameters
+        ----------
+        results_db : `~maf.ResultsDb`
+            Database which holds the summary statistic information.
         """
         if self.summary_values is None:
             self.summary_values = {}
@@ -266,6 +350,29 @@ class MoMetricBundle(MetricBundle):
 
 
 class MoMetricBundleGroup:
+    """Run groups of MoMetricBundles.
+
+    Parameters
+    ----------
+    bundle_dict : `dict` or `list` [`MoMetricBundles`]
+        Individual MoMetricBundles should be placed into a dictionary,
+        and then passed to the MoMetricBundleGroup.
+        The dictionary keys can then be used to identify MoMetricBundles
+        if needed -- and to identify new MetricBundles which could be
+        created if 'reduce' functions are run on a particular MoMetricBundle.
+        MoMetricBundles must all have the same Slicer (same set of moving
+        object observations).
+    out_dir : `str`, opt
+        Directory to save the metric results.
+        Default is the current directory.
+    results_db : `ResultsDb`, opt
+        A results database to store summary stat information.
+        If not specified, one will be created in the out_dir.
+        This database saves information about the metrics calculated,
+        including their summary statistics.
+    verbose : `bool`, opt
+        Flag to turn on/off verbose feedback.
+    """
     def __init__(self, bundle_dict, out_dir=".", results_db=None, verbose=True):
         self.verbose = verbose
         self.bundle_dict = bundle_dict
@@ -316,7 +423,7 @@ class MoMetricBundleGroup:
         return True
 
     def _find_compatible(self, test_keys):
-        """ "Private utility to find which metricBundles with keys in the
+        """Private utility to find which metricBundles with keys in the
         list 'test_keys' can be calculated
         at the same time -- having the same slicer, constraint, maps,
         and compatible stackers.
@@ -325,10 +432,11 @@ class MoMetricBundleGroup:
         -----------
         test_keys : `list`
             List of the dictionary keys (of self.bundle_dict) to
-            test for compatibilility.
+            test for compatibility.
+
         Returns
         --------
-        list of lists
+        compatible_lists : `list` [`lists`]
             Returns test_keys, split into separate lists of
             compatible metricBundles.
         """
@@ -374,9 +482,6 @@ class MoMetricBundleGroup:
         match this constraint in the metricBundleGroup.
         Also calculates child metrics and summary statistics,
         and writes all to disk.
-        (work is actually done in _runCompatible, so that only completely
-        compatible sets of metricBundles
-        run at the same time).
 
         Parameters
         ----------

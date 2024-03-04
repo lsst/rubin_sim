@@ -24,29 +24,6 @@ class ChebyFits:
     positions with a constrained Chebyshev Polynomial, using the routines
     in chebyshevUtils.py.
 
-    Many chebyshev polynomials are used to fit one moving object over
-    a given timeperiod; typically, the length of each segment is typically
-    about 2 days for MBAs. The start and end of each segment must match
-    exactly, and the entire segments must fit into the total timespan an
-    integer number of times. This is accomplished by setting n_decimal to
-    the number of decimal places desired in the 'time' value.
-    For faster moving objects, this number needs be greater to allow for
-    smaller subdivisions.
-    It's tempting to allow flexibility to the point of not
-    enforcing this non-overlap; however, then the resulting ephemeris
-    may have multiple values depending on which polynomial segment was
-    used to calculate the ephemeris.
-
-    The length of each chebyshev polynomial is related to the number of
-    ephemeris positions used to fit that polynomial by ngran:
-    length = timestep * ngran
-    The length of each polynomial is adjusted so that the residuals in
-    RA/Dec position are less than sky_tolerance - default = 2.5mas.
-    The polynomial length (and the resulting residuals) is affected
-    by ngran (i.e. timestep).
-
-    Default values are based on Yusra AlSayaad's work.
-
     Parameters
     ----------
     orbits_obj : `rubin_sim.moving_objects.Orbits`
@@ -91,6 +68,31 @@ class ChebyFits:
         n_decimal places. Default 10.
         For LSST SIMS moving object database, this should be 13 decimal
         places for NEOs and 0 for all others.
+
+    Notes
+    -----
+    Many chebyshev polynomials are used to fit one moving object over
+    a given timeperiod; typically, the length of each segment is typically
+    about 2 days for MBAs. The start and end of each segment must match
+    exactly, and the entire segments must fit into the total timespan an
+    integer number of times. This is accomplished by setting n_decimal to
+    the number of decimal places desired in the 'time' value.
+    For faster moving objects, this number needs be greater to allow for
+    smaller subdivisions.
+    It's tempting to allow flexibility to the point of not
+    enforcing this non-overlap; however, then the resulting ephemeris
+    may have multiple values depending on which polynomial segment was
+    used to calculate the ephemeris.
+
+    The length of each chebyshev polynomial is related to the number of
+    ephemeris positions used to fit that polynomial by ngran:
+    length = timestep * ngran
+    The length of each polynomial is adjusted so that the residuals in
+    RA/Dec position are less than sky_tolerance - default = 2.5mas.
+    The polynomial length (and the resulting residuals) is affected
+    by ngran (i.e. timestep).
+
+    Default values are based on Yusra AlSayaad's work.
     """
 
     def __init__(
@@ -255,7 +257,7 @@ class ChebyFits:
 
         Returns
         -------
-        `float`
+        length : `float`
             The rounded length value.
         """
         length = round(length, self.n_decimal)

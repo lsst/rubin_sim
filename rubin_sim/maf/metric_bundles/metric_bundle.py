@@ -29,26 +29,7 @@ def create_empty_metric_bundle():
 
 
 class MetricBundle:
-    """Define the "thing" you are measuring, with a combination of
-    * metric (calculated per data_slice)
-    * slicer (how to create the data_slices)
-    * constraint (an optional definition of a large subset of data)
-
-    Together these define a unique combination of an opsim benchmark.
-    An example would be:
-    a CountMetric, a HealpixSlicer, and a constraint of 'filter="r"'.
-
-    After the metric is evaluated at each slice_point created by the
-    slicer, the resulting metric values are saved in the MetricBundle.
-
-    The MetricBundle also saves the summary metrics to be used
-    to generate summary statistics over those metric values,
-    as well as the resulting summary statistic values.
-
-    Plotting parameters and display parameters (for show_maf) are saved
-    in the MetricBundle, as well as additional info_label such as the
-    opsim run name, and relevant stackers and maps
-    to apply when calculating the metric values.
+    """Define a metric bundle combination of metric, slicer, and constraint.
 
     Parameters
     ----------
@@ -98,6 +79,30 @@ class MetricBundle:
         A list of pre-configured maps to use for the metric.
         This will be auto-generated if specified
         by the metric class, but pre-configured versions will override these.
+
+    Notes
+    -----
+    Define the "thing" you are measuring, with a combination of
+    * metric (calculated per data_slice)
+    * slicer (how to create the data_slices)
+    * constraint (an optional definition of a large subset of data)
+
+    Together these define a unique combination of an opsim benchmark,
+    or "metric bundle". 
+    An example would be:
+    a CountMetric, a HealpixSlicer, and a constraint of 'filter="r"'.
+
+    After the metric is evaluated at each slice_point created by the
+    slicer, the resulting metric values are saved in the MetricBundle.
+
+    The MetricBundle also saves the summary metrics to be used
+    to generate summary statistics over those metric values,
+    as well as the resulting summary statistic values.
+
+    Plotting parameters and display parameters (for show_maf) are saved
+    in the MetricBundle, as well as additional info_label such as the
+    opsim run name, and relevant stackers and maps
+    to apply when calculating the metric values.
     """
 
     col_info = ColInfo()

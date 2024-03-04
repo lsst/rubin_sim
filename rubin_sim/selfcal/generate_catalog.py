@@ -36,8 +36,15 @@ def treexyz(ra, dec):
 def build_tree(ra, dec, leafsize=100):
     """Build KD tree on RA/dec and set radius (via setRad) for matching.
 
-    ra, dec = RA and Dec values (in radians).
-    leafsize = the number of Ra/Dec pointings in each leaf node.
+    Parameters
+    ----------
+    ra : `nd.ndarray`, (N,)
+        RA values of the tree (in radians)
+    dec : `nd.ndarray`, (N,)
+        Dec values of the tree (in radians).
+    leafsize : `float`, opt
+        The number of RA/Dec pointings in each leafnode.
+        Default 100.
     """
     if np.any(np.abs(ra) > np.pi * 2.0) or np.any(np.abs(dec) > np.pi * 2.0):
         raise ValueError("Expecting RA and Dec values to be in radians.")
@@ -66,22 +73,22 @@ def generate_catalog(
 
     Parameters
     ----------
-    visits : `np.array`
+    visits : `np.array`, (N,)
         A numpy array with the properties of the visits.
         Expected columns of fiveSigmaDepth, ra, dec, rotSkyPos (all degrees)
     offsets : `list` of rubin_sim.selfcal.Offset classes
         A list of instatiated classes that will apply offsets to the stars
-    lsst_filter :  `str` ("r")
+    lsst_filter :  `str`
         Which filter to use for the observed stars.
-    n_patches : `int` (16)
+    n_patches : `int`
         Number of patches to divide the FoV into.  Must be an integer squared
-    radius_fov : `float` (1.8)
+    radius_fov : `float`
         Radius of the telescope field of view in degrees
-    seed : `float` (42)
+    seed : `float`
         Random number seed
-    uncert_floor : `float` (0.005)
+    uncert_floor : `float`
         Value to add in quadrature to magnitude uncertainties (mags)
-    verbose : `bool` (True)
+    verbose : `bool`
         Should we be verbose
     """
 

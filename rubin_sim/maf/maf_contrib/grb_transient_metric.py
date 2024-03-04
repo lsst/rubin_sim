@@ -10,7 +10,9 @@ import rubin_sim.maf.metrics as metrics
 
 
 class GRBTransientMetric(metrics.BaseMetric):
-    """Detections for on-axis GRB afterglows decaying as
+    """Evaluate the likelihood of detecting a GRB optical counterpart.
+
+    Detections for an on-axis GRB afterglows decaying as
     F(t) = F(1min)((t-t0)/1min)^-alpha.  No jet break, for now.
 
     Derived from TransientMetric, but calculated with reduce functions to

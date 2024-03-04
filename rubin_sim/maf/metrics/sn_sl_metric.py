@@ -10,9 +10,51 @@ from rubin_sim.phot_utils import DustValues
 
 
 class SNSLMetric(metrics.BaseMetric):
-    """Calculate  the number of expected well-measured strongly lensed SN (per data_slice).
+    """Calculate  the number of expected well-measured strongly lensed SN
+    (per data_slice).
 
-    The number of expected strongly lensed SN detections with a well-measured time delay is given by:
+    Parameters
+    ----------
+    metric_name : `str`, optional
+        metric name
+        Default : SNCadenceMetric
+    mjd_col : `str`, optional
+        mjd column name
+        Default : observationStartMJD,
+    filter_col : `str`, optional
+        filter column name
+        Default: filter
+    night_col : `str`, optional
+        night column name
+        Default : night
+    m5_col : `str`, optional
+        individual visit five-sigma limiting magnitude (m5) column name
+        Default : fiveSigmaDepth
+    season : `list` [`int`] or None, optional
+        season to process (default: None: all seasons)
+        A list with [-1] processes all seasons, as does None.
+    nfilters_min : `int`, optional
+        The number of filters to demand in a season
+        Default: 4.
+    min_season_obs : `int`, optional
+        Minimum number of observations per season. Default 5.
+    m5mins : `dict`, optional
+        Minimum individual image depth for visit to 'count'.
+        Default None uses
+        {'u': 22.7, 'g': 24.1, 'r': 23.7, 'i': 23.1, 'z': 22.2, 'y': 21.4}.
+    maps : `list`, optional
+        List of maps to use.
+        Default is the dustmap, to reduce m5 limiting mags accordingly.
+
+    Returns
+    -------
+    n_slsn : `float`
+        Number of expected well-measured strongly lensed SN
+
+    Notes
+    -----
+    The number of expected strongly lensed SN detections with a
+    well-measured time delay is given by:
 
     N (lensed SNe Ia with well measured time delay) = 45.7 *
     survey_area / (20000 deg^2) *
@@ -25,41 +67,6 @@ class SNSLMetric(metrics.BaseMetric):
     gap_median_all_filter: median gap (all filters) (in days)
 
     (reference? metric originated from Simon Huber and Phillipe Gris)
-
-    Parameters
-    ----------
-    metricName : str, optional
-        metric name
-        Default : SNCadenceMetric
-    mjd_col : str, optional
-        mjd column name
-        Default : observationStartMJD,
-    filter_col : str, optional
-        filter column name
-        Default: filter
-    night_col : str, optional
-        night column name
-        Default : night
-    m5_col : str, optional
-        individual visit five-sigma limiting magnitude (m5) column name
-        Default : fiveSigmaDepth
-    season: int (list) or -1, optional
-        season to process (default: -1: all seasons)
-    nfilters_min : int, optional
-        The number of filters to demand in a season
-        Default: 4.
-    min_season_obs : int, optional
-        Minimum number of observations per season. Default 5.
-    m5mins : dict, optional
-        Minimum individual image depth for visit to 'count'.
-        Default None uses {'u': 22.7, 'g': 24.1, 'r': 23.7, 'i': 23.1, 'z': 22.2, 'y': 21.4}.
-    maps : list, optional
-        List of maps to use. Default is the dustmap, to reduce m5 limiting mags accordingly.
-
-    Returns
-    -------
-    float
-        Number of expected well-measured strongly lensed SN
     """
 
     def __init__(
@@ -69,7 +76,7 @@ class SNSLMetric(metrics.BaseMetric):
         filter_col="filter",
         night_col="night",
         m5_col="fiveSigmaDepth",
-        season=[-1],
+        season=None,
         nfilters_min=4,
         min_season_obs=5,
         m5mins=None,
@@ -86,7 +93,10 @@ class SNSLMetric(metrics.BaseMetric):
         super().__init__(col=cols, metric_name=metric_name, maps=self.maps, units="N SL", **kwargs)
 
         self.bad_val = 0
-        self.season = season
+        if season is None:
+            self.season = [-1]
+        else:
+            self.season = season
         self.bands = "ugrizy"
         if m5mins is None:
             self.m5mins = {
@@ -105,19 +115,20 @@ class SNSLMetric(metrics.BaseMetric):
         self.phot_properties = DustValues()
 
     def n_lensed(self, area, cadence, season_length):
-        """
+        """Estimate the number of lensed supernovae.
+
         Parameters
         -----------
-        area : float
+        area : `float`
             Area in square degrees related to this data_slice (sq deg)
-        gap_median : float
+        gap_median : `float`
             median gap between nights with visits (days) - any filter
-        cumul_season : float
+        cumul_season : `float`
             length of the season or period of consideration (years)
 
         Returns
         -------
-        float
+        n_lensed_s_ne__ia : `float`
             Number of strongly lensed SN expected in this area
         """
         # estimate the number of lensed supernovae
@@ -142,7 +153,8 @@ class SNSLMetric(metrics.BaseMetric):
         if len(data_slice) == 0:
             return self.bad_val
 
-        # Crop it down so things are coadded per night per filter at the median MJD time
+        # Crop it down so things are coadded per night per
+        # filter at the median MJD time
         night_slice = collapse_night(
             data_slice,
             night_col=self.night_col,
@@ -150,12 +162,14 @@ class SNSLMetric(metrics.BaseMetric):
             m5_col=self.m5_col,
             mjd_col=self.mjd_col,
         )
-        # Calculate the dust extinction-corrected m5 values and cut visits which don't meet self.m5mins
+        # Calculate the dust extinction-corrected m5 values
+        # and cut visits which don't meet self.m5mins
         for f in np.unique(night_slice[self.filter_col]):
             in_filt = np.where(night_slice[self.filter_col] == f)[0]
             a_x = self.phot_properties.ax1[f] * slice_point["ebv"]
             night_slice[self.m5_col][in_filt] = night_slice[self.m5_col][in_filt] - a_x
-            # Set the visits which fall below the minimum to an obvious non-valid value
+            # Set the visits which fall below the minimum
+            # to an obvious non-valid value
             night_slice[self.m5_col][in_filt] = np.where(
                 night_slice[self.m5_col][in_filt] > self.m5mins[f],
                 night_slice[self.m5_col][in_filt],
@@ -166,13 +180,15 @@ class SNSLMetric(metrics.BaseMetric):
         if len(idxs[0]) == 0:
             return self.badval
 
-        # Reset, with coadded per-night/per-filter values, skipping any too-shallow visits.
+        # Reset, with coadded per-night/per-filter values,
+        # skipping any too-shallow visits.
         night_slice = np.sort(night_slice[idxs], order=self.mjd_col)
 
         # get the pixel area
         area = hp.nside2pixarea(slice_point["nside"], degrees=True)
 
-        # Note that 'seasons' is the same length as night_slice, and contains integer (season) + float (day)
+        # Note that 'seasons' is the same length as night_slice,
+        # and contains integer (season) + float (day)
         seasons = calc_season(np.degrees(slice_point["ra"]), night_slice[self.mjd_col])
         season_ints = np.floor(seasons)
 

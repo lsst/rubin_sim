@@ -11,12 +11,24 @@ class PairMetric(BaseMetric):
 
     Parameters
     ----------
-    match_min : `float`
+    mjd_col : `str`, opt
+        Name of the MJD column in the observations.
+    metric_name : `str`, opt
+        Name for the resulting metric. If None, one is constructed from
+        the class name.
+    match_min : `float`, opt
         Minutes after first observation to count something as a match.
-    match_max : `float`
+    match_max : `float`, opt
         Minutes after first observation to count something as a match.
-    bin_size : `float`
+    bin_size : `float`, opt
         bin_size to use (minutes).
+        Note that bin_size should be considerably smaller than the difference
+        between match_min and match_max.
+
+    Result
+    ------
+    num_pairs : `float`
+        The number of pairs of visits within the min and max time range.
     """
 
     def __init__(
