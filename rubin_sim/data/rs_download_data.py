@@ -73,7 +73,7 @@ def download_testing_data():
     For users who don't care about moving objects, this is likely sufficient.
     """
     all_files = data_dict()
-    keys = ["maf", "movingObjects", "skybrightness", "throughputs", "tests"]
+    keys = ["maf", "maps", "movingObjects", "skybrightness", "throughputs", "tests"]
     subset = {}
     for k in keys:
         subset[k] = all_files[k]
