@@ -413,8 +413,8 @@ def glanceBatch(
     metric = metrics.CountExplimMetric(metric_name="fO")
     plotDict = {
         "xlabel": "Number of Visits",
-        "Asky": benchmarkArea,
-        "Nvisit": minNvisits,
+        "asky": benchmarkArea,
+        "n_visits": minNvisits,
         "x_min": 0,
         "x_max": 1500,
     }

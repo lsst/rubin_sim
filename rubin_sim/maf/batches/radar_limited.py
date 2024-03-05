@@ -80,8 +80,8 @@ def radar_limited(
     metric = metrics.CountExplimMetric(col="observationStartMJD", metric_name="fO")
     plotDict = {
         "xlabel": "Number of Visits",
-        "Asky": benchmarkArea,
-        "Nvisit": benchmarkNvisits,
+        "asky": benchmarkArea,
+        "n_visits": benchmarkNvisits,
         "x_min": 0,
         "x_max": 1500,
     }
