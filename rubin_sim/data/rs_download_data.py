@@ -1,8 +1,8 @@
 __all__ = ("get_data_dir", "get_baseline", "data_dict", "download_testing_data", "rs_download_data")
 
-import os
 import argparse
 import glob
+import os
 
 from rubin_scheduler.data import DEFAULT_DATA_URL, download_rubin_data
 from rubin_scheduler.data import get_data_dir as gdd
@@ -64,6 +64,7 @@ def data_dict():
     }
     return file_dict
 
+
 def download_testing_data():
     """Convenience function for github actions, to download only a subset
     of data.
@@ -71,9 +72,8 @@ def download_testing_data():
     Contains maf,maps,movingObjects,skybrightness,throughputs and tests.
     For users who don't care about moving objects, this is likely sufficient.
     """
-    all_files =  data_dict()
-    keys = ['maf', 'movingObjects',
-            'skybrightness', 'throughputs', 'tests']
+    all_files = data_dict()
+    keys = ["maf", "movingObjects", "skybrightness", "throughputs", "tests"]
     subset = {}
     for k in keys:
         subset[k] = all_files[k]

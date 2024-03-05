@@ -86,11 +86,11 @@ def fOBatch(
     displayDict = {"group": "SRD FO metrics", "subgroup": subgroup, "order": 0}
 
     # Configure the count metric which is what is used for f0 slicer.
-    metric = metrics.CountExplimMetric(col=colmap["mjd"], metric_name="fO", exp_col=colmap["exptime"])
+    metric = metrics.CountExplimMetric(metric_name="fO", exp_col=colmap["exptime"])
     plotDict = {
         "xlabel": "Number of Visits",
         "asky": benchmarkArea,
-        "n_visit": benchmarkn_visits,
+        "n_visit": minn_visits,
         "x_min": 0,
         "x_max": 1500,
     }

@@ -410,11 +410,11 @@ def glanceBatch(
     displayDict = {"group": "SRD", "subgroup": "FO metrics", "order": 0}
 
     # Configure the count metric which is what is used for f0 slicer.
-    metric = metrics.CountExplimMetric(col="observationStartMJD", metric_name="fO")
+    metric = metrics.CountExplimMetric(metric_name="fO")
     plotDict = {
         "xlabel": "Number of Visits",
         "Asky": benchmarkArea,
-        "Nvisit": benchmarkNvisits,
+        "Nvisit": minNvisits,
         "x_min": 0,
         "x_max": 1500,
     }

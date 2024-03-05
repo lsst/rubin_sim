@@ -8,6 +8,7 @@ class GenerateDDFTest(unittest.TestCase):
         """
         Test the DDF grid generator over in rubin_scheduler
         """
+        # This triggers several RunTimeErrors (intentionally?).
         result = generate_ddf_grid(survey_length=0.01, verbose=False)
         assert result is not None
 
