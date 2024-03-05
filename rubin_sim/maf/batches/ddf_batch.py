@@ -496,9 +496,9 @@ def ddfBatch(
             metric_name=f"{fieldname} NVisitsPerNight",
         )
         plotDict = {"bins": countbins, "xlabel": "Number of visits per night"}
-        displayDict[
-            "caption"
-        ] = f"Histogram of the number of visits in each night, at the center of {fieldname}."
+        displayDict["caption"] = (
+            f"Histogram of the number of visits in each night, at the center of {fieldname}."
+        )
         plotFunc = maf.SummaryHistogram()
         bundle = maf.MetricBundle(
             metric,
@@ -626,9 +626,9 @@ def ddfBatch(
         else:
             displayDict["group"] = "Progress"
             displayDict["subgroup"] = ""
-            displayDict[
-                "caption"
-            ] = f"Cumulative number of visits for the {fieldname.replace('DD:', '')} field."
+            displayDict["caption"] = (
+                f"Cumulative number of visits for the {fieldname.replace('DD:', '')} field."
+            )
             slicer = maf.UniSlicer()
             metric = maf.CumulativeMetric(metric_name=f"{fieldname} Cumulative NVisits")
             metricb = maf.MetricBundle(

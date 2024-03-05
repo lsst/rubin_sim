@@ -1,6 +1,7 @@
 """Metrics to investigate quantities related to SRD.
 Potentially could diverge from versions in scienceRadar.
 """
+
 __all__ = ("fOBatch", "astrometryBatch", "rapidRevisitBatch")
 
 import warnings

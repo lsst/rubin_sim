@@ -61,9 +61,7 @@ def surface_brightness_limit_approx(
     n_pix = tot_area / a_pix
 
     # Sky limited case
-    mu_sky_lim = (
-        -1.25 * np.log10(nsigma**2 / (a_pix * t_exp * n_pix)) + 0.5 * mu_sky + 0.5 * zp - k * airmass
-    )
+    mu_sky_lim = -1.25 * np.log10(nsigma**2 / (a_pix * t_exp * n_pix)) + 0.5 * mu_sky + 0.5 * zp - k * airmass
 
     # Source limited case
     # XXX--double check this algerbra. Pretty sure it's right now.

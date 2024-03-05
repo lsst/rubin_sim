@@ -1032,13 +1032,9 @@ class Sed:
         if len(a_x[condition]) > 0:
             y = x[condition] - 1.82
             a_x[condition] = 1 + 0.104 * y - 0.609 * y**2 + 0.701 * y**3 + 1.137 * y**4
-            a_x[condition] = (
-                a_x[condition] - 1.718 * y**5 - 0.827 * y**6 + 1.647 * y**7 - 0.505 * y**8
-            )
+            a_x[condition] = a_x[condition] - 1.718 * y**5 - 0.827 * y**6 + 1.647 * y**7 - 0.505 * y**8
             b_x[condition] = 1.952 * y + 2.908 * y**2 - 3.989 * y**3 - 7.985 * y**4
-            b_x[condition] = (
-                b_x[condition] + 11.102 * y**5 + 5.491 * y**6 - 10.805 * y**7 + 3.347 * y**8
-            )
+            b_x[condition] = b_x[condition] + 11.102 * y**5 + 5.491 * y**6 - 10.805 * y**7 + 3.347 * y**8
         # Dust in ultraviolet and UV (if needed for high-z) 3.3 /mu< x< 8 /mu.
         condition = (x >= 3.3) & (x < 5.9)
         if len(a_x[condition]) > 0:

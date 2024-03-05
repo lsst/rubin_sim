@@ -8,6 +8,7 @@ directory of throughputs is created by a script manually. It is thus possible
 for this directory to fall out of sync with the SYSENG values in `baseline`.
 This module is intended to test whether this is happening.
 """
+
 import os
 import unittest
 

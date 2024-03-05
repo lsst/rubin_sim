@@ -1,5 +1,6 @@
 """Evaluate the open shutter fraction.
 """
+
 __all__ = ("openshutterFractions",)
 
 import rubin_sim.maf.metric_bundles as mb

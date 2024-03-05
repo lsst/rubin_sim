@@ -80,9 +80,7 @@ class DcrPrecisionMetric(BaseMetric):
         slope_uncerts = position_errors / x_coord
         slope_uncerts2 = position_errors / x_coord2
 
-        total_slope_uncert = 1.0 / np.sqrt(
-            np.sum(1.0 / slope_uncerts**2) + np.sum(1.0 / slope_uncerts2**2)
-        )
+        total_slope_uncert = 1.0 / np.sqrt(np.sum(1.0 / slope_uncerts**2) + np.sum(1.0 / slope_uncerts2**2))
 
         # So, this will be the uncertainty in the RA or Dec offset at
         # x= +/- 1. A.K.A., the uncertainty in the slope

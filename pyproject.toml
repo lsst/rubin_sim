@@ -28,7 +28,6 @@ dependencies = [
     "scipy",
     "sqlalchemy",
     "astropy",
-    "palpy",
     "tables",
     "h5py",
     "astroplan",
@@ -49,10 +48,9 @@ test = [
      "ruff",
      "isort",
      "pytest-cov",
-     "pytest-black",
 ]
 dev = [
-  "documenteer[pipelines]",
+  "documenteer[guide]",
 ]
 
 [project.scripts]
@@ -88,7 +86,7 @@ __version__ = "{version}"
 """
 
 [tool.pytest.ini_options]
-addopts = "--black --ignore-glob=*/version.py --ignore-glob=*data_dir/*"
+addopts = "--ignore-glob=*/version.py --ignore-glob=*data_dir/*"
 
 [tool.mypy]
 disallow_untyped_defs = "True"

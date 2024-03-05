@@ -1,5 +1,6 @@
 """Evaluate some bulk properties of the sky coverage
 """
+
 __all__ = ("meanRADec", "eastWestBias")
 
 import numpy as np

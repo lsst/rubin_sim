@@ -2,6 +2,7 @@
 (length, number, etc).
 In addition, these support the time delay metric for strong lensing.
 """
+
 __all__ = (
     "find_season_edges",
     "SeasonLengthMetric",
