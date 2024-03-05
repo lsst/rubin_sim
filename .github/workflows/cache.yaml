@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: conda-incubator/setup-miniconda@v2
+      - uses: conda-incubator/setup-miniconda@v3
         with:
           auto-update-conda: true
           python-version: ${{ matrix.python-version }}
@@ -22,22 +22,21 @@ jobs:
           channel-priority: strict
           show-channel-urls: true
 
-      - name: Configure conda and install requirements
+      - name: Configure conda and install minimal requirements for cache
         shell: bash -l {0}
         run: |
-          mamba install --quiet --file=requirements.txt
-          mamba install --quiet --file=test-requirements.txt
+          mamba install --quiet rubin-scheduler -c conda-forge
 
       - name: Install rubin_sim from git
         shell: bash -l {0}
         run: |
           echo `pwd`
           ls ${{ github.workspace }}
-          python -m pip install . --no-deps      
+          python -m pip install -e . --no-deps      
 
       - name: Access rubin-sim-data cache
         id: cache-rs
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         env:
           cache-name: cached-rubin-sim-data
         with:
@@ -61,6 +60,3 @@ jobs:
           ls $RUBIN_SIM_DATA_DIR
           echo "__contents of versions.txt__"
           cat $RUBIN_SIM_DATA_DIR/versions.txt
-  
-  
-

@@ -3,4 +3,3 @@ black>=24.0.0
 ruff
 isort
 pytest-cov
-
