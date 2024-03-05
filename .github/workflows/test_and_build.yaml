@@ -58,13 +58,12 @@ jobs:
           restore-keys: |
             ${{ env.cache-name }}
 
-      - name: Update rubin-sim-data if needed
+      - name: Update data if needed
         shell: bash -l {0}
         run: |
           export RUBIN_SIM_DATA_DIR=~/rubin_sim_data
-          # Download anything that is not current
           scheduler_download_data --tdqm_disable --update
-          rs_download_data --tdqm_disable --update
+          download_testing_data          
 
       - name: conda list
         shell: bash -l {0}
