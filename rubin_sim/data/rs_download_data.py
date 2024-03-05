@@ -1,4 +1,4 @@
-__all__ = ("get_data_dir", "get_baseline", "data_dict", "download_testing_data", "rs_download_data")
+__all__ = ("get_data_dir", "get_baseline", "data_dict", "rs_download_testing", "rs_download_data")
 
 import argparse
 import glob
@@ -65,7 +65,7 @@ def data_dict():
     return file_dict
 
 
-def download_testing_data():
+def rs_download_testing():
     """Convenience function for github actions, to download only a subset
     of data.
 
