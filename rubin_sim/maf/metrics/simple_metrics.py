@@ -75,15 +75,23 @@ class Coaddm5Metric(BaseMetric):
         Default None, does no sub-selection or checking.
     filter_col : `str`, optional
         Name of the filter column.
+    units : `str`, optional
+        Units for the metric. Default "mag".
     """
 
     def __init__(
-        self, m5_col="fiveSigmaDepth", metric_name="CoaddM5", filter_name=None, filter_col="Filter", **kwargs
+        self,
+        m5_col="fiveSigmaDepth",
+        metric_name="CoaddM5",
+        filter_name=None,
+        filter_col="Filter",
+        units="mag",
+        **kwargs,
     ):
         self.filter_name = filter_name
         self.filter_col = filter_col
         self.m5_col = m5_col
-        super(Coaddm5Metric, self).__init__(col=m5_col, metric_name=metric_name, **kwargs)
+        super().__init__(col=m5_col, metric_name=metric_name, units=units, **kwargs)
 
     @staticmethod
     def coadd(single_visit_m5s):
@@ -197,8 +205,8 @@ class UniqueRatioMetric(BaseMetric):
 class CountMetric(BaseMetric):
     """Count the length of a simData column slice."""
 
-    def __init__(self, col=None, **kwargs):
-        super(CountMetric, self).__init__(col=col, **kwargs)
+    def __init__(self, col=None, units="#", **kwargs):
+        super().__init__(col=col, units=units, **kwargs)
         self.metric_dtype = "int"
 
     def run(self, data_slice, slice_point=None):
@@ -208,13 +216,31 @@ class CountMetric(BaseMetric):
 class CountExplimMetric(BaseMetric):
     """Count the number of x second visits.
     Useful for rejecting very short exposures
-    and counting 60s exposures as 2 visits."""
+    and counting 60s exposures as 2 visits.
 
-    def __init__(self, col=None, min_exp=20.0, expected_exp=30.0, exp_col="visitExposureTime", **kwargs):
+    Parameters
+    ----------
+    min_exp : `float`, optional
+        Minimum exposure time to consider as a "visit".
+        Exposures shorter than this will not be counted (count as 0).
+    expected_exp : `float`, optional
+        Typical exposure time to expect.
+        Exposures longer than this will be counted as
+        round(visit exposure time / expected_exp). (i.e. 40s = 1, 50s = 2).
+    exp_col : `str`, optional
+        Column name to use for visit exposure time.
+
+    Returns
+    -------
+    value : `int`
+        The number of visits longer than min_exp and weighted by expected_exp.
+    """
+
+    def __init__(self, min_exp=20.0, expected_exp=30.0, exp_col="visitExposureTime", **kwargs):
         self.min_exp = min_exp
         self.expected_exp = expected_exp
         self.exp_col = exp_col
-        super().__init__(col=[col, exp_col], **kwargs)
+        super().__init__(col=[exp_col], **kwargs)
         self.metric_dtype = "int"
 
     def run(self, data_slice, slice_point=None):
