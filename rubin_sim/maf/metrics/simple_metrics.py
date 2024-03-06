@@ -240,8 +240,8 @@ class CountExplimMetric(BaseMetric):
         self.min_exp = min_exp
         self.expected_exp = expected_exp
         self.exp_col = exp_col
-        if 'col' in kwargs:
-            del kwargs['col']
+        if "col" in kwargs:
+            del kwargs["col"]
         super().__init__(col=[exp_col], **kwargs)
         self.metric_dtype = "int"
 

@@ -15,9 +15,7 @@ def info_bundle_dicts(allsky_slicer, wfd_slicer, opsim="opsim", colmap=batches.c
         bdict.update(fO)
         astrometry = batches.astrometryBatch(colmap=colmap, run_name=opsim, slicer=slicer, extra_info=tag)
         bdict.update(astrometry)
-        rapidrevisit = batches.rapidRevisitBatch(
-            colmap=colmap, run_name=opsim, slicer=slicer, extra_info=tag
-        )
+        rapidrevisit = batches.rapidRevisitBatch(colmap=colmap, run_name=opsim, slicer=slicer, extra_info=tag)
         bdict.update(rapidrevisit)
 
     # Intranight (pairs/time)

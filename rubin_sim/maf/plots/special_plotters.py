@@ -78,13 +78,11 @@ class FOPlot(BasePlotter):
         asky = plot_dict["asky"]
         n_visits = plot_dict["n_visits"]
         rarr = np.array(list(zip(metric_value.compressed())), dtype=[("fO", metric_value.dtype)])
-        f_o_area = metrics.FOArea(
-            col="fO", n_visit=n_visits, norm=False, nside=slicer.nside
-        ).run(rarr)
+        f_o_area = metrics.FOArea(col="fO", n_visit=n_visits, norm=False, nside=slicer.nside).run(rarr)
         f_o_nv = metrics.FONv(col="fO", asky=asky, norm=False, nside=slicer.nside).run(rarr)
 
-        plt.axvline(x=n_visits, linewidth=plot_dict["reflinewidth"], color="b", linestyle=':')
-        plt.axhline(y=asky / 1000.0, linewidth=plot_dict["reflinewidth"], color="r", linestyle=':')
+        plt.axvline(x=n_visits, linewidth=plot_dict["reflinewidth"], color="b", linestyle=":")
+        plt.axhline(y=asky / 1000.0, linewidth=plot_dict["reflinewidth"], color="r", linestyle=":")
         # Add lines for nvis_median and f_o_area:
         # note if these are -666 (badval), they will 'disappear'
         nvis_median = f_o_nv["value"][np.where(f_o_nv["name"] == "MedianNvis")][0]
