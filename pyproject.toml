@@ -55,7 +55,7 @@ dev = [
 
 [project.scripts]
 rs_download_data = "rubin_sim.data.rs_download_data:rs_download_data"
-download_testing_data = "rubin_sim.data.rs_download_data:rs_download_testing"
+rs_download_testing = "rubin_sim.data.rs_download_data:rs_download_testing"
 add_run = "rubin_sim.maf.db.add_run:add_run"
 ddf_dir = "rubin_sim.maf.ddf_dir:ddf_dir"
 gather_summaries = "rubin_sim.maf.run_comparison.gather_summaries:gather_summaries"
