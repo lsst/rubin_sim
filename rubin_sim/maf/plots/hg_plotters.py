@@ -1,5 +1,6 @@
 """Second generation hourglass plotting classes.
 """
+
 # pylint: disable=too-many-arguments
 # pylint: disable=super-init-not-called
 # pylint: disable=too-many-instance-attributes

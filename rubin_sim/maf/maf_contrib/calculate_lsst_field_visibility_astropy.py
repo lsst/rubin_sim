@@ -3,6 +3,7 @@ Created on Tue Sep 18 13:35:41 2018
 
 @author: rstreet
 """
+
 __all__ = ("calculate_lsst_field_visibility", "calculate_lsst_field_visibility_fast")
 
 

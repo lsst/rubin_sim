@@ -1,9 +1,10 @@
-__all__ = ("data_dict", "rs_download_data", "get_data_dir", "get_baseline")
+__all__ = ("get_data_dir", "get_baseline", "data_dict", "rs_download_testing", "rs_download_data")
 
 import argparse
+import glob
+import os
 
 from rubin_scheduler.data import DEFAULT_DATA_URL, download_rubin_data
-from rubin_scheduler.data import get_baseline as gbd
 from rubin_scheduler.data import get_data_dir as gdd
 
 
@@ -20,17 +21,17 @@ def get_data_dir():
 
 
 def get_baseline():
-    """Wraps rubin_scheduler.data.get_baseline().
-    Provided here for backwards compatibility.
+    """Get the path to the baseline cadence simulation sqlite file.
 
     Returns
     -------
-    baseline_simulation_filepath : `str`
-        Filepath to the baseline simulation provided with rubin_sim_data.
+    file : `str`
+        Path to the baseline cadence simulation sqlite file.
     """
-    # Note: this should probably return to rubin_sim, as sim_baseline is
-    # not part of the data for rubin_scheduler.
-    return gbd()
+    dd = get_data_dir()
+    path = os.path.join(dd, "sim_baseline")
+    file = glob.glob(path + "/*10yrs.db")[0]
+    return file
 
 
 def data_dict():
@@ -62,6 +63,30 @@ def data_dict():
         "tests": "tests_2022_10_18.tgz",
     }
     return file_dict
+
+
+def rs_download_testing():
+    """Convenience function for github actions, to download only a subset
+    of data.
+
+    Contains maf,maps,movingObjects,skybrightness,throughputs and tests.
+    For users who don't care about moving objects, this is likely sufficient.
+    """
+    all_files = data_dict()
+    keys = ["maf", "maps", "movingObjects", "skybrightness", "throughputs", "tests"]
+    subset = {}
+    for k in keys:
+        subset[k] = all_files[k]
+
+    download_rubin_data(
+        subset,
+        dirs=None,
+        print_versions_only=False,
+        update=True,
+        force=False,
+        url_base=DEFAULT_DATA_URL,
+        tdqm_disable=True,
+    )
 
 
 def rs_download_data():
@@ -122,8 +147,8 @@ def rs_download_data():
         files,
         dirs=args.dirs,
         print_versions_only=args.versions,
+        update=args.update,
         force=args.force,
         url_base=args.url_base,
         tdqm_disable=args.tdqm_disable,
-        update=args.update,
     )

@@ -1,5 +1,6 @@
 """Sets of metrics to look at time between visits/pairs, etc.
 """
+
 __all__ = ("intraNight", "interNight", "timeGaps", "seasons")
 
 import numpy as np
@@ -87,12 +88,14 @@ def intraNight(
         max_gap=dtMax,
         metric_name="Fraction of visits in pairs (%.0f-%.0f min)" % (dtMin, dtMax),
     )
-    displayDict[
-        "caption"
-    ] = "Fraction of %s visits that have a paired visit" "between %.1f and %.1f minutes away. " % (
-        md,
-        dtMin,
-        dtMax,
+    displayDict["caption"] = (
+        "Fraction of %s visits that have a paired visit"
+        "between %.1f and %.1f minutes away. "
+        % (
+            md,
+            dtMin,
+            dtMax,
+        )
     )
     displayDict["caption"] += "If all visits were in pairs, this fraction would be 1."
     displayDict["order"] += 1
@@ -114,12 +117,14 @@ def intraNight(
         max_gap=dtMax,
         metric_name="Fraction of visits in pairs (%.0f-%.0f min)" % (dtMin, dtMax),
     )
-    displayDict[
-        "caption"
-    ] = "Fraction of %s visits that have a paired visit" "between %.1f and %.1f minutes away. " % (
-        md,
-        dtMin,
-        dtMax,
+    displayDict["caption"] = (
+        "Fraction of %s visits that have a paired visit"
+        "between %.1f and %.1f minutes away. "
+        % (
+            md,
+            dtMin,
+            dtMax,
+        )
     )
     displayDict["caption"] += "If all visits were in pairs, this fraction would be 1."
     displayDict["order"] += 1
@@ -585,9 +590,9 @@ def timeGaps(
             plotFuncs = [plots.HealpixSkyMap(), plots.HealpixHistogram()]
             plotDict = {"color_min": 0, "color": colors[f], "percentile_clip": 95}
             displayDict["subgroup"] = "Gaps Sampling"
-            displayDict[
-                "caption"
-            ] = f"Number of times the timescale of ~{gap: .1f} hours is sampled in {f} band(s)."
+            displayDict["caption"] = (
+                f"Number of times the timescale of ~{gap: .1f} hours is sampled in {f} band(s)."
+            )
             displayDict["order"] = orders[f]
             bundleList.append(
                 mb.MetricBundle(

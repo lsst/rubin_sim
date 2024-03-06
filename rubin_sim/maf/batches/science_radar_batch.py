@@ -81,11 +81,11 @@ def science_radar_batch(
     displayDict = {"group": "SRD", "subgroup": "FO metrics", "order": 0}
 
     # Configure the count metric which is what is used for f0 slicer.
-    metric = metrics.CountExplimMetric(col="observationStartMJD", metric_name="fO")
+    metric = metrics.CountExplimMetric(metric_name="fO")
     plotDict = {
         "xlabel": "Number of Visits",
-        "Asky": benchmarkArea,
-        "Nvisit": benchmarkNvisits,
+        "asky": benchmarkArea,
+        "n_visits": minNvisits,
         "x_min": 0,
         "x_max": 1500,
     }
@@ -489,9 +489,9 @@ def science_radar_batch(
     for f in filterlist:
         plotDict = {"percentile_clip": 95.0, "n_ticks": 5, "color": colors[f]}
         metric = maf.GalaxyCountsMetricExtended(filter_band=f, redshift_bin="all", nside=nside)
-        displayDict[
-            "caption"
-        ] = f"Number of galaxies across the sky, in {f} band. Generally, full survey footprint."
+        displayDict["caption"] = (
+            f"Number of galaxies across the sky, in {f} band. Generally, full survey footprint."
+        )
         displayDict["order"] = filterorders[f]
         bundle = mb.MetricBundle(
             metric,
@@ -1461,9 +1461,9 @@ def science_radar_batch(
             )
             plotFuncs = [plots.HealpixSkyMap(), plots.HealpixHistogram()]
             plotDict = {"color_min": 0, "color": colors[f], "percentile_clip": 95}
-            displayDict[
-                "caption"
-            ] = "Number of times the timescale of ~%i hours is sampled in %s band(s)." % (gap, f)
+            displayDict["caption"] = (
+                "Number of times the timescale of ~%i hours is sampled in %s band(s)." % (gap, f)
+            )
             displayDict["order"] = filterorders[f]
             bundleList.append(
                 mb.MetricBundle(

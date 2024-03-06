@@ -24,7 +24,7 @@ jobs:
         python-version: ["3.11"]
     steps:
       - uses: actions/checkout@v4
-      - uses: conda-incubator/setup-miniconda@v2
+      - uses: conda-incubator/setup-miniconda@v3
         with:
           auto-update-conda: true
           python-version: ${{ matrix.python-version }}
@@ -49,7 +49,7 @@ jobs:
 
       - name: Access rubin-sim-data cache
         id: cache-rs
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         env:
           cache-name: cached-rubin-sim-data
         with:
@@ -58,13 +58,12 @@ jobs:
           restore-keys: |
             ${{ env.cache-name }}
 
-      - name: Update rubin-sim-data if needed
+      - name: Update data if needed
         shell: bash -l {0}
         run: |
           export RUBIN_SIM_DATA_DIR=~/rubin_sim_data
-          # Download anything that is not current
           scheduler_download_data --tdqm_disable --update
-          rs_download_data --tdqm_disable --update
+          rs_download_testing         
 
       - name: conda list
         shell: bash -l {0}
@@ -81,7 +80,7 @@ jobs:
           pytest -r a -v --cov=rubin_sim --cov=tests --cov-report=xml --cov-report=term --cov-branch
 
       - name: Upload coverage to codecov
-        uses: codecov/codecov-action@v2
+        uses: codecov/codecov-action@v4
         with:
           file: coverage.xml
 
@@ -98,7 +97,7 @@ jobs:
           fetch-depth: 0
 
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: 3.11
           cache: "pip"

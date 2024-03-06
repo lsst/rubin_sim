@@ -1,6 +1,7 @@
 """Metrics to investigate quantities related to SRD.
 Potentially could diverge from versions in scienceRadar.
 """
+
 __all__ = ("fOBatch", "astrometryBatch", "rapidRevisitBatch")
 
 import warnings
@@ -20,30 +21,36 @@ from .common import standard_summary
 
 def fOBatch(
     colmap=None,
-    runName="run_name",
-    extraSql=None,
-    extraInfoLabel=None,
+    run_name="run_name",
+    extra_sql=None,
+    extra_info=None,
     slicer=None,
-    benchmarkArea=18000,
-    benchmarkn_visits=825,
-    minn_visits=750,
+    benchmark_area=18000,
+    benchmark_n_visits=825,
+    min_n_visits=750,
 ):
     """Metrics for calculating fO.
 
     Parameters
     ----------
-    colmap : `dict` or None, optional
+    colmap : `dict` or None, opt
         A dictionary with a mapping of column names.
-    runName : `str`, optional
+    run_name : `str`, opt
         The name of the simulated survey.
-    extraSql : `str` or None, optional
+    extra_sql : `str` or None, opt
         Additional sql constraint to apply to all metrics.
-    extraInfoLabel : `str` or None, optional
+    extra_Info : `str` or None, opt
         Additional info_label to apply to all results.
-    slicer : `rubin_sim.maf.slicer.HealpixSlicer` or None, optional
+    slicer : `rubin_sim.maf.slicer.HealpixSlicer` or None, opt
          This must be a HealpixSlicer or some kind,
          although could be a HealpixSubsetSlicer.
          None will default to HealpixSlicer with nside=64.
+    benchmark_area : `float`, opt
+        Area to use when calculating fO_Nvis, for design.
+    benchmark_n_visits : `float`, opt
+        Nvisits minimum to use when calculating fO_Area, for design.
+    min_n_visits : `float`, opt
+        Nvisits minimum to use when calculating fO_Area, for minimum.
 
     Returns
     -------
@@ -57,13 +64,13 @@ def fOBatch(
     sql = ""
     info_label = "All visits"
     # Add additional sql constraint (such as wfdWhere) and info_label
-    if (extraSql is not None) and (len(extraSql) > 0):
-        sql = extraSql
-        if extraInfoLabel is None:
-            info_label = extraSql.replace("filter =", "").replace("filter=", "")
+    if (extra_sql is not None) and (len(extra_sql) > 0):
+        sql = extra_sql
+        if extra_info is None:
+            info_label = extra_sql.replace("filter =", "").replace("filter=", "")
             info_label = info_label.replace('"', "").replace("'", "")
-    if extraInfoLabel is not None:
-        info_label = extraInfoLabel
+    if extra_info is not None:
+        info_label = extra_info
 
     subgroup = info_label
 
@@ -85,11 +92,11 @@ def fOBatch(
     displayDict = {"group": "SRD FO metrics", "subgroup": subgroup, "order": 0}
 
     # Configure the count metric which is what is used for f0 slicer.
-    metric = metrics.CountExplimMetric(col=colmap["mjd"], metric_name="fO", exp_col=colmap["exptime"])
+    metric = metrics.CountExplimMetric(metric_name="fO", exp_col=colmap["exptime"])
     plotDict = {
         "xlabel": "Number of Visits",
-        "asky": benchmarkArea,
-        "n_visit": benchmarkn_visits,
+        "asky": benchmark_area,
+        "n_visits": min_n_visits,
         "x_min": 0,
         "x_max": 1500,
     }
@@ -98,46 +105,46 @@ def fOBatch(
             nside=nside,
             norm=False,
             metric_name="fOArea",
-            asky=benchmarkArea,
-            n_visit=benchmarkn_visits,
+            asky=benchmark_area,
+            n_visit=benchmark_n_visits,
         ),
         metrics.FOArea(
             nside=nside,
             norm=True,
             metric_name="fOArea/benchmark",
-            asky=benchmarkArea,
-            n_visit=benchmarkn_visits,
+            asky=benchmark_area,
+            n_visit=benchmark_n_visits,
         ),
         metrics.FONv(
             nside=nside,
             norm=False,
             metric_name="fONv",
-            asky=benchmarkArea,
-            n_visit=benchmarkn_visits,
+            asky=benchmark_area,
+            n_visit=benchmark_n_visits,
         ),
         metrics.FONv(
             nside=nside,
             norm=True,
             metric_name="fONv/benchmark",
-            asky=benchmarkArea,
-            n_visit=benchmarkn_visits,
+            asky=benchmark_area,
+            n_visit=benchmark_n_visits,
         ),
         metrics.FOArea(
             nside=nside,
             norm=False,
-            metric_name=f"fOArea_{minn_visits}",
-            asky=benchmarkArea,
-            n_visit=minn_visits,
+            metric_name=f"fOArea_{min_n_visits}",
+            asky=benchmark_area,
+            n_visit=min_n_visits,
         ),
     ]
     caption = "The FO metric evaluates the overall efficiency of observing. "
     caption += (
         "foNv: out of %.2f sq degrees, the area receives at least X and a median of Y visits "
-        "(out of %d, if compared to benchmark). " % (benchmarkArea, benchmarkn_visits)
+        "(out of %d, if compared to benchmark). " % (benchmark_area, benchmark_n_visits)
     )
     caption += (
         "fOArea: this many sq deg (out of %.2f sq deg if compared "
-        "to benchmark) receives at least %d visits. " % (benchmarkArea, benchmarkn_visits)
+        "to benchmark) receives at least %d visits. " % (benchmark_area, benchmark_n_visits)
     )
     displayDict["caption"] = caption
     bundle = mb.MetricBundle(
@@ -153,15 +160,15 @@ def fOBatch(
     bundleList.append(bundle)
     # Set the run_name for all bundles and return the bundleDict.
     for b in bundleList:
-        b.set_run_name(runName)
+        b.set_run_name(run_name)
     return mb.make_bundles_dict_from_list(bundleList)
 
 
 def astrometryBatch(
     colmap=None,
-    runName="opsim",
-    extraSql=None,
-    extraInfoLabel=None,
+    run_name="opsim",
+    extra_sql=None,
+    extra_info=None,
     slicer=None,
 ):
     """Metrics for evaluating proper motion and parallax.
@@ -170,11 +177,11 @@ def astrometryBatch(
     ----------
     colmap : `dict` or None, optional
         A dictionary with a mapping of column names.
-    runName : `str`, optional
+    run_name : `str`, optional
         The name of the simulated survey.
-    extraSql : `str` or None, optional
+    extra_sql : `str` or None, optional
         Additional sql constraint to apply to all metrics.
-    extraInfoLabel : `str` or None, optional
+    extra_info : `str` or None, optional
         Additional info_label to apply to all results.
     slicer : `rubin_sim.maf.slicer` or None, optional
         Optionally, specify something other than an nside=64 healpix slicer.
@@ -190,13 +197,13 @@ def astrometryBatch(
     sql = ""
     info_label = "All visits"
     # Add additional sql constraint (such as wfdWhere) and info_label
-    if (extraSql is not None) and (len(extraSql) > 0):
-        sql = extraSql
-        if extraInfoLabel is None:
-            info_label = extraSql.replace("filter =", "").replace("filter=", "")
+    if (extra_sql is not None) and (len(extra_sql) > 0):
+        sql = extra_sql
+        if extra_info is None:
+            info_label = extra_sql.replace("filter =", "").replace("filter=", "")
             info_label = info_label.replace('"', "").replace("'", "")
-    if extraInfoLabel is not None:
-        info_label = extraInfoLabel
+    if extra_info is not None:
+        info_label = extra_info
 
     subgroup = info_label
 
@@ -465,15 +472,15 @@ def astrometryBatch(
 
     # Set the run_name for all bundles and return the bundleDict.
     for b in bundleList:
-        b.set_run_name(runName)
+        b.set_run_name(run_name)
     return mb.make_bundles_dict_from_list(bundleList)
 
 
 def rapidRevisitBatch(
     colmap=None,
-    runName="opsim",
-    extraSql=None,
-    extraInfoLabel=None,
+    run_name="opsim",
+    extra_sql=None,
+    extra_info=None,
     slicer=None,
 ):
     """Metrics for evaluating proper motion and parallax.
@@ -482,11 +489,11 @@ def rapidRevisitBatch(
     ----------
     colmap : `dict` or None, optional
         A dictionary with a mapping of column names.
-    runName : `str`, optional
+    run_name : `str`, optional
         The name of the simulated survey.
-    extraSql : `str` or None, optional
+    extra_sql : `str` or None, optional
         Additional sql constraint to apply to all metrics.
-    extraInfoLabel : `str` or None, optional
+    extra_info : `str` or None, optional
         Additional info_label to apply to all results.
     slicer : `rubin_sim_maf.slicers.HealpixSlicer` or None, optional
         Optionally, specify something other than an nside=64 healpix slicer.
@@ -503,13 +510,13 @@ def rapidRevisitBatch(
     sql = ""
     info_label = "All visits"
     # Add additional sql constraint (such as wfdWhere) and info_label.
-    if (extraSql is not None) and (len(extraSql) > 0):
-        sql = extraSql
-        if extraInfoLabel is None:
-            info_label = extraSql.replace("filter =", "").replace("filter=", "")
+    if (extra_sql is not None) and (len(extra_sql) > 0):
+        sql = extra_sql
+        if extra_info is None:
+            info_label = extra_sql.replace("filter =", "").replace("filter=", "")
             info_label = info_label.replace('"', "").replace("'", "")
-    if extraInfoLabel is not None:
-        info_label = extraInfoLabel
+    if extra_info is not None:
+        info_label = extra_info
 
     subgroup = info_label
 
@@ -622,5 +629,5 @@ def rapidRevisitBatch(
 
     # Set the run_name for all bundles and return the bundleDict.
     for b in bundleList:
-        b.set_run_name(runName)
+        b.set_run_name(run_name)
     return mb.make_bundles_dict_from_list(bundleList)

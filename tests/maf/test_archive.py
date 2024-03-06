@@ -127,9 +127,11 @@ class TestArchive(unittest.TestCase):
 
     def test_describe_families(self):
         if "IPython" in sys.modules:
-            with patch("IPython.display.display_markdown") as _, patch("IPython.display.HTML") as _, patch(
-                "IPython.display"
-            ) as _:
+            with (
+                patch("IPython.display.display_markdown") as _,
+                patch("IPython.display.HTML") as _,
+                patch("IPython.display") as _,
+            ):
                 self.perform_describe_families_test()
         else:
             with patch("builtins.print") as _:

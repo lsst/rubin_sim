@@ -1,5 +1,6 @@
 """Sets of slew metrics.
 """
+
 __all__ = ("slewBasics",)
 
 import numpy as np

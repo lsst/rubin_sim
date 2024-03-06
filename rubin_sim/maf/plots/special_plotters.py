@@ -75,34 +75,37 @@ class FOPlot(BasePlotter):
         )
         # This results in calculating the summary stats in two places ..
         # not the ideal choice but easiest for most uses in this case.
+        asky = plot_dict["asky"]
+        n_visits = plot_dict["n_visits"]
         rarr = np.array(list(zip(metric_value.compressed())), dtype=[("fO", metric_value.dtype)])
         f_o_area = metrics.FOArea(
-            col="fO", n_visit=plot_dict["n_visits"], norm=False, nside=slicer.nside
+            col="fO", n_visit=n_visits, norm=False, nside=slicer.nside
         ).run(rarr)
-        f_o_nv = metrics.FONv(col="fO", asky=plot_dict["asky"], norm=False, nside=slicer.nside).run(rarr)
+        f_o_nv = metrics.FONv(col="fO", asky=asky, norm=False, nside=slicer.nside).run(rarr)
 
-        plt.axvline(x=plot_dict["n_visits"], linewidth=plot_dict["reflinewidth"], color="b")
-        plt.axhline(y=plot_dict["asky"] / 1000.0, linewidth=plot_dict["reflinewidth"], color="r")
+        plt.axvline(x=n_visits, linewidth=plot_dict["reflinewidth"], color="b", linestyle=':')
+        plt.axhline(y=asky / 1000.0, linewidth=plot_dict["reflinewidth"], color="r", linestyle=':')
         # Add lines for nvis_median and f_o_area:
         # note if these are -666 (badval), they will 'disappear'
-        nvis_median = f_o_nv["value"][np.where(f_o_nv["name"] == "MedianNvis")]
+        nvis_median = f_o_nv["value"][np.where(f_o_nv["name"] == "MedianNvis")][0]
+
         plt.axvline(
             x=nvis_median,
             linewidth=plot_dict["reflinewidth"],
             color="b",
             alpha=0.5,
-            linestyle=":",
-            label=r"f$_0$ Median n_visits=%.0f" % nvis_median,
+            linestyle="-",
+            label=f"f$_0$ Med. Nvis. (@ {asky/1000 :.0f}K sq deg) = {nvis_median :.0f} visits",
         )
         plt.axhline(
             y=f_o_area / 1000.0,
             linewidth=plot_dict["reflinewidth"],
             color="r",
             alpha=0.5,
-            linestyle=":",
-            label="f$_0$ Area=%.0f" % f_o_area,
+            linestyle="-",
+            label=f"f$_0$ Area (@ {n_visits :.0f} visits) = {f_o_area/1000 :.01f}K sq deg",
         )
-        plt.legend(loc="lower left", fontsize="small", numpoints=1)
+        plt.legend(loc="upper right", fontsize="small", numpoints=1, framealpha=1.0)
 
         plt.xlabel(plot_dict["xlabel"])
         plt.ylabel(plot_dict["ylabel"])

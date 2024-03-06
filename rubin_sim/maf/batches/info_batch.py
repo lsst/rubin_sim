@@ -11,12 +11,12 @@ def info_bundle_dicts(allsky_slicer, wfd_slicer, opsim="opsim", colmap=batches.c
     bdict = {}
 
     for tag, slicer in zip(["All sky", "WFD"], [allsky_slicer, wfd_slicer]):
-        fO = batches.fOBatch(colmap=colmap, runName=opsim, slicer=slicer, extraInfoLabel=tag)
+        fO = batches.fOBatch(colmap=colmap, run_name=opsim, slicer=slicer, extra_info=tag)
         bdict.update(fO)
-        astrometry = batches.astrometryBatch(colmap=colmap, runName=opsim, slicer=slicer, extraInfoLabel=tag)
+        astrometry = batches.astrometryBatch(colmap=colmap, run_name=opsim, slicer=slicer, extra_info=tag)
         bdict.update(astrometry)
         rapidrevisit = batches.rapidRevisitBatch(
-            colmap=colmap, runName=opsim, slicer=slicer, extraInfoLabel=tag
+            colmap=colmap, run_name=opsim, slicer=slicer, extra_info=tag
         )
         bdict.update(rapidrevisit)
 

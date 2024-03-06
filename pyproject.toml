@@ -28,7 +28,6 @@ dependencies = [
     "scipy",
     "sqlalchemy",
     "astropy",
-    "palpy",
     "tables",
     "h5py",
     "astroplan",
@@ -49,14 +48,14 @@ test = [
      "ruff",
      "isort",
      "pytest-cov",
-     "pytest-black",
 ]
 dev = [
-  "documenteer[pipelines]",
+  "documenteer[guide]",
 ]
 
 [project.scripts]
 rs_download_data = "rubin_sim.data.rs_download_data:rs_download_data"
+download_testing_data = "rubin_sim.data.rs_download_data:rs_download_testing"
 add_run = "rubin_sim.maf.db.add_run:add_run"
 ddf_dir = "rubin_sim.maf.ddf_dir:ddf_dir"
 gather_summaries = "rubin_sim.maf.run_comparison.gather_summaries:gather_summaries"
@@ -88,7 +87,7 @@ __version__ = "{version}"
 """
 
 [tool.pytest.ini_options]
-addopts = "--black --ignore-glob=*/version.py --ignore-glob=*data_dir/*"
+addopts = "--ignore-glob=*/version.py --ignore-glob=*data_dir/*"
 
 [tool.mypy]
 disallow_untyped_defs = "True"

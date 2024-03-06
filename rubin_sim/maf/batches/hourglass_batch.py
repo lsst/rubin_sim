@@ -1,5 +1,6 @@
 """Run the hourglass metric.
 """
+
 __all__ = ("hourglassPlots",)
 
 import rubin_sim.maf.metric_bundles as mb

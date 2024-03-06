@@ -80,8 +80,8 @@ def radar_limited(
     metric = metrics.CountExplimMetric(col="observationStartMJD", metric_name="fO")
     plotDict = {
         "xlabel": "Number of Visits",
-        "Asky": benchmarkArea,
-        "Nvisit": benchmarkNvisits,
+        "asky": benchmarkArea,
+        "n_visits": benchmarkNvisits,
         "x_min": 0,
         "x_max": 1500,
     }
@@ -994,9 +994,9 @@ def radar_limited(
             )
             plotFuncs = [plots.HealpixSkyMap(), plots.HealpixHistogram()]
             plotDict = {"color_min": 0, "color": colors[f], "percentile_clip": 95}
-            displayDict[
-                "caption"
-            ] = "Number of times the timescale of ~%i hours is sampled in %s band(s)." % (gap, f)
+            displayDict["caption"] = (
+                "Number of times the timescale of ~%i hours is sampled in %s band(s)." % (gap, f)
+            )
             displayDict["order"] = filterorders[f]
             bundleList.append(
                 mb.MetricBundle(

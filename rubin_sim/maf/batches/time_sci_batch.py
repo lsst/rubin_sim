@@ -1,5 +1,6 @@
 """Sets of metrics to look at impact of cadence on science
 """
+
 __all__ = ("phaseGap",)
 
 import rubin_sim.maf.metric_bundles as mb

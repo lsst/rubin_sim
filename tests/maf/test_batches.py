@@ -4,12 +4,12 @@ import tempfile
 import unittest
 
 import numpy as np
-from rubin_scheduler.data import get_data_dir
 from rubin_scheduler.utils.code_utilities import sims_clean_up
 
 import rubin_sim.maf.batches as batches
 import rubin_sim.maf.db as db
 import rubin_sim.maf.metric_bundles as metric_bundles
+from rubin_sim.data import get_data_dir
 from rubin_sim.maf.slicers import MoObjSlicer
 
 
@@ -30,6 +30,12 @@ class TestBatches(unittest.TestCase):
         assert ack is not None
         ack = batches.altazLambert()
         assert ack is not None
+        ack = batches.astrometryBatch()
+        assert ack is not None
+        ack = batches.ddfBatch()
+        assert ack is not None
+        ack = batches.fOBatch()
+        assert ack is not None
         ack = batches.standard_summary()
         assert ack is not None
         ack = batches.standard_metrics("night")
@@ -42,15 +48,31 @@ class TestBatches(unittest.TestCase):
         assert ack is not None
         ack = batches.hourglassPlots()
         assert ack is not None
-        ack = batches.slewBasics()
+        ack = batches.interNight()
         assert ack is not None
-        ack = batches.timeGaps()
+        ack = batches.intraNight()
         assert ack is not None
         ack = batches.metadataBasics("airmass")
         assert ack is not None
         ack = batches.metadataBasicsAngle("rotskyPos")
         assert ack is not None
         ack = batches.metadataMaps("fiveSigmaDepth")
+        assert ack is not None
+        ack = batches.nvisitsM5Maps()
+        assert ack is not None
+        ack = batches.nvisitsPerNight()
+        assert ack is not None
+        ack = batches.nvisitsPerSubset()
+        assert ack is not None
+        ack = batches.openshutterFractions()
+        assert ack is not None
+        ack = batches.rapidRevisitBatch()
+        assert ack is not None
+        ack = batches.slewBasics()
+        assert ack is not None
+        ack = batches.tEffMetrics()
+        assert ack is not None
+        ack = batches.timeGaps()
         assert ack is not None
 
     @unittest.skipUnless(
@@ -86,7 +108,7 @@ class TestBatches(unittest.TestCase):
         batches.plot_activity(bdict)
 
     @unittest.skipUnless(
-        os.path.isdir(os.path.join(get_data_dir(), "maf")),
+        os.path.isdir(os.path.join(get_data_dir(), "maps")),
         "Skipping scienceRadarBatch test because operating without full MAF test data",
     )
     def test_science_radar(self):
