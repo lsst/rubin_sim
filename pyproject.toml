@@ -39,6 +39,7 @@ dependencies = [
     "skyfield",
     "pyoorb",
     "rubin-scheduler",
+    "pyarrow",
 ]
 
 [project.optional-dependencies]

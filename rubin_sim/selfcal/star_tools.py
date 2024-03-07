@@ -2,7 +2,7 @@ __all__ = ("stars_project", "assign_patches")
 
 import numpy as np
 
-from rubin_sim.utils import gnomonic_project_toxy
+from rubin_scheduler.utils import gnomonic_project_toxy
 
 
 def stars_project(stars, visit):
