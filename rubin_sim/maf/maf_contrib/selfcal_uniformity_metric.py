@@ -6,7 +6,6 @@ from astropy.table import Table
 import time
 from scipy.stats import median_abs_deviation
 import healpy as hp
-import astropy.units as units
 from astropy.coordinates import SkyCoord
 
 from rubin_sim.maf.metrics import BaseMetric
