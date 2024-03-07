@@ -40,6 +40,7 @@ dependencies = [
     "skyproj",
     "pyoorb",
     "rubin-scheduler",
+    "pyarrow",
 ]
 
 [project.optional-dependencies]
