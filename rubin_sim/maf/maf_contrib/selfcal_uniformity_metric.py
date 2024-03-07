@@ -1,18 +1,19 @@
 __all__ = ("PhotometricSelfCalUniformityMetric",)
 
 import os
-import numpy as np
-from astropy.table import Table
 import time
-from scipy.stats import median_abs_deviation
+
 import healpy as hp
+import numpy as np
 from astropy.coordinates import SkyCoord
+from astropy.table import Table
+from rubin_scheduler.data import get_data_dir
+from rubin_scheduler.utils import healbin
+from scipy.stats import median_abs_deviation
 
 from rubin_sim.maf.metrics import BaseMetric
-from rubin_sim.selfcal import generate_catalog, OffsetSNR, LsqrSolver
+from rubin_sim.selfcal import LsqrSolver, OffsetSNR, generate_catalog
 from rubin_sim.selfcal.offsets import OffsetSys
-from rubin_scheduler.utils import healbin
-from rubin_scheduler.data import get_data_dir
 
 
 def _match(arr1, arr2):
