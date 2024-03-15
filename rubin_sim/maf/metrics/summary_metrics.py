@@ -205,29 +205,59 @@ class ZeropointMetric(BaseMetric):
             return result
 
 
+class FskyMetric(BaseMetric):
+    """Calculate fraction of a desired footprint got covered.
+        To be applied as a summary metric to any healpix slicer.
+        Pixels with hp.UNSEEN or np.nan will be ignored, as well
+        as values falling outside of a ]min_val, max_val[ range.
+    Parameters
+    ----------
+    min_val, max_val : `float`
+        Minimum and maximum values for valid pixels (excluded)
+    """
+
+    def __init__(self, min_val=-np.inf, max_val=np.inf, **kwargs):
+        super().__init__(**kwargs)
+        self.min_val = min_val
+        self.mask_val = hp.UNSEEN
+        self.max_val = max_val
+
+    def run(self, data_slice, slice_point=None):
+        valid = data_slice["metricdata"] > self.min_val
+        valid &= data_slice["metricdata"] < self.max_val
+        valid &= data_slice["metricdata"] != self.mask_val
+        npix = data_slice["metricdata"].size
+        result = np.sum(valid) / npix
+        return result
+
+
 class TotalPowerMetric(BaseMetric):
     """
     Calculate the total power in the angular power spectrum between lmin/lmax.
     """
 
     def __init__(
-        self, col="metricdata", lmin=100.0, lmax=300.0, remove_dipole=True, mask_val=np.nan, **kwargs
+        self, col="metricdata", lmin=100.0, lmax=300.0, remove_monopole=True, remove_dipole=True, mask_val=np.nan, **kwargs
     ):
         self.lmin = lmin
         self.lmax = lmax
+        self.remove_monopole = remove_monopole
         self.remove_dipole = remove_dipole
         super(TotalPowerMetric, self).__init__(col=col, mask_val=mask_val, **kwargs)
 
     def run(self, data_slice, slice_point=None):
         # Calculate the power spectrum.
+        data = data_slice[self.colname]
+        if self.remove_monopole:
+            data = hp.remove_monopole(data, verbose=False, bad=self.mask_val)
         if self.remove_dipole:
-            cl = hp.anafast(hp.remove_dipole(data_slice[self.colname], verbose=False))
-        else:
-            cl = hp.anafast(data_slice[self.colname])
+            data = hp.remove_dipole(data, verbose=False, bad=self.mask_val)
+        cl = hp.anafast(data)
         ell = np.arange(np.size(cl))
         condition = np.where((ell <= self.lmax) & (ell >= self.lmin))[0]
         totalpower = np.sum(cl[condition] * (2 * ell[condition] + 1))
         return totalpower
+
 
 
 class StaticProbesFoMEmulatorMetricSimple(BaseMetric):
