@@ -10,7 +10,11 @@ import healpy as hp
 import pandas as pd
 import scipy
 import sklearn
-import meanz_modules as mzmod
+import rubin_sim
+import rubin_sim.maf as maf
+from rubin_sim.scheduler.utils import SkyAreaGenerator
+from rubin_sim.data import get_baseline
+import scipy.special as sc
 
 from rubin_sim.maf.metrics.base_metric import BaseMetric
 
@@ -18,8 +22,8 @@ def compute_dzfromdm(zbins, band_ind, year, dzname):
 
     if dzname=='JQ':
 
-        deriv = pd.read_pickle('uniformity_pkl/meanzderiv.pkl')
-        zvals = pd.read_pickle('uniformity_pkl/meanzsy%i.pkl'%(year+1))
+        deriv = pd.read_pickle('/pscratch/sd/r/rhlozek/ObsStrat/code/meanz_uniformity/uniformity_pkl/meanzderiv.pkl')
+        zvals = pd.read_pickle('/pscratch/sd/r/rhlozek/ObsStrat/code/meanz_uniformity/uniformity_pkl/meanzsy%i.pkl'%(year+1))
         meanzinterp = zvals[0:zbins,band_ind,5]
         dzdminterp = np.abs(deriv[year,band_ind,0:zbins])
     return dzdminterp, meanzinterp
