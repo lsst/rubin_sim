@@ -1,10 +1,8 @@
 __all__ = ("UniformMeanzBiasMetric",)
 
 import numpy as np
-"""
-Still TODO:
+from rubin_sim.maf.metrics.exgal_m5 import ExgalM5
 
-"""
 import matplotlib.pyplot as plt
 import healpy as hp
 import pandas as pd
@@ -63,38 +61,68 @@ class UniformMeanzBiasMetricc(BaseMetric):
 
     """
     def __init__(
-            self, nside=64, year=10, col=None, **kwargs
+            self, 
+            model_dict,
+            nside=64,
+            metric_name='MeanzBiasMetric', 
+            m5_col="fiveSigmaDepth",
+            filter_col="filter",
+            badval=-666,
+            units="mag",
+            zbins=5
+            n_filters=4, # running for ugri for now - investigate why z and y giving trouble
+            year=10, 
+            col=None, **kwargs
     ):
+        
+        """
+        Arguments:
+        
+        """
         self.nside = nside
-        super().__init__(col=col, year=year, **kwargs)
-        if col is None:
-            self.col = "metricdata"
+        filter_list=["u","g","r","i"]
+        self.bands = [x for x in model_dict.keys() if x in filter_list]
         self.year = year
         self.nside = nside
+        self.m5_col=m5_col,
+        self.zbins=zbins
+        self.filter_col=filter_col,
+        self.exgal_m5 = ExgalM5(
+            m5_col=m5_col,
+            filter_col=filter_col,
+            units=units,
+            metric_name=metric_name+"ExgalM5",
+        )
+        self.badval=badval
+        super().__init__(col=[m5_col,filter_col], metric_name=metric_name, units=units, maps=self.exgal_m5.maps,year=year, **kwargs)
+
 
     def run(self, data_slice, slice_point=None):
         # Get a map that has zeros for the pixels we do not want to use.
-        map = metric_values.data.copy()
-        map[metric_values.mask] = 0
+        map = self.maps.data.copy()
+        map[self.maps.mask] = 0
 
+        n_filters = len(set(data_slice[self.filter_col]))
+        if n_filters < self.n_filters:
+            return self.badval
+        
         # Start to set output.
         result = np.empty(1, dtype=[("name", np.str_, 20), ("value", float)])
         result["name"][0] = "UniformMeanzBiasMetric"
 
-            # Get compute the quantities across all bands FoM for the overall map.  
-
-        surveyAreas = SkyAreaGenerator(nside=nside)
+        
+        surveyAreas = SkyAreaGenerator(nside=self.nside)
         map_footprints, map_labels = surveyAreas.return_maps()
         days = self.year*365.25
-        filter_list=["u","g","r","i"]
-        zbins=5
-        filts = dict(zip(filter_list, [None]*len(filter_list)))
-        filtsz = dict(zip(filter_list, [[None]*zbins]*len(filter_list)))
+        
+        
+        filts = dict(zip(self.bands, [None]*self.n_filters))
+        filtsz = dict(zip(self.bands, [[None]*self.zbins]*self.n_filters))
         constraint_str='filter="YY" and note not like "DD%" and night <= XX and note not like "twilight_near_sun" '
         constraint_str = constraint_str.replace('XX','%d'%days)
         totdz=0
         avmeanz=0
-        for filter_ind, filter in enumerate(filter_list):
+        for filter_ind, filter in enumerate(self.filter_list):
             constraint_str = constraint_str.replace('YY','%s'%filter)
 
             # Now for some specifics - this part is just when using the overall map.
@@ -105,7 +133,7 @@ class UniformMeanzBiasMetricc(BaseMetric):
             depth_map_bundle = maf.MetricBundle(
                 metric=maf.ExgalM5(), slicer=use_slicer, constraint=constraint_str, summary_metrics=my_summary_stats)
             bd = maf.metricBundles.make_bundles_dict_from_list([depth_map_bundle])
-            dzdminterp, meanzinterp=compute_dzfromdm(zbins, filter_ind,self.year, 'JQ')
+            dzdminterp, meanzinterp=compute_dzfromdm(self.zbins, filter_ind,self.year, 'JQ')
             stdz = [float(np.abs(dz))*float(bd[list(bd.keys())[0]].summary_values['Rms']) for dz in dzdminterp]
     
             clbias, meanz_use = compute_Clbias(meanzinterp,stdz)
@@ -114,7 +142,7 @@ class UniformMeanzBiasMetricc(BaseMetric):
             avmeanz+=meanzinterp
             
         combined_tdz = [np.sqrt(tdz) for tdz in totdz]
-        tmpclbias,tmpmeanz_use=compute_Clbias(avmeanz/len(filter_list),combined_tdz)
+        tmpclbias,tmpmeanz_use=compute_Clbias(avmeanz/len(self.filter_list),combined_tdz)
         
 
         y10_req = 0.003
@@ -123,6 +151,7 @@ class UniformMeanzBiasMetricc(BaseMetric):
         clbiastot = np.max(clbias)
         y10ratio = clbiastot/y10_req
         y1ratio = clbiastot/y1_goal
-        result=[y1ratio,y10ratio]
+        result["y1ratio"]=y1ratio
+        result["y10ratio"]=y10ratio
 
         return result
