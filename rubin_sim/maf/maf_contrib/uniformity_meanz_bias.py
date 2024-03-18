@@ -1,20 +1,15 @@
 __all__ = ("UniformMeanzBiasMetric",)
 
 import numpy as np
-from rubin_sim.maf.metrics.exgal_m5 import ExgalM5
-
-import matplotlib.pyplot as plt
 import healpy as hp
+import matplotlib.pyplot as plt
 import pandas as pd
-import scipy
-import sklearn
-import rubin_sim
+from rubin_sim.maf.metrics.base_metric import BaseMetric
+from rubin_sim.maf.metrics.exgal_m5 import ExgalM5
 import rubin_sim.maf as maf
 from rubin_sim.scheduler.utils import SkyAreaGenerator
 from rubin_sim.data import get_baseline
-import scipy.special as sc
 
-from rubin_sim.maf.metrics.base_metric import BaseMetric
 
 def compute_dzfromdm(zbins, band_ind, year, dzname):
 
@@ -69,7 +64,7 @@ class UniformMeanzBiasMetricc(BaseMetric):
             filter_col="filter",
             badval=-666,
             units="mag",
-            zbins=5
+            zbins=5,
             n_filters=4, # running for ugri for now - investigate why z and y giving trouble
             year=10, 
             col=None, **kwargs
