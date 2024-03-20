@@ -445,6 +445,22 @@ class TestStackerClasses(unittest.TestCase):
         s = stackers.EclipticStacker(ra_col="ra", dec_col="dec", degrees=True, subtract_sun_lon=False)
         _ = s.run(data)
 
+    def test_teff_stacker(self):
+        rng = np.random.default_rng(seed=6563)
+        num_points = 5
+        data = np.zeros(
+            num_points,
+            dtype=list(zip(["fiveSigmaDepth", "filter", "visitExposureTime"], [float, (np.str_, 1), float])),
+        )
+        data["fiveSigmaDepth"] = 23 + rng.random(num_points)
+        data["filter"] = ["g"] * num_points
+        data["visitExposureTime"] = [30] * num_points
+
+        stacker = stackers.TeffStacker("fiveSigmaDepth", "filter", "visitExposureTime")
+        value = stacker.run(data)
+        np.testing.assert_array_equal(value["fiveSigmaDepth"], value["fiveSigmaDepth"])
+        assert np.all(0.1 < value["t_eff"]) and np.all(value["t_eff"] < 10)
+
 
 if __name__ == "__main__":
     unittest.main()
