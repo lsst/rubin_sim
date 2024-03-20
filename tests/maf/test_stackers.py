@@ -12,6 +12,11 @@ from rubin_scheduler.utils import Site, _alt_az_pa_from_ra_dec, calc_lmst
 import rubin_sim.maf.stackers as stackers
 from rubin_sim.maf import get_sim_data
 
+try:
+    import lsst.summit.utils.efdUtils
+except ModuleNotFoundError:
+    pass
+
 
 class TestStackerClasses(unittest.TestCase):
     def setUp(self):
@@ -475,6 +480,41 @@ class TestStackerClasses(unittest.TestCase):
         value = stacker.run(data)
         recovered_mjd = Time(value["observationStartDatetime64"], format="datetime64").mjd
         assert np.allclose(recovered_mjd, data["observationStartMJD"])
+
+    def test_day_obs_stackers(self):
+        rng = np.random.default_rng(seed=6563)
+        num_points = 5
+        obs_start_mjds = 61000 + 3000 * rng.random(num_points)
+
+        data = np.zeros(
+            num_points,
+            dtype=list(zip(["observationStartMJD"], [float])),
+        )
+        data["observationStartMJD"] = obs_start_mjds
+
+        try:
+            summit_get_day_obs = lsst.summit.utils.efdUtils.getDayObsForTime
+        except NameError:
+            summit_get_day_obs = None
+
+        day_obs_int_stacker = stackers.DayObsStacker("observationStartMJD")
+        day_obs_int = day_obs_int_stacker.run(data)
+        assert np.all(day_obs_int["dayObs"] > 20200000)
+        assert np.all(day_obs_int["dayObs"] < 20500000)
+        if summit_get_day_obs is not None:
+            summit_day_obs_int = np.array([summit_get_day_obs(Time(m, format="mjd")) for m in obs_start_mjds])
+            np.testing.assert_array_equal(day_obs_int["dayObs"], summit_day_obs_int)
+
+        day_obs_mjd_stacker = stackers.DayObsMJDStacker("observationStartMJD")
+        day_obs_mjd = day_obs_mjd_stacker.run(data)
+        # If there were no offset, all values would be between 0 and 1.
+        # With the 0.5 day offset specified in SITCOMTN-32, this becomes
+        # 0.5 and 1.5.
+        assert np.all((obs_start_mjds - day_obs_mjd["day_obs_mjd"]) <= 1.5)
+        assert np.all((obs_start_mjds - day_obs_mjd["day_obs_mjd"]) >= 0.5)
+
+        day_obs_iso_stacker = stackers.DayObsISOStacker("observationStartMJD")
+        _ = day_obs_iso_stacker.run(data)
 
 
 if __name__ == "__main__":
