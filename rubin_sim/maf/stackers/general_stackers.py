@@ -7,6 +7,7 @@ __all__ = (
     "DcrStacker",
     "FiveSigmaStacker",
     "SaturationStacker",
+    "ObservationStartDatetime64Stacker",
 )
 
 import warnings
@@ -32,7 +33,8 @@ class SaturationStacker(BaseStacker):
     saturation_e : float, optional (150e3)
         The saturation level in electrons
     zeropoints : dict-like, optional (None)
-        The zeropoints for the telescope. Keys should be str with filter names, values in mags.
+        The zeropoints for the telescope. Keys should be str with filter names,
+        values in mags.
         If None, will use Rubin-like zeropoints.
     km : dict-like, optional (None)
         Atmospheric extinction values.  Keys should be str with filter names.
@@ -84,17 +86,19 @@ class SaturationStacker(BaseStacker):
             in_filt = np.where(sim_data[self.filter_col] == filtername)[0]
             # Calculate the length of the on-sky time per EXPOSURE
             exptime = sim_data[self.exptime_col][in_filt] / sim_data[self.nexp_col][in_filt]
-            # Calculate sky counts per pixel per second from skybrightness + zeropoint (e/1s)
+            # Calculate sky counts per pixel per second
+            # from skybrightness + zeropoint (e/1s)
             sky_counts = (
                 10.0 ** (0.4 * (self.zeropoints[filtername] - sim_data[self.skybrightness_col][in_filt]))
                 * self.pixscale**2
             )
             # Total sky counts in each exposure
             sky_counts = sky_counts * exptime
-            # The counts available to the source (at peak) in each exposure is the
-            # difference between saturation and sky
+            # The counts available to the source (at peak) in each exposure is
+            # the difference between saturation and sky
             remaining_counts_peak = self.saturation_e - sky_counts
-            # Now to figure out how many counts there would be total, if there are that many in the peak
+            # Now to figure out how many counts there would be total, if there
+            # are that many in the peak
             sigma = sim_data[self.seeing_col][in_filt] / 2.354
             source_counts = remaining_counts_peak * 2.0 * np.pi * (sigma / self.pixscale) ** 2
             # source counts = counts per exposure (expTimeCol / nexp)
@@ -112,8 +116,8 @@ class SaturationStacker(BaseStacker):
 
 
 class FiveSigmaStacker(BaseStacker):
-    """
-    Calculate the 5-sigma limiting depth for a point source in the given conditions.
+    """Calculate the 5-sigma limiting depth for a point source in the given
+    conditions.
 
     This is generally not needed, unless the m5 parameters have been updated
     or m5 was not previously calculated.
@@ -182,10 +186,12 @@ class NormAirmassStacker(BaseStacker):
     def _run(self, sim_data, cols_present=False):
         """Calculate new column for normalized airmass."""
         # Run method is required to calculate column.
-        # Driver runs getColInfo to know what columns are needed from db & which are calculated,
-        #  then gets data from db and then calculates additional columns (via run methods here).
+        # Driver runs getColInfo to know what columns are needed from db &
+        # which are calculated,  then gets data from db and then calculates
+        # additional columns (via run methods here).
         if cols_present:
-            # Column already present in data; assume it is correct and does not need recalculating.
+            # Column already present in data; assume it is correct and does not
+            # need recalculating.
             return sim_data
         dec = sim_data[self.dec_col]
         if self.degrees:
@@ -198,7 +204,8 @@ class NormAirmassStacker(BaseStacker):
 
 class ZenithDistStacker(BaseStacker):
     """Calculate the zenith distance for each pointing.
-    If 'degrees' is True, then assumes alt_col is in degrees and returns degrees.
+    If 'degrees' is True, then assumes alt_col is in degrees and returns
+    degrees.
     If 'degrees' is False, assumes alt_col is in radians and returns radians.
     """
 
@@ -216,7 +223,8 @@ class ZenithDistStacker(BaseStacker):
     def _run(self, sim_data, cols_present=False):
         """Calculate new column for zenith distance."""
         if cols_present:
-            # Column already present in data; assume it is correct and does not need recalculating.
+            # Column already present in data; assume it is correct and does not
+            # need recalculating.
             return sim_data
         if self.degrees:
             sim_data["zenithDistance"] = 90.0 - sim_data[self.alt_col]
@@ -226,7 +234,8 @@ class ZenithDistStacker(BaseStacker):
 
 
 class ParallaxFactorStacker(BaseStacker):
-    """Calculate the parallax factors for each opsim pointing.  Output parallax factor in arcseconds."""
+    """Calculate the parallax factors for each opsim pointing.
+    Output parallax factor in arcseconds."""
 
     cols_added = ["ra_pi_amp", "dec_pi_amp"]
 
@@ -245,7 +254,8 @@ class ParallaxFactorStacker(BaseStacker):
         self.degrees = degrees
 
     def _gnomonic_project_toxy(self, ra1, dec1, r_acen, deccen):
-        """Calculate x/y projection of ra1/dec1 in system with center at r_acen, Deccenp.
+        """Calculate x/y projection of ra1/dec1 in system with center at
+        r_acen, Deccenp.
         Input radians.
         """
         # also used in Global Telescope Network website
@@ -256,7 +266,8 @@ class ParallaxFactorStacker(BaseStacker):
 
     def _run(self, sim_data, cols_present=False):
         if cols_present:
-            # Column already present in data; assume it is correct and does not need recalculating.
+            # Column already present in data; assume it is correct and does not
+            # need recalculating.
             return sim_data
         ra_pi_amp = np.zeros(np.size(sim_data), dtype=[("ra_pi_amp", "float")])
         dec_pi_amp = np.zeros(np.size(sim_data), dtype=[("dec_pi_amp", "float")])
@@ -284,11 +295,13 @@ class ParallaxFactorStacker(BaseStacker):
 
 
 class DcrStacker(BaseStacker):
-    """Calculate the RA,Dec offset expected for an object due to differential chromatic refraction.
+    """Calculate the RA,Dec offset expected for an object due to differential
+    chromatic refraction.
 
-    For DCR calculation, we also need zenithDistance, HA, and PA -- but these will be explicitly
-    handled within this stacker so that setup is consistent and they run in order. If those values
-    have already been calculated elsewhere, they will not be overwritten.
+    For DCR calculation, we also need zenithDistance, HA, and PA -- but these
+    will be explicitly handled within this stacker so that setup is consistent
+    and they run in order. If those values have already been calculated
+    elsewhere, they will not be overwritten.
 
     Parameters
     ----------
@@ -301,20 +314,23 @@ class DcrStacker(BaseStacker):
     dec_col : str
         Name of the column with Dec. Default 'fieldDec'.
     lstCol : str
-        Name of the column with local sidereal time. Default 'observationStartLST'.
+        Name of the column with local sidereal time. Default
+        'observationStartLST'.
     site : str or rubin_sim.utils.Site
         Name of the observory or a rubin_sim.utils.Site object. Default 'LSST'.
     mjdCol : str
         Name of column with modified julian date. Default 'observationStartMJD'
     dcr_magnitudes : dict
-        Magitude of the DCR offset for each filter at altitude/zenith distance of 45 degrees.
-        Defaults u=0.07, g=0.07, r=0.50, i=0.045, z=0.042, y=0.04 (all arcseconds).
+        Magitude of the DCR offset for each filter at altitude/zenith distance
+        of 45 degrees. Defaults u=0.07, g=0.07, r=0.50, i=0.045, z=0.042,
+        y=0.04 (all arcseconds).
 
     Returns
     -------
     numpy.array
-        Returns array with additional columns 'ra_dcr_amp' and 'dec_dcr_amp' with the DCR offsets
-        for each observation.  Also runs ZenithDistStacker and ParallacticAngleStacker.
+        Returns array with additional columns 'ra_dcr_amp' and 'dec_dcr_amp'
+        with the DCR offsets for each observation.  Also runs ZenithDistStacker
+        and ParallacticAngleStacker.
     """
 
     cols_added = ["ra_dcr_amp", "dec_dcr_amp"]  # zenithDist, HA, PA
@@ -351,8 +367,9 @@ class DcrStacker(BaseStacker):
         self.dec_col = dec_col
         self.degrees = degrees
         self.cols_req = [filter_col, ra_col, dec_col, alt_col, lst_col]
-        #  'zenithDist', 'PA', 'HA' are additional columns required, coming from other stackers which must
-        #  also be configured -- so we handle this explicitly here.
+        #  'zenithDist', 'PA', 'HA' are additional columns required, coming
+        #  from other stackers which must also be configured -- so we handle
+        #  this explicitly here.
         self.zstacker = ZenithDistStacker(alt_col=alt_col, degrees=self.degrees)
         self.pastacker = ParallacticAngleStacker(
             ra_col=ra_col,
@@ -367,10 +384,11 @@ class DcrStacker(BaseStacker):
 
     def _run(self, sim_data, cols_present=False):
         if cols_present:
-            # Column already present in data; assume it is correct and does not need recalculating.
+            # Column already present in data; assume it is correct and does not
+            # need recalculating.
             return sim_data
-        # Need to make sure the Zenith stacker gets run first
-        # Call _run method because already added these columns due to 'colsAdded' line.
+        # Need to make sure the Zenith stacker gets run first Call _run method
+        # because already added these columns due to 'colsAdded' line.
         sim_data = self.zstacker.run(sim_data)
         sim_data = self.pastacker.run(sim_data)
         if self.degrees:
@@ -407,7 +425,8 @@ class HourAngleStacker(BaseStacker):
     def _run(self, sim_data, cols_present=False):
         """HA = LST - RA"""
         if cols_present:
-            # Column already present in data; assume it is correct and does not need recalculating.
+            # Column already present in data; assume it is correct and does not
+            # need recalculating.
             return sim_data
         if len(sim_data) == 0:
             return sim_data
@@ -434,7 +453,8 @@ class HourAngleStacker(BaseStacker):
 
 class ParallacticAngleStacker(BaseStacker):
     """Add the parallactic angle to each visit.
-    If 'degrees' is True, this will be in degrees (as are all other angles). If False, then in radians.
+    If 'degrees' is True, this will be in degrees (as are all other angles). If
+    False, then in radians.
     """
 
     cols_added = ["PA"]
@@ -464,9 +484,11 @@ class ParallacticAngleStacker(BaseStacker):
         # or
         # http://www.gb.nrao.edu/GBT/DA/gbtidl/release2pt9/contrib/contrib/parangle.pro
         if cols_present:
-            # Column already present in data; assume it is correct and does not need recalculating.
+            # Column already present in data; assume it is correct and does not
+            # need recalculating.
             return sim_data
-        # Using the run method (not _run) means that if HA is present, it will not be recalculated.
+        # Using the run method (not _run) means that if HA is present, it will
+        # not be recalculated.
         sim_data = self.ha_stacker.run(sim_data)
         if self.degrees:
             dec = np.radians(sim_data[self.dec_col])
@@ -481,4 +503,28 @@ class ParallacticAngleStacker(BaseStacker):
         )
         if self.degrees:
             sim_data["PA"] = np.degrees(sim_data["PA"])
+        return sim_data
+
+
+class ObservationStartDatetime64Stacker(BaseStacker):
+    """Add the observation start time as a numpy.datetime64."""
+
+    cols_added = ["observationStartDatetime64"]
+
+    def __init__(
+        self,
+        mjd_col="observationStartMJD",
+    ):
+        self.mjd_col = mjd_col
+        self.units = [None]
+        self.cols_added_dtypes = ["datetime64[ns]"]
+
+    def _run(self, sim_data, cols_present=False):
+        if cols_present:
+            # Column already present in data; assume it is correct and does not
+            # need recalculating.
+            return sim_data
+
+        sim_data["observationStartDatetime64"] = Time(sim_data[self.mjd_col], format="mjd").datetime64
+
         return sim_data

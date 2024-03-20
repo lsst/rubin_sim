@@ -5,6 +5,7 @@ import warnings
 import numpy as np
 from astropy import units as u
 from astropy.coordinates import SkyCoord
+from astropy.time import Time
 from rubin_scheduler.data import get_data_dir
 from rubin_scheduler.utils import Site, _alt_az_pa_from_ra_dec, calc_lmst
 
@@ -460,6 +461,20 @@ class TestStackerClasses(unittest.TestCase):
         value = stacker.run(data)
         np.testing.assert_array_equal(value["fiveSigmaDepth"], value["fiveSigmaDepth"])
         assert np.all(0.1 < value["t_eff"]) and np.all(value["t_eff"] < 10)
+
+    def test_observation_start_datetime64_stacker(self):
+        rng = np.random.default_rng(seed=6563)
+        num_points = 5
+        data = np.zeros(
+            num_points,
+            dtype=list(zip(["observationStartMJD"], [float])),
+        )
+        data["observationStartMJD"] = 61000 + 3000 * rng.random(num_points)
+
+        stacker = stackers.ObservationStartDatetime64Stacker("observationStartMJD")
+        value = stacker.run(data)
+        recovered_mjd = Time(value["observationStartDatetime64"], format="datetime64").mjd
+        assert np.allclose(recovered_mjd, data["observationStartMJD"])
 
 
 if __name__ == "__main__":
