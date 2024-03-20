@@ -96,7 +96,7 @@ class AreaThresholdMetric(BaseMetric):
         self.lower_threshold = lower_threshold
         self.mask_val = np.nan  # Include so all values get passed
         self.col = col
-        self.units = "degrees"
+        self.units = "square degrees"
 
     def run(self, data_slice, slice_point=None):
         # find out what nside we have
@@ -113,7 +113,7 @@ class AreaThresholdMetric(BaseMetric):
             npix = len(
                 np.where(
                     (data_slice[self.col] > self.lower_threshold)
-                    and (data_slice[self.col] < self.upper_threshold)
+                    & (data_slice[self.col] < self.upper_threshold)
                 )[0]
             )
         area = pix_area * npix
