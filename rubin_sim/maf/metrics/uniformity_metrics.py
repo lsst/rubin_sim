@@ -99,7 +99,7 @@ class NestedLinearMultibandModelMetric(BaseMetric):
 
     def __init__(
         self,
-        dict_of_model_dicts,
+        arr_of_model_dicts,
         metric_name="NestedLinearMultibandModelMetric",
         m5_col="fiveSigmaDepth",
         filter_col="filter",
@@ -107,6 +107,7 @@ class NestedLinearMultibandModelMetric(BaseMetric):
         units="mag",
         extinction_cut=0.2,
         n_filters=6,
+        badval=np.nan,
         min_depth_cut={},
         max_depth_cut={},
         mean_depth={},
@@ -121,33 +122,34 @@ class NestedLinearMultibandModelMetric(BaseMetric):
             slice_point (Dict): Dictionary of slice_point metadata passed
                 to each metric.
         """
-        self.dict_of_model_dicts = dict_of_model_dicts
+        self.arr_of_model_dicts = arr_of_model_dicts
         self.n_filters = n_filters
         self.extinction_cut = extinction_cut
         self.min_depth_cut = min_depth_cut
         self.max_depth_cut = max_depth_cut
         self.mean_depth = mean_depth
         self.m5_col = m5_col
-        self.badval = np.nan
+        self.badval = badval
         self.filter_col = filter_col
         self.post_processing_fn = post_processing_fn
 
         self.exgal_m5 = ExgalM5(
             m5_col=m5_col,
             filter_col=filter_col,
+            badval=self.badval,
             units=units,
             metric_name=metric_name+"_ExgalM5",
         )
         super().__init__(
-            col=[m5_col, filter_col], metric_name=metric_name, units=units, maps=self.exgal_m5.maps, **kwargs
+            col=[m5_col, filter_col], badval=self.badval, metric_name=metric_name, units=units, maps=self.exgal_m5.maps, **kwargs
         )
         # magic line so MAF knows we're returning something complicated
         self.metric_dtype = "object"
 
     def run(self, data_slice, slice_point=None):
-        "Returns a dictionary containing the values of the model evaluated at the data_slice"
+        "Returns an array containing the values of the model evaluated at the data_slice"
 
-        n_bins = len(self.dict_of_model_dicts)
+        n_bins = len(self.arr_of_model_dicts)
         bad_val_arr = np.repeat(self.badval, n_bins)
 
         # apply extinction and n_filters cut
@@ -160,11 +162,10 @@ class NestedLinearMultibandModelMetric(BaseMetric):
         lsst_filters = ["u", "g", "r", "i", "z", "y"]
 
         # initialize dictionary of outputs
-        names = self.dict_of_model_dicts.keys()
-        types = [float]*n_bins
-        result_dict = np.zeros(1, dtype=list(zip(names, types)))
+        #types = [float]*n_bins
+        result_arr = np.zeros((n_bins,), dtype=float)
 
-        for binname, model_dict in self.dict_of_model_dicts.items():
+        for binnumber, model_dict in enumerate(self.arr_of_model_dicts):
 
             # put together a vector of depths
             depths = np.vstack(
@@ -182,20 +183,20 @@ class NestedLinearMultibandModelMetric(BaseMetric):
                     depths[0, i] = self.badval
 
             # if provided, subtract the mean
-            for i, lsst_filter in enumerate(self.bands):
+            for i, lsst_filter in enumerate(lsst_filters):
                 if lsst_filter in self.mean_depth:
                     depths[i] -= self.mean_depth[lsst_filter]
 
             # now assemble the results
-            model_arr = np.array([model_dict[key] if key in model_dict else 0.0 for x in lsst_filters])
+            model_arr = np.array([model_dict[x] if x in model_dict else 0.0 for x in lsst_filters])
             cst = model_dict['cst'] if 'cst' in model_dict else 0.0
 
-            result_dict[binname] = self.post_processing_fn(
+            result_arr[binnumber] = self.post_processing_fn(
                 cst + np.dot(depths, model_arr)
             )
 
-        # returns dictionary where each key of the original input dict_of_model_dicts
+        # returns array where each element of the original input arr_of_model_dicts
         # contains a scalar value resulting from a linear combination of the six depths
         #
-        return result_dict
+        return result_arr
 
