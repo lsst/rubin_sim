@@ -11,6 +11,7 @@ __all__ = (
     "DayObsStacker",
     "DayObsMJDStacker",
     "DayObsISOStacker",
+    "OverheadStacker",
 )
 
 import warnings
@@ -635,4 +636,77 @@ class DayObsISOStacker(BaseStacker):
             return sim_data
 
         sim_data[self.cols_added[0]] = _compute_day_obs_iso8601(sim_data[self.mjd_col])
+        return sim_data
+
+
+class OverheadStacker(BaseStacker):
+    """Add time between visits in seconds.
+
+    Parameters
+    ----------
+    max_gap : `float`, optional
+        The maximum gap between observations, in minutes.
+        Assume anything longer the dome has closed.
+        Defaults to infinity.
+    mjd_col : `str`, optional
+        The name of the column with the observation start MJD.
+        Defaults to "obsevationStartMJD".
+    visit_time_col : `str`, optional
+        The name of the column with the total visit time.
+        Defaults to "visitTime".
+    exposure_time_col : `str`, optional
+        The name of the column with the visit exposure time.
+        Defaults to "visitExposureTime."
+    """
+
+    cols_added = ["overhead"]
+
+    def __init__(
+        self,
+        max_gap=np.inf,
+        mjd_col="observationStartMJD",
+        visit_time_col="visitTime",
+        exposure_time_col="visitExposureTime",
+    ):
+        # Set max_gap in minutes to match API of existing BruteOSFMetric
+        self.max_gap = max_gap
+        self.mjd_col = mjd_col
+        self.visit_time_col = visit_time_col
+        self.exposure_time_col = exposure_time_col
+        self.units = ["seconds"]
+        self.day_obs_mjd_stacker = DayObsMJDStacker(self.mjd_col)
+
+    def _run(self, sim_data, cols_present=False):
+        if cols_present:
+            # Column already present in data; assume it is correct and does not
+            # need recalculating.
+            return sim_data
+
+        # Count all non-exposure time between the end of the previous exposure
+        # and the end of the current exposure as overhead for the current
+        # exposure.
+        observation_end_mjd = sim_data[self.mjd_col] + sim_data[self.visit_time_col] / (24 * 60 * 60)
+        overhead = (
+            np.diff(observation_end_mjd, prepend=np.nan) * 24 * 60 * 60 - sim_data[self.exposure_time_col]
+        )
+
+        # Rough heuristic not to count downtime due to weather or instrument
+        # problems as overhead.  A more reliable way to do this would be to
+        # use other sources of weather data or problem reporting to identify
+        # these gaps.
+        # We might also explicitly want to look at the gaps that arise from
+        # these problems in order to measure time lost to these causes.
+        overhead[overhead > self.max_gap * 60] = np.nan
+
+        # If the gap includes a change of night, it isn't really overhead. For
+        # most reasonable finite values of self.max_gap, this is never
+        # relevant, but it's somethimes useful to set max_gap to inifinity to
+        # catch all delays in the night. (The the comment above.) But, in
+        # even in this case, we would still not want to include gaps between
+        # nights.
+        day_obs_mjd = self.day_obs_mjd_stacker.run(sim_data)["day_obs_mjd"]
+        different_night = np.diff(day_obs_mjd, prepend=np.nan) != 0
+        overhead[different_night] = np.nan
+
+        sim_data[self.cols_added[0]] = overhead
         return sim_data

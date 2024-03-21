@@ -506,15 +506,61 @@ class TestStackerClasses(unittest.TestCase):
             np.testing.assert_array_equal(day_obs_int["dayObs"], summit_day_obs_int)
 
         day_obs_mjd_stacker = stackers.DayObsMJDStacker("observationStartMJD")
-        day_obs_mjd = day_obs_mjd_stacker.run(data)
+        new_data = day_obs_mjd_stacker.run(data)
         # If there were no offset, all values would be between 0 and 1.
         # With the 0.5 day offset specified in SITCOMTN-32, this becomes
         # 0.5 and 1.5.
-        assert np.all((obs_start_mjds - day_obs_mjd["day_obs_mjd"]) <= 1.5)
-        assert np.all((obs_start_mjds - day_obs_mjd["day_obs_mjd"]) >= 0.5)
+        assert np.all((obs_start_mjds - new_data["day_obs_mjd"]) <= 1.5)
+        assert np.all((obs_start_mjds - new_data["day_obs_mjd"]) >= 0.5)
 
         day_obs_iso_stacker = stackers.DayObsISOStacker("observationStartMJD")
         _ = day_obs_iso_stacker.run(data)
+
+    def test_overhead_stacker(self):
+        num_visits = 10
+        num_first_night_visits = 5
+
+        start_mjd = 61000.2
+        exptime = 30.0
+
+        exposure_times = np.full(num_visits, exptime, dtype=float)
+
+        rng = np.random.default_rng(seed=6563)
+        overheads = 2.0 + rng.random(num_visits)
+
+        visit_times = overheads + exposure_times
+        observation_end_mjds = start_mjd + np.cumsum(visit_times) / (24 * 60 * 60)
+        mjds = observation_end_mjds - visit_times / (24 * 60 * 60)
+        mjds[num_first_night_visits:] += 1
+
+        data = np.core.records.fromarrays(
+            (mjds, exposure_times, visit_times),
+            dtype=np.dtype(
+                [
+                    ("observationStartMJD", mjds.dtype),
+                    ("visitExposureTime", exposure_times.dtype),
+                    ("visitTime", visit_times.dtype),
+                ]
+            ),
+        )
+
+        overhead_stacker = stackers.OverheadStacker()
+        new_data = overhead_stacker.run(data)
+        measured_overhead = new_data["overhead"]
+
+        # There is no visit before the first, so the first overhead should be
+        # nan.
+        self.assertTrue(np.isnan(measured_overhead[0]))
+
+        # Test that the gap between nights is nan.
+        self.assertTrue(np.isnan(measured_overhead[num_first_night_visits]))
+
+        # Make sure there are no unexpected nans
+        self.assertEqual(np.count_nonzero(np.isnan(measured_overhead)), 2)
+
+        # Make sure all measured values are correct
+        these_gaps = ~np.isnan(measured_overhead)
+        self.assertTrue(np.allclose(measured_overhead[these_gaps], overheads[these_gaps]))
 
 
 if __name__ == "__main__":
