@@ -332,3 +332,113 @@ class StaticProbesFoMEmulatorMetricSimple(BaseMetric):
         f = interpolate.RectBivateateSpline(np.ravel(areas), np.ravel(depths), np.ravel(fom_arr))
         fom = f(area, median_depth)[0]
         return fom
+
+
+class TomographicClusteringSigma8bias(BaseMetric):
+    """Calculate fraction of a desired footprint got covered.
+        To be applied as a summary metric to any healpix slicer.
+        Pixels with hp.UNSEEN or np.nan will be ignored, as well
+        as values falling outside of a ]min_val, max_val[ range.
+    Parameters
+    ----------
+    min_val, max_val : `float`
+        Minimum and maximum values for valid pixels (excluded)
+    """
+
+    def __init__(self, density_tomography_model, percentage_uncorrected=0.1, lmin=10, badval=np.nan, **kwargs):
+        super().__init__(**kwargs)
+
+        # initialize dictionary of outputs
+        n_bins = len(density_tomography_model['lmax'])
+        names = [str(i) for i in range(n_bins)]
+        types = [float] * n_bins
+        self.badval = badval
+        self.mask_val = badval
+        # self.mask_val = np.zeros(1, dtype=list(zip(names, types)))
+        # for i in range(n_bins):
+        #    self.mask_val[str(i)] = badval
+        # self.mask_val = (np.repeat(badval, len(density_tomography_model['lmax'])), ) # get whole array passed
+        # print(type(self.mask_val), self.mask_val.shape)
+        self.percentage_uncorrected = percentage_uncorrected
+        self.lmin = lmin
+        self.density_tomography_model = density_tomography_model
+        self.totalPowerMetrics = [
+            TotalPowerMetric(col='metricdata', lmin=lmin, lmax=lmax, metric_name='TotalPower_bin', mask_val=hp.UNSEEN)
+            for lmax in density_tomography_model['lmax']
+        ]
+        self.areaThresholdMetric = AreaThresholdMetric(
+            col='metricdata', metric_name='FootprintFraction_bin', lower_threshold=hp.UNSEEN, upper_threshold=np.inf
+        )
+
+    def run(self, data_slice, slice_point=None):
+        # need to define an array of bad values for the masked pixels
+        badval_arr = np.repeat(self.badval, len(self.density_tomography_model['lmax']))
+        # converts the input recarray to an array
+        data_slice_list = [badval_arr if isinstance(x, float) else x for x in data_slice["metricdata"].tolist()]
+        data_slice_arr = np.asarray(data_slice_list, dtype=float).T  # should be (nbins, npix)
+        data_slice_arr[~np.isfinite(data_slice_arr)] = hp.UNSEEN # need to work with TotalPowerMetric and healpix
+
+        fskys = np.array([
+            self.areaThresholdMetric.run(np.core.records.fromrecords(x, dtype=[('metricdata', float)])) / 42000
+            for x in data_slice_arr])  # sky fraction
+        spuriousdensitypowers = np.array([
+            self.totalPowerMetrics[i].run(np.core.records.fromrecords(x, dtype=[('metricdata', float)]))
+            for i, x in enumerate(data_slice_arr)]) / fskys
+        # some gymnastics needed to convert each slice into a recarray.
+        # this could probably be avoided if recarrays were returned by the original nested/vector metric,
+        # except that we would need to manipulate the names in various places, which I wanted to avoid,
+        # so for now the main metric returns an array per healpix pixel (not a recarray) and puts together
+        # healpix maps which we need to convert to a recarray to pass to AreaThresholdMetric and TotalPowerMetric
+        def solve_for_multiplicative_factor(spurious_powers, model_cells, fskys, lmin, percentage_uncorrected):
+            # solve for multiplicative sigma8^2 term between
+            # measured angular power spectra (spurious measured Cells times percentage_uncorrected)
+            # and model ones (polynomial model from CCL).
+            n_bins = model_cells['lmax'].size
+            assert len(spurious_powers) == n_bins
+            assert len(fskys) == n_bins
+            assert model_cells['poly1d_coefs_loglog'].shape[0] == n_bins
+            totalvar_mod = np.zeros((n_bins, 1))
+            totalvar_obs = np.zeros((n_bins, 1))
+            totalvar_var = np.zeros((n_bins, 1))
+            transfers = np.zeros((n_bins, 1))
+            # loop over tomographic bins
+            sigma8square_model = model_cells['sigma8square_model']  # hardcoded; assumed CCL cosmology
+            for i in range(n_bins):
+                # get model Cells from polynomial model (in log log space)
+                ells = np.arange(lmin, model_cells['lmax'][i])
+                polynomial_model = np.poly1d(model_cells['poly1d_coefs_loglog'][i, :])
+                cells_model = np.exp(polynomial_model(np.log(ells)))
+
+                # model variance is sum of cells x (2l+1)
+                totalvar_mod[i, 0] = np.sum(cells_model * (2 * ells + 1))
+
+                # observations is spurious power  noiseless model
+                totalvar_obs[i, 0] = totalvar_mod[i, 0] + spurious_powers[i] * percentage_uncorrected
+
+                # simple model variance of cell baased on Gaussian covariance
+                cells_var = 2 * cells_model ** 2 / (2 * ells + 1) / fskys[i]
+                totalvar_var[i, 0] = np.sum(cells_var * (2 * ells + 1) ** 2)
+
+            # model assumed sigma8 = 0.8 (add CCL cosmology here? or how I obtained them + documentation
+
+            results_fractional_spurious_power = totalvar_obs / totalvar_mod - 1.0
+
+            transfers = totalvar_mod / sigma8square_model  # model Cell variance divided by sigma8^2, which is the common normalization
+
+            # model ratio: formula for posterior distribution on unknown multiplicative factor in multivariate Gaussian likelihood
+            FOT = np.sum(transfers[:, 0] * totalvar_obs[:, 0] / totalvar_var[:, 0])
+            FTT = np.sum(transfers[:, 0] * transfers[:, 0] / totalvar_var[:, 0])
+            # mean and stddev of multiplicative factor
+            sigma8squared_fit = FOT / FTT
+            sigma8squared_error = FTT ** -0.5
+
+            return sigma8squared_fit, sigma8squared_error, sigma8square_model
+
+        sigma8squared_fit, sigma8squared_error, sigma8square_model = solve_for_multiplicative_factor(
+            spuriousdensitypowers, self.density_tomography_model, fskys, self.lmin, self.percentage_uncorrected)
+
+        results_sigma8_squared_bias = (sigma8squared_fit - sigma8square_model) / sigma8squared_error
+
+        # TODO: turn into bias on sigma 8 instead
+
+        return results_sigma8_squared_bias
