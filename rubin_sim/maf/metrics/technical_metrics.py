@@ -3,14 +3,12 @@ __all__ = (
     "MinTimeBetweenStatesMetric",
     "NStateChangesFasterThanMetric",
     "MaxStateChangesWithinMetric",
-    "TeffMetric",
     "OpenShutterFractionMetric",
     "BruteOSFMetric",
 )
 
 import numpy as np
 
-from ..stackers.teff_stacker import TEFF_FIDUCIAL_EXPTIME, compute_teff
 from .base_metric import BaseMetric
 
 
@@ -185,96 +183,6 @@ class MaxStateChangesWithinMetric(BaseMetric):
         indx1 = np.arange(changetimes.size)
         nchanges = indx2 - indx1
         return nchanges.max()
-
-
-class TeffMetric(BaseMetric):
-    """Effective time equivalent for a given set of visits.
-
-    Parameters
-    ----------
-    m5_col : `str` ('fiveSigmaDepth')
-        Colum name for the five sigma limiting depth per pointing.
-        Defaults to "fiveSigmaDepth".
-    filter_col : `str`
-        Defaults to "filter"
-    metric_name : `str`
-        The metric name. Defaults to "tEff".
-    fiducial_depth: `dict` [`str`, `float`] on `None`
-        A mapping of filter to fiducial depth.
-        Defaults to TEFF_FIDUCIAL_DEPTH (in None).
-    teff_base : `float`
-        The exposure time (in seconds) corresponding to the exposure depth.
-        Defaults to 30.
-    normed : `bool`
-        Normalize to exporuse time. Defaults to False.
-    visit_exptime_col : `str`
-        The column with the exposure time, defaults to None, which
-        assumes 30 second exposure times.
-    """
-
-    def __init__(
-        self,
-        m5_col="fiveSigmaDepth",
-        filter_col="filter",
-        metric_name="tEff",
-        fiducial_depth=None,
-        teff_base=30.0,
-        normed=False,
-        visit_exptime_col=None,
-        **kwargs,
-    ):
-        self.m5_col = m5_col
-        self.filter_col = filter_col
-        self.fiducial_exptime = teff_base
-        self.fiducial_depth = fiducial_depth
-        self.visit_exptime_col = visit_exptime_col
-        self.normed = normed
-        self.units = "" if self.normed else "seconds"
-
-        if visit_exptime_col is None:
-            super().__init__(col=[m5_col, filter_col], metric_name=metric_name, units=self.units, **kwargs)
-        else:
-            super().__init__(
-                col=[m5_col, filter_col, visit_exptime_col],
-                metric_name=metric_name,
-                units=self.units,
-                **kwargs,
-            )
-
-        if self.normed:
-            self.comment = "Ratio of the exposure time it would have taken to reach the achived m5"
-            self.comment += " limiting magnitude under fiducial conditions to the actual total exposure time."
-        else:
-            self.comment = "Effective exposure time"
-            self.comment += " of a series of observations, evaluating the equivalent amount of time"
-            self.comment += " each observation would require if taken at a fiducial limiting magnitude."
-            self.comment += " Fiducial depths are : %s" % self.fiducial_depth
-            self.comment += " at an exposure time of : %s" % self.fiducial_exptime
-
-    def run(self, data_slice, slice_point=None):
-        t_eff = 0
-        for visit_id in range(len(data_slice)):
-            t_eff += compute_teff(
-                data_slice[self.m5_col][visit_id],
-                data_slice[self.filter_col][visit_id],
-                None if self.visit_exptime_col is None else data_slice[self.visit_exptime_col][visit_id],
-                self.fiducial_depth,
-                self.fiducial_exptime,
-                normed=False,
-            )
-
-        # We need to add first, then normalize, so normed is always False
-        # above, and we normalize it here.
-        if self.normed:
-            if self.visit_exptime_col is None:
-                total_exptime = TEFF_FIDUCIAL_EXPTIME * len(data_slice)
-            else:
-                total_exptime = data_slice[self.visit_exptime_col].sum()
-
-            tau = t_eff / total_exptime
-            return tau
-        else:
-            return t_eff
 
 
 class OpenShutterFractionMetric(BaseMetric):

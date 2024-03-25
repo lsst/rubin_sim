@@ -251,12 +251,7 @@ def tEffMetrics(
     displayDict = {"group": "T_eff Summary", "subgroup": subgroup}
     displayDict["caption"] = "Total effective time of the survey (see Teff metric)."
     displayDict["order"] = 0
-    metric = metrics.TeffMetric(
-        m5_col=colmap["fiveSigmaDepth"],
-        filter_col=colmap["filter"],
-        normed=False,
-        metric_name="Total Teff",
-    )
+    metric = metrics.SumMetric(col="t_eff", metric_name="Total Teff")
     slicer = slicers.UniSlicer()
     bundle = mb.MetricBundle(
         metric,
@@ -269,17 +264,14 @@ def tEffMetrics(
 
     displayDict["caption"] = "Normalized total effective time of the survey (see Teff metric)."
     displayDict["order"] = 1
-    metric = metrics.TeffMetric(
-        m5_col=colmap["fiveSigmaDepth"],
-        filter_col=colmap["filter"],
-        normed=True,
-        metric_name="Normalized Teff",
-    )
+    metric = metrics.MeanMetric(col="t_eff", metric_name="Normalized Teff")
+    normalized_teff_stacker = stackers.TeffStacker(normed=True)
     slicer = slicers.UniSlicer()
     bundle = mb.MetricBundle(
         metric,
         slicer,
         constraint=sqls["all"],
+        stacker_list=[normalized_teff_stacker],
         display_dict=displayDict,
         info_label=info_label["all"],
     )
@@ -288,12 +280,8 @@ def tEffMetrics(
     # Generate Teff maps in all and per filters
     displayDict = {"group": "T_eff Maps", "subgroup": subgroup}
 
-    metric = metrics.TeffMetric(
-        m5_col=colmap["fiveSigmaDepth"],
-        filter_col=colmap["filter"],
-        normed=True,
-        metric_name="Normalized Teff",
-    )
+    metric = metrics.MeanMetric(col="t_eff", metric_name="Normalized Teff")
+    normalized_teff_stacker = stackers.TeffStacker(normed=True)
     for f in filterlist:
         displayDict["caption"] = "Normalized effective time of the survey, for %s" % info_label[f]
         displayDict["order"] = orders[f]
@@ -302,6 +290,7 @@ def tEffMetrics(
             metric,
             skyslicer,
             sqls[f],
+            stacker_list=[normalized_teff_stacker],
             info_label=info_label[f],
             display_dict=displayDict,
             plot_dict=plotDict,

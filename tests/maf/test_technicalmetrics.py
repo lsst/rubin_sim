@@ -3,6 +3,7 @@ import unittest
 import numpy as np
 
 import rubin_sim.maf.metrics as metrics
+import rubin_sim.maf.stackers as stackers
 from rubin_sim.maf.metrics.base_metric import BaseMetric
 
 
@@ -153,28 +154,6 @@ class TestTechnicalMetrics(unittest.TestCase):
         result = metric.run(data)  # minutes
         self.assertEqual(result, 0)
 
-    def test_teff_metric(self):
-        """Test the Teff (time_effective) metric."""
-        filters = np.array(["g", "g", "g", "g", "g"])
-        m5 = np.zeros(len(filters), float) + 25.0
-        data = np.core.records.fromarrays([m5, filters], names=["fiveSigmaDepth", "filter"])
-        metric = metrics.TeffMetric(fiducial_depth={"g": 25}, teff_base=30.0)
-        result = metric.run(data)
-        self.assertEqual(result, 30.0 * m5.size)
-
-        # Regression test
-        old_metric = OldTeffMetric(fiducial_depth={"g": 25}, teff_base=30.0)
-        old_result = old_metric.run(data)
-        self.assertEqual(result, old_result)
-
-        filters = np.array(["g", "g", "g", "u", "u"])
-        m5 = np.zeros(len(filters), float) + 25.0
-        m5[3:5] = 20.0
-        data = np.core.records.fromarrays([m5, filters], names=["fiveSigmaDepth", "filter"])
-        metric = metrics.TeffMetric(fiducial_depth={"u": 20, "g": 25}, teff_base=30.0)
-        result = metric.run(data)
-        self.assertEqual(result, 30.0 * m5.size)
-
     def test_teff_regression(self):
         """Test this teff implementation matches the old one."""
         num_points = 50
@@ -184,19 +163,29 @@ class TestTechnicalMetrics(unittest.TestCase):
         m5 = 24 + rng.random(num_points)
         filters = rng.choice(bands, num_points)
         fiducial_depth = {b: 24 + rng.random() for b in bands}
-        data = np.core.records.fromarrays([m5, filters], names=["fiveSigmaDepth", "filter"])
+        exposure_time = np.full(num_points, 30.0, dtype=float)
+        data = np.core.records.fromarrays(
+            [m5, filters, exposure_time], names=["fiveSigmaDepth", "filter", "visitExposureTime"]
+        )
+        teff_stacker = stackers.TeffStacker(fiducial_depth=fiducial_depth, teff_base=30.0)
+        data = teff_stacker.run(data)
 
-        metric = metrics.TeffMetric(fiducial_depth=fiducial_depth, teff_base=30.0)
+        metric = metrics.SumMetric(col="t_eff")
         result = metric.run(data)
         old_metric = OldTeffMetric(fiducial_depth=fiducial_depth, teff_base=30.0)
         old_result = old_metric.run(data)
         self.assertEqual(result, old_result)
 
-        metric = metrics.TeffMetric(fiducial_depth=fiducial_depth, teff_base=30.0, normed=True)
+        data = np.core.records.fromarrays(
+            [m5, filters, exposure_time], names=["fiveSigmaDepth", "filter", "visitExposureTime"]
+        )
+        teff_stacker = stackers.TeffStacker(fiducial_depth=fiducial_depth, teff_base=30.0, normed=True)
+        data = teff_stacker.run(data)
+        metric = metrics.MeanMetric(col="t_eff")
         result = metric.run(data)
         old_metric = OldTeffMetric(fiducial_depth=fiducial_depth, teff_base=30.0, normed=True)
         old_result = old_metric.run(data)
-        self.assertEqual(result, old_result)
+        self.assertAlmostEqual(result, old_result)
 
     def test_open_shutter_fraction_metric(self):
         """
