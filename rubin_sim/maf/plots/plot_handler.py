@@ -26,7 +26,8 @@ class BasePlotter:
 
     def __init__(self):
         self.plot_type = None
-        # This should be included in every subsequent default_plot_dict (assumed to be present).
+        # This should be included in every subsequent default_plot_dict
+        # (assumed to be present).
         self.default_plot_dict = {
             "title": None,
             "xlabel": None,
@@ -36,11 +37,50 @@ class BasePlotter:
             "figsize": None,
         }
 
-    def __call__(self, metric_value, slicer, user_plot_dict, fignum=None):
+    def __call__(self, metric_value, slicer, user_plot_dict, fig=None):
+        """
+        Parameters
+        ----------
+        metric_value : `numpy.ma.MaskedArray`
+            The metric values from the bundle.
+        slicer : `rubin_sim.maf.slicers.TwoDSlicer`
+            The slicer.
+        user_plot_dict: `dict`
+            Dictionary of plot parameters set by user
+            (overrides default values).
+        fig : `matplotlib.figure.Figure`
+            Matplotlib figure number to use. Default = None, starts new figure.
+
+        Returns
+        -------
+        fig : `matplotlib.figure.Figure`
+           Figure with the plot.
+        """
         pass
 
 
 class PlotHandler:
+    """Create plots from a single or series of metric bundles.
+
+    Parameters
+    ----------
+    out_dir : `str`, optional
+        Directory to save output plots.
+    results_db : `rubin_sim.maf.ResultsDb`, optional
+        ResultsDb into which to record plot location and information.
+    savefig : `bool`, optional
+        Flag for saving images to disk (versus create and return
+        to caller).
+    fig_format : `str`, optional
+        Figure format to use to save full-size output. Default PDF.
+    dpi : `int`, optional
+        DPI to save output figures to disk at. (for matplotlib figures).
+    thumbnail : `bool`, optional
+        Flag for saving thumbnails (reduced size pngs) to disk.
+    trim_whitespace : `bool`, optional
+        Flag for trimming whitespace option to matplotlib output figures.
+        Default True, usually doesn't need to be changed.
+    """
     def __init__(
         self,
         out_dir=".",
@@ -110,9 +150,9 @@ class PlotHandler:
 
     def set_plot_dicts(self, plot_dicts=None, plot_func=None, reset=False):
         """
-        Set or update (or 'reset') the plot_dict for the (possibly joint) plots.
+        Set or update the plot_dict for the (possibly joint) plots.
 
-        Resolution is:
+        Resolution is: (from lowest to higher)
         auto-generated items (colors/labels/titles)
         < anything previously set in the plot_handler
         < defaults set by the plotter
@@ -120,7 +160,8 @@ class PlotHandler:
         < explicitly set items in the plot_dicts list passed to this method.
         """
         if reset:
-            # Have to explicitly set each dictionary to a (separate) blank dictionary.
+            # Have to explicitly set each dictionary to a (separate)
+            # blank dictionary.
             self.plot_dicts = [{} for b in self.m_bundles]
 
         if isinstance(plot_dicts, dict):
@@ -142,9 +183,10 @@ class PlotHandler:
             tmp_plot_dict["label"] = auto_label_list[i]
             tmp_plot_dict["color"] = auto_color_list[i]
             tmp_plot_dict["cbar_format"] = auto_cbar
-            # Then update that with anything previously set in the plot_handler.
+            # Update that with anything previously set in the plot_handler.
             tmp_plot_dict.update(self.plot_dicts[i])
-            # Then override with plot_dict items set explicitly based on the plot type.
+            # Then override with plot_dict items set explicitly
+            # based on the plot type.
             if plot_func is not None:
                 tmp_plot_dict["xlabel"] = auto_xlabel
                 tmp_plot_dict["ylabel"] = auto_ylabel
@@ -154,9 +196,10 @@ class PlotHandler:
                 for k, v in plotter_defaults.items():
                     if v is not None:
                         tmp_plot_dict[k] = v
-            # Then add/override based on the bundle plot_dict parameters if they are set.
+            # Then add/override based on the bundle plot_dict parameters
+            # if they are set.
             tmp_plot_dict.update(bundle.plot_dict)
-            # Finally, override with anything set explicitly by the user right now.
+            # Finally, override with anything set explicitly by the user.
             if plot_dicts is not None:
                 tmp_plot_dict.update(plot_dicts[i])
             # And save this new dictionary back in the class.
@@ -178,15 +221,18 @@ class PlotHandler:
         if len(self.metric_names) == 1:
             joint_name = " ".join(self.metric_names)
         else:
-            # Split each unique name into a list to see if we can merge the names.
+            # Split each unique name into a list to see
+            # if we can merge the names.
             name_lengths = [len(x.split()) for x in self.metric_names]
             name_lists = [x.split() for x in self.metric_names]
-            # If the metric names are all the same length, see if we can combine any parts.
+            # If the metric names are all the same length, see
+            # if we can combine any parts.
             if len(set(name_lengths)) == 1:
                 joint_name = []
                 for i in range(name_lengths[0]):
                     tmp = set([x[i] for x in name_lists])
-                    # Try to catch special case of filters and put them in order.
+                    # Try to catch special case of filters and
+                    # put them in order.
                     if tmp.intersection(order) == tmp:
                         filterlist = ""
                         for f in order:
@@ -197,7 +243,8 @@ class PlotHandler:
                         # Otherwise, just join and put into joint_name.
                         joint_name.append("".join(tmp))
                 joint_name = " ".join(joint_name)
-            # If the metric names are not the same length, just join everything.
+            # If the metric names are not the same length,
+            # just join everything.
             else:
                 joint_name = " ".join(self.metric_names)
         self.joint_metric_names = joint_name
@@ -225,10 +272,12 @@ class PlotHandler:
         else:
             order = ["u", "g", "r", "i", "z", "y"]
             # See if there are any subcomponents we can combine,
-            # splitting on some values we expect to separate info_label clauses.
+            # splitting on some values we expect to separate
+            # info_label clauses.
             splitmetas = []
             for m in self.info_label:
-                # Try to split info_label into separate phrases (filter / proposal / constraint..).
+                # Try to split info_label into separate phrases
+                # (filter / proposal / constraint..).
                 if " and " in m:
                     m = m.split(" and ")
                 elif ", " in m:
@@ -240,10 +289,12 @@ class PlotHandler:
                 # Strip white spaces from individual elements.
                 m = set([im.strip() for im in m])
                 splitmetas.append(m)
-            # Look for common elements and separate from the general info_label.
+            # Look for common elements and
+            # separate from the general info_label.
             common = set.intersection(*splitmetas)
             diff = [x.difference(common) for x in splitmetas]
-            # Now look within the 'diff' elements and see if there are any common words to split off.
+            # Now look within the 'diff' elements and
+            # see if there are any common words to split off.
             diffsplit = []
             for d in diff:
                 if len(d) > 0:
@@ -253,10 +304,12 @@ class PlotHandler:
                 diffsplit.append(m)
             diffcommon = set.intersection(*diffsplit)
             diffdiff = [x.difference(diffcommon) for x in diffsplit]
-            # If the length of any of the 'differences' is 0, then we should stop and not try to subdivide.
+            # If the length of any of the 'differences' is 0,
+            # then we should stop and not try to subdivide.
             lengths = [len(x) for x in diffdiff]
             if min(lengths) == 0:
-                # Sort them in order of length (so it goes 'g', 'g dithered', etc.)
+                # Sort them in order of length
+                # (so it goes 'g', 'g dithered', etc.)
                 tmp = []
                 for d in diff:
                     tmp.append(list(d)[0])
@@ -266,7 +319,8 @@ class PlotHandler:
                 diffdiff = [diff[i] for i in idx]
                 diffcommon = []
             else:
-                # diffdiff is the part where we might expect our filter values to appear;
+                # diffdiff is the part where we might expect
+                # our filter values to appear;
                 # try to put this in order.
                 diffdiff_ordered = []
                 diffdiff_end = []
@@ -304,7 +358,8 @@ class PlotHandler:
         """
         Build a plot title from the metric names, runNames and info_label.
         """
-        # Create a plot title from the unique parts of the metric/run_name/info_label.
+        # Create a plot title from the unique parts of
+        # the metric/run_name/info_label.
         plot_title = ""
         if len(self.run_names) == 1:
             plot_title += list(self.run_names)[0]
@@ -313,7 +368,8 @@ class PlotHandler:
         if len(self.metric_names) == 1:
             plot_title += ": " + list(self.metric_names)[0]
         if plot_title == "":
-            # If there were more than one of everything above, use joint info_label and metricNames.
+            # If there were more than one of everything above,
+            # use joint info_label and metricNames.
             plot_title = self.joint_metadata + " " + self.joint_metric_names
         return plot_title
 
@@ -323,7 +379,7 @@ class PlotHandler:
 
         Parameters
         ----------
-        len_max : `int` (30)
+        len_max : `int`, optional
             If the xlabel starts longer than this, add the units as a newline.
         """
         if plot_func.plot_type == "BinnedData":
@@ -372,7 +428,8 @@ class PlotHandler:
 
     def _build_legend_labels(self):
         """
-        Build a set of legend labels, using parts of the run_name/info_label/metricNames that change.
+        Build a set of legend labels,
+        using the parts of the run_name/info_label/metricNames that change.
         """
         if len(self.m_bundles) == 1:
             return [None]
@@ -449,11 +506,15 @@ class PlotHandler:
     def _build_file_root(self, outfile_suffix=None):
         """
         Build a root filename for plot outputs.
-        If there is only one metricBundle, this is equal to the metricBundle fileRoot + outfile_suffix.
-        For multiple metricBundles, this is created from the runNames, info_label and metric names.
+        If there is only one metricBundle,
+        this is equal to the metricBundle fileRoot + outfile_suffix.
+        For multiple metricBundles,
+        this is created from the runNames, info_label and metric names.
 
-        If you do not wish to use the automatic filenames, then you could set 'savefig' to False and
-          save the file manually to disk, using the plot figure numbers returned by 'plot'.
+        If you do not wish to use the automatic filenames,
+        then you could set 'savefig' to False and
+        save the file manually to disk,
+        using the plot figure numbers returned by 'plot'.
         """
         if len(self.m_bundles) == 1:
             outfile = self.m_bundles[0].file_root
@@ -468,7 +529,8 @@ class PlotHandler:
     def _build_display_dict(self):
         """
         Generate a display dictionary.
-        This is most useful for when there are many metricBundles being combined into a single plot.
+        This is most useful for when there are many metricBundles
+        being combined into a single plot.
         """
         if len(self.m_bundles) == 1:
             return self.m_bundles[0].display_dict
@@ -506,7 +568,8 @@ class PlotHandler:
 
     def _check_plot_dicts(self):
         """
-        Check to make sure there are no conflicts in the plot_dicts that are being used in the same subplot.
+        Check to make sure there are no conflicts in the plot_dicts
+        that are being used in the same subplot.
         """
         # Check that the length is OK
         if len(self.plot_dicts) != len(self.m_bundles):
@@ -518,8 +581,10 @@ class PlotHandler:
         # These are the keys that need to match (or be None)
         keys2_check = ["xlim", "ylim", "color_min", "color_max", "title"]
 
-        # Identify how many subplots there are. If there are more than one, just don't change anything.
-        # This assumes that if there are more than one, the plot_dicts are actually all compatible.
+        # Identify how many subplots there are.
+        # If there are more than one, just don't change anything.
+        # This assumes that if there are more than one,
+        # the plot_dicts are actually all compatible.
         subplots = set()
         for pd in self.plot_dicts:
             if "subplot" in pd:
@@ -531,7 +596,8 @@ class PlotHandler:
             for key in keys2_check:
                 values = [pd[key] for pd in self.plot_dicts if key in pd]
                 if len(np.unique(values)) > 1:
-                    # We will reset some of the keys to the default, but for some we should do better.
+                    # We will reset some of the keys to the default,
+                    # but for some we should do better.
                     if key.endswith("Max"):
                         for pd in self.plot_dicts:
                             pd[key] = np.max(values)
@@ -548,7 +614,8 @@ class PlotHandler:
                             + " Will reset to default value. (found values %s)" % values
                         )
                         reset_keys.append(key)
-            # Reset the most of the keys to defaults; this can generally be done safely.
+            # Reset the most of the keys to defaults;
+            # this can generally be done safely.
             for key in reset_keys:
                 for pd in self.plot_dicts:
                     pd[key] = None
@@ -562,13 +629,34 @@ class PlotHandler:
         outfile_suffix=None,
     ):
         """
-        Create plot for mBundles, using plot_func.
+        Create a plot for the active metric bundles (self.set_metric_bundles).
 
-        plot_dicts:  List of plot_dicts if one wants to use a _new_ plot_dict per MetricBundle.
+        Parameters
+        ----------
+        plot_func : `rubin_sim.plots.BasePlotter`
+            The plotter to use to make the figure.
+        plot_dicts : `list` of [`dict`], optional
+            List of plot_dicts for each metric bundle.
+            Can use these to override individual metric bundle colors, etc.
+        display_dict : `dict`, optional
+            Information to save to resultsDb to accompany the figure on the
+            show_maf pages. Generally set automatically. Includes a caption.
+        outfile_root : `str`, optional
+            Output filename. Generally set automatically, but can be
+            overriden (such as when output filenames get too long).
+        outfile_suffix : `str`, optional
+            A suffix to add to the end of the default output filename.
+            Useful when creating a series of plots, such as for a movie.
+
+        Returns
+        -------
+        fig : `matplotlib.figure.Figure`
+            The plot.
         """
         if not plot_func.object_plotter:
-            # Check that metric_values type and plotter are compatible (most are float/float, but
-            #  some plotters expect object data .. and some only do sometimes).
+            # Check that metric_values type and plotter are compatible
+            # (most are float/float, but some plotters expect object data ..
+            # and some only do sometimes).
             for m_b in self.m_bundles:
                 if m_b.metric.metric_dtype == "object":
                     metric_is_color = m_b.plot_dict.get("metric_is_color", False)
@@ -587,7 +675,7 @@ class PlotHandler:
         if len(self.m_bundles) > 1:
             plot_type = "Combo" + plot_type
         # Make plot.
-        fignum = None
+        fig = None
         for m_b, plot_dict in zip(self.m_bundles, self.plot_dicts):
             if m_b.metric_values is None:
                 # Skip this metricBundle.
@@ -598,8 +686,9 @@ class PlotHandler:
                 msg = "MetricBundle (%s) has no unmasked metric_values, skipping plots." % (m_b.file_root)
                 warnings.warn(msg)
             else:
-                fignum = plot_func(m_b.metric_values, m_b.slicer, plot_dict, fignum=fignum)
-        # Add a legend if more than one metricValue is being plotted or if legendloc is specified.
+                fig = plot_func(m_b.metric_values, m_b.slicer, plot_dict, fig=fig)
+        # Add a legend if more than one metricValue is being plotted
+        # or if legendloc is specified.
         legend_loc = None
         if "legend_loc" in self.plot_dicts[0]:
             legend_loc = self.plot_dicts[0]["legend_loc"]
@@ -609,7 +698,8 @@ class PlotHandler:
             except KeyError:
                 legend_loc = "upper right"
         if legend_loc is not None:
-            plt.figure(fignum)
+            # Activate expected figure and write legend.
+            plt.figure(fig)
             plt.legend(loc=legend_loc, fancybox=True, fontsize="smaller")
         # Add the super title if provided.
         if "suptitle" in self.plot_dicts[0]:
@@ -619,7 +709,7 @@ class PlotHandler:
             if display_dict is None:
                 display_dict = self._build_display_dict()
             self.save_fig(
-                fignum,
+                fig,
                 outfile,
                 plot_type,
                 self.joint_metric_names,
@@ -629,11 +719,11 @@ class PlotHandler:
                 self.joint_metadata,
                 display_dict,
             )
-        return fignum
+        return fig
 
     def save_fig(
         self,
-        fignum,
+        fig,
         outfile_root,
         plot_type,
         metric_name,
@@ -643,7 +733,6 @@ class PlotHandler:
         info_label,
         display_dict=None,
     ):
-        fig = plt.figure(fignum)
         plot_file = outfile_root + "_" + plot_type + "." + self.fig_format
         if self.trim_whitespace:
             fig.savefig(

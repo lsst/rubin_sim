@@ -1,5 +1,7 @@
 __all__ = ("NightPointingPlotter",)
 
+import warnings
+
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -18,6 +20,7 @@ class NightPointingPlotter(BasePlotter):
             "title": None,
             "xlabel": "MJD",
             "ylabels": ["Alt", "Az"],
+            "figsize": None,
         }
         self.filter2color = {
             "u": "purple",
@@ -28,8 +31,12 @@ class NightPointingPlotter(BasePlotter):
             "y": "red",
         }
 
-    def __call__(self, metric_value, slicer, user_plot_dict, fignum=None):
+    def __call__(self, metric_value, slicer, user_plot_dict, fig=None):
+        if fig is not None:
+            warnings.warn("Always expect to create a new plot in "
+                          "NightPointingPlotter.")
         fig, (ax1, ax2) = plt.subplots(2, sharex=True)
+
         mv = metric_value[0]
 
         u_filters = np.unique(mv["data_slice"]["filter"])
@@ -87,4 +94,4 @@ class NightPointingPlotter(BasePlotter):
                 transform=ax1.transAxes,
             )
 
-        return fig.number
+        return fig

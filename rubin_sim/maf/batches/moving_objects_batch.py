@@ -835,7 +835,7 @@ def plot_completeness(
     display_dict["subgroup"] = "Completeness over time"
     display_dict["caption"] = "Completeness over time, for H values indicated in legend."
     ph.save_fig(
-        fig.number,
+        fig,
         f"{figroot}_CompletenessOverTime",
         "Combo",
         "CompletenessOverTime",
