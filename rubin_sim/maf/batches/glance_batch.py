@@ -106,9 +106,12 @@ def glanceBatch(
     bundle_list.append(bundle)
 
     # Total effective exposure time
-    metric = metrics.TeffMetric(m5_col=colmap["fiveSigmaDepth"], filter_col=colmap["filter"], normed=True)
+    metric = metrics.MeanMetric(col="t_eff")
+    teff_stacker = stackers.TeffStacker(normed=True)
     for sql in sql_per_and_all_filters:
-        bundle = metric_bundles.MetricBundle(metric, slicer, sql, display_dict=displayDict)
+        bundle = metric_bundles.MetricBundle(
+            metric, slicer, sql, stacker_list=[teff_stacker], display_dict=displayDict
+        )
         bundle_list.append(bundle)
 
     # Number of observations, all and each filter

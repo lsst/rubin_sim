@@ -3,7 +3,6 @@ __all__ = (
     "MinTimeBetweenStatesMetric",
     "NStateChangesFasterThanMetric",
     "MaxStateChangesWithinMetric",
-    "TeffMetric",
     "OpenShutterFractionMetric",
     "BruteOSFMetric",
 )
@@ -184,80 +183,6 @@ class MaxStateChangesWithinMetric(BaseMetric):
         indx1 = np.arange(changetimes.size)
         nchanges = indx2 - indx1
         return nchanges.max()
-
-
-class TeffMetric(BaseMetric):
-    """
-    Effective time equivalent for a given set of visits.
-    """
-
-    def __init__(
-        self,
-        m5_col="fiveSigmaDepth",
-        filter_col="filter",
-        metric_name="tEff",
-        fiducial_depth=None,
-        teff_base=30.0,
-        normed=False,
-        **kwargs,
-    ):
-        self.m5_col = m5_col
-        self.filter_col = filter_col
-        if fiducial_depth is None:
-            # From reference von Karman 500nm zenith seeing of 0.69"
-            # median zenith dark seeing from sims_skybrightness_pre
-            # airmass = 1
-            # 2 "snaps" of 15 seconds each
-            # m5_flat_sed sysEngVals from rubin_sim
-            #   commit 6d03bd49550972e48648503ed60784a4e6775b82 (2021-05-18)
-            # These include constants from:
-            #   https://github.com/lsst-pst/syseng_throughputs/blob/master/notebooks/generate_sims_values.ipynb
-            #   commit 7abb90951fcbc70d9c4d0c805c55a67224f9069f (2021-05-05)
-            # See https://github.com/lsst-sims/smtn-002/blob/master/notebooks/teff_fiducial.ipynb
-            self.depth = {
-                "u": 23.71,
-                "g": 24.67,
-                "r": 24.24,
-                "i": 23.82,
-                "z": 23.21,
-                "y": 22.40,
-            }
-        else:
-            if isinstance(fiducial_depth, dict):
-                self.depth = fiducial_depth
-            else:
-                raise ValueError("fiducial_depth should be None or dictionary")
-        self.teff_base = teff_base
-        self.normed = normed
-        if self.normed:
-            units = ""
-        else:
-            units = "seconds"
-        super(TeffMetric, self).__init__(
-            col=[m5_col, filter_col], metric_name=metric_name, units=units, **kwargs
-        )
-        if self.normed:
-            self.comment = "Normalized effective time"
-        else:
-            self.comment = "Effect time"
-        self.comment += " of a series of observations, evaluating the equivalent amount of time"
-        self.comment += " each observation would require if taken at a fiducial limiting magnitude."
-        self.comment += " Fiducial depths are : %s" % self.depth
-        if self.normed:
-            self.comment += " Normalized by the total amount of time actual on-sky."
-
-    def run(self, data_slice, slice_point=None):
-        filters = np.unique(data_slice[self.filter_col])
-        teff = 0.0
-        for f in filters:
-            match = np.where(data_slice[self.filter_col] == f)[0]
-            teff += (10.0 ** (0.8 * (data_slice[self.m5_col][match] - self.depth[f]))).sum()
-        teff *= self.teff_base
-        if self.normed:
-            # Normalize by the t_eff equivalent if each observation
-            # was at the fiducial depth.
-            teff = teff / (self.teff_base * data_slice[self.m5_col].size)
-        return teff
 
 
 class OpenShutterFractionMetric(BaseMetric):
