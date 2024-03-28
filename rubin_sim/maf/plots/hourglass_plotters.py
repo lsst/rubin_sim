@@ -38,8 +38,7 @@ class HourglassPlot(BasePlotter):
 
         if fig is None:
             fig = plt.figure(figsize=plot_dict["figsize"])
-        ax = fig.add_subplot(111
-        )
+        ax = fig.add_subplot(111)
         pernight = metric_value[0]["pernight"]
         perfilter = metric_value[0]["perfilter"]
 

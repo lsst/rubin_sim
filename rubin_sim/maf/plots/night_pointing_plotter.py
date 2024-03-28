@@ -33,8 +33,7 @@ class NightPointingPlotter(BasePlotter):
 
     def __call__(self, metric_value, slicer, user_plot_dict, fig=None):
         if fig is not None:
-            warnings.warn("Always expect to create a new plot in "
-                          "NightPointingPlotter.")
+            warnings.warn("Always expect to create a new plot in " "NightPointingPlotter.")
         fig, (ax1, ax2) = plt.subplots(2, sharex=True)
 
         mv = metric_value[0]

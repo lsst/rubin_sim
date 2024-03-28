@@ -81,6 +81,7 @@ class PlotHandler:
         Flag for trimming whitespace option to matplotlib output figures.
         Default True, usually doesn't need to be changed.
     """
+
     def __init__(
         self,
         out_dir=".",

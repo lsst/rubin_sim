@@ -10,7 +10,8 @@ from .plot_handler import BasePlotter
 
 
 class OneDBinnedData(BasePlotter):
-    """Plot data from a OneDSlicer. """
+    """Plot data from a OneDSlicer."""
+
     def __init__(self):
         self.plot_type = "BinnedData"
         self.object_plotter = False
