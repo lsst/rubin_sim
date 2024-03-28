@@ -1,4 +1,6 @@
 from collections import defaultdict
+from numbers import Integral
+from weakref import WeakKeyDictionary
 
 import matplotlib.pyplot as plt
 import skyproj
@@ -8,6 +10,11 @@ from .spatial_plotters import set_color_lims, set_color_map
 
 
 class SkyprojPlotter(BasePlotter):
+    # Store a mapping between figures and existing SkyprojPlotters, but use
+    # weak keys so that the figure can be cleaned up by the garbage collector,
+    # and when it is entry in the dictionary automatically deleted.
+    skyproj_instances = WeakKeyDictionary()
+
     default_decorations = []
 
     default_colorbar_kwargs = {
@@ -45,17 +52,60 @@ class SkyprojPlotter(BasePlotter):
         self.plot_dict.update(user_plot_dict)
 
     def prepare_skyproj(self, fignum=None):
-        print(self.plot_dict)
         # Exctract elemens of plot_dict that need to be passed to plt.figure
         fig_kwargs = {k: v for k, v in self.plot_dict.items() if k in ["figsize"]}
 
         self.figure = plt.figure(fignum, **fig_kwargs)
-        # This instance of Axis will get deleted and replaced when the
-        # corresponding SkyPlot class is created, but this instances is
-        # needed so SkyPlot will put its instance in the correct relation
-        # with its figure.
-        ax = self.figure.add_subplot(self.plot_dict["subplot"])
-        self.skyproj = self.plot_dict["skyproj"](ax, **self.plot_dict["skyproj_kwargs"])
+
+        # Normalize subplot specification,
+        # so that it can be in either (single) in form or tuple form.
+        # This is needed so that the same subplot set by different ways will be
+        # stored in the same key in the instance dictionary.
+        subplot_in = self.plot_dict["subplot"]
+        in_integral_form = isinstance(subplot_in, Integral) and 100 <= subplot_in <= 999
+        subplot = tuple(map(int, str(subplot_in))) if in_integral_form else tuple(subplot_in)
+
+        # If there is an existing instance of SkyprojPlotter (or one of its
+        # subclasses), reuse it.
+        # Otherwise, create a new one and store it so that it may be reused.
+        if self.figure not in self.skyproj_instances:
+            self.skyproj_instances[self.figure] = {}
+
+        if subplot in self.skyproj_instances[self.figure]:
+            existing_instance = self.skyproj_instances[self.figure][subplot]
+            assert isinstance(existing_instance, self.plot_dict["skyproj"])
+            self.skyproj = existing_instance
+        else:
+            # This instance of Axis will get deleted and replaced when the
+            # corresponding SkyPlot class is created, but this instances is
+            # needed so SkyPlot will put its instance in the correct relation
+            # with its figure.
+            ax = self.figure.add_subplot(*subplot)
+            self.skyproj = self.plot_dict["skyproj"](ax, **self.plot_dict["skyproj_kwargs"])
+            self.skyproj_instances[self.figure][subplot] = self.skyproj
+
+    def decorate(self):
+        decorations = self.plot_dict["decorations"]
+        return decorations
+
+    def __call__(self, metric_values, slicer, user_plot_dict, fignum=None):
+        self.initialize_plot_dict(user_plot_dict)
+        print(self.plot_dict)
+        self.prepare_skyproj(fignum)
+        self.draw(metric_values, slicer)
+        self.decorate()
+
+        return self.figure.number
+
+
+class HpxmapPlotter(SkyprojPlotter):
+    default_hpixmap_kwargs = {"zoom": False}
+
+    def __init__(self):
+        super().__init__()
+        self.plot_type = "SkyprojHpxmap"
+        self.default_plot_dict["decorations"].append("colorbar")
+        self.object_plotter = False
 
     def draw_colorbar(self):
         plot_dict = self.plot_dict
@@ -89,28 +139,10 @@ class SkyprojPlotter(BasePlotter):
             colorbar.ax.tick_params(labelsize=plot_dict["labelsize"])
 
     def decorate(self):
-        decorations = self.plot_dict["decorations"]
+        super().decorate()
 
-        if "colorbar" in decorations:
+        if "colorbar" in self.plot_dict["decorations"]:
             self.draw_colorbar()
-
-    def __call__(self, metric_values, slicer, user_plot_dict, fignum=None):
-        self.initialize_plot_dict(user_plot_dict)
-        self.prepare_skyproj(fignum)
-        self.draw(metric_values, slicer)
-        self.decorate()
-
-        return self.figure.number
-
-
-class HpxmapPlotter(SkyprojPlotter):
-    default_hpixmap_kwargs = {"zoom": False}
-
-    def __init__(self):
-        super().__init__()
-        self.plot_type = "SkyprojHpxmap"
-        self.default_plot_dict["decorations"].append("colorbar")
-        self.object_plotter = False
 
     def draw(self, metric_values, slicer):
         kwargs = {}
