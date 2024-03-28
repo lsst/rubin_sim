@@ -23,14 +23,14 @@ def _match(arr1, arr2):
         bad = sub1 == arr1.size
         sub1[bad] = arr1.size - 1
 
-    sub2, = np.where(arr1[st1[sub1]] == arr2)
+    (sub2,) = np.where(arr1[st1[sub1]] == arr2)
     sub1 = st1[sub1[sub2]]
 
     return sub1, sub2
 
 
 class PhotometricSelfCalUniformityMetric(BaseMetric):
-    def __init__(self, nside_residual=128, highglat_cut=30.0, outlier_nsig=4.0, run_name="", write_map=True):
+    def __init__(self, nside_residual=128, highglat_cut=30.0, outlier_nsig=4.0):
         cols = [
             "observationid",
             "fieldra",
@@ -53,8 +53,6 @@ class PhotometricSelfCalUniformityMetric(BaseMetric):
         self.nside_residual = nside_residual
         self.highglat_cut = highglat_cut
         self.outlier_nsig = outlier_nsig
-        self.run_name = run_name
-        self.write_map = write_map
 
         self.units = "mmag"
 
@@ -71,7 +69,7 @@ class PhotometricSelfCalUniformityMetric(BaseMetric):
                 ("dec", "f8"),
                 ("fiveSigmaDepth", "f8"),
                 ("rotSkyPos", "f8"),
-            ]
+            ],
         )
         visits["observationId"] = data_slice["observationId"]
         visits["ra"] = data_slice["fieldRA"]
@@ -100,7 +98,7 @@ class PhotometricSelfCalUniformityMetric(BaseMetric):
         fit_patches, fit_stars = solver.return_solution()
 
         t1 = time.time()
-        dt = (t1-t0)/60.
+        dt = (t1 - t0) / 60.0
         print("runtime= %.1f min" % dt)
 
         # Trim stars to the ones with solutions.
@@ -109,7 +107,7 @@ class PhotometricSelfCalUniformityMetric(BaseMetric):
         fit_stars_trimmed = fit_stars[b]
 
         # Residuals after fit, removing floating zeropoint
-        resid = stars_trimmed[f'{filter_name}mag'] - fit_stars_trimmed['fit_mag']
+        resid = stars_trimmed[f"{filter_name}mag"] - fit_stars_trimmed["fit_mag"]
         resid = resid - np.median(resid)
 
         resid_map = healbin(
@@ -120,12 +118,12 @@ class PhotometricSelfCalUniformityMetric(BaseMetric):
             reduce_func=np.median,
         )
 
-        ipring, = np.where(resid_map > hp.UNSEEN)
+        (ipring,) = np.where(resid_map > hp.UNSEEN)
 
         scatter_full = median_abs_deviation(resid_map[ipring], scale="normal")
 
         # Fraction of (4) sigma outliers.
-        highscat = (np.abs(resid_map[ipring]) > self.outlier_nsig*scatter_full)
+        highscat = np.abs(resid_map[ipring]) > self.outlier_nsig * scatter_full
         outlier_frac_full = highscat.sum() / len(ipring)
 
         # Cut to high latitude
@@ -133,35 +131,25 @@ class PhotometricSelfCalUniformityMetric(BaseMetric):
         coords = SkyCoord(ra, dec, frame="icrs", unit="deg")
         b = coords.galactic.b.value
 
-        high_glat = (np.abs(b) > self.highglat_cut)
+        high_glat = np.abs(b) > self.highglat_cut
         scatter_highglat = median_abs_deviation(resid_map[ipring[high_glat]], scale="normal")
 
         # Fraction of (4) sigma outliers.
-        highscat = (np.abs(resid_map[ipring[high_glat]]) > self.outlier_nsig*scatter_highglat)
+        highscat = np.abs(resid_map[ipring[high_glat]]) > self.outlier_nsig * scatter_highglat
         outlier_frac_highglat = highscat.sum() / len(ipring)
 
         # Convert to mmag
         scatter_full = scatter_full * 1000.0
-        scatter_highglat  = scatter_highglat * 1000.0
+        scatter_highglat = scatter_highglat * 1000.0
 
         result = {
             "scatter_full": scatter_full,
             "scatter_highglat": scatter_highglat,
             "outlier_frac_full": outlier_frac_full,
             "outlier_frac_highglat": outlier_frac_highglat,
+            "uniformity_map": resid_map,
         }
 
-        # Write out the map for downstream visualization.
-        if self.write_map:
-            fname = f"monster_stars_{filter_name}_{self.run_name}.fits"
-            if os.path.isfile(fname):
-                print("Not overwriting existing map of name ", fname)
-            else:
-                print("Writing map ", fname)
-                hp.write_map(f"monster_stars_{filter_name}_{self.run_name}.fits", resid_map)
-
-        import IPython
-        IPython.embed()
         return result
 
     def reduce_scatter_full(self, metric_value):
