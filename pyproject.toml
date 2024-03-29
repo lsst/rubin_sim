@@ -9,7 +9,7 @@ name = "rubin-sim"
 description = "Scheduler, survey strategy analysis, and other simulation tools for Rubin Observatory."
 readme = "README.md"
 license = { text = "GPL" }
-classifiers = [ 
+classifiers = [
     "Intended Audience :: Science/Research",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
@@ -143,4 +143,3 @@ max-doc-length = 79
 
 [tool.ruff.lint.pydocstyle]
 convention = "numpy"
-
