@@ -102,7 +102,7 @@ def set_color_map(plot_dict):
     cmap = plot_dict["cmap"]
     if cmap is None:
         cmap = "perceptual_rainbow"
-    if isinstance(cmap, "str"):
+    if isinstance(cmap, str):
         cmap = getattr(cm, cmap)
     # Set background and masked pixel colors default healpy white and gray.
     cmap = copy.copy(cmap)

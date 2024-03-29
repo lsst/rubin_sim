@@ -735,6 +735,9 @@ class PlotHandler:
         display_dict=None,
     ):
         plot_file = outfile_root + "_" + plot_type + "." + self.fig_format
+        if fig is None:
+            warnings.warn(f"Trying to save figure to {plot_file} but" "figure is None. Skipping.")
+            return
         if self.trim_whitespace:
             fig.savefig(
                 os.path.join(self.out_dir, plot_file),
@@ -751,7 +754,7 @@ class PlotHandler:
         # Generate a png thumbnail.
         if self.thumbnail:
             thumb_file = "thumb." + outfile_root + "_" + plot_type + ".png"
-            plt.savefig(os.path.join(self.out_dir, thumb_file), dpi=72, bbox_inches="tight")
+            fig.savefig(os.path.join(self.out_dir, thumb_file), dpi=72, bbox_inches="tight")
         # Save information about the file to results_db.
         if self.results_db:
             if display_dict is None:
