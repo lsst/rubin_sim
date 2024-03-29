@@ -359,9 +359,10 @@ class SNNSNMetric(BaseMetric):
         if season_info.empty:
             return [], pd.DataFrame()
 
+        season_info["season_copy"] = season_info["season"].values.copy()
         dur_z = (
-            season_info.groupby("season", group_keys=False)
-            .apply(lambda x: self.nsn_expected_z(x))
+            season_info.groupby("season_copy", group_keys=False)
+            .apply(lambda x: self.nsn_expected_z(x), include_groups=False)
             .reset_index(drop=True)
         )
         return season_info["season"].to_list(), dur_z
@@ -384,10 +385,10 @@ class SNNSNMetric(BaseMetric):
         season_info : `pd.DataFrame` with season length infos
 
         """
-
+        dfa["season_copy"] = dfa["season"].values.copy()
         season_info = (
             dfa.groupby("season")
-            .apply(lambda x: self.season_info(x, min_duration=min_duration))
+            .apply(lambda x: self.season_info(x, min_duration=min_duration), include_groups=False)
             .reset_index()
         )
 
@@ -424,7 +425,10 @@ class SNNSNMetric(BaseMetric):
         SN light curves (astropy table)
 
         """
-        lc = obs.groupby(["season"]).apply(lambda x: self.gen_lc(x, gen_par, x1, color))
+        obs["season_copy"] = obs["season"].values.copy()
+        lc = obs.groupby(["season_copy"]).apply(
+            lambda x: self.gen_lc(x, gen_par, x1, color), include_groups=False
+        )
         return lc
 
     def step_efficiencies(self, lc):
@@ -441,11 +445,11 @@ class SNNSNMetric(BaseMetric):
         `pd.DataFrame` with efficiencies
 
         """
-        sn_effis = (
-            lc.groupby(["season", "z", "x1", "color", "sntype"])
-            .apply(lambda x: self.sn_effi(x))
-            .reset_index()
-        )
+        cols = ["season", "z", "x1", "color", "sntype"]
+        for col in cols:
+            lc[col + "_copy"] = lc[col].values.copy()
+
+        sn_effis = lc.groupby(cols).apply(lambda x: self.sn_effi(x), include_groups=False).reset_index()
 
         # estimate efficiencies
         sn_effis["season"] = sn_effis["season"].astype(int)
@@ -599,7 +603,7 @@ class SNNSNMetric(BaseMetric):
             t0_min = grp["T0_min"].values
             num = (t0_max - t0_min) / daymax_step
             if t0_max - t0_min > 10:
-                df = pd.DataFrame(np.linspace(t0_min, t0_max, int(num)), columns=["daymax"])
+                df = pd.DataFrame(np.linspace(t0_min, t0_max, int(np.max(num))), columns=["daymax"])
             else:
                 df = pd.DataFrame([-1], columns=["daymax"])
         else:
@@ -709,7 +713,12 @@ class SNNSNMetric(BaseMetric):
         resdf["nepochs_bef"] = self.get_epochs(nights, flag, flagph)
 
         # replace NaN by 0
-        resdf = resdf.fillna(0)
+        # solution from: https://stackoverflow.com/
+        # questions/77900971/
+        # pandas-futurewarning-downcasting-
+        # object-dtype-arrays-on-fillna-ffill-bfill
+        with pd.option_context("future.no_silent_downcasting", True):
+            resdf = resdf.fillna(0).infer_objects(copy=False)
 
         # get selection efficiencies
         effis = self.efficiencies(resdf)
@@ -904,14 +913,19 @@ class SNNSNMetric(BaseMetric):
 
         # get simulation parameters
         if np.size(np.unique(seasons)) > 1:
+            dur_z["z_copy"] = dur_z["z"].values.copy()
+            dur_z["season_copy"] = dur_z["season"].values.copy()
             gen_par = (
                 dur_z.groupby(["z", "season"])
-                .apply(lambda x: self.calc_daymax(x, self.daymax_step))
+                .apply(lambda x: self.calc_daymax(x, self.daymax_step), include_groups=False)
                 .reset_index()
             )
         else:
+            dur_z["z_copy"] = dur_z["z"].values.copy()
             gen_par = (
-                dur_z.groupby(["z"]).apply(lambda x: self.calc_daymax(x, self.daymax_step)).reset_index()
+                dur_z.groupby(["z"])
+                .apply(lambda x: self.calc_daymax(x, self.daymax_step), include_groups=False)
+                .reset_index()
             )
             gen_par["season"] = gen_par["level_1"] * 0 + np.unique(seasons)
 
@@ -958,11 +972,17 @@ class SNNSNMetric(BaseMetric):
 
         # estimate redshift completeness
         if metric == "zlim":
-            metric_values = sn.groupby(["season"]).apply(lambda x: self.zlim(x)).reset_index()
+            sn["season_copy"] = sn["season"].values.copy()
+            metric_values = (
+                sn.groupby(["season"]).apply(lambda x: self.zlim(x), include_groups=False).reset_index()
+            )
 
         if metric == "nsn":
             sn = sn.merge(zlim, left_on=["season"], right_on=["season"])
-            metric_values = sn.groupby(["season"]).apply(lambda x: self.nsn(x)).reset_index()
+            sn["season_copy"] = sn["season"].values.copy()
+            metric_values = (
+                sn.groupby(["season"]).apply(lambda x: self.nsn(x), include_groups=False).reset_index()
+            )
 
         return metric_values
 
@@ -991,12 +1011,15 @@ class SNNSNMetric(BaseMetric):
         return zseason
 
     def z_season_allz(self, zseason):
+
+        zseason["season_copy"] = zseason["season"].values.copy()
         zseason_allz = (
             zseason.groupby(["season"])
             .apply(
                 lambda x: pd.DataFrame(
                     {"z": list(np.arange(x["zmin"].mean(), x["zmax"].mean(), x["zstep"].mean()))}
-                )
+                ),
+                include_groups=False,
             )
             .reset_index()
         )
