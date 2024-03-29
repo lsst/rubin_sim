@@ -1,4 +1,4 @@
-__all__ = ["TEFF_FIDUCIAL_DEPTH", "TEFF_FIDUCIAL_EXPTIME", "TeffStacker"]
+__all__ = ["TEFF_FIDUCIAL_DEPTH", "TEFF_FIDUCIAL_EXPTIME", "TeffStacker", "compute_teff"]
 
 import numpy as np
 
