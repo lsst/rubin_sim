@@ -68,7 +68,7 @@ def set_color_lims(metric_value, plot_dict, key_min="color_min", key_max="color_
     # Use plotdict values if available
     color_min = plot_dict[key_min]
     color_max = plot_dict[key_max]
-    # If either is not set and we have data ..
+    # If either is not set and we have data:
     if color_min is None or color_max is None:
         if np.size(metric_value.compressed()) > 0:
             # is percentile clipping set?
@@ -102,7 +102,7 @@ def set_color_map(plot_dict):
     cmap = plot_dict["cmap"]
     if cmap is None:
         cmap = "perceptual_rainbow"
-    if type(cmap) == str:
+    if isinstance(cmap, str):
         cmap = getattr(cm, cmap)
     # Set background and masked pixel colors default healpy white and gray.
     cmap = copy.copy(cmap)
@@ -141,23 +141,24 @@ class HealpixSkyMap(BasePlotter):
         self.ax = None
         self.im = None
 
-    def __call__(self, metric_value_in, slicer, user_plot_dict, fignum=None):
+    def __call__(self, metric_value_in, slicer, user_plot_dict, fig=None):
         """
         Parameters
         ----------
         metric_value : `numpy.ma.MaskedArray`
-        slicer : `rubin_sim.maf.slicers.HealpixSlicer`
+            The metric values from the bundle.
+        slicer : `rubin_sim.maf.slicers.TwoDSlicer`
+            The slicer.
         user_plot_dict: `dict`
             Dictionary of plot parameters set by user
             (overrides default values).
-        fignum : `int`
-            Matplotlib figure number to use
-            (default = None, starts new figure).
+        fig : `matplotlib.figure.Figure`
+            Matplotlib figure number to use. Default = None, starts new figure.
 
         Returns
         -------
-        fignum : `int`
-           Matplotlib figure number used to create the plot.
+        fig : `matplotlib.figure.Figure`
+           Figure with the plot.
         """
         # Override the default plotting parameters with user specified values.
         plot_dict = {}
@@ -194,7 +195,8 @@ class HealpixSkyMap(BasePlotter):
             badval = slicer.badval
 
         # Generate a full-sky plot.
-        fig = plt.figure(fignum, figsize=plot_dict["figsize"])
+        if fig is None:
+            fig = plt.figure(figsize=plot_dict["figsize"])
         # Set up color bar limits.
         clims = set_color_lims(metric_value, plot_dict)
         cmap = set_color_map(plot_dict)
@@ -306,7 +308,7 @@ class HealpixSkyMap(BasePlotter):
         # If outputing to PDF, this fixes the colorbar white stripes
         if plot_dict["cbar_edge"]:
             cb.solids.set_edgecolor("face")
-        return fig.number
+        return fig
 
 
 class HealpixPowerSpectrum(BasePlotter):
@@ -317,7 +319,7 @@ class HealpixPowerSpectrum(BasePlotter):
         self.default_plot_dict.update(base_default_plot_dict)
         self.default_plot_dict.update({"maxl": None, "removeDipole": True, "linestyle": "-"})
 
-    def __call__(self, metric_value, slicer, user_plot_dict, fignum=None):
+    def __call__(self, metric_value, slicer, user_plot_dict, fig=None):
         """Generate and plot the power spectrum of metric_values
         (for metrics calculated on a healpix grid).
         """
@@ -327,7 +329,8 @@ class HealpixPowerSpectrum(BasePlotter):
         plot_dict.update(self.default_plot_dict)
         plot_dict.update(user_plot_dict)
 
-        fig = plt.figure(fignum, figsize=plot_dict["figsize"])
+        if fig is None:
+            fig = plt.figure(figsize=plot_dict["figsize"])
         if plot_dict["subplot"] != "111":
             fig.add_subplot(plot_dict["subplot"])
         # If the mask is True everywhere (no data), just plot zeros
@@ -366,7 +369,7 @@ class HealpixPowerSpectrum(BasePlotter):
             plt.title(plot_dict["title"])
         # Return figure number
         # (so we can reuse/add onto/save this figure if desired).
-        return fig.number
+        return fig
 
 
 class HealpixHistogram(BasePlotter):
@@ -387,7 +390,7 @@ class HealpixHistogram(BasePlotter):
         )
         self.base_hist = BaseHistogram()
 
-    def __call__(self, metric_value, slicer, user_plot_dict, fignum=None):
+    def __call__(self, metric_value, slicer, user_plot_dict, fig=None):
         """Histogram metric_value for all healpix points."""
         if "Healpix" not in slicer.slicer_name:
             raise ValueError("HealpixHistogram is for use with healpix slicer.")
@@ -396,8 +399,8 @@ class HealpixHistogram(BasePlotter):
         plot_dict.update(user_plot_dict)
         if plot_dict["scale"] is None:
             plot_dict["scale"] = hp.nside2pixarea(slicer.nside, degrees=True) / 1000.0
-        fignum = self.base_hist(metric_value, slicer, plot_dict, fignum=fignum)
-        return fignum
+        fig = self.base_hist(metric_value, slicer, plot_dict, fig=fig)
+        return fig
 
 
 class BaseHistogram(BasePlotter):
@@ -418,11 +421,13 @@ class BaseHistogram(BasePlotter):
             }
         )
 
-    def __call__(self, metric_value_in, slicer, user_plot_dict, fignum=None):
+    def __call__(self, metric_value_in, slicer, user_plot_dict, fig=None):
         """
-        Plot a histogram of metric_values (such as would come from a spatial slicer).
+        Plot a histogram of metric_values
+        (such as would come from a spatial slicer).
         """
-        # Adjust metric values by zeropoint or norm_val, and use 'compressed' version of masked array.
+        # Adjust metric values by zeropoint or norm_val,
+        # and use 'compressed' version of masked array.
         plot_dict = {}
         plot_dict.update(self.default_plot_dict)
         plot_dict.update(user_plot_dict)
@@ -431,20 +436,25 @@ class BaseHistogram(BasePlotter):
         metric_value = metric_value[np.isfinite(metric_value)]
         x_min, x_max = set_color_lims(metric_value, plot_dict, key_min="x_min", key_max="x_max")
         metric_value = metric_value.compressed()
-        # Set up the bins for the histogram. User specified 'bins' overrides 'bin_size'.
-        # Note that 'bins' could be a single number or an array, simply passed to plt.histogram.
+        # Set up the bins for the histogram.
+        # User specified 'bins' overrides 'bin_size'.
+        # Note that 'bins' could be a single number or an array,
+        # simply passed to plt.histogram.
         if plot_dict["bins"] is not None:
             bins = plot_dict["bins"]
         elif plot_dict["bin_size"] is not None:
-            #  If generating a cumulative histogram, want to use full range of data (but with given bin_size).
-            #    .. but if user set histRange to be wider than full range of data, then
-            #       extend bins to cover this range, so we can make prettier plots.
+            #  If generating a cumulative histogram,
+            #  want to use full range of data (but with given bin_size).
+            #  but if user set histRange to be wider than full range of data,
+            #  then extend bins to cover this range,
+            #  so we can make prettier plots.
             if plot_dict["cumulative"]:
                 # Potentially, expand the range for the cumulative histogram.
                 bmin = np.min([metric_value.min(), x_min])
                 bmax = np.max([metric_value.max(), x_max])
                 bins = np.arange(bmin, bmax + plot_dict["bin_size"] / 2.0, plot_dict["bin_size"])
-            #  Otherwise, not cumulative so just use metric values, without potential expansion.
+            #  Otherwise, not cumulative so just use metric values,
+            #  without potential expansion.
             else:
                 bins = np.arange(
                     x_min,
@@ -459,10 +469,12 @@ class BaseHistogram(BasePlotter):
                     plot_dict["bin_size"],
                 )
         else:
-            # If user did not specify bins or bin_size, then we try to figure out a good number of bins.
+            # If user did not specify bins or bin_size,
+            # then we try to figure out a good number of bins.
             bins = optimal_bins(metric_value)
         # Generate plots.
-        fig = plt.figure(fignum, figsize=plot_dict["figsize"])
+        if fig is None:
+            fig = plt.figure(figsize=plot_dict["figsize"])
         if (
             plot_dict["subplot"] != 111
             and plot_dict["subplot"] != (1, 1, 1)
@@ -471,14 +483,16 @@ class BaseHistogram(BasePlotter):
             ax = fig.add_subplot(plot_dict["subplot"])
         else:
             ax = plt.gca()
-        # Check if any data falls within histRange, because otherwise histogram generation will fail.
+        # Check if any data falls within histRange,
+        # because otherwise histogram generation will fail.
         if isinstance(bins, np.ndarray):
             condition = (metric_value >= bins.min()) & (metric_value <= bins.max())
         else:
             condition = (metric_value >= x_min) & (metric_value <= x_max)
         plot_value = metric_value[condition]
         if len(plot_value) == 0:
-            # No data is within histRange/bins. So let's just make a simple histogram anyway.
+            # No data is within histRange/bins.
+            # So let's just make a simple histogram anyway.
             n, b, p = plt.hist(
                 metric_value,
                 bins=50,
@@ -489,7 +503,8 @@ class BaseHistogram(BasePlotter):
                 color=plot_dict["color"],
             )
         else:
-            # There is data to plot, and we've already ensured x_min/x_max/bins are more than single value.
+            # There is data to plot, and we've already ensured
+            # x_min/x_max/bins are more than single value.
             n, b, p = plt.hist(
                 metric_value,
                 bins=bins,
@@ -530,8 +545,8 @@ class BaseHistogram(BasePlotter):
         if plot_dict["labelsize"] is not None:
             plt.tick_params(axis="x", labelsize=plot_dict["labelsize"])
             plt.tick_params(axis="y", labelsize=plot_dict["labelsize"])
-        # Return figure number
-        return fig.number
+        # Return figure
+        return fig
 
 
 class BaseSkyMap(BasePlotter):
@@ -554,7 +569,7 @@ class BaseSkyMap(BasePlotter):
             }
         )
 
-    def _plot_tissot_ellipse(self, lon, lat, radius, ax=None, **kwargs):
+    def _plot_tissot_ellipse(self, lon, lat, radius, **kwargs):
         """Plot Tissot Ellipse/Tissot Indicatrix
 
         Parameters
@@ -565,7 +580,6 @@ class BaseSkyMap(BasePlotter):
         latitude-like of ellipse centers (radians)
         radius : float or array_like
         radius of ellipses (radians)
-        ax : Axes object (optional)
         matplotlib axes instance on which to draw ellipses.
 
         Other Parameters
@@ -578,10 +592,8 @@ class BaseSkyMap(BasePlotter):
         # Code adapted from astroML, which is BSD-licensed.
         # See http: //github.com/astroML/astroML for details.
         ellipses = []
-        if ax is None:
-            ax = plt.gca()
-        for l, b, diam in np.broadcast(lon, lat, radius * 2.0):
-            el = Ellipse((l, b), diam / np.cos(b), diam, **kwargs)
+        for lon, b, diam in np.broadcast(lon, lat, radius * 2.0):
+            el = Ellipse((lon, b), diam / np.cos(b), diam, **kwargs)
             ellipses.append(el)
         return ellipses
 
@@ -628,7 +640,7 @@ class BaseSkyMap(BasePlotter):
         lon = -(ra - ra_cen - np.pi) % (np.pi * 2) - np.pi
         ax.plot(lon, dec, "b.", markersize=1.8, alpha=0.4)
 
-    def __call__(self, metric_value_in, slicer, user_plot_dict, fignum=None):
+    def __call__(self, metric_value_in, slicer, user_plot_dict, fig=None):
         """
         Plot the sky map of metric_value for a generic spatial slicer.
         """
@@ -641,7 +653,8 @@ class BaseSkyMap(BasePlotter):
         plot_dict.update(user_plot_dict)
         metric_value = apply_zp_norm(metric_value_in, plot_dict)
 
-        fig = plt.figure(fignum, figsize=plot_dict["figsize"])
+        if fig is None:
+            fig = plt.figure(figsize=plot_dict["figsize"])
         # other projections available include
         # ['aitoff', 'hammer', 'lambert', 'mollweide', 'polar', 'rectilinear']
         ax = fig.add_subplot(plot_dict["subplot"], projection=plot_dict["projection"])
@@ -650,7 +663,8 @@ class BaseSkyMap(BasePlotter):
             # Plot all data points.
             good = np.ones(len(metric_value), dtype="bool")
         else:
-            # Only plot points which are not masked. Flip numpy ma mask where 'False' == 'good'.
+            # Only plot points which are not masked.
+            # Flip numpy ma mask where 'False' == 'good'.
             good = ~metric_value.mask
 
         # Add ellipses at RA/Dec locations - but don't add colors yet.
@@ -677,7 +691,8 @@ class BaseSkyMap(BasePlotter):
             if current:
                 ax.add_patch(current)
         else:
-            # Determine color min/max values. metricValue.compressed = non-masked points.
+            # Determine color min/max values.
+            # metricValue.compressed = non-masked points.
             clims = set_color_lims(metric_value, plot_dict)
             # Determine whether or not to use auto-log scale.
             if plot_dict["log_scale"] == "auto":
@@ -689,7 +704,8 @@ class BaseSkyMap(BasePlotter):
                 else:
                     plot_dict["log_scale"] = False
             if plot_dict["log_scale"]:
-                # Move min/max values to things that can be marked on the colorbar.
+                # Move min/max values to things that can be marked
+                # on the colorbar.
                 # clims[0] = 10 ** (int(np.log10(clims[0])))
                 # clims[1] = 10 ** (int(np.log10(clims[1])))
                 norml = colors.LogNorm()
@@ -725,7 +741,7 @@ class BaseSkyMap(BasePlotter):
                         format=plot_dict["cbar_format"],
                     )
                 else:
-                    # Most of the time we just want a standard horizontal colorbar
+                    # Usually we just want a standard horizontal colorbar
                     cb = plt.colorbar(
                         p,
                         shrink=0.75,
@@ -763,7 +779,7 @@ class BaseSkyMap(BasePlotter):
                 transform=ax.transAxes,
                 fontsize=plot_dict["fontsize"],
             )
-        return fig.number
+        return fig
 
 
 class HealpixSDSSSkyMap(BasePlotter):
@@ -783,11 +799,13 @@ class HealpixSDSSSkyMap(BasePlotter):
             }
         )
 
-    def __call__(self, metric_value_in, slicer, user_plot_dict, fignum=None):
+    def __call__(self, metric_value_in, slicer, user_plot_dict, fig=None):
         """
-        Plot the sky map of metric_value using healpy cartview plots in thin strips.
+        Plot the sky map of metric_value using healpy cartview plots
+        in thin strips.
         raMin: Minimum RA to plot (deg)
-        raMax: Max RA to plot (deg).  Note raMin/raMax define the centers that will be plotted.
+        raMax: Max RA to plot (deg).
+        Note raMin/raMax define the centers that will be plotted.
         raLen:  Length of the plotted strips in degrees
         decMin: minimum dec value to plot
         decMax: max dec value to plot
@@ -804,8 +822,10 @@ class HealpixSDSSSkyMap(BasePlotter):
         cmap = set_color_map(plot_dict)
         racenters = np.arange(plot_dict["raMin"], plot_dict["raMax"], plot_dict["raLen"])
         nframes = racenters.size
-        fig = plt.figure(fignum)
-        # Do not specify or use plot_dict['subplot'] because this is done in each call to hp.cartview.
+        if fig is None:
+            fig = plt.figure(figsize=plot_dict["figsize"])
+        # Do not specify or use plot_dict['subplot']
+        # because this is done in each call to hp.cartview.
         for i, racenter in enumerate(racenters):
             if i == 0:
                 use_title = (
@@ -834,8 +854,8 @@ class HealpixSDSSSkyMap(BasePlotter):
                 fig=fig,
             )
             hp.graticule(dpar=20, dmer=20, verbose=False)
-        # Add colorbar (not using healpy default colorbar because want more tickmarks).
-        ax = fig.add_axes([0.1, 0.15, 0.8, 0.075])  # left, bottom, width, height
+        # Add colorbar (not using healpy default colorbar)
+        ax = fig.add_axes([0.1, 0.15, 0.8, 0.075])
         # Add label.
         if plot_dict["label"] is not None:
             plt.figtext(0.8, 0.9, "%s" % plot_dict["label"])
@@ -865,8 +885,7 @@ class HealpixSDSSSkyMap(BasePlotter):
         # If outputing to PDF, this fixes the colorbar white stripes
         if plot_dict["cbar_edge"]:
             cb.solids.set_edgecolor("face")
-        fig = plt.gcf()
-        return fig.number
+        return fig
 
 
 def project_lambert(longitude, latitude):
@@ -935,7 +954,7 @@ class LambertSkyMap(BasePlotter):
             }
         )
 
-    def __call__(self, metric_value_in, slicer, user_plot_dict, fignum=None):
+    def __call__(self, metric_value_in, slicer, user_plot_dict, fig=None):
         if "ra" not in slicer.slice_points or "dec" not in slicer.slice_points:
             err_message = 'SpatialSlicer must contain "ra" and "dec" in slice_points metadata.'
             err_message += " SlicePoints only contains keys %s." % (slicer.slice_points.keys())
@@ -954,16 +973,19 @@ class LambertSkyMap(BasePlotter):
             step = (clims[1] - clims[0]) / plot_dict["levels"]
             levels = np.arange(clims[0], clims[1] + step, step)
 
-        fig = plt.figure(fignum, figsize=plot_dict["figsize"])
+        if fig is None:
+            fig = plt.figure(figsize=plot_dict["figsize"])
         ax = fig.add_subplot(plot_dict["subplot"])
 
         x, y = project_lambert(slicer.slice_points["ra"], slicer.slice_points["dec"])
-        # Contour the plot first to remove any anti-aliasing artifacts.  Doesn't seem to work though. See:
-        # http: //stackoverflow.com/questions/15822159/aliasing-when-saving-matplotlib\
-        # -filled-contour-plot-to-pdf-or-eps
+        # Contour the plot first to remove any anti-aliasing artifacts.
+        # Doesn't seem to work though. See:
+        # http://stackoverflow.com/questions/15822159/
+        # aliasing-when-saving-matplotlib-filled-contour-plot-to-pdf-or-eps
         # tmpContour = m.contour(np.degrees(slicer.slice_points['ra']),
         #                        np.degrees(slicer.slice_points['dec']),
-        #                        metric_value.filled(np.min(clims)-1), levels, tri=True,
+        #                        metric_value.filled(np.min(clims)-1), levels,
+        #                        tri=True,
         #                        cmap=plot_dict['cmap'], ax=ax, latlon=True,
         #                        lw=1)
 
@@ -1005,4 +1027,4 @@ class LambertSkyMap(BasePlotter):
         # If outputing to PDF, this fixes the colorbar white stripes
         if plot_dict["cbar_edge"]:
             cb.solids.set_edgecolor("face")
-        return fig.number
+        return fig

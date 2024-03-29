@@ -30,28 +30,30 @@ class TwoDSubsetData(BasePlotter):
             "clims": None,
             "cmap": perceptual_rainbow,
             "cbar_format": None,
+            "figsize": None,
         }
 
-    def __call__(self, metric_values, slicer, user_plot_dict, fignum=None):
+    def __call__(self, metric_values, slicer, user_plot_dict, fig=None):
         """
         Parameters
         ----------
-        metricValue : numpy.ma.MaskedArray
-        slicer : rubin_sim.maf.slicers.NDSlicer
-        user_plot_dict: dict
-            Dictionary of plot parameters set by user (overrides default values).
-            'xaxis' and 'yaxis' values define which axes of the nd data to plot along the x/y axes.
-        fignum : int
-            Matplotlib figure number to use (default = None, starts new figure).
+        metric_value : `numpy.ma.MaskedArray`
+            The metric values from the bundle.
+        slicer : `rubin_sim.maf.slicers.TwoDSlicer`
+            The slicer.
+        user_plot_dict: `dict`
+            Dictionary of plot parameters set by user
+            (overrides default values).
+        fig : `matplotlib.figure.Figure`
+            Matplotlib figure number to use. Default = None, starts new figure.
 
         Returns
         -------
-        int
-           Matplotlib figure number used to create the plot.
+        fig : `matplotlib.figure.Figure`
+           Figure with the plot.
         """
         if slicer.slicer_name != "NDSlicer":
             raise ValueError("TwoDSubsetData plots ndSlicer metric values")
-        fig = plt.figure(fignum)
         plot_dict = {}
         plot_dict.update(self.default_plot_dict)
         plot_dict.update(user_plot_dict)
@@ -59,6 +61,9 @@ class TwoDSubsetData(BasePlotter):
             raise ValueError("xaxis and yaxis must be specified in plot_dict")
         xaxis = plot_dict["xaxis"]
         yaxis = plot_dict["yaxis"]
+
+        if fig is None:
+            fig = plt.figure(figsize=plot_dict["figsize"])
         # Reshape the metric data so we can isolate the values to plot
         # (just new view of data, not copy).
         newshape = []
@@ -66,7 +71,8 @@ class TwoDSubsetData(BasePlotter):
             newshape.append(len(b) - 1)
         newshape.reverse()
         md = metric_values.reshape(newshape)
-        # Sum over other dimensions. Note that masked values are not included in sum.
+        # Sum over other dimensions.
+        # Note that masked values are not included in sum.
         sumaxes = list(range(slicer.nD))
         sumaxes.remove(xaxis)
         sumaxes.remove(yaxis)
@@ -110,7 +116,7 @@ class TwoDSubsetData(BasePlotter):
         )
         cb.set_label(plot_dict["units"])
         plt.title(plot_dict["title"])
-        return fig.number
+        return fig
 
 
 class OneDSubsetData(BasePlotter):
@@ -134,33 +140,39 @@ class OneDSubsetData(BasePlotter):
             "alpha": 0.5,
             "cmap": perceptual_rainbow,
             "cbar_format": None,
+            "figsize": None,
         }
 
-    def plot_binned_data1_d(self, metric_values, slicer, user_plot_dict, fignum=None):
+    def __call__(self, metric_values, slicer, user_plot_dict, fig=None):
         """
         Parameters
         ----------
-        metricValue : numpy.ma.MaskedArray
-        slicer : rubin_sim.maf.slicers.NDSlicer
-        user_plot_dict: dict
-            Dictionary of plot parameters set by user (overrides default values).
-            'axis' keyword identifies which axis to show in the plot (along xaxis of plot).
-        fignum : int
-            Matplotlib figure number to use (default = None, starts new figure).
+        metric_value : `numpy.ma.MaskedArray`
+            The metric values from the bundle.
+        slicer : `rubin_sim.maf.slicers.TwoDSlicer`
+            The slicer.
+        user_plot_dict: `dict`
+            Dictionary of plot parameters set by user
+            (overrides default values).
+        fig : `matplotlib.figure.Figure`
+            Matplotlib figure number to use. Default = None, starts new figure.
 
         Returns
         -------
-        int
-           Matplotlib figure number used to create the plot.
+        fig : `matplotlib.figure.Figure`
+           Figure with the plot.
         """
         if slicer.slicer_name != "NDSlicer":
             raise ValueError("TwoDSubsetData plots ndSlicer metric values")
-        fig = plt.figure(fignum)
+
         plot_dict = {}
         plot_dict.update(self.default_plot_dict)
         plot_dict.update(user_plot_dict)
         if "axis" not in plot_dict:
             raise ValueError("axis for 1-d plot must be specified in plot_dict")
+
+        if fig is None:
+            fig = plt.Figure(figsize=plot_dict["figsize"])
         # Reshape the metric data so we can isolate the values to plot
         # (just new view of data, not copy).
         axis = plot_dict["axis"]
@@ -169,7 +181,8 @@ class OneDSubsetData(BasePlotter):
             newshape.append(len(b) - 1)
         newshape.reverse()
         md = metric_values.reshape(newshape)
-        # Sum over other dimensions. Note that masked values are not included in sum.
+        # Sum over other dimensions.
+        # Note that masked values are not included in sum.
         sumaxes = list(range(slicer.nD))
         sumaxes.remove(axis)
         sumaxes = tuple(sumaxes)
@@ -204,4 +217,4 @@ class OneDSubsetData(BasePlotter):
         if plot_dict["histRange"] is not None:
             plt.xlim(plot_dict["histRange"])
         plt.title(plot_dict["title"])
-        return fig.number
+        return fig

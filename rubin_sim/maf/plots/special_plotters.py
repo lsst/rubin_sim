@@ -31,38 +31,40 @@ class FOPlot(BasePlotter):
             "y_max": None,
             "linewidth": 2,
             "reflinewidth": 2,
+            "figsize": None,
         }
 
-    def __call__(self, metric_value, slicer, user_plot_dict, fignum=None):
+    def __call__(self, metric_value, slicer, user_plot_dict, fig=None):
         """
         Parameters
         ----------
         metric_value : `numpy.ma.MaskedArray`
-            The metric values calculated with `rubin_sim.maf.Count` and
-            a healpix slicer.
-        slicer : `rubin_sim.maf.slicers.HealpixSlicer`
+            The metric values from the bundle.
+        slicer : `rubin_sim.maf.slicers.TwoDSlicer`
+            The slicer.
         user_plot_dict: `dict`
-            Dictionary of plot parameters set by user to override defaults.
-            Note that asky and n_visits values set here and in the slicer
-            should be consistent, for plot labels and summary statistic
-            values to be consistent.
-        fignum : `int`
-            Matplotlib figure number to use. Default starts new figure.
+            Dictionary of plot parameters set by user
+            (overrides default values).
+        fig : `matplotlib.figure.Figure`
+            Matplotlib figure number to use. Default = None, starts new figure.
 
         Returns
         -------
-        fignum : `int`
-           Matplotlib figure number used to create the plot.
+        fig : `matplotlib.figure.Figure`
+           Figure with the plot.
         """
         if not hasattr(slicer, "nside"):
             raise ValueError("FOPlot to be used with healpix or healpix derived slicers.")
-        fig = plt.figure(fignum)
+
         plot_dict = {}
         plot_dict.update(self.default_plot_dict)
         plot_dict.update(user_plot_dict)
 
         if plot_dict["scale"] is None:
             plot_dict["scale"] = hp.nside2pixarea(slicer.nside, degrees=True) / 1000.0
+
+        if fig is None:
+            fig = plt.Figure(figsize=plot_dict["figsize"])
 
         # Expect metric_value to be something like number of visits
         cumulative_area = np.arange(1, metric_value.compressed().size + 1)[::-1] * plot_dict["scale"]
@@ -117,7 +119,7 @@ class FOPlot(BasePlotter):
             plt.xlim([x_min, x_max])
         if (y_min is not None) or (y_max is not None):
             plt.ylim([y_min, y_max])
-        return fig.number
+        return fig
 
 
 class SummaryHistogram(BasePlotter):
@@ -154,7 +156,7 @@ class SummaryHistogram(BasePlotter):
             "figsize": None,
         }
 
-    def __call__(self, metric_value, slicer, user_plot_dict, fignum=None):
+    def __call__(self, metric_value, slicer, user_plot_dict, fig=None):
         """
         Parameters
         ----------
@@ -171,13 +173,13 @@ class SummaryHistogram(BasePlotter):
             results as a step histogram (True) or as a series of values (False)
             'bins' (np.ndarray) sets the x values for the resulting plot
             and should generally match the bins used with the metric.
-        fignum : `int`
-            Matplotlib figure number to use. Default starts a new figure.
+        fig : `matplotlib.figure.Figure`
+            Matplotlib figure to use. Default starts a new figure.
 
         Returns
         -------
-        fignum: `int`
-           Matplotlib figure number used to create the plot.
+        fig: `matplotlib.figure.Figure`
+           Matplotlib figure used to create the plot.
         """
         plot_dict = {}
         plot_dict.update(self.default_plot_dict)
@@ -203,7 +205,8 @@ class SummaryHistogram(BasePlotter):
         if plot_dict["cumulative"]:
             final_hist = final_hist.cumsum()
 
-        fig = plt.figure(fignum, figsize=plot_dict["figsize"])
+        if fig is None:
+            fig = plt.figure(figsize=plot_dict["figsize"])
         bins = plot_dict["bins"]
         if plot_dict["histStyle"]:
             leftedge = bins[:-1]
@@ -248,4 +251,4 @@ class SummaryHistogram(BasePlotter):
         if plot_dict["xscale"] is not None:
             plt.xscale(plot_dict["xscale"])
 
-        return fig.number
+        return fig

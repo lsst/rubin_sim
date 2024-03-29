@@ -51,7 +51,7 @@ class PyOrbEphemerides:
     Typical usage:
 
     >>> pyephs = PyOrbEphemerides()
-    >>> pyephs.setOrbits(orbits)
+    >>> pyephs.set_orbits(orbits)
     >>> ephs = pyephs.generateEphemerides(times, timeScale, obscode)
     """
 
