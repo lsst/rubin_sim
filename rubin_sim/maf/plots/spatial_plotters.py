@@ -399,8 +399,8 @@ class HealpixHistogram(BasePlotter):
         plot_dict.update(user_plot_dict)
         if plot_dict["scale"] is None:
             plot_dict["scale"] = hp.nside2pixarea(slicer.nside, degrees=True) / 1000.0
-        fignum = self.base_hist(metric_value, slicer, plot_dict, fig=fig)
-        return fignum
+        fig = self.base_hist(metric_value, slicer, plot_dict, fig=fig)
+        return fig
 
 
 class BaseHistogram(BasePlotter):
