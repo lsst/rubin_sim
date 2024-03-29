@@ -7,6 +7,7 @@ from .cadence_metrics import *
 from .calibration_metrics import *
 from .chip_vendor_metric import *
 from .color_slope_metrics import *
+from .cosmology_summary_metrics import *
 from .coverage_metric import *
 from .crowding_metric import *
 from .cumulative_metric import *
@@ -42,6 +43,7 @@ from .summary_metrics import *
 from .surfb_metric import *
 from .technical_metrics import *
 from .tgaps import *
+from .tomography_models import *
 from .transient_metrics import *
 from .use_metrics import *
 from .vector_metrics import *
