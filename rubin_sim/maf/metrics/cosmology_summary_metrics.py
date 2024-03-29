@@ -1,7 +1,7 @@
 __all__ = (
     "TotalPowerMetric",
     "StaticProbesFoMEmulatorMetricSimple",
-    "TomographicClusteringSigma8bias",
+    "TomographicClusteringSigma8biasMetric",
 )
 
 import warnings
@@ -165,7 +165,7 @@ class StaticProbesFoMEmulatorMetricSimple(BaseMetric):
         return fom
 
 
-class TomographicClusteringSigma8bias(BaseMetric):
+class TomographicClusteringSigma8biasMetric(BaseMetric):
     """Compute bias on sigma8 due to spurious contamination of density maps.
     Run as summary metric on NestedLinearMultibandModelMetric.
 
