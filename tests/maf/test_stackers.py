@@ -5,11 +5,17 @@ import warnings
 import numpy as np
 from astropy import units as u
 from astropy.coordinates import SkyCoord
+from astropy.time import Time
 from rubin_scheduler.data import get_data_dir
 from rubin_scheduler.utils import Site, _alt_az_pa_from_ra_dec, calc_lmst
 
 import rubin_sim.maf.stackers as stackers
 from rubin_sim.maf import get_sim_data
+
+try:
+    import lsst.summit.utils.efdUtils
+except ModuleNotFoundError:
+    pass
 
 
 class TestStackerClasses(unittest.TestCase):
@@ -444,6 +450,117 @@ class TestStackerClasses(unittest.TestCase):
         data["dec"] += dec
         s = stackers.EclipticStacker(ra_col="ra", dec_col="dec", degrees=True, subtract_sun_lon=False)
         _ = s.run(data)
+
+    def test_teff_stacker(self):
+        rng = np.random.default_rng(seed=6563)
+        num_points = 5
+        data = np.zeros(
+            num_points,
+            dtype=list(zip(["fiveSigmaDepth", "filter", "visitExposureTime"], [float, (np.str_, 1), float])),
+        )
+        data["fiveSigmaDepth"] = 23 + rng.random(num_points)
+        data["filter"] = ["g"] * num_points
+        data["visitExposureTime"] = [30] * num_points
+
+        stacker = stackers.TeffStacker("fiveSigmaDepth", "filter", "visitExposureTime")
+        value = stacker.run(data)
+        np.testing.assert_array_equal(value["fiveSigmaDepth"], value["fiveSigmaDepth"])
+        assert np.all(0.1 < value["t_eff"]) and np.all(value["t_eff"] < 10)
+
+    def test_observation_start_datetime64_stacker(self):
+        rng = np.random.default_rng(seed=6563)
+        num_points = 5
+        data = np.zeros(
+            num_points,
+            dtype=list(zip(["observationStartMJD"], [float])),
+        )
+        data["observationStartMJD"] = 61000 + 3000 * rng.random(num_points)
+
+        stacker = stackers.ObservationStartDatetime64Stacker("observationStartMJD")
+        value = stacker.run(data)
+        recovered_mjd = Time(value["observationStartDatetime64"], format="datetime64").mjd
+        assert np.allclose(recovered_mjd, data["observationStartMJD"])
+
+    def test_day_obs_stackers(self):
+        rng = np.random.default_rng(seed=6563)
+        num_points = 5
+        obs_start_mjds = 61000 + 3000 * rng.random(num_points)
+
+        data = np.zeros(
+            num_points,
+            dtype=list(zip(["observationStartMJD"], [float])),
+        )
+        data["observationStartMJD"] = obs_start_mjds
+
+        try:
+            summit_get_day_obs = lsst.summit.utils.efdUtils.getDayObsForTime
+        except NameError:
+            summit_get_day_obs = None
+
+        day_obs_int_stacker = stackers.DayObsStacker("observationStartMJD")
+        day_obs_int = day_obs_int_stacker.run(data)
+        assert np.all(day_obs_int["dayObs"] > 20200000)
+        assert np.all(day_obs_int["dayObs"] < 20500000)
+        if summit_get_day_obs is not None:
+            summit_day_obs_int = np.array([summit_get_day_obs(Time(m, format="mjd")) for m in obs_start_mjds])
+            np.testing.assert_array_equal(day_obs_int["dayObs"], summit_day_obs_int)
+
+        day_obs_mjd_stacker = stackers.DayObsMJDStacker("observationStartMJD")
+        new_data = day_obs_mjd_stacker.run(data)
+        # If there were no offset, all values would be between 0 and 1.
+        # With the 0.5 day offset specified in SITCOMTN-32, this becomes
+        # 0.5 and 1.5.
+        assert np.all((obs_start_mjds - new_data["day_obs_mjd"]) <= 1.5)
+        assert np.all((obs_start_mjds - new_data["day_obs_mjd"]) >= 0.5)
+
+        day_obs_iso_stacker = stackers.DayObsISOStacker("observationStartMJD")
+        _ = day_obs_iso_stacker.run(data)
+
+    def test_overhead_stacker(self):
+        num_visits = 10
+        num_first_night_visits = 5
+
+        start_mjd = 61000.2
+        exptime = 30.0
+
+        exposure_times = np.full(num_visits, exptime, dtype=float)
+
+        rng = np.random.default_rng(seed=6563)
+        overheads = 2.0 + rng.random(num_visits)
+
+        visit_times = overheads + exposure_times
+        observation_end_mjds = start_mjd + np.cumsum(visit_times) / (24 * 60 * 60)
+        mjds = observation_end_mjds - visit_times / (24 * 60 * 60)
+        mjds[num_first_night_visits:] += 1
+
+        data = np.core.records.fromarrays(
+            (mjds, exposure_times, visit_times),
+            dtype=np.dtype(
+                [
+                    ("observationStartMJD", mjds.dtype),
+                    ("visitExposureTime", exposure_times.dtype),
+                    ("visitTime", visit_times.dtype),
+                ]
+            ),
+        )
+
+        overhead_stacker = stackers.OverheadStacker()
+        new_data = overhead_stacker.run(data)
+        measured_overhead = new_data["overhead"]
+
+        # There is no visit before the first, so the first overhead should be
+        # nan.
+        self.assertTrue(np.isnan(measured_overhead[0]))
+
+        # Test that the gap between nights is nan.
+        self.assertTrue(np.isnan(measured_overhead[num_first_night_visits]))
+
+        # Make sure there are no unexpected nans
+        self.assertEqual(np.count_nonzero(np.isnan(measured_overhead)), 2)
+
+        # Make sure all measured values are correct
+        these_gaps = ~np.isnan(measured_overhead)
+        self.assertTrue(np.allclose(measured_overhead[these_gaps], overheads[these_gaps]))
 
 
 if __name__ == "__main__":
