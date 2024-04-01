@@ -325,6 +325,8 @@ class SkyprojPlotter(BasePlotter, abc.ABC):
             label_kwargs = {}
             if "fontsize" in self.plot_dict:
                 label_kwargs["fontsize"] = self.plot_dict["fontsize"]
+            if "label_loc" in self.plot_dict:
+                label_kwargs["loc"] = self.plot_dict["label_loc"]
             self.skyproj.ax.set_title(self.plot_dict["label"], **label_kwargs)
 
         if self.plot_dict["title"] is not None:
