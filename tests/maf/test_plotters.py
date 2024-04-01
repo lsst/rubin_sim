@@ -44,7 +44,7 @@ class TestPlotters(unittest.TestCase):
         figs = bundle1.plot()
         self.assertTrue(isinstance(figs["SkyMap"], Figure))
         # Test healpix histogram - just that it runs
-        bundle1.set_plot_funcs([maf.HealpixHistogram()])
+        bundle1.set_plot_funcs([maf.BaseHistogram()])
         figs = bundle1.plot()
         self.assertTrue(isinstance(figs["Histogram"], Figure))
 
@@ -62,3 +62,6 @@ class TestPlotters(unittest.TestCase):
         bundle1.set_plot_funcs([maf.OneDBinnedData()])
         figs = bundle1.plot()
         self.assertTrue(isinstance(figs["BinnedData"], Figure))
+
+if __name__ == "__main__":
+    unittest.main()
