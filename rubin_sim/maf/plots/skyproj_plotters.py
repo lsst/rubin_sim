@@ -494,6 +494,11 @@ class VisitPerimeterPlotter(SkyprojPlotter):
         slicer : `rubin_sim.maf.slicers.TwoDSlicer`
             The slicer
         """
+
+        # If there are no visits, just return
+        if metric_values is None or len(metric_values) == 0:
+            return
+
         kwargs = {}
         kwargs.update(self.default_visits_kwargs)
 
