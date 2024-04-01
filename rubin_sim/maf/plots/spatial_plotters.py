@@ -574,17 +574,20 @@ class BaseSkyMap(BasePlotter):
 
         Parameters
         ----------
-        lon : float or array_like
-        longitude-like of ellipse centers (radians)
-        lat : float or array_like
-        latitude-like of ellipse centers (radians)
-        radius : float or array_like
-        radius of ellipses (radians)
-        matplotlib axes instance on which to draw ellipses.
+        lon : `float` or array_like
+            longitude-like of ellipse centers (radians)
+        lat : `float` or array_like
+            latitude-like of ellipse centers (radians)
+        radius : `float` or array_like
+            radius of ellipses (radians)
+        **kwargs : `dict`
+            Keyword argument which will be passed to
+            `matplotlib.patches.Ellipse`.
 
-        Other Parameters
-        ----------------
-        other keyword arguments will be passed to matplotlib.patches.Ellipse.
+        Returns
+        -------
+        ellipses : `list` [ `matplotlib.patches.Ellipse` ]
+            List of ellipses to add to the plot.
 
         # The code in this method adapted from astroML, which is BSD-licensed.
         # See http: //github.com/astroML/astroML for details.
@@ -592,8 +595,8 @@ class BaseSkyMap(BasePlotter):
         # Code adapted from astroML, which is BSD-licensed.
         # See http: //github.com/astroML/astroML for details.
         ellipses = []
-        for lon, b, diam in np.broadcast(lon, lat, radius * 2.0):
-            el = Ellipse((lon, b), diam / np.cos(b), diam, **kwargs)
+        for ll, bb, diam in np.broadcast(lon, lat, radius * 2.0):
+            el = Ellipse((ll, bb), diam / np.cos(bb), diam, **kwargs)
             ellipses.append(el)
         return ellipses
 
@@ -674,7 +677,6 @@ class BaseSkyMap(BasePlotter):
             slicer.slice_points["dec"][good],
             plot_dict["radius"],
             rasterized=True,
-            ax=ax,
         )
         if plot_dict["metricIsColor"]:
             current = None
