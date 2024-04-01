@@ -5,13 +5,17 @@ from numbers import Integral
 from weakref import WeakKeyDictionary
 
 import astropy.units as u
+import healpy as hp
+import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
+import numpy.ma as ma
 import pandas as pd
 import skyproj
 from astropy.coordinates import SkyCoord
+from rubin_scheduler.utils import _healbin
 
-from .plot_handler import BasePlotter
+from .plot_handler import BasePlotter, apply_zp_norm
 from .spatial_plotters import set_color_lims, set_color_map
 
 
@@ -304,7 +308,7 @@ class SkyprojPlotter(BasePlotter, abc.ABC):
             Dictionary of plot parameters set by user
             (overrides default values).
         fig : `matplotlib.figure.Figure`
-            Matplotlib figure number to use.
+            Matplotlib figure.
             The default is ``None``, which starts new figure.
 
         Returns
@@ -316,6 +320,18 @@ class SkyprojPlotter(BasePlotter, abc.ABC):
         self._prepare_skyproj(fig)
         self.draw(metric_values, slicer)
         self.decorate()
+
+        if self.plot_dict["label"] is not None:
+            label_kwargs = {}
+            if "fontsize" in self.plot_dict:
+                label_kwargs["fontsize"] = self.plot_dict["fontsize"]
+            self.skyproj.ax.set_title(self.plot_dict["label"], **label_kwargs)
+
+        if self.plot_dict["title"] is not None:
+            title_kwargs = {}
+            if "fontsize" in self.plot_dict:
+                title_kwargs["fontsize"] = self.plot_dict["fontsize"]
+            self.figure.suptitle(self.plot_dict["title"], **title_kwargs)
 
         return self.figure
 
@@ -357,8 +373,17 @@ class HpxmapPlotter(SkyprojPlotter):
 
         colorbar.set_label(self.plot_dict["xlabel"], fontsize=self.plot_dict["fontsize"])
 
-        if self.plot_dict["labelsize"] is not None:
+        if "labelsize" in self.plot_dict and self.plot_dict["labelsize"] is not None:
             colorbar.ax.tick_params(labelsize=plot_dict["labelsize"])
+
+        if "n_ticks" in self.plot_dict and self.plot_dict["n_ticks"] is not None:
+            tick_locator = mpl.ticker.MaxNLocator(nbins=plot_dict["n_ticks"])
+            colorbar.locator = tick_locator
+            colorbar.update_ticks()
+
+        # If outputing to PDF, this fixes the colorbar white stripes
+        if "cbar_edge" in self.plot_dict and self.plot_dict["cbar_edge"]:
+            colorbar.solids.set_edgecolor("face")
 
     def decorate(self):
         super().decorate()
@@ -366,7 +391,28 @@ class HpxmapPlotter(SkyprojPlotter):
         if "colorbar" in self.plot_dict["decorations"]:
             self.draw_colorbar()
 
-    def draw(self, metric_values, slicer):
+    def _transform_to_healpix(self, metric_value_in, slicer):
+        # Bin the values up on a healpix grid.
+        metric_value = _healbin(
+            slicer.slice_points["ra"],
+            slicer.slice_points["dec"],
+            metric_value_in.filled(slicer.badval),
+            nside=self.plot_dict["nside"],
+            reduce_func=self.plot_dict["reduce_func"],
+            fill_val=slicer.badval,
+        )
+        mask = np.zeros(metric_value.size)
+        mask[np.where(metric_value == slicer.badval)] = 1
+
+        metric_value = ma.array(metric_value, mask=mask)
+        return metric_value
+
+    def _compatible_color_limits(self, norm, clims):
+        # Log can't be 0
+        compatible = (norm != "log") or (clims[0] < 0 and clims[1] < 0) or (clims[0] > 0 and clims[1] > 0)
+        return compatible
+
+    def draw(self, metric_values_in, slicer):
         """Draw the healpix map.
 
         Parameters
@@ -379,7 +425,13 @@ class HpxmapPlotter(SkyprojPlotter):
         kwargs = {}
         kwargs.update(self.default_hpixmap_kwargs)
 
-        hpix_map = metric_values
+        # Check if we have a valid HEALpix slicer
+        if "Heal" not in slicer.slicer_name:
+            hpix_map = self._transform_to_healpix(metric_values_in, slicer)
+        else:
+            hpix_map = metric_values_in.copy()
+
+        hpix_map = apply_zp_norm(hpix_map, self.plot_dict)
 
         if "draw_hpxmap_kwargs" in self.plot_dict:
             kwargs.update(self.plot_dict["draw_hpxmap_kwargs"])
@@ -390,9 +442,33 @@ class HpxmapPlotter(SkyprojPlotter):
             # Probably here because an invalid cmap was set
             pass
 
+        if self.plot_dict["log_scale"]:
+            if "norm" in kwargs and kwargs["norm"] != "log":
+                raise ValueError("Contradictory values for color scale normalization set.")
+            kwargs["norm"] = "log"
+
         clims = set_color_lims(hpix_map, self.plot_dict)
-        kwargs["vmin"] = clims[0]
-        kwargs["vmax"] = clims[1]
+        if "norm" not in kwargs or self._compatible_color_limits(kwargs["norm"], clims):
+            kwargs["vmin"] = clims[0]
+            kwargs["vmax"] = clims[1]
+        else:
+            warnings.warn(
+                "Using log normalization, but color limits pass through 0. "
+                "Adjusting so plotting doesn't fail"
+            )
+
+        # Filling in masked values must take place after automatic color limits
+        # might be calculated!
+
+        # This masking replicates the behavior of HealpixSkyMap, but is it
+        # what we really want to do? Why not use the default handling of
+        # masked values applied by skyproj?
+        if "mask_below" in self.plot_dict and self.plot_dict["mask_below"] is not None:
+            to_mask = np.where(hpix_map <= self.plot_dict["mask_below"])[0]
+            hpix_map.mask[to_mask] = True
+            hpix_map = hpix_map.filled(hp.UNSEEN)
+        else:
+            hpix_map = hpix_map.filled(slicer.badval)
 
         self.skyproj.draw_hpxmap(hpix_map, **kwargs)
 
