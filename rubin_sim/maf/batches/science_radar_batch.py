@@ -1526,6 +1526,41 @@ def science_radar_batch(
         )
     )
 
+    # color plus slope metrics
+    displayDict["group"] = "Variables/Transients"
+    displayDict["subgroup"] = "Color and slope"
+    displayDict["caption"] = "Number of times a color and slope are measured in a night"
+    sql = "visitExposureTime > 19"
+    metric = maf.ColorSlopeMetric()
+    summaryMetrics_cs = [maf.SumMetric()]
+    bundleList.append(
+        maf.MetricBundle(
+            metric,
+            healpixslicer,
+            sql,
+            run_name=runName,
+            display_dict=displayDict,
+            summary_metrics=summaryMetrics_cs,
+        )
+    )
+
+    displayDict["group"] = "Variables/Transients"
+    displayDict["subgroup"] = "Color and slope"
+    displayDict["caption"] = "Number of times a color and slope are measured over 2 nights."
+    sql = "visitExposureTime > 19"
+    metric = maf.ColorSlope2NightMetric()
+    summaryMetrics_cs = [maf.SumMetric()]
+    bundleList.append(
+        maf.MetricBundle(
+            metric,
+            healpixslicer,
+            sql,
+            run_name=runName,
+            display_dict=displayDict,
+            summary_metrics=summaryMetrics_cs,
+        )
+    )
+
     # XRB metric
     displayDict["subgroup"] = "XRB"
     displayDict["order"] = 0

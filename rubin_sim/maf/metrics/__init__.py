@@ -6,6 +6,7 @@ from .brown_dwarf_metric import *
 from .cadence_metrics import *
 from .calibration_metrics import *
 from .chip_vendor_metric import *
+from .color_slope_metrics import *
 from .coverage_metric import *
 from .crowding_metric import *
 from .cumulative_metric import *
