@@ -343,7 +343,7 @@ class HpxmapPlotter(SkyprojPlotter):
 
     def __init__(self):
         super().__init__()
-        self.default_plot_dict["decorations"].append("colorbar")
+        self.default_plot_dict["colorbar"] = True
         self.object_plotter = False
 
     def draw_colorbar(self):
@@ -390,7 +390,7 @@ class HpxmapPlotter(SkyprojPlotter):
     def decorate(self):
         super().decorate()
 
-        if "colorbar" in self.plot_dict["decorations"]:
+        if self.plot_dict["colorbar"]:
             self.draw_colorbar()
 
     def _transform_to_healpix(self, metric_value_in, slicer):
