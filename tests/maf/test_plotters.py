@@ -63,5 +63,6 @@ class TestPlotters(unittest.TestCase):
         figs = bundle1.plot()
         self.assertTrue(isinstance(figs["BinnedData"], Figure))
 
+
 if __name__ == "__main__":
     unittest.main()
