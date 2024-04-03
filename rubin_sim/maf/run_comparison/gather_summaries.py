@@ -36,9 +36,9 @@ def combine_result_dbs(run_dirs, dbfilename="resultsDb_sqlite.db"):
             run_names.append(dirname_to_runname(dname))
 
     # querry to grab all the summary stats
-    sql_q = "SELECT metrics.metric_name, metrics.metric_info_label, "
-    sql_q += "metrics.slicer_name, summarystats.summary_name, "
-    sql_q += "summarystats.summary_value "
+    sql_q = "SELECT summarystats.summary_value, "
+    sql_q += "metrics.metric_name, metrics.metric_info_label, "
+    sql_q += "metrics.slicer_name, summarystats.summary_name "
     sql_q += "FROM summarystats INNER JOIN metrics ON metrics.metric_id=summarystats.metric_id"
 
     rows = []
@@ -71,6 +71,13 @@ def combine_result_dbs(run_dirs, dbfilename="resultsDb_sqlite.db"):
             columns=col_names,
             index=[row_name],
         )
+
+        # Can have duplicate columns if MAF was run multiple times. 
+        # Remove duplicates:
+        # https://stackoverflow.com/questions/14984119/
+        # python-pandas-remove-duplicate-columns
+        row = row.loc[:, ~row.columns.duplicated()].copy()
+
         rows.append(row)
     # Create final large DataFrame to hold everything
     all_cols = np.unique(np.concatenate([r.columns.values for r in rows]))
@@ -83,7 +90,8 @@ def combine_result_dbs(run_dirs, dbfilename="resultsDb_sqlite.db"):
 
     # Put each row into the final DataFrame
     for row_name, row in zip(run_names, rows):
-        result_df.loc[row_name][row.columns] = np.ravel(row.values)
+        result_df.loc[row_name, row.columns] = np.ravel(row.values)
+
     return result_df
 
 
