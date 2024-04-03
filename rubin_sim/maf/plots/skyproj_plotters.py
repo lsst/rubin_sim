@@ -319,6 +319,7 @@ class SkyprojPlotter(BasePlotter, abc.ABC):
         self._initialize_plot_dict(user_plot_dict)
         self._prepare_skyproj(fig)
         self.draw(metric_values, slicer)
+        self.decorate()
 
         # Do not show axis labels unless they are specified as decorators.
         if "xlabel" not in self.plot_dict["decorations"]:
@@ -326,8 +327,6 @@ class SkyprojPlotter(BasePlotter, abc.ABC):
 
         if "ylabel" not in self.plot_dict["decorations"]:
             self.skyproj.set_ylabel("", visible=False)
-
-        self.decorate()
 
         if self.plot_dict["label"] is not None:
             label_kwargs = {}
