@@ -37,6 +37,7 @@ dependencies = [
     "scikit-learn",
     "shapely",
     "skyfield",
+    "skyproj",
     "pyoorb",
     "rubin-scheduler",
 ]
