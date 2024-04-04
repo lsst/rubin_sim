@@ -72,7 +72,7 @@ def combine_result_dbs(run_dirs, dbfilename="resultsDb_sqlite.db"):
             index=[row_name],
         )
 
-        # Can have duplicate columns if MAF was run multiple times. 
+        # Can have duplicate columns if MAF was run multiple times.
         # Remove duplicates:
         # https://stackoverflow.com/questions/14984119/
         # python-pandas-remove-duplicate-columns

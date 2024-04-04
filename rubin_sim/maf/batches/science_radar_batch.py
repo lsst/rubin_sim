@@ -1104,7 +1104,7 @@ def science_radar_batch(
                 summary_metrics=summaryStats,
                 info_label=f"dm {dM} interval {time_interval} RRc Year 1-2",
             )
-            #bundleList.append(bundle)
+            bundleList.append(bundle)
 
     # PulsatingStarRecovery metric (to be added; Marcella)
 
