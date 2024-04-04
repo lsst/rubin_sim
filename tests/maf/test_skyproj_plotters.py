@@ -59,16 +59,16 @@ class TestSkyprojPlots(unittest.TestCase):
             # but good enough for a unit test.
             size = 1.0
             ras = [
-                -0.5 * size * np.cos(np.radians(decl)) * np.sin(np.radians(rotation)),
-                -0.5 * size * np.cos(np.radians(decl)) * np.cos(np.radians(rotation)),
-                0.5 * size * np.cos(np.radians(decl)) * np.sin(np.radians(rotation)),
-                0.5 * size * np.cos(np.radians(decl)) * np.cos(np.radians(rotation)),
+                ra - 0.5 * size * np.cos(np.radians(decl)) * np.sin(np.radians(rotation)),
+                ra - 0.5 * size * np.cos(np.radians(decl)) * np.cos(np.radians(rotation)),
+                ra + 0.5 * size * np.cos(np.radians(decl)) * np.sin(np.radians(rotation)),
+                ra + 0.5 * size * np.cos(np.radians(decl)) * np.cos(np.radians(rotation)),
             ]
             decls = [
-                0.5 * size * np.cos(np.radians(rotation)),
-                -0.5 * size * np.sin(np.radians(rotation)),
-                -0.5 * size * np.cos(np.radians(rotation)),
-                0.5 * size * np.sin(np.radians(rotation)),
+                decl + 0.5 * size * np.cos(np.radians(rotation)),
+                decl - 0.5 * size * np.sin(np.radians(rotation)),
+                decl - 0.5 * size * np.cos(np.radians(rotation)),
+                decl + 0.5 * size * np.sin(np.radians(rotation)),
             ]
             return ras, decls
 
