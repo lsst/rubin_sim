@@ -1,7 +1,6 @@
 import unittest
 
 import numpy as np
-from astropy.time import Time
 from rubin_scheduler.scheduler.model_observatory import ModelObservatory
 
 import rubin_sim
@@ -28,7 +27,6 @@ class TestSkyprojPlots(unittest.TestCase):
 
     def test_visit_perimeter_plotter(self):
         model_observatory = ModelObservatory(init_load_length=1)
-        model_observatory.mjd = Time("2025-11-10T06:00:00Z").mjd
 
         num_points = 5
         field_ra = np.arange(30, 30 + num_points, dtype=float)
