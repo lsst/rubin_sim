@@ -1,9 +1,7 @@
 import unittest
-from os import path
 
 import numpy as np
 from astropy.time import Time
-from rubin_scheduler.data import get_baseline
 from rubin_scheduler.scheduler.model_observatory import ModelObservatory
 
 import rubin_sim
@@ -13,19 +11,14 @@ from rubin_sim import maf
 
 class TestSkyprojPlots(unittest.TestCase):
     def setUp(self):
-        self.opsim_fname = get_baseline()
-        self.run_name = path.splitext(path.basename(self.opsim_fname))[0]
+        self.rng = np.random.default_rng(seed=6563)
 
     def test_hpxmap_plotter(self):
-        bundle = maf.MetricBundle(
-            metric=maf.Coaddm5Metric(),
-            slicer=maf.HealpixSlicer(nside=64),
-            constraint="filter='g'",
-            run_name=self.run_name,
-        )
-
-        bgroup = maf.MetricBundleGroup([bundle], self.opsim_fname)
-        bgroup.run_all()
+        bundle = maf.create_empty_metric_bundle()
+        nside = 64
+        bundle.slicer = maf.HealpixSlicer(nside=nside)
+        bundle._setup_metric_values()
+        bundle.metric_values += self.rng.uniform(size=len(bundle.slicer))
 
         plot_dict = {"decorations": ["colorbar"]}
         plotter = rubin_sim.maf.plots.skyproj_plotters.HpxmapPlotter()
@@ -37,15 +30,28 @@ class TestSkyprojPlots(unittest.TestCase):
         model_observatory = ModelObservatory(init_load_length=1)
         model_observatory.mjd = Time("2025-11-10T06:00:00Z").mjd
 
-        bundle = maf.MetricBundle(
-            metric=maf.PassMetric(cols=["fieldRA", "fieldDec", "rotSkyPos"]),
-            slicer=maf.UniSlicer(),
-            constraint="floor(observationStartMJD) = 61000",
-            run_name=self.run_name,
-        )
+        num_points = 5
+        field_ra = np.arange(30, 30 + num_points, dtype=float)
+        field_dec = np.arange(-60, -60 + num_points, dtype=float)
+        rot_sky_pos = np.arange(num_points, dtype=float) % 360
 
-        bgroup = maf.MetricBundleGroup([bundle], self.opsim_fname)
-        bgroup.run_all()
+        unmasked_data = np.empty(dtype=object, shape=(1,))
+        unmasked_data[0] = np.core.records.fromarrays(
+            (field_ra, field_dec, rot_sky_pos),
+            dtype=np.dtype(
+                [
+                    ("fieldRA", field_ra.dtype),
+                    ("fieldDec", field_dec.dtype),
+                    ("rotSkyPos", rot_sky_pos.dtype),
+                ]
+            ),
+        )
+        masked_data = np.ma.MaskedArray(data=unmasked_data, mask=False, fill_value=-666, dtype=object)
+
+        bundle = maf.create_empty_metric_bundle()
+        bundle.slicer = maf.UniSlicer()
+        bundle._setup_metric_values()
+        bundle.metric_values = masked_data
 
         def compute_camera_perimeter(ra, decl, rotation):
             # just a quadrangle for this unit test.
