@@ -9,7 +9,7 @@ name = "rubin-sim"
 description = "Scheduler, survey strategy analysis, and other simulation tools for Rubin Observatory."
 readme = "README.md"
 license = { text = "GPL" }
-classifiers = [ 
+classifiers = [
     "Intended Audience :: Science/Research",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
@@ -106,6 +106,10 @@ line_length = 110
 exclude = [
     "__init__.py",
 ]
+line-length = 110
+target-version = "py311"
+
+[tool.ruff.lint]
 ignore = [
     "N802",
     "N803",
@@ -124,21 +128,18 @@ ignore = [
     "D400",
     "E712",
 ]
-line-length = 110
 select = [
     "E",  # pycodestyle
     "F",  # pyflakes
     "N",  # pep8-naming
     "W",  # pycodestyle
 ]
-target-version = "py311"
 extend-select = [
     "RUF100", # Warn about unused noqa
 ]
 
-[tool.ruff.pycodestyle]
+[tool.ruff.lint.pycodestyle]
 max-doc-length = 79
 
-[tool.ruff.pydocstyle]
+[tool.ruff.lint.pydocstyle]
 convention = "numpy"
-

@@ -10,6 +10,8 @@ from .plot_handler import BasePlotter
 
 
 class OneDBinnedData(BasePlotter):
+    """Plot data from a OneDSlicer."""
+
     def __init__(self):
         self.plot_type = "BinnedData"
         self.object_plotter = False
@@ -33,7 +35,7 @@ class OneDBinnedData(BasePlotter):
             "grid": True,
         }
 
-    def __call__(self, metric_values, slicer, user_plot_dict, fignum=None):
+    def __call__(self, metric_values, slicer, user_plot_dict, fig=None):
         """
         Plot a set of oneD binned metric data.
         """
@@ -46,7 +48,8 @@ class OneDBinnedData(BasePlotter):
         plot_dict = {}
         plot_dict.update(self.default_plot_dict)
         plot_dict.update(user_plot_dict)
-        fig = plt.figure(fignum, figsize=plot_dict["figsize"])
+        if fig is None:
+            fig = plt.figure(figsize=plot_dict["figsize"])
         # Plot the histogrammed data.
         leftedge = slicer.slice_points["bins"][:-1]
         width = np.diff(slicer.slice_points["bins"])
@@ -62,7 +65,7 @@ class OneDBinnedData(BasePlotter):
                 color=plot_dict["color"],
             )
         else:
-            good = np.where(metric_values.mask == False)
+            good = np.where(~metric_values.mask)
             x = np.ravel(list(zip(leftedge[good], leftedge[good] + width[good])))
             y = np.ravel(list(zip(metric_values[good], metric_values[good])))
             if plot_dict["log_scale"]:
@@ -89,7 +92,8 @@ class OneDBinnedData(BasePlotter):
             plt.ylabel(plot_dict["ylabel"], fontsize=plot_dict["fontsize"])
         if "xlabel" in plot_dict:
             plt.xlabel(plot_dict["xlabel"], fontsize=plot_dict["fontsize"])
-        # Set y limits (either from values in args, percentile_clipping or compressed data values).
+        # Set y limits (either from values in args,
+        # percentile_clipping or compressed data values).
         if plot_dict["percentile_clip"] is not None:
             y_min, y_max = percentile_clipping(
                 metric_values.compressed(), percentile=plot_dict["percentile_clip"]
@@ -115,4 +119,4 @@ class OneDBinnedData(BasePlotter):
         if plot_dict["x_max"] is not None:
             plt.xlim(right=plot_dict["x_max"])
         plt.title(plot_dict["title"])
-        return fig.number
+        return fig

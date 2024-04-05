@@ -33,24 +33,27 @@ class TwoDMap(BasePlotter):
             "aspect": "auto",
             "xextent": None,
             "origin": None,
+            "figsize": None,
         }
 
-    def __call__(self, metric_value, slicer, user_plot_dict, fignum=None):
+    def __call__(self, metric_value, slicer, user_plot_dict, fig=None):
         """
         Parameters
         ----------
-        metric_value : numpy.ma.MaskedArray
-        slicer : rubin_sim.maf.slicers.BaseSpatialSlicer
-            (any spatial slicer)
-        user_plot_dict: dict
-            Dictionary of plot parameters set by user (overrides default values).
-        fignum : int
-            Matplotlib figure number to use (default = None, starts new figure).
+        metric_value : `numpy.ma.MaskedArray`
+            The metric values from the bundle.
+        slicer : `rubin_sim.maf.slicers.TwoDSlicer`
+            The slicer.
+        user_plot_dict: `dict`
+            Dictionary of plot parameters set by user
+            (overrides default values).
+        fig : `matplotlib.figure.Figure`
+            Matplotlib figure number to use. Default = None, starts new figure.
 
         Returns
         -------
-        int
-           Matplotlib figure number used to create the plot.
+        fig : `matplotlib.figure.Figure
+           Figure with the plot.
         """
         if "Healpix" in slicer.slicer_name:
             self.default_plot_dict["ylabel"] = "Healpix ID"
@@ -77,8 +80,9 @@ class TwoDMap(BasePlotter):
             low_vals = np.where(metric_value.data < plot_dict["color_min"])
             metric_value.mask[low_vals] = True
 
-        figure = plt.figure(fignum)
-        ax = figure.add_subplot(111)
+        if fig is None:
+            fig = plt.figure(figsize=plot_dict["figsize"])
+        ax = fig.add_subplot(111)
         yextent = [0, slicer.nslice - 1]
         xextent = plot_dict["xextent"]
         extent = []
@@ -105,12 +109,31 @@ class TwoDMap(BasePlotter):
         # Fix white space on pdf's
         if plot_dict["cbar_edge"]:
             cb.solids.set_edgecolor("face")
-        return figure.number
+        return fig
 
 
 class VisitPairsHist(BasePlotter):
     """
-    Given an opsim2dSlicer, figure out what fraction of observations are in singles, pairs, triples, etc.
+    Given an TwoDSlicer, figure out what fraction of observations
+    are in singles, pairs, triples, etc.
+
+
+    Parameters
+    ----------
+    metric_value : `numpy.ma.MaskedArray`
+        The metric values from the bundle.
+    slicer : `rubin_sim.maf.slicers.TwoDSlicer`
+        The slicer.
+    user_plot_dict: `dict`
+        Dictionary of plot parameters set by user
+        (overrides default values).
+    fig : `matplotlib.figure.Figure`
+        Matplotlib figure number to use. Default = None, starts new figure.
+
+    Returns
+    -------
+    fig : `matplotlib.figure.Figure`
+       Figure with the plot.
     """
 
     def __init__(self):
@@ -124,24 +147,10 @@ class VisitPairsHist(BasePlotter):
             "color": "b",
             "xlim": [0, 20],
             "ylim": None,
+            "figsize": None,
         }
 
-    def __call__(self, metric_value, slicer, user_plot_dict, fignum=None):
-        """
-        Parameters
-        ----------
-        metric_value : numpy.ma.MaskedArray
-        slicer : rubin_sim.maf.slicers.TwoDSlicer
-        user_plot_dict: dict
-            Dictionary of plot parameters set by user (overrides default values).
-        fignum : int
-            Matplotlib figure number to use (default = None, starts new figure).
-
-        Returns
-        -------
-        int
-           Matplotlib figure number used to create the plot.
-        """
+    def __call__(self, metric_value, slicer, user_plot_dict, fig=None):
         plot_dict = {}
         plot_dict.update(self.default_plot_dict)
         # Don't clobber with None
@@ -155,8 +164,9 @@ class VisitPairsHist(BasePlotter):
         vals, bins = np.histogram(metric_value, bins)
         xvals = (bins[:-1] + bins[1:]) / 2.0
 
-        figure = plt.figure(fignum)
-        ax = figure.add_subplot(111)
+        if fig is None:
+            fig = plt.figure(figsize=plot_dict["figsize"])
+        ax = fig.add_subplot(111)
         ax.bar(xvals, vals * xvals, color=plot_dict["color"], label=plot_dict["label"])
         ax.set_xlabel(plot_dict["xlabel"])
         ax.set_ylabel(plot_dict["ylabel"])
@@ -164,4 +174,4 @@ class VisitPairsHist(BasePlotter):
         ax.set_xlim(plot_dict["xlim"])
         ax.set_ylim(plot_dict["ylim"])
 
-        return figure.number
+        return fig

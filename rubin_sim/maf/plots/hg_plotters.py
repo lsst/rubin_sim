@@ -305,21 +305,25 @@ class GeneralHourglassPlot(BasePlotter):
 
         return colors, color_mappable
 
-    def __call__(self, metric_value, slicer, user_plot_dict, fignum=None):
+    def __call__(self, metric_value, slicer, user_plot_dict, fig=None):
         """Restructure the metric data to use, and build the figure.
 
         Parameters
         ----------
-        metric_value : `numpy.ndarray`
-           Metric values
-        slicer : `rubin_sim.maf.slicers.baseSlicer.BaseSlicer`
-           must have "mjd" and "duration" slice points, in units
-           of days and seconds, respectively.
-        user_plot_dict : `dict`
-           Plotting parameters
-        fignum : `int`
-           matplotlib figure number
+        metric_value : `numpy.ma.MaskedArray`
+            The metric values from the bundle.
+        slicer : `rubin_sim.maf.slicers.TwoDSlicer`
+            The slicer.
+        user_plot_dict: `dict`
+            Dictionary of plot parameters set by user
+            (overrides default values).
+        fig : `matplotlib.figure.Figure`
+            Matplotlib figure number to use. Default = None, starts new figure.
 
+        Returns
+        -------
+        fig : `matplotlib.figure.Figure`
+           Figure with the plot.
         """
         # Highest level driver for the plotter.
         # Prepares data structures and figure-wide elements
@@ -344,7 +348,8 @@ class GeneralHourglassPlot(BasePlotter):
         self.plot_dict.update(user_plot_dict)
 
         # Generate the figure
-        fig = plt.figure(fignum, figsize=self.plot_dict["figsize"])
+        if fig is None:
+            fig = plt.figure(figsize=self.plot_dict["figsize"])
 
         # Add the plots
         color_mappable, axes = self._plot(fig, intervals)
@@ -355,7 +360,9 @@ class GeneralHourglassPlot(BasePlotter):
 
         # add the legend, if requested
         if self.plot_dict["legend"] and len(self.color_map) > 0:
-            self._add_figure_legend(fig, axes)
+            fig = self._add_figure_legend(fig, axes)
+
+        return fig
 
     def _add_figure_legend(self, fig, axes):
         """Creates and adds the figure legend.
@@ -370,8 +377,8 @@ class GeneralHourglassPlot(BasePlotter):
 
         Returns
         -------
-        figure_number : `int`
-           The matplotlib figure number
+        fig : `matplotlib.figure.Figure`
+           The matplotlib figure
         """
         # Creates and adds the figure legend.  This method follows two
         # stages: first, it adds entries for each element in the color
@@ -423,7 +430,7 @@ class GeneralHourglassPlot(BasePlotter):
             bbox_to_anchor=self.plot_dict["legend_bbox_to_anchor"],
         )
 
-        return fig.number
+        return fig
 
     def _add_colorbar(self, fig, color_mappable, axes):  # pylint: disable=invalid-name, no-self-use
         """Add a colorbar.

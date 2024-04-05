@@ -14,6 +14,7 @@ class HourglassPlot(BasePlotter):
             "title": None,
             "xlabel": "Night - min(Night)",
             "ylabel": "Hours from local midnight",
+            "figsize": None,
         }
         self.filter2color = {
             "u": "purple",
@@ -24,20 +25,20 @@ class HourglassPlot(BasePlotter):
             "y": "red",
         }
 
-    def __call__(self, metric_value, slicer, user_plot_dict, fignum=None):
+    def __call__(self, metric_value, slicer, user_plot_dict, fig=None):
         """
         Generate the hourglass plot
         """
         if slicer.slicer_name != "HourglassSlicer":
             raise ValueError("HourglassPlot is for use with hourglass slicers")
 
-        fig = plt.figure(fignum)
-        ax = fig.add_subplot(111)
-
         plot_dict = {}
         plot_dict.update(self.default_plot_dict)
         plot_dict.update(user_plot_dict)
 
+        if fig is None:
+            fig = plt.figure(figsize=plot_dict["figsize"])
+        ax = fig.add_subplot(111)
         pernight = metric_value[0]["pernight"]
         perfilter = metric_value[0]["perfilter"]
 
@@ -57,9 +58,11 @@ class HourglassPlot(BasePlotter):
                 color=self.filter2color[key],
                 transform=ax.transAxes,
             )
-        # ax.plot(pernight['mjd'] - dmin, (pernight['twi6_rise'] - pernight['midnight']) * 24.,
+        # ax.plot(pernight['mjd'] - dmin,
+        # (pernight['twi6_rise'] - pernight['midnight']) * 24.,
         #        'blue', label=r'6$^\circ$ twilight')
-        # ax.plot(pernight['mjd'] - dmin, (pernight['twi6_set'] - pernight['midnight']) * 24.,
+        # ax.plot(pernight['mjd'] - dmin,
+        # (pernight['twi6_set'] - pernight['midnight']) * 24.,
         #        'blue')
         ax.plot(
             pernight["mjd"] - dmin,
@@ -114,4 +117,4 @@ class HourglassPlot(BasePlotter):
             )
             ax.axhline((pernight["twi18_set"] - pernight["midnight"]) * 24.0, color="red")
 
-        return fig.number
+        return fig

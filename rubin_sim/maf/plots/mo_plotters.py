@@ -7,9 +7,12 @@ import numpy as np
 
 from .plot_handler import BasePlotter
 
-# mag_sun = -27.1 # apparent r band magnitude of the sun. this sets the band for the magnitude limit.
-# see http://www.ucolick.org/~cnaw/sun.html for apparent magnitudes in other bands.
-mag_sun = -26.74  # apparent V band magnitude of the Sun (our H mags translate to V band)
+# mag_sun = -27.1
+# apparent r band magnitude of the sun.
+# this sets the band for the magnitude limit.
+# see http://www.ucolick.org/~cnaw/sun.html for apparent mags in other bands.
+mag_sun = -26.74
+# apparent V band magnitude of the Sun (our H mags translate to V band)
 km_per_au = 1.496e8
 m_per_km = 1000
 
@@ -37,7 +40,7 @@ class MetricVsH(BasePlotter):
         }
         self.min_hrange = 1.0
 
-    def __call__(self, metric_value, slicer, user_plot_dict, fignum=None):
+    def __call__(self, metric_value, slicer, user_plot_dict, fig=None):
         if "linestyle" not in user_plot_dict:
             user_plot_dict["linestyle"] = "-"
         plot_dict = {}
@@ -49,11 +52,13 @@ class MetricVsH(BasePlotter):
             reduce_func = np.mean
         if hvals.shape[0] == 1:
             # We have a simple set of values to plot against H.
-            # This may be due to running a summary metric, such as completeness.
+            # This may be due to running a summary metric,
+            # such as completeness.
             m_vals = metric_value[0].filled()
         elif len(hvals) == slicer.shape[1]:
             # Using cloned H distribution.
-            # Apply 'np_reduce' method directly to metric values, and plot at matching H values.
+            # Apply 'np_reduce' method directly to metric values,
+            # and plot at matching H values.
             m_vals = reduce_func(metric_value.filled(), axis=0)
         else:
             # Probably each object has its own H value.
@@ -67,7 +72,8 @@ class MetricVsH(BasePlotter):
                 nbins = 30
             stepsize = hrange / float(nbins)
             bins = np.arange(min_h, min_h + hrange + stepsize / 2.0, stepsize)
-            # In each bin of H, calculate the 'np_reduce' value of the corresponding metric_values.
+            # In each bin of H, calculate the 'np_reduce' value of the
+            # corresponding metric_values.
             inds = np.digitize(hvals, bins)
             inds = inds - 1
             m_vals = np.zeros(len(bins), float)
@@ -79,7 +85,8 @@ class MetricVsH(BasePlotter):
                     m_vals[i] = reduce_func(match.filled())
             hvals = bins
         # Plot the values.
-        fig = plt.figure(fignum, figsize=plot_dict["figsize"])
+        if fig is None:
+            fig = plt.figure(figsize=plot_dict["figsize"])
         ax = plt.gca()
         ax.plot(
             hvals,
@@ -130,7 +137,7 @@ class MetricVsH(BasePlotter):
         plt.xlabel(plot_dict["xlabel"])
         plt.ylabel(plot_dict["ylabel"])
         plt.tight_layout()
-        return fig.number
+        return fig
 
 
 class MetricVsOrbit(BasePlotter):
@@ -159,11 +166,12 @@ class MetricVsOrbit(BasePlotter):
             "figsize": None,
         }
 
-    def __call__(self, metric_value, slicer, user_plot_dict, fignum=None):
+    def __call__(self, metric_value, slicer, user_plot_dict, fig=None):
         plot_dict = {}
         plot_dict.update(self.default_plot_dict)
         plot_dict.update(user_plot_dict)
-        fig = plt.figure(fignum, figsize=plot_dict["figsize"])
+        if fig is None:
+            fig = plt.figure(figsize=plot_dict["figsize"])
         xvals = slicer.slice_points["orbits"][plot_dict["xaxis"]]
         yvals = slicer.slice_points["orbits"][plot_dict["yaxis"]]
         # Set x/y bins.
@@ -249,13 +257,13 @@ class MetricVsOrbit(BasePlotter):
         plt.title(plot_dict["title"])
         plt.xlabel(plot_dict["xlabel"])
         plt.ylabel(plot_dict["ylabel"])
-        return fig.number
+        return fig
 
 
 class MetricVsOrbitPoints(BasePlotter):
     """
-    Plot metric values (at a particular H value) as function of orbital parameters,
-    using points for each metric value.
+    Plot metric values (at a particular H value) as function
+    of orbital parameters, using points for each metric value.
     """
 
     def __init__(self, xaxis="q", yaxis="e"):
@@ -276,11 +284,12 @@ class MetricVsOrbitPoints(BasePlotter):
             "figsize": None,
         }
 
-    def __call__(self, metric_value, slicer, user_plot_dict, fignum=None):
+    def __call__(self, metric_value, slicer, user_plot_dict, fig=None):
         plot_dict = {}
         plot_dict.update(self.default_plot_dict)
         plot_dict.update(user_plot_dict)
-        fig = plt.figure(fignum, figsize=plot_dict["figsize"])
+        if fig is None:
+            fig = plt.figure(figsize=plot_dict["figsize"])
         xvals = slicer.slice_points["orbits"][plot_dict["xaxis"]]
         yvals = slicer.slice_points["orbits"][plot_dict["yaxis"]]
         # Identify the relevant metric_values for the Hvalue we want to plot.
@@ -346,4 +355,4 @@ class MetricVsOrbitPoints(BasePlotter):
         plt.title(plot_dict["title"])
         plt.xlabel(plot_dict["xlabel"])
         plt.ylabel(plot_dict["ylabel"])
-        return fig.number
+        return fig
