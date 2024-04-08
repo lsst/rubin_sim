@@ -19,4 +19,5 @@ george
 scikit-learn
 shapely
 skyfield
+skyproj
 rubin-scheduler
