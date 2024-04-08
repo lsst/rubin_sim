@@ -117,6 +117,12 @@ class SkyprojPlotter(BasePlotter, abc.ABC):
                 "skyproj": skyproj.MollweideSkyproj,
                 "skyproj_kwargs": {"lon_0": 0},
                 "decorations": self.default_decorations,
+                "title": None,
+                "xlabel": None,
+                "label": None,
+                "labelsize": None,
+                "fontsize": None,
+                "figsize": None,
             }
         )
         self._initialize_plot_dict({})
@@ -269,10 +275,14 @@ class SkyprojPlotter(BasePlotter, abc.ABC):
 
         Notes
         -----
-        This method relies on the site location and time (as an mjd) set in
+        For decorations that depend on the time or location of the observer
+        (e.g., the horizon and sun and moon positions)
+        this method relies on the site location and time (as an mjd) set in
         the ``model_observatory`` element of the ``plot_dict``, which
         should be of the class
         `rubin_scheduler.scheduler.model_observatory.ModelObservatory`.
+        Other decorations (e.g., the ecliptic and galactic plane) can
+        be shown even when ``model_observatory`` is not set.
         """
         decorations = self.plot_dict["decorations"]
 
@@ -321,12 +331,19 @@ class SkyprojPlotter(BasePlotter, abc.ABC):
         self.draw(metric_values, slicer)
         self.decorate()
 
-        # Do not show axis labels unless they are specified as decorators.
-        if "xlabel" not in self.plot_dict["decorations"]:
-            self.skyproj.set_xlabel("", visible=False)
+        # Do not show axis labels unless they are set explicitly
+        # or specified as decorators.
+        if self.plot_dict["xlabel"] is None:
+            if "xlabel" not in self.plot_dict["decorations"]:
+                self.skyproj.set_xlabel("", visible=False)
+        else:
+            self.skyproj.set_xlabel(self.plot_dict["xlabel"])
 
-        if "ylabel" not in self.plot_dict["decorations"]:
-            self.skyproj.set_ylabel("", visible=False)
+        if self.plot_dict["ylabel"] is None:
+            if "ylabel" not in self.plot_dict["decorations"]:
+                self.skyproj.set_ylabel("", visible=False)
+        else:
+            self.skyproj.set_ylabel(self.plot_dict["ylabel"])
 
         if self.plot_dict["label"] is not None:
             label_kwargs = {}
