@@ -790,9 +790,9 @@ class MetricBundle:
         Returns
         -------
         made_plots : `dict`
-            Dictionary of plot_type:figure number key/value pairs,
+            Dictionary of plot_type:figure key/value pairs,
             indicating what plots were created
-            and what matplotlib figure numbers were used.
+            and what matplotlib figures were used.
         """
         # Generate a plot_handler if none was set.
         if plot_handler is None:
@@ -808,10 +808,10 @@ class MetricBundle:
         plot_handler.set_plot_dicts(plot_dicts=[self.plot_dict], reset=True)
         made_plots = {}
         if plot_func is not None:
-            fignum = plot_handler.plot(plot_func, outfile_suffix=outfile_suffix)
-            made_plots[plot_func.plotType] = fignum
+            fig = plot_handler.plot(plot_func, outfile_suffix=outfile_suffix)
+            made_plots[plot_func.plotType] = fig
         else:
             for plot_func in self.plot_funcs:
-                fignum = plot_handler.plot(plot_func, outfile_suffix=outfile_suffix)
-                made_plots[plot_func.plot_type] = fignum
+                fig = plot_handler.plot(plot_func, outfile_suffix=outfile_suffix)
+                made_plots[plot_func.plot_type] = fig
         return made_plots

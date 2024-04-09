@@ -6,8 +6,8 @@ from .neo_distance_plotter import *
 from .night_pointing_plotter import *
 from .oned_plotters import *
 from .perceptual_rainbow import *
-from .plot_bundle import *
 from .plot_handler import *
+from .skyproj_plotters import *
 from .spatial_plotters import *
 from .special_plotters import *
 from .two_d_plotters import *

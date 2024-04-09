@@ -290,7 +290,7 @@ class XRBPopMetric(BaseMetric):
         night_col="night",
         pts_needed=2,
         pts_early=2,
-        t_early=2,
+        t_early=7,
         mjd0=None,
         output_lc=False,
         badval=-666,

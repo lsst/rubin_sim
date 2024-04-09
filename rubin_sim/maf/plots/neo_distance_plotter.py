@@ -11,17 +11,21 @@ from .plot_handler import BasePlotter
 
 class NeoDistancePlotter(BasePlotter):
     """
-    Special plotter to calculate and plot the maximum distance an H=22 NEO could be observable to,
-    in any particular particular opsim observation.
+    Special plotter to calculate and plot the maximum distance an H=22 NEO
+    could be observable to, in any particular opsim observation.
+
+    Parameters
+    ----------
+    step : `float`, optional
+        Step size to use for radial bins. Default is 0.01 AU.
+    eclip_max, eclip_min : `float`, `float`, optional
+        Range of ecliptic latitude values to include when creating the plot.
     """
 
     def __init__(self, step=0.01, eclip_max=10.0, eclip_min=-10.0):
-        """
-        eclip_min/Max:  only plot observations within X degrees of the ecliptic plane
-        step: Step size to use for radial bins. Default is 0.01 AU.
-        """
         self.plot_type = "neoxyPlotter"
         self.object_plotter = True
+
         self.default_plot_dict = {
             "title": None,
             "xlabel": "X (AU)",
@@ -31,6 +35,7 @@ class NeoDistancePlotter(BasePlotter):
             "y_min": -0.25,
             "y_max": 2.5,
             "units": "Count",
+            "figsize": None,
         }
         self.filter2color = {
             "u": "purple",
@@ -45,26 +50,25 @@ class NeoDistancePlotter(BasePlotter):
         self.eclip_max = np.radians(eclip_max)
         self.eclip_min = np.radians(eclip_min)
 
-    def __call__(self, metric_value, slicer, user_plot_dict, fignum=None):
+    def __call__(self, metric_value, slicer, user_plot_dict, fig=None):
         """
         Parameters
         ----------
-        metric_value : numpy.ma.MaskedArray
-            Metric values calculated by rubin_sim.maf.metrics.PassMetric
-        slicer : rubin_sim.maf.slicers.UniSlicer
-        user_plot_dict: dict
-            Dictionary of plot parameters set by user (overrides default values).
-        fignum : int
-            Matplotlib figure number to use (default = None, starts new figure).
+        metric_value : `numpy.ma.MaskedArray`
+            The metric values from the bundle.
+        slicer : `rubin_sim.maf.slicers.TwoDSlicer`
+            The slicer.
+        user_plot_dict: `dict`
+            Dictionary of plot parameters set by user
+            (overrides default values).
+        fig : `matplotlib.figure.Figure`
+            Matplotlib figure number to use. Default = None, starts new figure.
 
         Returns
         -------
-        int
-           Matplotlib figure number used to create the plot.
+        fig : `matplotlib.figure.Figure`
+           Figure with the plot.
         """
-        fig = plt.figure(fignum)
-        ax = fig.add_subplot(111)
-
         in_plane = np.where(
             (metric_value[0]["eclipLat"] >= self.eclip_min) & (metric_value[0]["eclipLat"] <= self.eclip_max)
         )
@@ -72,6 +76,10 @@ class NeoDistancePlotter(BasePlotter):
         plot_dict = {}
         plot_dict.update(self.default_plot_dict)
         plot_dict.update(user_plot_dict)
+
+        if fig is None:
+            fig = plt.figure(plot_dict["figsize"])
+        ax = fig.add_subplot(111)
 
         planet_props = {"Earth": 1.0, "Venus": 0.72, "Mars": 1.52, "Mercury": 0.39}
 
@@ -82,7 +90,8 @@ class NeoDistancePlotter(BasePlotter):
         for planet in planets:
             ax.add_artist(planet)
 
-        # Let's make a 2-d histogram in polar coords, then convert and display in cartisian
+        # Let's make a 2-d histogram in polar coords,
+        # then convert and display in cartisian
 
         r_step = self.step
         rvec = np.arange(0, plot_dict["x_max"] + r_step, r_step)
@@ -105,7 +114,8 @@ class NeoDistancePlotter(BasePlotter):
             theta = np.arctan2(y - 1.0, x)
             diff = np.abs(thetavec - theta)
             theta_to_use = thetavec[np.where(diff == diff.min())]
-            # This is a slow where-clause, should be possible to speed it up using
+            # This is a slow where-clause, should be possible to speed it up
+            # using
             # np.searchsorted+clever slicing or hist2d to build up the map.
             good = np.where((thetagrid == theta_to_use) & (rgrid <= dist))
             H[good] += 1
@@ -126,4 +136,4 @@ class NeoDistancePlotter(BasePlotter):
         ax.plot([0], [1], marker="o", color="b")
         ax.plot([0], [0], marker="o", color="y")
 
-        return fig.number
+        return fig
