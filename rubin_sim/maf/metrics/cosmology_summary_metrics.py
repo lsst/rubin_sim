@@ -517,6 +517,12 @@ class UniformAreaFoMFractionMetric(BaseMetric):
                 new_map[expanded_labels != i + 1] = maskval
                 hp.visufunc.mollview(new_map, min=min, max=max)
             return get_area_stats(depth_map, labels, maskval=maskval, n_clusters=n_clusters)
+            
+        super().__init__(col="metricdata", **kwargs)
+        # Set mask_val, so that we receive metric_values.filled(mask_val)
+        self.mask_val = hp.UNSEEN
+
+    def run(self, data_slice, slice_point=None):
 
         def make_clustering_dataset(depth_map, maskval=0, priority_fac=0.9, nside=64):
             # A utility routine to get a dataset for unsupervised clustering.  Note:
@@ -555,6 +561,18 @@ class UniformAreaFoMFractionMetric(BaseMetric):
 
         # Check for stripiness
         stripes = has_stripes(data_slice_arr["riz_exptime"].ravel(), nside)
+            my_data[:, 0] = ra[depth_map > cutval] * (1 - priority_fac) * np.std(
+                depth_map[depth_map > cutval]) / np.std(ra[depth_map > cutval])
+            my_data[:, 1] = dec[depth_map > cutval] * (1 - priority_fac) * np.std(
+                depth_map[depth_map > cutval]) / np.std(dec[depth_map > cutval])
+            my_data[:, 2] = depth_map[depth_map > cutval]
+            return my_data
+
+            # Check for stripiness
+
+        nside = hp.npix2nside(data_slice.size)
+        self.threebyTwoSummary = StaticProbesFoMEmulatorMetric(nside=nside, metric_name="3x2ptFoM")
+        stripes = has_stripes(data_slice, nside)
 
         if not stripes:
             return 1
@@ -571,6 +589,16 @@ class UniformAreaFoMFractionMetric(BaseMetric):
                 print("Area fractions", area_frac)
                 print("Median exposure time values", med_val)
                 print("Median exposure time ratio", np.max(med_val) / np.min(med_val))
+            if verbose: print("Verbose mode - Carrying out the clustering exercise for this map")
+            clustering_data = make_clustering_dataset(map)
+            labels = apply_clustering(clustering_data)
+            area_frac, med_val = get_area_stats(data_slice, labels)
+            if verbose:
+                print("Verbose mode - showing original map and clusters identified for this map")
+                show_clusters(data_slice, labels)
+                print("Area fractions", area_frac)
+                print("Median exposure time values", med_val)
+                print("Median exposure time ratio", np.max(med_val)/np.min(med_val))
                 print("Verbose mode - proceeding with area cuts")
             # Get the FoM without/with cuts.  We want to check the FoM for each area, if we're doing cuts, and
             # return the higher one. This will typically be for the larger area, but not necessarily, if the smaller area
@@ -592,3 +620,16 @@ class UniformAreaFoMFractionMetric(BaseMetric):
             if self.verbose:
                 print("FOMs:", fom1, fom2, fom, fom_total)
             return fom / fom_total
+            expanded_labels = expand_labels(data_slice, labels)
+            my_hpid_1 = np.where(labels == 1)[0]
+            my_hpid_2 = np.where(labels == 2)[0]
+            data_slice_subset_1 = copy(data_slice)
+            data_slice[my_hpid_2] = hp.UNSEEN
+            data_slice_subset_2 = copy(data_slice)
+            data_slice[my_hpid_1] = hp.UNSEEN
+            fom1 = self.threebyTwoSummary.run(data_slice_subset_1)
+            fom2 = self.threebyTwoSummary.run(data_slice_subset_2)
+            fom = np.max((fom1, fom2))
+            fom_total = self.threebyTwoSummary.run(data_slice)
+            return fom / fom_total
+
