@@ -355,3 +355,96 @@ class TomographicClusteringSigma8biasMetric(BaseMetric):
             sigma8_error = 0.5 * sigma8square_error * sigma8_fit / sigma8square_fit
             results_sigma8_bias = (sigma8_fit - sigma8_model) / sigma8_error
             return results_sigma8_bias
+
+
+class UniformAreaFoMFractionMetric(BaseMetric):
+    """?
+    Run as summary metric on RIZDetectionCoaddExposureTime.
+
+    Parameters
+    ----------
+    ?
+
+    Returns
+    -------
+    ?
+
+    Notes
+    -----
+    ?
+    """
+
+    def __init__(
+            self,
+            **kwargs,
+    ):
+        super().__init__(col="metricdata", **kwargs)
+        # Set mask_val, so that we receive metric_values.filled(mask_val)
+        self.mask_val = hp.UNSEEN
+
+    def run(self, data_slice, slice_point=None):
+
+        def make_clustering_dataset(depth_map, maskval=0, priority_fac=0.9, nside=64):
+            # A utility routine to get a dataset for unsupervised clustering.  Note:
+            # - We want the unmasked regions of the depth map only.
+            # - We assume masked regions are set to `maskval`, and cut 0.1 magnitudes above that.
+            # - We really want it to look at depth fluctuations.  So, we have to rescale the
+            #   RA/dec dimensions to avoid them being prioritized because their values are larger and
+            #   have more variation than depth.  Currently we rescale RA/dec such that their
+            #   standard deviations are 1-priority_fac times the standard deviation of the depth map.
+            #   That's why priority_fac is a tunable parameter; it should be between 0 and 1
+            if priority_fac < 0 or priority_fac >= 1:
+                raise ValueError("priority_fac must lie between 0 and 1")
+            theta, phi = hp.pixelfunc.pix2ang(nside, ipix=np.arange(hp.nside2npix(nside)))
+            # theta is 0 at the north pole, pi/2 at equator, pi at south pole; phi maps to RA
+            ra = np.rad2deg(phi)
+            dec = np.rad2deg(0.5 * np.pi - theta)
+
+            # Make a 3D numpy array containing the unmasked regions, including a rescaling factor to prioritize the depth
+            n_unmasked = len(depth_map[depth_map > 0.1])
+            my_data = np.zeros((n_unmasked, 3))
+            cutval = 0.1 + maskval
+            my_data[:, 0] = ra[depth_map > cutval] * (1 - priority_fac) * np.std(
+                depth_map[depth_map > cutval]) / np.std(ra[depth_map > cutval])
+            my_data[:, 1] = dec[depth_map > cutval] * (1 - priority_fac) * np.std(
+                depth_map[depth_map > cutval]) / np.std(dec[depth_map > cutval])
+            my_data[:, 2] = depth_map[depth_map > cutval]
+            return my_data
+
+            # Check for stripiness
+
+        nside = hp.npix2nside(data_slice.size)
+        self.threebyTwoSummary = StaticProbesFoMEmulatorMetric(nside=nside, metric_name="3x2ptFoM")
+        stripes = has_stripes(data_slice, nside)
+
+        if not stripes:
+            return 1
+        else:
+            # Do the clustering if we got to this point
+            if verbose: print("Verbose mode - Carrying out the clustering exercise for this map")
+            clustering_data = make_clustering_dataset(map)
+            labels = apply_clustering(clustering_data)
+            area_frac, med_val = get_area_stats(data_slice, labels)
+            if verbose:
+                print("Verbose mode - showing original map and clusters identified for this map")
+                show_clusters(data_slice, labels)
+                print("Area fractions", area_frac)
+                print("Median exposure time values", med_val)
+                print("Median exposure time ratio", np.max(med_val)/np.min(med_val))
+                print("Verbose mode - proceeding with area cuts")
+            # Get the FoM without/with cuts.  We want to check the FoM for each area, if we're doing cuts, and
+            # return the higher one. This will typically be for the larger area, but not necessarily, if the smaller area
+            # is deeper.
+            expanded_labels = expand_labels(data_slice, labels)
+            my_hpid_1 = np.where(labels == 1)[0]
+            my_hpid_2 = np.where(labels == 2)[0]
+            data_slice_subset_1 = copy(data_slice)
+            data_slice[my_hpid_2] = hp.UNSEEN
+            data_slice_subset_2 = copy(data_slice)
+            data_slice[my_hpid_1] = hp.UNSEEN
+            fom1 = self.threebyTwoSummary.run(data_slice_subset_1)
+            fom2 = self.threebyTwoSummary.run(data_slice_subset_2)
+            fom = np.max((fom1, fom2))
+            fom_total = self.threebyTwoSummary.run(data_slice)
+            return fom / fom_total
+
