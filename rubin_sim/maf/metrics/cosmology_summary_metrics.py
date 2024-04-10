@@ -2,7 +2,7 @@ __all__ = (
     "TotalPowerMetric",
     "StaticProbesFoMEmulatorMetricSimple",
     "TomographicClusteringSigma8biasMetric",
-    "TomographicRedshiftFluctuationbiasMetric",
+    "UniformMeanzBiasMetric",
 )
 
 import warnings
