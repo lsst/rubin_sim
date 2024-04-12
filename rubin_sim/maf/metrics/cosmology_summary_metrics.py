@@ -9,6 +9,11 @@ import warnings
 import healpy as hp
 import numpy as np
 from scipy import interpolate
+from scipy.stats import median_abs_deviation
+from astropy import units as u
+from astropy.coordinates import SkyCoord
+from sklearn.cluster import KMeans
+from copy import deepcopy
 
 from ..maf_contrib.static_probes_fom_summary_metric import StaticProbesFoMEmulatorMetric
 from .area_summary_metrics import AreaThresholdMetric
@@ -226,6 +231,7 @@ class TomographicClusteringSigma8biasMetric(BaseMetric):
         super().__init__(col="metricdata", **kwargs)
         # Set mask_val, so that we receive metric_values.filled(mask_val)
         self.mask_val = hp.UNSEEN
+        self.badval = hp.UNSEEN
 
         self.convert_to_sigma8 = convert_to_sigma8
 
@@ -253,15 +259,12 @@ class TomographicClusteringSigma8biasMetric(BaseMetric):
         ]
         # should be (nbins, npix)
         data_slice_arr = np.asarray(data_slice_list, dtype=float).T
-        #hp.mollview(data_slice_arr[0])
-        data_slice_arr[data_slice_arr == -666] = (
-            hp.UNSEEN
-        )
+        # hp.mollview(data_slice_arr[0])
+        ### data_slice_arr[data_slice_arr == -666] = hp.UNSEEN  ############
         data_slice_arr[~np.isfinite(data_slice_arr)] = (
             hp.UNSEEN
         )  # need to work with TotalPowerMetric and healpix
 
-        
         # measure valid sky fractions and total power
         # (via angular power spectra) in each bin.
         # The original metric returns an array at each slice_point (of the
@@ -288,8 +291,8 @@ class TomographicClusteringSigma8biasMetric(BaseMetric):
             )
             / fskys
         )
-        print('spuriousdensitypowers:', spuriousdensitypowers)
-        print('fskys:', fskys)
+        print("spuriousdensitypowers:", spuriousdensitypowers)
+        print("fskys:", fskys)
 
         def solve_for_multiplicative_factor(spurious_powers, model_cells, fskys, lmin, power_multiplier):
             """
@@ -356,7 +359,7 @@ class TomographicClusteringSigma8biasMetric(BaseMetric):
             return results_sigma8_square_bias
 
         else:
-            
+
             # turn result into bias on sigma8,
             # via change of variable and simple propagation of uncertainty.
             sigma8_fit = sigma8square_fit**0.5
@@ -386,54 +389,74 @@ class UniformAreaFoMFractionMetric(BaseMetric):
     """
 
     def __init__(
-            self,
-            min_exptime=1000,
-            verbose=True, 
-            **kwargs,
+        self,
+        verbose=True,
+        nside=32,
+        **kwargs,
     ):
-        super().__init__(col="metricdata", **kwargs)
-        # Set mask_val, so that we receive metric_values.filled(mask_val)
-        self.min_exptime = min_exptime
         self.mask_val = hp.UNSEEN
-        self.verbose = verbose 
+        self.verbose = verbose
+        self.nside = nside
+        names = ["exgal_m5", "riz_exptime"]
+        types = [float] * 2
+        self.mask_val_arr = np.zeros(1, dtype=list(zip(names, types)))
+        self.mask_val_arr["exgal_m5"] = self.mask_val
+        self.mask_val_arr["riz_exptime"] = self.mask_val
+
+        self.threebyTwoSummary = StaticProbesFoMEmulatorMetric(
+            nside=nside, metric_name="3x2ptFoM", col="exgal_m5"
+        )
+        super().__init__(col="metricdata", **kwargs)
 
     def run(self, data_slice, slice_point=None):
+        data_slice_list = [
+            self.mask_val_arr if isinstance(x, float) else x for x in data_slice["metricdata"].tolist()
+        ]
+        data_slice_arr = np.asarray(data_slice_list, dtype=self.mask_val_arr.dtype)
+        if True:  # apply mask
+            ind = data_slice_arr["riz_exptime"] == hp.UNSEEN
+            ind |= data_slice_arr["riz_exptime"] == -666
+            # ind |= data_slice_arr['riz_exptime'] == 6066
+            ind |= ~np.isfinite(data_slice_arr["riz_exptime"])
+            # ind |= data_slice_arr['exgal_m5'] == 6066
+            ind |= data_slice_arr["exgal_m5"] == hp.UNSEEN
+            ind |= data_slice_arr["exgal_m5"] == -666
+            ind |= ~np.isfinite(data_slice_arr["exgal_m5"])
+            data_slice_arr["exgal_m5"][ind.ravel()] = hp.UNSEEN
+            data_slice_arr["riz_exptime"][ind.ravel()] = hp.UNSEEN
+        # sanity check
+        nside = hp.npix2nside(data_slice["metricdata"].size)
+        assert nside == self.nside
 
-        # cheap way to cut sky
-        data_slice[data_slice['metricdata'] < self.min_exptime] = (hp.UNSEEN, )
-        
         # Let's make code that pulls out the northern/southern galactic regions, and gets statistics of the footprint by region.
-        from astropy import units as u
-        from astropy.coordinates import SkyCoord
         def _is_ngp(ra, dec):
-            c = SkyCoord(ra=ra*u.degree, dec=dec*u.degree, frame='icrs')
+            c = SkyCoord(ra=ra * u.degree, dec=dec * u.degree, frame="icrs")
             lat = c.galactic.b.deg
             return lat >= 0
 
-        def get_stats_by_region(use_map, nside, maskval=0, region='all'):
-            if region not in ['all','north','south']:
-                raise ValueError('Invalid region %s'%region)
-            to_use = (use_map > maskval)
+        def get_stats_by_region(use_map, nside, maskval=0, region="all"):
+            if region not in ["all", "north", "south"]:
+                raise ValueError("Invalid region %s" % region)
+            to_use = use_map > maskval
 
-            if region != 'all':
+            if region != "all":
                 # Find the north/south part of the map as requested
                 npix = hp.nside2npix(nside)
                 ra, dec = hp.pix2ang(hp.npix2nside(npix), range(npix), lonlat=True)
                 ngp_mask = _is_ngp(ra, dec)
-                if region=='north':
+                if region == "north":
                     reg_mask = ngp_mask
-                else: 
+                else:
                     reg_mask = ~ngp_mask
                 to_use = to_use & reg_mask
 
             # Calculate the desired stats
-            from scipy.stats import median_abs_deviation
             reg_mad = median_abs_deviation(use_map[to_use])
             reg_median = np.median(use_map[to_use])
             reg_std = np.std(use_map[to_use])
 
             # Return the values
-            return(reg_mad, reg_median, reg_std)
+            return (reg_mad, reg_median, reg_std)
 
         def has_stripes(data_slice, nside, threshold=0.1):
             """
@@ -443,53 +466,55 @@ class UniformAreaFoMFractionMetric(BaseMetric):
             mad = {}
             med = {}
             frac_scatter = {}
-            regions = ['north', 'south']
+            regions = ["north", "south"]
             for region in regions:
                 mad[region], med[region], _ = get_stats_by_region(data_slice, nside, region=region)
-                frac_scatter[region] = mad[region]/med[region]
-            test_statistic = np.abs(frac_scatter['north']/frac_scatter['south']-1)
+                frac_scatter[region] = mad[region] / med[region]
+            test_statistic = np.abs(frac_scatter["north"] / frac_scatter["south"] - 1)
             if test_statistic < threshold:
                 return False
             else:
                 return True
-    
+
         def apply_clustering(clustering_data):
             # A thin wrapper around sklearn routines (can swap out which one we are using systematically).
             # We fix parameters like `n_clusters` since realistically we know for rolling that we should expect 2 clusters.
-            #from sklearn.cluster import SpectralClustering
-            #clustering = SpectralClustering(n_clusters=2, assign_labels='discretize', random_state=0).fit(clustering_data)
-            from sklearn.cluster import KMeans
+            # from sklearn.cluster import SpectralClustering
+            # clustering = SpectralClustering(n_clusters=2, assign_labels='discretize', random_state=0).fit(clustering_data)
+
             clustering = KMeans(n_clusters=2, random_state=0, n_init="auto").fit(clustering_data)
             labels = clustering.labels_ + 1
             return labels
-        
+
         def expand_labels(depth_map, labels, maskval=0):
             # A utility to apply the labels from a masked version of a depth map back to the entire depth map.
             expanded_labels = np.zeros(hp.nside2npix(nside))
-            cutval = maskval+0.1
-            expanded_labels[depth_map>cutval] = labels
+            cutval = maskval + 0.1
+            expanded_labels[depth_map > cutval] = labels
             return expanded_labels
+
         def get_area_stats(depth_map, labels, maskval=0, n_clusters=2):
             # A routine to get some statistics of the clustering: area fractions, median map values
             expanded_labels = expand_labels(depth_map, labels, maskval=maskval)
-            cutval = maskval+0.1
+            cutval = maskval + 0.1
             area_frac = []
             med_val = []
             for i in range(n_clusters):
                 new_map = depth_map.copy()
-                new_map[expanded_labels!=i+1] = maskval
-                this_area_frac = len(new_map[new_map>cutval])/len(depth_map[depth_map>cutval])
-                this_med_val = np.median(new_map[new_map>cutval])
+                new_map[expanded_labels != i + 1] = maskval
+                this_area_frac = len(new_map[new_map > cutval]) / len(depth_map[depth_map > cutval])
+                this_med_val = np.median(new_map[new_map > cutval])
                 area_frac.append(this_area_frac)
                 med_val.append(this_med_val)
             return area_frac, med_val
+
         def show_clusters(depth_map, labels, maskval=0, n_clusters=2, min=500, max=3000):
             # A routine to show the clusters found by the unsupervised clustering algorithm (start with original map then 2 clusters).
             expanded_labels = expand_labels(depth_map, labels, maskval=maskval)
             hp.visufunc.mollview(depth_map, min=min, max=max)
             for i in range(n_clusters):
                 new_map = depth_map.copy()
-                new_map[expanded_labels!=i+1] = maskval
+                new_map[expanded_labels != i + 1] = maskval
                 hp.visufunc.mollview(new_map, min=min, max=max)
             return get_area_stats(depth_map, labels, maskval=maskval, n_clusters=n_clusters)
 
@@ -513,49 +538,57 @@ class UniformAreaFoMFractionMetric(BaseMetric):
             n_unmasked = len(depth_map[depth_map > 0.1])
             my_data = np.zeros((n_unmasked, 3))
             cutval = 0.1 + maskval
-            my_data[:, 0] = ra[depth_map > cutval] * (1 - priority_fac) * np.std(
-                depth_map[depth_map > cutval]) / np.std(ra[depth_map > cutval])
-            my_data[:, 1] = dec[depth_map > cutval] * (1 - priority_fac) * np.std(
-                depth_map[depth_map > cutval]) / np.std(dec[depth_map > cutval])
+            my_data[:, 0] = (
+                ra[depth_map > cutval]
+                * (1 - priority_fac)
+                * np.std(depth_map[depth_map > cutval])
+                / np.std(ra[depth_map > cutval])
+            )
+            my_data[:, 1] = (
+                dec[depth_map > cutval]
+                * (1 - priority_fac)
+                * np.std(depth_map[depth_map > cutval])
+                / np.std(dec[depth_map > cutval])
+            )
             my_data[:, 2] = depth_map[depth_map > cutval]
             return my_data
 
-            # Check for stripiness
-
-        nside = hp.npix2nside(data_slice['metricdata'].size)
-        self.threebyTwoSummary = StaticProbesFoMEmulatorMetric(nside=nside, metric_name="3x2ptFoM")
-        stripes = has_stripes(data_slice['metricdata'], nside)
+        # Check for stripiness
+        stripes = has_stripes(data_slice_arr["riz_exptime"].ravel(), nside)
 
         if not stripes:
             return 1
         else:
             # Do the clustering if we got to this point
-            if self.verbose: print("Verbose mode - Carrying out the clustering exercise for this map")
-            clustering_data = make_clustering_dataset(data_slice['metricdata'], nside=nside)
+            if self.verbose:
+                print("Verbose mode - Carrying out the clustering exercise for this map")
+            clustering_data = make_clustering_dataset(data_slice_arr["riz_exptime"].ravel(), nside=nside)
             labels = apply_clustering(clustering_data)
-            area_frac, med_val = get_area_stats(data_slice['metricdata'], labels)
+            area_frac, med_val = get_area_stats(data_slice_arr["riz_exptime"].ravel(), labels)
             if self.verbose:
                 print("Verbose mode - showing original map and clusters identified for this map")
-                show_clusters(data_slice['metricdata'], labels)
+                show_clusters(data_slice_arr["riz_exptime"].ravel(), labels)
                 print("Area fractions", area_frac)
                 print("Median exposure time values", med_val)
-                print("Median exposure time ratio", np.max(med_val)/np.min(med_val))
+                print("Median exposure time ratio", np.max(med_val) / np.min(med_val))
                 print("Verbose mode - proceeding with area cuts")
             # Get the FoM without/with cuts.  We want to check the FoM for each area, if we're doing cuts, and
             # return the higher one. This will typically be for the larger area, but not necessarily, if the smaller area
             # is deeper.
-            expanded_labels = expand_labels(data_slice['metricdata'], labels)
-            my_hpid_1 = np.where(labels == 1)[0]
-            my_hpid_2 = np.where(labels == 2)[0]
-            from copy import copy
+            expanded_labels = expand_labels(data_slice_arr["riz_exptime"].ravel(), labels)
+            my_hpid_1 = expanded_labels == 1  # np.where(expanded_labels == 1)[0]
+            my_hpid_2 = expanded_labels == 2  # np.where(expanded_labels == 2)[0]
+            # should this be labels or expanded_labels?!
+
             # copies need to be recarrays
-            data_slice_subset_2 = copy(data_slice)
-            data_slice_subset_1 = copy(data_slice)
-            data_slice[my_hpid_2] = (hp.UNSEEN, )
-            data_slice[my_hpid_1] = (hp.UNSEEN, ) 
+            data_slice_subset_2 = deepcopy(data_slice_arr)
+            data_slice_subset_1 = deepcopy(data_slice_arr)
+            data_slice_subset_1[my_hpid_2] = self.mask_val_arr
+            data_slice_subset_2[my_hpid_1] = self.mask_val_arr
             fom1 = self.threebyTwoSummary.run(data_slice_subset_1)
             fom2 = self.threebyTwoSummary.run(data_slice_subset_2)
             fom = np.max((fom1, fom2))
-            fom_total = self.threebyTwoSummary.run(data_slice)
+            fom_total = self.threebyTwoSummary.run(data_slice_arr)
+            if self.verbose:
+                print("FOMs:", fom1, fom2, fom, fom_total)
             return fom / fom_total
-

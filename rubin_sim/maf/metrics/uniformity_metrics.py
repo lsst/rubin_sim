@@ -5,6 +5,7 @@ import healpy as hp
 
 from .base_metric import BaseMetric
 from .exgal_m5 import ExgalM5
+from .weak_lensing_systematics_metric import RIZDetectionCoaddExposureTime, ExgalM5WithCuts
 
 
 class SingleLinearMultibandModelMetric(BaseMetric):
@@ -332,8 +333,8 @@ class NestedRIZExptimeExgalM5Metric(BaseMetric):
 
         cols = [self.m5_col, self.filter_col, self.exptime_col]
         super().__init__(cols, metric_name=metric_name, maps=maps, badval=badval, **kwargs)
-        self.riz_exptime_metric = maf.RIZDetectionCoaddExposureTime(ebvlim=extinction_cut)
-        self.exgalm5_metric = maf.ExgalM5WithCuts(
+        self.riz_exptime_metric = RIZDetectionCoaddExposureTime(ebvlim=extinction_cut)
+        self.exgalm5_metric = ExgalM5WithCuts(
             m5_col=m5_col,
             filter_col=filter_col,
             extinction_cut=extinction_cut,
