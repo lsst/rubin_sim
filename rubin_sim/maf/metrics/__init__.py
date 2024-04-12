@@ -6,6 +6,7 @@ from .brown_dwarf_metric import *
 from .cadence_metrics import *
 from .calibration_metrics import *
 from .chip_vendor_metric import *
+from .cosmology_summary_metrics import *
 from .coverage_metric import *
 from .crowding_metric import *
 from .cumulative_metric import *
@@ -40,8 +41,10 @@ from .summary_metrics import *
 from .surfb_metric import *
 from .technical_metrics import *
 from .tgaps import *
+from .tomography_models import *
 from .transient_metrics import *
 from .use_metrics import *
+from .uniformity_metrics import *
 from .vector_metrics import *
 from .visit_groups_metric import *
 from .weak_lensing_systematics_metric import *
