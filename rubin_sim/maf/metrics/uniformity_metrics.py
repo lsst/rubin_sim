@@ -1,9 +1,11 @@
 __all__ = ("SingleLinearMultibandModelMetric", "NestedLinearMultibandModelMetric")
 
 import numpy as np
+import healpy as hp
 
 from .base_metric import BaseMetric
 from .exgal_m5 import ExgalM5
+from .weak_lensing_systematics_metric import RIZDetectionCoaddExposureTime, ExgalM5WithCuts
 
 
 class SingleLinearMultibandModelMetric(BaseMetric):
@@ -236,6 +238,7 @@ class NestedLinearMultibandModelMetric(BaseMetric):
 
         self.m5_col = m5_col
         self.badval = badval
+        self.mask_val = hp.UNSEEN
         self.filter_col = filter_col
         self.post_processing_fn = post_processing_fn
 
@@ -367,3 +370,52 @@ class MultibandExgalM5(BaseMetric):
             ).T
 
             return depths
+
+class NestedRIZExptimeExgalM5Metric(BaseMetric):
+    """TODO"""
+
+    def __init__(
+        self,
+        m5_col="fiveSigmaDepth",
+        filter_col="filter",
+        exptime_col="visitExposureTime",
+        extinction_cut=0.2,
+        n_filters=6,
+        depth_cut=24,
+        metric_name="new_nested_FoM",
+        lsst_filter="i",
+        badval=np.nan,
+        **kwargs,
+    ):
+        maps = ["DustMap"]
+        self.m5_col = m5_col
+        self.filter_col = filter_col
+        self.exptime_col = exptime_col
+        self.lsst_filter = lsst_filter
+        self.n_filters = n_filters
+
+        cols = [self.m5_col, self.filter_col, self.exptime_col]
+        super().__init__(cols, metric_name=metric_name, maps=maps, badval=badval, **kwargs)
+        self.riz_exptime_metric = RIZDetectionCoaddExposureTime(ebvlim=extinction_cut)
+        self.exgalm5_metric = ExgalM5WithCuts(
+            m5_col=m5_col,
+            filter_col=filter_col,
+            extinction_cut=extinction_cut,
+            depth_cut=depth_cut,
+            lsst_filter=lsst_filter,
+            badval=badval,
+            n_filters=n_filters,
+        )
+
+        self.metric_dtype = "object"
+
+    def run(self, data_slice, slice_point):
+
+        # set up array to hold the results
+        names = ["exgal_m5", "riz_exptime"]
+        types = [float] * 2
+        result = np.zeros(1, dtype=list(zip(names, types)))
+        result["exgal_m5"] = self.exgalm5_metric.run(data_slice, slice_point)
+        result["riz_exptime"] = self.riz_exptime_metric.run(data_slice, slice_point)
+
+        return result

@@ -187,20 +187,24 @@ class PeriodicStarModulationMetric(BaseMetric):
                     noise = np.random.randn(true_lc.size) * dmag
                     # Suppress warnings about failing on covariance
                     fit_obj = PeriodicStar(t_subrun["filter"])
-                    with warnings.catch_warnings():
-                        warnings.simplefilter("ignore")
-                        # If it fails to converge,
-                        # save values that should fail later
-                        try:
-                            parm_vals, pcov = curve_fit(
-                                fit_obj,
-                                t_subrun["time"],
-                                true_lc + noise,
-                                p0=true_params,
-                                sigma=dmag,
-                            )
-                        except RuntimeError:
-                            parm_vals = true_params * 0 + np.inf
+                    # check if we have enough points
+                    if np.size(true_params) >= np.size(fit_obj):
+                        parm_vals = true_params * 0 + np.inf
+                    else:
+                        with warnings.catch_warnings():
+                            warnings.simplefilter("ignore")
+                            # If it fails to converge,
+                            # save values that should fail later
+                            try:
+                                parm_vals, pcov = curve_fit(
+                                    fit_obj,
+                                    t_subrun["time"],
+                                    true_lc + noise,
+                                    p0=true_params,
+                                    sigma=dmag,
+                                )
+                            except RuntimeError:
+                                parm_vals = true_params * 0 + np.inf
                     fits[i, :] = parm_vals
 
                 # Throw out any magnitude fits if there are no
