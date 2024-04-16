@@ -364,6 +364,8 @@ class UniformMeanzBiasMetric(BaseMetric):
        the scatter in the redshift of the tomographic sample
     induced by survey non-uniformity. 
 
+    PREVIOUS UN-NESTED VERSION -- See Below for nested version inspired by Boris
+
     Parameters
     ----------
     year : `int`, optional
@@ -394,7 +396,7 @@ class UniformMeanzBiasMetric(BaseMetric):
 
     def run(self, data_slice, slice_point=None):
 
-        result = np.empty(1, dtype=[("name", np.str_, 20), ("value", float)])
+        result = np.empty(1, dtype=[("name", np.str_, 20), ("y1ratio", float),("y10ratio",float)])
         result["name"][0] = "UniformMeanzBiasMetric"
 
         def compute_dzfromdm(zbins, band_ind, year):
@@ -508,7 +510,7 @@ class UniformMeanzBiasMetric(BaseMetric):
 
         totdz=0
         avmeanz=0
-        clbiastot=0
+        totclbias=0
         for filt in self.filter_list:
             d_s = data_slice[data_slice[self.filter_col] == filt]
             # calculate the lsstFilter-band coadded depth
@@ -529,13 +531,213 @@ class UniformMeanzBiasMetric(BaseMetric):
         y10_req = 0.003
         y1_goal = 0.013
 
-        clbiastot = np.max(clbias)
-        y10ratio = clbiastot/y10_req
-        y1ratio = clbiastot/y1_goal
+        #clbiastot = np.max(clbias)
+        y10ratio = totclbias/y10_req
+        y1ratio = totclbias/y1_goal
 
         result["y1ratio"]=y1ratio
-        result["y10ratio"]=y1ratio
+        result["y10ratio"]=y10ratio
         
         return result
 
     
+class MultibandMeanzBiasMetric(BaseMetric):
+    """
+    Run as summary metric on MultibandExgalM5.
+
+    Parameters
+    ----------
+    will fill in asap
+
+    Returns
+    -------
+    result : `float`
+        
+
+    Notes
+    -----
+    This is a summary metric to be run on the results
+    of the MultibandExgalM5.
+
+    MultibandExgalM5 provides the m5 depth in all LSST bands given a specific slice.
+
+    This summary metric takes those depths and reads the derivatives [more to come here]...
+    """
+
+    def __init__(self, filter_list="filters",year=10, n_filters=6,**kwargs):
+        
+        super().__init__(col="metricdata", **kwargs)
+        # Set mask_val, so that we receive metric_values.filled(mask_val)
+        self.mask_val = hp.UNSEEN
+        self.rmsMetric = RmsMetric()
+        self.year = year
+        self.filter_list = filter_list
+
+    def run(self, data_slice, slice_point=None):
+
+        def compute_dzfromdm(zbins, band_ind, year):
+            """ This computes the dm/dz relationship calibrated from simulations
+            by Jeff Newmann.
+
+            Parameters
+            ----------
+            zbins : `int`
+                The number of tomographic bins considered. For now this is zbins < 5
+            filter : `str`
+                The assumed filter band 
+
+            Returns
+            -------
+            dzdminterp : `float` 
+                The interpolated value of the derivative dz/dm
+            meanzinterp : `float` array
+                The meanz in each tomographic bin.
+            
+            """
+            import pandas as pd
+
+            filter_list=["u","g","r","i","z","y"]
+            band_ind =filter_list.index(filter)
+            
+            deriv = pd.read_pickle('uniformity_pkl/meanzderiv.pkl')
+            # pkl file of derivatives with 10 years, 7 bands (ugrizY and combined), 5 bins
+            zvals = pd.read_pickle('uniformity_pkl/meanzsy%i.pkl'%(year+1)) 
+            # pkl file of mean z values for a given year over 5 z bins, 7 bands (ugrizY and combined),
+            # for a fixed delta density index (index 5 assumed below is for zero m_5 shift)
+            meanzinterp = zvals[0:zbins,band_ind,5]
+            dzdminterp = np.abs(deriv[year,band_ind,0:zbins])
+
+            return dzdminterp, meanzinterp
+
+
+        ## Not entirely sure if we should include these here or in a separate module/file
+        def use_zbins(meanz_vals, figure_9_mean_z=np.array([0.2, 0.4, 0.7, 1.0]),  figure_9_width=0.2):
+            """ This computes which redshift bands are within the range 
+            specified in https://arxiv.org/pdf/2305.15406.pdf and can safely be used
+            to compute what Cl bias result from z fluctuations caused by rms variations in the m5.
+
+
+            Parameters
+            ----------
+            meanz_vals : `float` array
+                Array of meanz values to be used.
+            
+            Returns
+            -------
+            use_bins : `boolean` array
+                An array of boolean values of length meanz_vals 
+            
+            """
+            max_z_use = np.max(figure_9_mean_z)+2*figure_9_width
+            use_bins = meanz_vals < max_z_use
+            
+            return use_bins
+
+        def compute_Clbias(meanz_vals,scatter_mean_z_values):
+            """ This computes the Cl bias 
+            that results z fluctuations caused by rms variations in the m5.
+
+            
+
+            Parameters
+            ----------
+            meanz_vals : `float` array
+                Array of meanz values to be used.
+
+            scatter_mean_z_values : `float` array
+                Array of rms values of the z fluctuations
+
+            
+            Returns
+            -------
+            clbiasvals : `float` array
+                An array of values of the clbias
+
+            mean_z_values_use :  `float` array
+                An array of the meanz values that are within the interpolation range of 2305.15406
+            
+            Notes
+            ------
+            This interpolates from the Figure 9 in https://arxiv.org/pdf/2305.15406.pdf
+
+            """
+            import numpy as np
+            figure_9_mean_z=np.array([0.2, 0.4, 0.7, 1.0])
+            figure_9_Clbias =np.array([1e-3, 2e-3, 5e-3, 1.1e-2])
+            figure_9_width=0.2
+            figure_9_mean_z_scatter = 0.02
+
+            mzvals= np.array([float(mz) for mz in meanz_vals])
+            sctz = np.array([float(sz)for sz in scatter_mean_z_values])
+            
+            fit_res = np.polyfit(figure_9_mean_z, figure_9_Clbias, 2)
+            poly_fit = np.poly1d(fit_res)
+            use_bins = use_zbins(meanz_vals,figure_9_mean_z, figure_9_width)
+
+            mean_z_values_use = mzvals[use_bins]
+            sctz_use = sctz[use_bins]
+
+            Clbias = poly_fit(mean_z_values_use)
+            rescale_fac =  sctz_use / figure_9_mean_z_scatter
+            Clbias *= rescale_fac
+            fit_res_bias = np.polyfit(mean_z_values_use, Clbias, 1)
+            poly_fit_bias = np.poly1d(fit_res_bias)
+
+            clbiasvals = poly_fit_bias(mean_z_values_use)
+            return clbiasvals, mean_z_values_use
+        
+
+        result = np.empty(1, dtype=[("name", np.str_, 20), ("y1ratio", float),("y10ratio",float)])
+        result["name"][0] = "MultibandMeanzBiasMetric"
+
+        # Technically don't need this for now (isn't used in previous one)
+        # need to define an array of bad values for the masked pixels
+        badval_arr = np.repeat(self.badval, len(self.filter_list))
+        # converts the input recarray to an array
+        data_slice_list = [
+            badval_arr if isinstance(x, float) else x for x in data_slice["metricdata"].tolist()
+        ]
+        # should be (nbins, npix)
+        data_slice_arr = np.asarray(data_slice_list, dtype=float).T
+        data_slice_arr[~np.isfinite(data_slice_arr)] = (
+            hp.UNSEEN
+        )  # need to work with TotalPowerMetric and healpix
+
+        # measure rms in each bin.
+        # The original metric returns an array at each slice_point (of the
+        # original slicer) -- so there is a bit of "rearrangement" that
+        # has to happen to be able to pass a np.array with right dtype
+        # (i.e. dtype = [("metricdata", float)]) to each call to
+        # the rmsMetric `run` methods.
+        rmsarray = np.array(
+            [
+                self.rmsMetric.run(np.core.records.fromrecords(x, dtype=[("metricdata", float)]))
+                for x in data_slice_arr
+            ]
+        )  # rms values
+        
+        totdz=0
+        avmeanz=0
+        totclbias=0
+
+        for i,filt in enumerate(self.filter_list):
+            dzdminterp, meanzinterp=compute_dzfromdm(self.zbins, filt,self.year)
+            stdz = [float(np.abs(dz))*float(rmsarray[i]) for dz in dzdminterp]
+    
+            clbias, meanz_use = compute_Clbias(meanzinterp,stdz)
+
+            totdz+=[float(st**2) for st in stdz]
+            totclbias+=clbias
+            avmeanz+=meanzinterp
+
+    # These should be included in self rather than hard coded
+        y10_req = 0.003
+        y1_goal = 0.013
+
+        #clbiastot = np.max(clbias) # if adding doesn't work over z range -- CHECK
+        y10ratio =totclbias/y10_req
+        y1ratio = totclbias/y1_goal
+
+        result["y1ratio"]=y1ratio
+        result["y10ratio"]=y10ratio
+
