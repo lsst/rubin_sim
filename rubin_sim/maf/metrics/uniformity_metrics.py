@@ -308,6 +308,69 @@ class NestedLinearMultibandModelMetric(BaseMetric):
         return result_arr
 
 
+class MultibandExgalM5(BaseMetric):
+    """Calculate multiple linear combinations of depths.
+
+    """
+
+    def __init__(
+        self,
+        extinction_cut=0.2,
+        n_filters=6,
+        m5_col="fiveSigmaDepth",
+        filter_col="filter",
+        units="mag",
+        badval=np.nan,
+        **kwargs,
+    ):
+        self.n_filters = n_filters
+        self.extinction_cut = extinction_cut
+
+        self.m5_col = m5_col
+        self.badval = badval
+        self.filter_col = filter_col
+
+        self.n_bins = len(self.arr_of_model_dicts)
+        self.bad_val_arr = np.repeat(self.badval, self.n_bins)
+
+        self.exgal_m5 = ExgalM5(
+            m5_col=m5_col,
+            filter_col=filter_col,
+            badval=self.badval,
+        )
+        super().__init__(
+            col=[m5_col, filter_col],
+            badval=self.badval,
+            units=units,
+            maps=self.exgal_m5.maps,
+            metric_dtype="object",
+            **kwargs,
+        )
+
+        def run(self, data_slice, slice_point=None):
+            # apply extinction and n_filters cut
+            if slice_point["ebv"] > self.extinction_cut:
+                return self.bad_val_arr
+
+            n_filters = len(set(data_slice[self.filter_col]))
+            if n_filters < self.n_filters:
+                return self.bad_val_arr
+
+            lsst_filters = ["u", "g", "r", "i", "z", "y"]
+
+            # initialize dictionary of outputs
+            # types = [float]*n_bins
+            result_arr = np.zeros((self.n_bins,), dtype=float)
+
+            depths = np.vstack(
+                [
+                    self.exgal_m5.run(data_slice[data_slice[self.filter_col] == lsst_filter], slice_point)
+                    for lsst_filter in lsst_filters
+                ]
+            ).T
+
+            return depths
+
 class NestedRIZExptimeExgalM5Metric(BaseMetric):
     """TODO"""
 
