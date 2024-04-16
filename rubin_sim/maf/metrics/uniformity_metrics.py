@@ -330,8 +330,8 @@ class MultibandExgalM5(BaseMetric):
         self.badval = badval
         self.filter_col = filter_col
 
-        self.n_bins = len(self.arr_of_model_dicts)
-        self.bad_val_arr = np.repeat(self.badval, self.n_bins)
+        self.lsst_filters = ["u", "g", "r", "i", "z", "y"]
+        self.bad_val_arr = np.repeat(self.badval, len(self.lsst_filters))
 
         self.exgal_m5 = ExgalM5(
             m5_col=m5_col,
@@ -347,29 +347,24 @@ class MultibandExgalM5(BaseMetric):
             **kwargs,
         )
 
-        def run(self, data_slice, slice_point=None):
-            # apply extinction and n_filters cut
-            if slice_point["ebv"] > self.extinction_cut:
-                return self.bad_val_arr
+    def run(self, data_slice, slice_point=None):
+        # apply extinction and n_filters cut
+        if slice_point["ebv"] > self.extinction_cut:
+            return self.bad_val_arr
 
-            n_filters = len(set(data_slice[self.filter_col]))
-            if n_filters < self.n_filters:
-                return self.bad_val_arr
+        n_filters = len(set(data_slice[self.filter_col]))
+        if n_filters < self.n_filters:
+            return self.bad_val_arr
 
-            lsst_filters = ["u", "g", "r", "i", "z", "y"]
 
-            # initialize dictionary of outputs
-            # types = [float]*n_bins
-            result_arr = np.zeros((self.n_bins,), dtype=float)
+        depths = np.vstack(
+            [
+                self.exgal_m5.run(data_slice[data_slice[self.filter_col] == lsst_filter], slice_point)
+                for lsst_filter in self.lsst_filters
+            ]
+        ).T
 
-            depths = np.vstack(
-                [
-                    self.exgal_m5.run(data_slice[data_slice[self.filter_col] == lsst_filter], slice_point)
-                    for lsst_filter in lsst_filters
-                ]
-            ).T
-
-            return depths
+        return depths.ravel()
 
 class NestedRIZExptimeExgalM5Metric(BaseMetric):
     """TODO"""

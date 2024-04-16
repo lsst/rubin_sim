@@ -19,6 +19,7 @@ from copy import deepcopy
 from ..maf_contrib.static_probes_fom_summary_metric import StaticProbesFoMEmulatorMetric
 from .area_summary_metrics import AreaThresholdMetric
 from .base_metric import BaseMetric
+from .simple_metrics import RmsMetric
 
 # Cosmology-related summary metrics.
 # These generally calculate a FoM for various DESC metrics.
@@ -176,6 +177,8 @@ class TomographicClusteringSigma8biasMetric(BaseMetric):
     """Compute bias on sigma8 due to spurious contamination of density maps.
     Run as summary metric on NestedLinearMultibandModelMetric.
 
+    point of contact / contributors: TODO
+    
     Parameters
     ----------
     density_tomograph_model : `dict`
@@ -373,7 +376,6 @@ class TomographicClusteringSigma8biasMetric(BaseMetric):
 
           
 class UniformMeanzBiasMetric(BaseMetric):
-    import maf
 
     """This calculates the bias in the weak lensing power given 
        the scatter in the redshift of the tomographic sample
@@ -579,11 +581,12 @@ class MultibandMeanzBiasMetric(BaseMetric):
     This summary metric takes those depths and reads the derivatives [more to come here]...
     """
 
-    def __init__(self, filter_list="filters",year=10, n_filters=6,**kwargs):
+    def __init__(self, filter_list=["u","g","r","i","z","y"] ,year=10, n_filters=6,**kwargs):
         
         super().__init__(col="metricdata", **kwargs)
         # Set mask_val, so that we receive metric_values.filled(mask_val)
         self.mask_val = hp.UNSEEN
+        self.badval = hp.UNSEEN
         self.rmsMetric = RmsMetric()
         self.year = year
         self.filter_list = filter_list
@@ -712,6 +715,7 @@ class MultibandMeanzBiasMetric(BaseMetric):
         data_slice_list = [
             badval_arr if isinstance(x, float) else x for x in data_slice["metricdata"].tolist()
         ]
+        lengths = np.array([len(x) for x in data_slice_list])
         # should be (nbins, npix)
         data_slice_arr = np.asarray(data_slice_list, dtype=float).T
         data_slice_arr[~np.isfinite(data_slice_arr)] = (
@@ -760,6 +764,8 @@ class UniformAreaFoMFractionMetric(BaseMetric):
     """?
     Run as summary metric on RIZDetectionCoaddExposureTime.
 
+    point of contact / contributors: TODO
+    
     Parameters
     ----------
     ?
