@@ -77,7 +77,10 @@ class HourglassMetric(BaseMetric):
         # pre_night MJD values
         m_after = self.observer.midnight(times, "next")
         m_before = self.observer.midnight(times, "previous")
-        midnights = np.unique(np.concatenate([m_before.mjd, m_after.mjd]))
+        try:
+            midnights = np.unique(np.concatenate([m_before.mjd, m_after.mjd]).filled(np.nan))
+        except AttributeError:
+            midnights = np.unique(np.concatenate([m_before.mjd, m_after.mjd]))
         # calculating midnight can return nans? That seems bad.
         midnights = midnights[np.isfinite(midnights)]
         # chop off any repeats. Need to round because observe.midnight
