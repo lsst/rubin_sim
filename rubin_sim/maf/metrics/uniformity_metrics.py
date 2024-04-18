@@ -401,6 +401,10 @@ class NestedRIZExptimeExgalM5Metric(BaseMetric):
             badval=badval,
             n_filters=n_filters,
         )
+        #self.exgalm5_metric = ExgalM5(
+        #    m5_col=m5_col,
+        #    filter_col=filter_col
+        #)
 
         self.metric_dtype = "object"
 
@@ -410,7 +414,8 @@ class NestedRIZExptimeExgalM5Metric(BaseMetric):
         names = ["exgal_m5", "riz_exptime"]
         types = [float] * 2
         result = np.zeros(1, dtype=list(zip(names, types)))
-        result["exgal_m5"] = self.exgalm5_metric.run(data_slice, slice_point)
-        result["riz_exptime"] = self.riz_exptime_metric.run(data_slice[data_slice[self.filter_col] == 'i'], slice_point)
+        result["exgal_m5"] = self.exgalm5_metric.run(data_slice, slice_point)  # if using ExgalM5WithCuts
+        #result["exgal_m5"] = self.exgalm5_metric.run(data_slice[data_slice[self.filter_col] == 'i'], slice_point) # if using ExgalM5
+        result["riz_exptime"] = self.riz_exptime_metric.run(data_slice, slice_point) 
 
         return result

@@ -781,10 +781,12 @@ class UniformAreaFoMFractionMetric(BaseMetric):
 
     def __init__(
         self,
+        year,
         verbose=True,
         nside=32,
         **kwargs,
     ):
+        self.year = year
         self.mask_val = hp.UNSEEN
         self.verbose = verbose
         self.nside = nside
@@ -945,7 +947,8 @@ class UniformAreaFoMFractionMetric(BaseMetric):
             return my_data
 
         # Check for stripiness
-        stripes = has_stripes(data_slice_arr["riz_exptime"].ravel(), nside)
+        use_threshold = 0.7/self.year
+        stripes = has_stripes(data_slice_arr["riz_exptime"].ravel(), nside, threshold=use_threshold)
 
         if not stripes:
             return 1
