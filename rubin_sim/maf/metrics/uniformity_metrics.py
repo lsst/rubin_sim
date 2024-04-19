@@ -159,6 +159,8 @@ class NestedLinearMultibandModelMetric(BaseMetric):
     for multiple redshift bins (thus it is a nested metric).
     For a single bin, see LinearMultibandModelMetric.
 
+    Points of contact / contributors: Boris Leistedt
+
     Parameters
     ----------
     arr_of_model_dicts : `list` [ `dicts` ]
@@ -309,9 +311,7 @@ class NestedLinearMultibandModelMetric(BaseMetric):
 
 
 class MultibandExgalM5(BaseMetric):
-    """Calculate multiple linear combinations of depths.
-
-    """
+    """Calculate multiple linear combinations of depths."""
 
     def __init__(
         self,
@@ -356,7 +356,6 @@ class MultibandExgalM5(BaseMetric):
         if n_filters < self.n_filters:
             return self.bad_val_arr
 
-
         depths = np.vstack(
             [
                 self.exgal_m5.run(data_slice[data_slice[self.filter_col] == lsst_filter], slice_point)
@@ -366,8 +365,39 @@ class MultibandExgalM5(BaseMetric):
 
         return depths.ravel()
 
+
 class NestedRIZExptimeExgalM5Metric(BaseMetric):
-    """TODO"""
+    """
+    This is a simple wrapper metric which returns values of both RIZDetectionCoaddExposureTime and ExgalM5WithCuts
+    in a recarray with cvolumns ["exgal_m5", "riz_exptime"]
+
+    Points of contact / contributors: Rachel Mandelbaum, Boris Leistedt
+
+    Parameters
+    ----------
+    extinction_cut : `float`, optional
+        E(B-V) cut on extinction (0.2 by default) (for ExgalM5WithCuts).
+    n_filters : `int`, optional
+        Cut on the number of filters required (6 by default) (for ExgalM5WithCuts).
+    lsst_filter : `str`, optional
+        The filter choice for ExgalM5WithCuts
+    exptime_col: `str`, optional
+        Column name for the exposure time (for RIZDetectionCoaddExposureTime).
+    m5_col : `str`, optional
+        Column name for the m5 depth (for ExgalM5WithCuts).
+    filter_col : `str`, optional
+        Column name for the filter.
+    units : `str`, optional
+        Label for "units" in the output, for use in plots.
+    badval : `float`, optional
+        Value to return for metric failure.
+
+    Returns
+    -------
+    result : `recarray`, np.array(dtype=[("exgal_m5", float), ("riz_exptime", float)])
+        The values of RIZDetectionCoaddExposureTime and ExgalM5WithCuts
+
+    """
 
     def __init__(
         self,
@@ -401,10 +431,6 @@ class NestedRIZExptimeExgalM5Metric(BaseMetric):
             badval=badval,
             n_filters=n_filters,
         )
-        #self.exgalm5_metric = ExgalM5(
-        #    m5_col=m5_col,
-        #    filter_col=filter_col
-        #)
 
         self.metric_dtype = "object"
 
@@ -415,7 +441,6 @@ class NestedRIZExptimeExgalM5Metric(BaseMetric):
         types = [float] * 2
         result = np.zeros(1, dtype=list(zip(names, types)))
         result["exgal_m5"] = self.exgalm5_metric.run(data_slice, slice_point)  # if using ExgalM5WithCuts
-        #result["exgal_m5"] = self.exgalm5_metric.run(data_slice[data_slice[self.filter_col] == 'i'], slice_point) # if using ExgalM5
-        result["riz_exptime"] = self.riz_exptime_metric.run(data_slice, slice_point) 
+        result["riz_exptime"] = self.riz_exptime_metric.run(data_slice, slice_point)
 
         return result

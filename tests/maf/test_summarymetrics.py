@@ -77,5 +77,6 @@ class TestSummaryMetrics(unittest.TestCase):
         result = metric.run(data)
         np.testing.assert_equal(result, np.ones(10, float) + 5.5)
 
+
 if __name__ == "__main__":
     unittest.main()
