@@ -47,7 +47,7 @@ class WFDlabelStacker(BaseStacker):
         area_id_name="WFD",
         ra_col="fieldRA",
         dec_col="fieldDec",
-        note_col="note",
+        note_col="scheduler_note",
         exclude_dd=True,
     ):
         self.ra_col = ra_col

@@ -147,6 +147,7 @@ class TestStackerClasses(unittest.TestCase):
             self.assertAlmostEqual(dra_on_night.max(), 0)
             self.assertAlmostEqual(ddec_on_night.max(), 0)
 
+<<<<<<< HEAD
     def test_random_dither(self):
         """
         Test the random dither pattern.
@@ -246,6 +247,8 @@ class TestStackerClasses(unittest.TestCase):
         # Check that g band visits weren't dithered.
         rot_offsets = rot_tel_pos - random_dithers
         self.assertEqual(rot_offsets[gvisits].all(), 0)
+=======
+>>>>>>> 212bdbfc (swap note to scheduler_note)
 
     def test_ha_stacker(self):
         """Test the Hour Angle stacker"""

@@ -568,7 +568,7 @@ def science_radar_batch(
     for yr_cut in yrs:
         ptsrc_lim_mag_i_band = mag_cuts[yr_cut]
         sqlconstraint = "night <= %s" % (yr_cut * 365.25 + 0.5)
-        sqlconstraint += ' and note not like "DD%"'
+        sqlconstraint += ' and scheduler_note not like "DD%"'
         info_label = f"{bandpass} band non-DD year {yr_cut}"
         ThreebyTwoSummary_simple = metrics.StaticProbesFoMEmulatorMetricSimple(
             nside=nside, year=yr_cut, metric_name="3x2ptFoM_simple"
@@ -614,7 +614,7 @@ def science_radar_batch(
     plotDict = {"n_ticks": 5}
     # Have to include all filters in query to check for filter coverage.
     # Galaxy numbers calculated using 'bandpass' images only though.
-    sqlconstraint = 'note not like "DD%"'
+    sqlconstraint = 'scheduler_note not like "DD%"'
     info_label = f"{bandpass} band galaxies non-DD"
     metric = maf.DepthLimitedNumGalMetric(
         nside=nside,
@@ -654,7 +654,7 @@ def science_radar_batch(
     subgroupCount += 1
     displayDict["subgroup"] = f"{subgroupCount}: WL"
     displayDict["order"] = 0
-    sqlconstraint = 'note not like "DD%" and (filter="g" or filter="r" or filter="i")'
+    sqlconstraint = 'scheduler_note not like "DD%" and (filter="g" or filter="r" or filter="i")'
     info_label = "gri band non-DD"
     minExpTime = 15
     m = metrics.WeakLensingNvisits(
@@ -686,7 +686,7 @@ def science_radar_batch(
     for year in np.arange(1, 10):
         displayDict["order"] = year
         sqlconstraint = (
-            'note not like "DD%"'
+            'scheduler_note not like "DD%"'
             + ' and (filter="g" or filter="r" or filter="i") and night < %i' % (year * 365.25)
         )
         m = metrics.WeakLensingNvisits(
@@ -722,7 +722,7 @@ def science_radar_batch(
         bundleList.append(bundle)
 
         sqlconstraint = (
-            'note not like "DD%"'
+            'scheduler_note not like "DD%"'
             + ' and (filter="r" or filter="i" or filter="z") and night < %i' % (year * 365.25)
         )
         m = metrics.WeakLensingNvisits(
@@ -781,7 +781,7 @@ def science_radar_batch(
     # Kuiper per year in gri and riz
     for year in np.arange(1, 10):
         sqlconstraint = (
-            'note not like "DD%"'
+            'scheduler_note not like "DD%"'
             + ' and (filter="g" or filter="r" or filter="i") and night < %i' % (year * 365.25)
         )
         metric1 = metrics.KuiperMetric("rotSkyPos", metric_name="Kuiper_rotSkyPos_gri_year%i" % year)
@@ -835,7 +835,7 @@ def science_radar_batch(
     bundle = mb.MetricBundle(
         metric,
         snslicer,
-        "note not like '%DD%'",
+        "scheduler_note not like '%DD%'",
         plot_dict=plotDict,
         display_dict=displayDict,
         info_label="DDF excluded",
@@ -858,7 +858,7 @@ def science_radar_batch(
 
     # Calculate the number of expected QSOs, in each band
     for f in filterlist:
-        sql = filtersqls[f] + ' and note not like "%DD%"'
+        sql = filtersqls[f] + ' and scheduler_note not like "%DD%"'
         md = filterinfo_label[f] + " and non-DD"
         summaryMetrics = [metrics.SumMetric(metric_name="Total QSO")]
         zmin = 0.3
@@ -1359,7 +1359,7 @@ def science_radar_batch(
     bundle = mb.MetricBundle(
         metric,
         kneslicer,
-        "note not like 'DD%'",
+        "scheduler_note not like 'DD%'",
         run_name=runName,
         info_label="single model",
         summary_metrics=lightcurve_summary(),
@@ -1381,7 +1381,7 @@ def science_radar_batch(
     bundle = mb.MetricBundle(
         metric_allkne,
         kneslicer_allkne,
-        "note not like 'DD%'",
+        "scheduler_note not like 'DD%'",
         run_name=runName,
         info_label="all models",
         summary_metrics=lightcurve_summary(),

@@ -26,8 +26,6 @@ def col_map_dict(dict_name=None):
         col_map["seeingGeom"] = "seeingFwhmGeom"
         col_map["skyBrightness"] = "skyBrightness"
         col_map["moonDistance"] = "moonDistance"
-        col_map["fieldId"] = "fieldId"
-        col_map["proposalId"] = "proposalId"
         col_map["slewactivities"] = {}
         col_map["metadataList"] = [
             "airmass",
@@ -41,7 +39,7 @@ def col_map_dict(dict_name=None):
             "saturation_mag",
         ]
         col_map["metadataAngleList"] = ["rotSkyPos"]
-        col_map["note"] = "note"
+        col_map["scheduler_note"] = "scheduler_note"
 
     elif dict_name == "opsimv4":
         col_map = {}
