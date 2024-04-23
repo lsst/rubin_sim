@@ -144,7 +144,7 @@ def glanceBatch(
         bundle_list.append(bundle)
 
     # alt az of long gaps
-    sql = "note = 'long'"
+    sql = "scheduler_note = 'long'"
     metric = metrics.CountMetric(colmap["mjd"], metric_name="Nvisits long")
     bundle = metric_bundles.MetricBundle(
         metric,
@@ -156,7 +156,7 @@ def glanceBatch(
     )
     bundle_list.append(bundle)
 
-    sql = "note like 'blob_long%'"
+    sql = "scheduler_note like 'blob_long%'"
     metric = metrics.CountMetric(colmap["mjd"], metric_name="Nvisits blob long")
     bundle = metric_bundles.MetricBundle(
         metric,
@@ -168,7 +168,7 @@ def glanceBatch(
     )
     bundle_list.append(bundle)
 
-    sql = "note like '%neo%' or note like '%near_sun%'"
+    sql = "scheduler_note like '%neo%' or scheduler_note like '%near_sun%'"
     metric = metrics.CountMetric(colmap["mjd"], metric_name="Nvisits twilight near sun")
     bundle = metric_bundles.MetricBundle(
         metric,
@@ -182,7 +182,7 @@ def glanceBatch(
 
     # alt,az pf ToO
 
-    sql = "note like 'ToO%'"
+    sql = "scheduler_note like 'ToO%'"
     metric = metrics.CountMetric(colmap["mjd"], metric_name="Nvisits long")
     bundle = metric_bundles.MetricBundle(
         metric,
@@ -277,7 +277,7 @@ def glanceBatch(
         bundle_list.append(bundle)
 
     # Make a cumulative plot of a WFD spot
-    sql = "note not like '%NEO%' and note not like '%near_sun%'"
+    sql = "scheduler_note not like '%NEO%' and scheduler_note not like '%near_sun%'"
     uslicer = slicers.UserPointsSlicer(ra=0, dec=-20)
     metric = metrics.CumulativeMetric()
     metricb = metric_bundles.MetricBundle(
@@ -362,16 +362,16 @@ def glanceBatch(
     )
     bundle_list.append(bundle)
 
-    # stats from the note column
-    if "note" in colmap.keys():
+    # stats from the scheduler_note column
+    if "scheduler_note" in colmap.keys():
         displayDict = {"group": "Basic Stats", "subgroup": "Percent stats"}
-        metric = metrics.StringCountMetric(col=colmap["note"], percent=True, metric_name="Percents")
+        metric = metrics.StringCountMetric(col=colmap["scheduler_note"], percent=True, metric_name="Percents")
         sql = ""
         slicer = slicers.UniSlicer()
         bundle = metric_bundles.MetricBundle(metric, slicer, sql, display_dict=displayDict)
         bundle_list.append(bundle)
         displayDict["subgroup"] = "Count Stats"
-        metric = metrics.StringCountMetric(col=colmap["note"], metric_name="Counts")
+        metric = metrics.StringCountMetric(col=colmap["scheduler_note"], metric_name="Counts")
         bundle = metric_bundles.MetricBundle(metric, slicer, sql, display_dict=displayDict)
         bundle_list.append(bundle)
 
@@ -381,7 +381,7 @@ def glanceBatch(
     displayDict["subgroup"] = ""
     for ddf in ddf_surveys:
         label = ddf.replace("DD:", "")
-        sql = 'note like "%s%%"' % ("DD:" + label)
+        sql = 'scheduler_note like "%s%%"' % ("DD:" + label)
         slicer = slicers.UniSlicer()
         metric = metrics.CumulativeMetric()
         metricb = metric_bundles.MetricBundle(
@@ -515,7 +515,7 @@ def glanceBatch(
         lat_lon_deg=colmap["raDecDeg"],
     )
     for filtername in filternames:
-        sql = "filter='%s' and note like 'ToO%%'" % filtername
+        sql = "filter='%s' and scheduler_note like 'ToO%%'" % filtername
         metric = metrics.CountMetric(col=colmap["mjd"], metric_name="N ToO")
         bundle = metric_bundles.MetricBundle(
             metric,
@@ -528,7 +528,9 @@ def glanceBatch(
         )
         bundle_list.append(bundle)
 
-    too_sqls = ["note like 'ToO, %" + "t%i'" % hour for hour in [0, 1, 2, 4, 24, 48]] + ["note like 'ToO, %'"]
+    too_sqls = ["scheduler_note like 'ToO, %" + "t%i'" % hour for hour in [0, 1, 2, 4, 24, 48]] + [
+        "scheduler_note like 'ToO, %'"
+    ]
     slicer = slicers.UniSlicer()
     for sql in too_sqls:
         metric = metrics.CountMetric(col="night")

@@ -86,7 +86,7 @@ class SNNSNMetric(BaseMetric):
         nexp_col="numExposures",
         vistime_col="visitTime",
         seeing_col="seeingFwhmEff",
-        note_col="note",
+        note_col="scheduler_note",
         season=[-1],
         coadd_night=True,
         zmin=0.1,

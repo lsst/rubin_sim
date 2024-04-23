@@ -147,7 +147,7 @@ class BlockIntervalSlicer(TimeIntervalSlicer):
         self,
         mjd_column_name="observationStartMJD",
         duration_column_name="visitTime",
-        note_column_name="note",
+        note_column_name="scheduler_note",
         badval=np.NaN,
         verbose=False,
     ):
@@ -171,7 +171,7 @@ class BlockIntervalSlicer(TimeIntervalSlicer):
             columns={
                 self.mjd_column_name: "mjd",
                 self.duration_column_name: "duration",
-                self.note_column_name: "note",
+                self.note_column_name: "scheduler_note",
             },
             inplace=True,
         )

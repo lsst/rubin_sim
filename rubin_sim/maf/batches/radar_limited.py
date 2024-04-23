@@ -529,7 +529,7 @@ def radar_limited(
     for yr_cut in yrs:
         ptsrc_lim_mag_i_band = mag_cuts[yr_cut]
         sqlconstraint = "night <= %s" % (yr_cut * 365.25 + 0.5)
-        sqlconstraint += ' and note not like "DD%"'
+        sqlconstraint += ' and scheduler_note not like "DD%"'
         info_label = f"{bandpass} band non-DD year {yr_cut}"
         ThreebyTwoSummary_simple = metrics.StaticProbesFoMEmulatorMetricSimple(
             nside=nside, year=yr_cut, metric_name="3x2ptFoM_simple"
@@ -581,7 +581,7 @@ def radar_limited(
     subgroupCount += 1
     displayDict["subgroup"] = f"{subgroupCount}: WL"
     displayDict["order"] = 0
-    sqlconstraint = 'note not like "DD%" and (filter="g" or filter="r" or filter="i")'
+    sqlconstraint = 'scheduler_note not like "DD%" and (filter="g" or filter="r" or filter="i")'
     info_label = "gri band non-DD"
     minExpTime = 15
     m = metrics.WeakLensingNvisits(
@@ -612,7 +612,7 @@ def radar_limited(
     # Do the weak lensing per year
     for year in [10]:
         sqlconstraint = (
-            'note not like "DD%"'
+            'scheduler_note not like "DD%"'
             + ' and (filter="g" or filter="r" or filter="i") and night < %i' % (year * 365.25)
         )
         m = metrics.WeakLensingNvisits(
@@ -648,7 +648,7 @@ def radar_limited(
         bundleList.append(bundle)
 
         sqlconstraint = (
-            'note not like "DD%"'
+            'scheduler_note not like "DD%"'
             + ' and (filter="r" or filter="i" or filter="z") and night < %i' % (year * 365.25)
         )
         m = metrics.WeakLensingNvisits(
@@ -741,7 +741,7 @@ def radar_limited(
     bundle = mb.MetricBundle(
         metric,
         snslicer,
-        "note not like '%DD%'",
+        "scheduler_note not like '%DD%'",
         plot_dict=plotDict,
         display_dict=displayDict,
         info_label="DDF excluded",
@@ -925,7 +925,7 @@ def radar_limited(
     bundle = mb.MetricBundle(
         metric,
         kneslicer,
-        "note not like 'DD%'",
+        "scheduler_note not like 'DD%'",
         run_name=runName,
         info_label="single model",
         summary_metrics=lightcurve_summary(),
@@ -947,7 +947,7 @@ def radar_limited(
     bundle = mb.MetricBundle(
         metric_allkne,
         kneslicer_allkne,
-        "note not like 'DD%'",
+        "scheduler_note not like 'DD%'",
         run_name=runName,
         info_label="all models",
         summary_metrics=lightcurve_summary(),

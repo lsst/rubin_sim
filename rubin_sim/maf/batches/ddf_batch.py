@@ -474,7 +474,7 @@ def ddfBatch(
             for f in filterlist:
                 fieldsqls[f] = sqls[f]
         else:
-            fieldsql = f"note like '%{fieldname}%'"
+            fieldsql = f"scheduler_note like '%{fieldname}%'"
             for f in filterlist:
                 if len(sqls[f]) > 0:
                     fieldsqls[f] = fieldsql + " and " + sqls[f]
