@@ -7,10 +7,10 @@ import numpy as np
 from astropy import units as u
 from astropy.coordinates import SkyCoord
 from astropy.time import Time
-from rubin_sim.data import get_data_dir
 from rubin_scheduler.utils import Site, _alt_az_pa_from_ra_dec, calc_lmst
 
 import rubin_sim.maf.stackers as stackers
+from rubin_sim.data import get_data_dir
 from rubin_sim.maf import get_sim_data
 
 try:
@@ -568,6 +568,7 @@ class TestStackerClasses(unittest.TestCase):
         with open(os.devnull, "w") as new_target:
             sys.stdout = new_target
             stackers.BaseStacker.help(doc=True)
+
 
 if __name__ == "__main__":
     unittest.main()
