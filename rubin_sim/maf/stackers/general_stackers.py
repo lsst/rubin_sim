@@ -543,6 +543,11 @@ class OverheadStacker(BaseStacker):
         self.exposure_time_col = exposure_time_col
         self.units = ["seconds"]
         self.day_obs_mjd_stacker = DayObsMJDStacker(self.mjd_col)
+        self.cols_req = [self.mjd_col,
+                         self.visit_time_col,
+                         self.exposure_time_col]
+        self.cols_req.extend(self.day_obs_mjd_stacker.cols_req)
+        self.cols_req = list(set(self.cols_req))
 
     def _run(self, sim_data, cols_present=False):
         if cols_present:
