@@ -25,21 +25,24 @@ from .date_stackers import DayObsMJDStacker
 
 
 class SaturationStacker(BaseStacker):
-    """Calculate the saturation limit of a point source. Assumes Guassian PSF.
+    """Adds a calculated point-source saturation limit for each visit.
+
+    Assumes Gaussian PSF.
 
     Parameters
     ----------
-    pixscale : float, optional (0.2)
-        Arcsec per pixel
-    saturation_e : float, optional (150e3)
-        The saturation level in electrons
-    zeropoints : dict-like, optional (None)
-        The zeropoints for the telescope. Keys should be str with filter names,
-        values in mags.
-        If None, will use Rubin-like zeropoints.
-    km : dict-like, optional (None)
-        Atmospheric extinction values.  Keys should be str with filter names.
-        If None, will use Rubin-like zeropoints.
+    pixscale : `float`, optional
+        Arcsec per pixel.
+    saturation_e : `float`, optional
+        The saturation level in electrons.
+    zeropoints : dict-like, optional
+        The zeropoints for the telescope.
+        Keys should be str with filter names, values in mags.
+        Default of None, will use Rubin calculated zeropoints.
+    km : dict-like, optional
+        Atmospheric extinction values.
+        Keys should be str with filter names.
+        If None, will use Rubin calculated atmospheric extinction values.
     """
 
     cols_added = ["saturation_mag"]
@@ -122,6 +125,20 @@ class FiveSigmaStacker(BaseStacker):
 
     This is generally not needed, unless the m5 parameters have been updated
     or m5 was not previously calculated.
+
+    Parameters
+    ----------
+    airmass_col : `str`, optional
+        Name of the airmass column in the data.
+    seeing_col : `str`, optional
+        Name of the seeing column in the data.
+        (FWHM of the single-Gaussian PSF)
+    skybrightness_col : `str`, optional
+        Name of the skybrightness column in the data.
+    filter_col : `str`, optional
+        Name of the filter bandpass column in the data.
+    exptime_col : `str`, optional
+        Name of the on-sky exposure time column in the data.
     """
 
     cols_added = ["m5_simsUtils"]
@@ -166,7 +183,24 @@ class FiveSigmaStacker(BaseStacker):
 
 
 class NormAirmassStacker(BaseStacker):
-    """Calculate the normalized airmass for each opsim pointing."""
+    """Adds a calculated normairmass for each pointing.
+
+    The normalized airmass is the airmass divided by the minimum airmass
+    achievable at each pointing (which is defined by the declination of
+    the field).
+
+    Parameters
+    ----------
+    airmass_col : `str`, optional
+        The name of the airmass column in the data.
+    dec_col : `str`, optional
+        The name of the declination column in the data.
+    degrees : `bool`, optional
+        If True, angle columns are assumed to be in degrees and returned in
+        degrees. If False, uses and calculates radians.
+    telescope_lat : `float`, optional
+        The latitude of the telescope, in degrees.
+    """
 
     cols_added = ["normairmass"]
 
@@ -185,14 +219,13 @@ class NormAirmassStacker(BaseStacker):
         self.degrees = degrees
 
     def _run(self, sim_data, cols_present=False):
-        """Calculate new column for normalized airmass."""
         # Run method is required to calculate column.
         # Driver runs getColInfo to know what columns are needed from db &
         # which are calculated,  then gets data from db and then calculates
         # additional columns (via run methods here).
         if cols_present:
-            # Column already present in data; assume it is correct and does not
-            # need recalculating.
+            # Column already present in data; assume it is correct
+            # and does not need recalculating.
             return sim_data
         dec = sim_data[self.dec_col]
         if self.degrees:
@@ -204,10 +237,17 @@ class NormAirmassStacker(BaseStacker):
 
 
 class ZenithDistStacker(BaseStacker):
-    """Calculate the zenith distance for each pointing.
-    If 'degrees' is True, then assumes alt_col is in degrees and returns
-    degrees.
-    If 'degrees' is False, assumes alt_col is in radians and returns radians.
+    """Adds a calculated zenithDistance value for each pointing.
+
+    Parameters
+    ----------
+    alt_col : `str`, optional
+        The name of the altitude column in the data.
+    degrees : `bool`, optional
+        If True, data in alt_col is in degrees, and values for zenithDistance
+        will be in degrees. (Default).
+        If False, data in alt_col is in radians and zenithDistance values
+        will be in radians.
     """
 
     cols_added = ["zenithDistance"]
@@ -235,8 +275,20 @@ class ZenithDistStacker(BaseStacker):
 
 
 class ParallaxFactorStacker(BaseStacker):
-    """Calculate the parallax factors for each opsim pointing.
-    Output parallax factor in arcseconds."""
+    """Add a parallax factor (in arcseconds) column for each visit.
+
+    Parameters
+    ----------
+    ra_col : `str`, optional
+        Name of the RA column in the data.
+    dec_col : `str`, optional
+        Name of the declination column in the data.
+    date_col : `str`, optional
+        Name of the exposure start time column in the data.
+        Date should be in units of MJD.
+    degrees : `bool`, optional
+        If true, assumes angles are in degrees. If False, radians.
+    """
 
     cols_added = ["ra_pi_amp", "dec_pi_amp"]
 
@@ -255,10 +307,7 @@ class ParallaxFactorStacker(BaseStacker):
         self.degrees = degrees
 
     def _gnomonic_project_toxy(self, ra1, dec1, r_acen, deccen):
-        """Calculate x/y projection of ra1/dec1 in system with center at
-        r_acen, Deccenp.
-        Input radians.
-        """
+        # ra, dec values in RADIANS
         # also used in Global Telescope Network website
         cosc = np.sin(deccen) * np.sin(dec1) + np.cos(deccen) * np.cos(dec1) * np.cos(ra1 - r_acen)
         x = np.cos(dec1) * np.sin(ra1 - r_acen) / cosc
@@ -267,8 +316,8 @@ class ParallaxFactorStacker(BaseStacker):
 
     def _run(self, sim_data, cols_present=False):
         if cols_present:
-            # Column already present in data; assume it is correct and does not
-            # need recalculating.
+            # Column already present in data; assume it is correct
+            # and does not need recalculating.
             return sim_data
         ra_pi_amp = np.zeros(np.size(sim_data), dtype=[("ra_pi_amp", "float")])
         dec_pi_amp = np.zeros(np.size(sim_data), dtype=[("dec_pi_amp", "float")])
@@ -296,8 +345,8 @@ class ParallaxFactorStacker(BaseStacker):
 
 
 class DcrStacker(BaseStacker):
-    """Calculate the RA,Dec offset expected for an object due to differential
-    chromatic refraction.
+    """Add columns representing the expected RA/Dec offsets expected for
+    an object due to differential chromatic refraction, per visit.
 
     For DCR calculation, we also need zenithDistance, HA, and PA -- but these
     will be explicitly handled within this stacker so that setup is consistent
@@ -306,29 +355,32 @@ class DcrStacker(BaseStacker):
 
     Parameters
     ----------
-    filter_col : str
-        The name of the column with filter names. Default 'fitler'.
-    altCol : str
+    filter_col : `str`, optional
+        The name of the column with filter names. Default 'filter'.
+    altCol : `str`, optional
         Name of the column with altitude info. Default 'altitude'.
-    ra_col : str
+    ra_col : `str`, optional
         Name of the column with RA. Default 'fieldRA'.
-    dec_col : str
+    dec_col : `str`, optional
         Name of the column with Dec. Default 'fieldDec'.
-    lstCol : str
+    lstCol : `str`, optional
         Name of the column with local sidereal time. Default
         'observationStartLST'.
-    site : str or rubin_sim.utils.Site
-        Name of the observory or a rubin_sim.utils.Site object. Default 'LSST'.
-    mjdCol : str
-        Name of column with modified julian date. Default 'observationStartMJD'
+    site : `str` or `rubin_scheduler.utils.Site`, optional
+        Name of the observory or a rubin_scheduler.utils.Site object.
+        Default 'LSST'.
+    mjdCol : `str`, optional
+        Name of column with modified julian date.
+        Default 'observationStartMJD'
     dcr_magnitudes : dict
-        Magitude of the DCR offset for each filter at altitude/zenith distance
-        of 45 degrees. Defaults u=0.07, g=0.07, r=0.50, i=0.045, z=0.042,
-        y=0.04 (all arcseconds).
+        Magnitude of the DCR offset for each filter at an
+        altitude/zenith distance of 45 degrees.
+        Defaults u=0.07, g=0.07, r=0.50, i=0.045, z=0.042, y=0.04
+        (all values should be in arcseconds).
 
     Returns
     -------
-    numpy.array
+    data : `numpy.array`
         Returns array with additional columns 'ra_dcr_amp' and 'dec_dcr_amp'
         with the DCR offsets for each observation.  Also runs ZenithDistStacker
         and ParallacticAngleStacker.
@@ -410,8 +462,17 @@ class DcrStacker(BaseStacker):
 
 
 class HourAngleStacker(BaseStacker):
-    """Add the Hour Angle for each observation.
-    Always in HOURS.
+    """Add the Hour Angle (in decimal hours) for each observation.
+
+    Parameters
+    ----------
+    lst_col : `str`, optional
+        Name of the LST column in the data.
+    ra_col : `str`, optional
+        Name of the RA column in the data.
+    degrees : `bool`, optional
+        If True, assumes angles (RA and LST) are in degrees.
+        If False, assumes radians.
     """
 
     cols_added = ["HA"]
@@ -453,9 +514,24 @@ class HourAngleStacker(BaseStacker):
 
 
 class ParallacticAngleStacker(BaseStacker):
-    """Add the parallactic angle to each visit.
-    If 'degrees' is True, this will be in degrees (as are all other angles). If
-    False, then in radians.
+    """Add the calculated parallactic angle to each visit.
+
+    Parameters
+    ----------
+    ra_col : `str`, optional
+        Name of the RA column in the data.
+    dec_col : `str`, optional
+        Name of the declination column in the data.
+    degrees : `bool`, optional
+        If True, assumes ra and dec in degrees and returns Parallactic Angle
+        in degrees. If False, assumes and returns radians.
+    mjd_col : `str`, optional
+        Name of the observation MJD column in the data.
+    lst_col : `str`, optional
+        Name of the LST column in the data.
+    site : `str` or `rubin_scheduler.utils.Site`, optional
+        Name of the observory or a rubin_scheduler.utils.Site object.
+        Default 'LSST'.
     """
 
     cols_added = ["PA"]
@@ -518,12 +594,13 @@ class OverheadStacker(BaseStacker):
         Defaults to infinity.
     mjd_col : `str`, optional
         The name of the column with the observation start MJD.
-        Defaults to "obsevationStartMJD".
+        Defaults to "observationStartMJD".
     visit_time_col : `str`, optional
-        The name of the column with the total visit time.
+        The name of the column with the total visit time (on-sky plus
+        shutter and other overheads).
         Defaults to "visitTime".
     exposure_time_col : `str`, optional
-        The name of the column with the visit exposure time.
+        The name of the column with the visit on-sky exposure time.
         Defaults to "visitExposureTime."
     """
 
@@ -553,9 +630,12 @@ class OverheadStacker(BaseStacker):
             # need recalculating.
             return sim_data
 
-        # Count all non-exposure time between the end of the previous exposure
-        # and the end of the current exposure as overhead for the current
-        # exposure.
+        # Count overhead as any time from the shutter close of the previous
+        # visit, to the shutter close of the current visit, minus the
+        # current on-sky exposure time.
+        # This is all non-exposure time required for this visit --
+        # includes slew time to this target, any shutter overheads for this
+        # visit, and any readouts not absorbed in slewtime for this visit.
         observation_end_mjd = sim_data[self.mjd_col] + sim_data[self.visit_time_col] / (24 * 60 * 60)
         overhead = (
             np.diff(observation_end_mjd, prepend=np.nan) * 24 * 60 * 60 - sim_data[self.exposure_time_col]
@@ -571,8 +651,8 @@ class OverheadStacker(BaseStacker):
 
         # If the gap includes a change of night, it isn't really overhead. For
         # most reasonable finite values of self.max_gap, this is never
-        # relevant, but it's somethimes useful to set max_gap to inifinity to
-        # catch all delays in the night. (The the comment above.) But, in
+        # relevant, but it's sometimes useful to set max_gap to inifinity to
+        # catch all delays in the night. (The comment above.) But, in
         # even in this case, we would still not want to include gaps between
         # nights.
         day_obs_mjd = self.day_obs_mjd_stacker.run(sim_data)["day_obs_mjd"]
