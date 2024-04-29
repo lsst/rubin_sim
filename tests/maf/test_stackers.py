@@ -1,4 +1,5 @@
 import os
+import sys
 import unittest
 import warnings
 
@@ -6,10 +7,10 @@ import numpy as np
 from astropy import units as u
 from astropy.coordinates import SkyCoord
 from astropy.time import Time
-from rubin_scheduler.data import get_data_dir
 from rubin_scheduler.utils import Site, _alt_az_pa_from_ra_dec, calc_lmst
 
 import rubin_sim.maf.stackers as stackers
+from rubin_sim.data import get_data_dir
 from rubin_sim.maf import get_sim_data
 
 try:
@@ -561,6 +562,12 @@ class TestStackerClasses(unittest.TestCase):
         # Make sure all measured values are correct
         these_gaps = ~np.isnan(measured_overhead)
         self.assertTrue(np.allclose(measured_overhead[these_gaps], overheads[these_gaps]))
+
+    def testHelp(self):
+        # essentially, test that every stacker has cols_req and cols_added
+        with open(os.devnull, "w") as new_target:
+            sys.stdout = new_target
+            stackers.BaseStacker.help(doc=True)
 
 
 if __name__ == "__main__":

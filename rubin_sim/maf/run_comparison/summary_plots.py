@@ -242,7 +242,7 @@ def plot_run_metric(
             if baseline_run is None
             else normalize_metric_summaries(baseline_run, summary, metric_sets=metric_set)
         )
-        .stack(dropna=False)
+        .stack(future_stack=True)
         .rename("value")
         .reset_index()
         .rename(columns={"OpsimRun": "run"})

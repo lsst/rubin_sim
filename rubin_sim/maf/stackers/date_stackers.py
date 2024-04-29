@@ -21,6 +21,7 @@ class ObservationStartDatetime64Stacker(BaseStacker):
         mjd_col="observationStartMJD",
     ):
         self.mjd_col = mjd_col
+        self.cols_req = [self.mjd_col]
         self.units = [None]
         self.cols_added_dtypes = ["datetime64[ns]"]
 
@@ -76,6 +77,7 @@ class DayObsStacker(BaseStacker):
 
     def __init__(self, mjd_col="observationStartMJD"):
         self.mjd_col = mjd_col
+        self.cols_req = [self.mjd_col]
         self.units = ["days"]
         self.cols_added_dtypes = [int]
 
@@ -102,6 +104,7 @@ class DayObsMJDStacker(BaseStacker):
 
     def __init__(self, mjd_col="observationStartMJD"):
         self.mjd_col = mjd_col
+        self.cols_req = [self.mjd_col]
         self.units = ["days"]
         self.cols_added_dtypes = [int]
 
@@ -127,6 +130,7 @@ class DayObsISOStacker(BaseStacker):
 
     def __init__(self, mjd_col="observationStartMJD"):
         self.mjd_col = mjd_col
+        self.cols_req = [self.mjd_col]
         self.units = [None]
         self.cols_added_dtypes = [(str, 10)]
 
