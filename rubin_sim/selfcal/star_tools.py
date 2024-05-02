@@ -1,7 +1,6 @@
 __all__ = ("stars_project", "assign_patches")
 
 import numpy as np
-
 from rubin_scheduler.utils import gnomonic_project_toxy
 
 
