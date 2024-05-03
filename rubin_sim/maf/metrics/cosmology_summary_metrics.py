@@ -1027,7 +1027,17 @@ class UniformAreaFoMFractionMetric(BaseMetric):
     """
     Run as summary metric on NestedRIZExptimeExgalM5Metric.
 
-    This metric StaticProbesFoMEmulatorMetric
+    This metric uses maps of the combined RIZ exposure time and i-band depth maps (with a consistent set of area cuts)
+    to identify potential reductions in cosmological constraining power due to substantial large-scale power
+    in non-uniform coadds at a particular data release.
+    The RIZ exposure time map is used to identify whether there are residual rolling features.
+    If not, the metric returns 1. If there are such features, then the region is segmented into similar-depth regions
+    and the one with the largest cosmological constraining power is presumed to be used for science.
+    In that case, the metric returns the 3x2pt FoM (StaticProbesFoMEmulatorMetric,
+    quantifying weak lensing and large-scale structure constraining power) for the largest of those regions,
+    divided by that for the full region if it had been usable.
+
+
 
     Points of contact / contributors: Rachel Mandelbaum, Boris Leistedt
 
