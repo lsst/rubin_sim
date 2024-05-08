@@ -1,9 +1,9 @@
-__all__ = ("DENSITY_TOMOGRAPHY_MODEL",)
+__all__ = ("DENSITY_TOMOGRAPHY_MODEL","MEANZ_TOMOGRAPHY_MODEL")
 
 import numpy as np
 
 """A dictionary of TOMOGRAPHY models for use with the
-cosmology summary metrics (TomographicClusteringSigma8bias).
+cosmology summary metrics (TomographicClusteringSigma8bias, MultibandMeanzBiasMetric).
 
 This dictionary is derived from work shown in 
 https://github.com/ixkael/ObsStrat/blob/
@@ -43,6 +43,22 @@ romanrubinmock_for_sigma8tomoghy.ipynb
 # https://github.com/ixkael/ObsStrat/blob/meanz_uniformity_maf/code/
 # meanz_uniformity/romanrubinmock_for_sigma8tomography.ipynb
 
+# The MEANZ_TOMOGRAPHY_MODEL contains a nested dictionary of:
+
+# 'meanz' whichh is the redshift per band
+# 'dz_dm5' the absolute value of the derivative of z in a bin as a function 
+# of the depth, m5 magnitude
+# this is later used to translate fluctuations in depth to fluctuations in tomographic
+# redshift 
+
+# The first set of keys are the years (year1, ..., year10),
+# since this would change typical depth and galaxy catalog cuts.
+# In what follows we have 5 tomographic bins.
+
+# Each dictionary must have keys that are the lsst bands.
+# If some are missing they are ignored in the linear model.
+# These badnpasses are the ones which will be fed to
+# NestedLinearMultibandModelMetric.
 
 DENSITY_TOMOGRAPHY_MODEL = {
     "year1": {
@@ -1048,8 +1064,7 @@ DENSITY_TOMOGRAPHY_MODEL = {
 }
 
 
-# meanz is redshift per band
-# dz_dm5 is the absolute value of derivative
+
 MEANZ_TOMOGRAPHY_MODEL = {
     'year1': {
         'dz_dm5': [
