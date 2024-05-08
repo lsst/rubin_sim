@@ -2,7 +2,7 @@ __all__ = (
     "TotalPowerMetric",
     "StaticProbesFoMEmulatorMetricSimple",
     "TomographicClusteringSigma8biasMetric",
-    "UniformMeanzBiasMetric",
+    "MultibandMeanzBiasMetric",
 )
 
 import warnings
@@ -825,11 +825,26 @@ class MultibandMeanzBiasMetric(BaseMetric):
 
     Parameters
     ----------
-    will fill in asap
+    year : `int`, optional
+        The year of the survey to calculate the bias.
+        This is used to derive the dm/dz derivative used to translate m5 rms into dz rms.
+
+    meanz_tomograph_model : `dict`
+        dictionary containing models calculated for fiducial N(z):
+
+        meanz: numpy.float 
+            the meanz within a tomographic bin at a given band
+        dz_dm5: numpy.float
+            the absolute value of the derivative of z in a bin as a function 
+            of the depth, m5 magnitude. This is later used to translate fluctuations
+            in depth to fluctuations in tomographic redshift
 
     Returns
     -------
-    result : `float`
+    result : `float` array
+        The ratio of this bias to the desired DESC y1 upper bound on the bias, and the ratio
+        between the clbias and the y10 DESC SRD requirement.
+        Desired values are less than 1 by Y10.
 
 
     Notes
@@ -839,10 +854,15 @@ class MultibandMeanzBiasMetric(BaseMetric):
 
     MultibandExgalM5 provides the m5 depth in all LSST bands given a specific slice.
 
-    This summary metric takes those depths and reads the derivatives [more to come here]...
+    This summary metric takes those depths and reads the derivatives from the tomogrpahic model, 
+    computes the bias in shear signal Cl and then computes the ratio of that bias to the Y1 goal and
+    Y10 science requirement. 
     """
 
-    def __init__(self, filter_list=["u", "g", "r", "i", "z", "y"], year=10, n_filters=6, **kwargs):
+    def __init__(self, 
+                 meanz_tomography_model,
+                 filter_list=["u", "g", "r", "i", "z", "y"], 
+                 year=10, n_filters=6, **kwargs):
 
         super().__init__(col="metricdata", **kwargs)
         # Set mask_val, so that we receive metric_values.filled(mask_val)
@@ -854,9 +874,9 @@ class MultibandMeanzBiasMetric(BaseMetric):
 
     def run(self, data_slice, slice_point=None):
 
-        def compute_dzfromdm(zbins, band_ind, year):
+        def compute_dzfromdm(zbins, model_z, band_ind, year):
             """This computes the dm/dz relationship calibrated from simulations
-            by Jeff Newmann.
+            by Jeff Newmann and Qianjun Hang, which forms the meanz_tomographic_model.
 
             Parameters
             ----------
@@ -864,10 +884,12 @@ class MultibandMeanzBiasMetric(BaseMetric):
                 The number of tomographic bins considered. For now this is zbins < 5
             filter : `str`
                 The assumed filter band
+            model_z: dict
+                The meanz_tomographic_model assumed in this work
 
             Returns
             -------
-            dzdminterp : `float`
+            dzdminterp : `float` array
                 The interpolated value of the derivative dz/dm
             meanzinterp : `float` array
                 The meanz in each tomographic bin.
@@ -876,15 +898,12 @@ class MultibandMeanzBiasMetric(BaseMetric):
             import pandas as pd
 
             filter_list = ["u", "g", "r", "i", "z", "y"]
-            band_ind = filter_list.index(filter)
+            meanzinterp=np.zeros(zbins)
+            dzdminterp=np.zeros(zbins)
 
-            deriv = pd.read_pickle("uniformity_pkl/meanzderiv.pkl")
-            # pkl file of derivatives with 10 years, 7 bands (ugrizY and combined), 5 bins
-            zvals = pd.read_pickle("uniformity_pkl/meanzsy%i.pkl" % (year + 1))
-            # pkl file of mean z values for a given year over 5 z bins, 7 bands (ugrizY and combined),
-            # for a fixed delta density index (index 5 assumed below is for zero m_5 shift)
-            meanzinterp = zvals[0:zbins, band_ind, 5]
-            dzdminterp = np.abs(deriv[year, band_ind, 0:zbins])
+            for z in range(zbins):
+                meanzinterp[z]=model_z["year%i"%(year+1)]["meanz"][z][filter]
+                dzdminterp[z] =model_z["year%i"%(year+1)]["dz_dm5"][z][filter]
 
             return dzdminterp, meanzinterp
 
