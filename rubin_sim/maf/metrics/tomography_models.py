@@ -55,6 +55,12 @@ romanrubinmock_for_sigma8tomoghy.ipynb
 # since this would change typical depth and galaxy catalog cuts.
 # In what follows we have 5 tomographic bins.
 
+# the mean z values for a given year over 5 z bins were taken from Jeff Newman and Qianjun Hang's 
+# code which originally produced results for 7 bands (ugrizY and combined)
+# 
+# We are assuming a fixed delta density index (we pulled from index 5 
+# in the is for zero m_5 shift) in Qianjun's simulation
+
 # Each dictionary must have keys that are the lsst bands.
 # If some are missing they are ignored in the linear model.
 # These badnpasses are the ones which will be fed to
