@@ -5,6 +5,7 @@ __all__ = (
     "normalize_metric_summaries",
     "plot_run_metric",
     "plot_run_metric_mesh",
+    "plot_run_metric_uncert",
     "find_family_lines",
 )
 
@@ -30,7 +31,7 @@ METRIC_COL_NAMES = ["metric"]
 def normalize_metric_summaries(
     baseline_run,
     summary,
-    metric_sets=None,
+    metric_subsets=None,
 ):
     """Create a normalized `pandas.DataFrame` of metric summary values.
 
@@ -38,11 +39,13 @@ def normalize_metric_summaries(
     ----------
     baseline_run : `str` or `list` of `str
         The name of the run that defines a normalized value of 1.
-        If a list is provided, the median value of each metric across that list is used as the reference.
+        If a list is provided, the median value of each metric across that
+        list is used as the reference.
     summary : `pandas.DataFrame`
-        The summary metrics to normalize (as returned by `get_metric_summaries`)
-    metric_sets : `pandas.DataFrame`
-        Metric metadata as returned by `archive.get_metric_sets`
+        The summary metrics to normalize (as returned by
+        `get_metric_summaries`)
+    metric_subsets : `pandas.DataFrame`
+        Metric metadata as returned by `archive.get_metric_subsets`
 
     Returns
     -------
@@ -67,11 +70,11 @@ def normalize_metric_summaries(
 
     # Use only those metrics present both in the
     # summary and metrics sets dataframe
-    if metric_sets is None:
+    if metric_subsets is None:
         summary = summary.copy()
         used_metrics = summary.columns.values
     else:
-        used_metrics = [s for s in summary.columns.values if s in metric_sets.metric.values]
+        used_metrics = [s for s in summary.columns.values if s in metric_subsets.metric.values]
         summary = summary.loc[:, used_metrics].copy()
 
     if summary.columns.name is None:
@@ -84,8 +87,10 @@ def normalize_metric_summaries(
     summary = summary.T.groupby("metric").first().T.groupby("run").first()
 
     # And now create a line just for "baseline" --
-    # if baseline_run is >1, this is created from the median values per metric of those runs
-    # Make up a nonsense name for the reference, that is not currently in the summary dataframe
+    # if baseline_run is >1, this is created from the median values
+    # per metric of those runs
+    # Make up a nonsense name for the reference, that is not currently
+    # in the summary dataframe
     baseline_comparison = "bbb"
     while baseline_comparison in summary.index:
         baseline_comparison += "b"
@@ -95,16 +100,20 @@ def normalize_metric_summaries(
     else:
         summary.loc[baseline_comparison] = summary.loc[baseline_run]
 
-    if metric_sets is None:
+    if metric_subsets is None:
         # If no invert/mag - just do simple normalization (1 + (x-0)/x0)
         norm_summary = 1 + (summary.loc[:, :].sub(summary.loc[baseline_comparison, :], axis="columns")).div(
             summary.loc[baseline_comparison, :], axis="columns"
         )
     else:
         # Reindex metric set and remove duplicates or non-available metrics
-        metric_names = [n for n in metric_sets.index.names if not n == "metric"]
-        metric_sets = (
-            metric_sets.reset_index(metric_names).groupby(level="metric").first().loc[used_metrics, :].copy()
+        metric_names = [n for n in metric_subsets.index.names if not n == "metric"]
+        metric_subsets = (
+            metric_subsets.reset_index(metric_names)
+            .groupby(level="metric")
+            .first()
+            .loc[used_metrics, :]
+            .copy()
         )
 
         norm_summary = pd.DataFrame(
@@ -113,28 +122,32 @@ def normalize_metric_summaries(
             dtype="float",
         )
 
-        # Direct metrics are those that are neither inverted, nor compared as magnitudes
+        # Direct metrics are those that are neither inverted,
+        # nor compared as magnitudes
         # direct = 1 + (value - norm) / norm == value / norm
-        direct = ~np.logical_or(metric_sets["invert"], metric_sets["mag"])
+        direct = ~np.logical_or(metric_subsets["invert"], metric_subsets["mag"])
         norm_summary.loc[:, direct] = summary.loc[:, direct]
 
         # invert = 1 + (1/value - 1/norm) / (1/norm) == norm / value
-        norm_summary.loc[:, metric_sets["invert"]] = 1.0 / summary.loc[:, metric_sets["invert"]]
+        norm_summary.loc[:, metric_subsets["invert"]] = 1.0 / summary.loc[:, metric_subsets["invert"]]
 
-        # mag = 1 + (1+value-norm - (1+norm-norm)) / (1+norm-norm) == 1 + (value - norm)
-        norm_summary.loc[:, metric_sets["mag"]] = 1.0 + summary.loc[
+        # mag = 1 + (1+value-norm - (1+norm-norm)) / (1+norm-norm)
+        # == 1 + (value - norm)
+        norm_summary.loc[:, metric_subsets["mag"]] = 1.0 + summary.loc[
             :,
-            metric_sets["mag"],
-        ].subtract(summary.loc[baseline_comparison, metric_sets["mag"]], axis="columns")
+            metric_subsets["mag"],
+        ].subtract(summary.loc[baseline_comparison, metric_subsets["mag"]], axis="columns")
 
         # Some metrics can be both inverted and magnitudes (eg rms mag values)
-        both = np.logical_and(metric_sets["invert"], metric_sets["mag"])
-        # both = 1 + (1-(value-norm) - (1-(norm-norm))) / (1-(norm-norm)) == norm - value
+        both = np.logical_and(metric_subsets["invert"], metric_subsets["mag"])
+        # both = 1 + (1-(value-norm) - (1-(norm-norm))) / (1-(norm-norm))
+        # == norm - value
         norm_summary.loc[:, both] = 1.0 - summary.loc[:, both].subtract(
             summary.loc[baseline_comparison, both], axis="columns"
         )
 
-        # Turn the values above into the fractional difference compared with the baseline
+        # Turn the values above into the fractional difference
+        # compared with the baseline
         norm_summary.loc[:, :] = 1 + (
             norm_summary.loc[:, :].sub(norm_summary.loc[baseline_comparison, :], axis="columns")
         ).div(norm_summary.loc[baseline_comparison, :], axis="columns")
@@ -156,7 +169,7 @@ def plot_run_metric(
     horizontal_quantity="value",
     run_label_map=None,
     metric_label_map=None,
-    metric_set=None,
+    metric_subset=None,
     ax=None,
     cmap=colorcet.glasbey_hv,
     linestyles=None,
@@ -178,20 +191,21 @@ def plot_run_metric(
     horizontal_quantity : {'run', 'metric', 'value'}
         Should the run, metric name, or metric value be mapped onto the x axis?
     vwidth : `float`
-        The width of the plot, in normalized metrics summary units. (The limits
-        of the x axis will be 1-vwidth/2 and 1+width/2).
+        The width of the plot, in normalized metrics summary units.
+        (The limits of the x axis will be 1-vwidth/2 and 1+width/2).
     run_label_map : mapping
         A python `mapping` between canonical run names and run labels as they
-        should appear on plot labels. Use of this option is discouraged, because
-        it makes it harder to match plots to data.
-        run_label_map could be created by archive.get_runs().loc[these_runs]['brief']
+        should appear on plot labels. Use of this option is discouraged,
+        because it makes it harder to match plots to data.
+        run_label_map could be created by
+        archive.get_runs().loc[these_runs]['brief']
     metric_label_map : mapping
         A python `mapping` between canonical metric names and metric labels
-        as they should appear on plot labels. Use this option carefully, because
-        it makes it harder to match plots to metric calculation code..
-        metric_label_map could be equivalent to metric_set['short_name']
-    metric_set : `pandas.DataFrame`
-        Metric metadata as returned by `archive.get_metric_sets`
+        as they should appear on plot labels. Use this option carefully,
+        because it makes it harder to match plots to metric calculation code..
+        metric_label_map could be equivalent to metric_subset['short_name']
+    metric_subset : `pandas.DataFrame`
+        Metric metadata as returned by `archive.get_metric_subsets`
     ax : `matplotlib.axes.Axes`
         The axes on which to plot the data.
     cmap : `matplotlib.colors.ColorMap`
@@ -212,16 +226,18 @@ def plot_run_metric(
         The plot axes.
 
 
-    The run order and metric order (imposed into the summary dataframe passed here as `summary`)
-    are important and preserved in the plot. These should be set in the (subset) `summary` dataframe
-    passed here; the metric_set is available, but used for normalization and plot styling.
+    The run order and metric order (imposed into the summary dataframe
+    passed here as `summary`) are important and preserved in the plot.
+    These should be set in the (subset) `summary` dataframe
+    passed here; the metric_subset is available, but used for
+    normalization and plot styling.
     """
 
     # If the metric sets we are passed has a multilevel index,
     # get rid of the levels we do not need.
-    if metric_set is not None and metric_set.index.nlevels > 1:
-        extra_levels = list(set(metric_set.index.names) - set(["metric"]))
-        metric_set = metric_set.droplevel(extra_levels).groupby(level="metric").first()
+    if metric_subset is not None and metric_subset.index.nlevels > 1:
+        extra_levels = list(set(metric_subset.index.names) - set(["metric"]))
+        metric_subset = metric_subset.droplevel(extra_levels).groupby(level="metric").first()
 
     # Mark whether we have a default, or whether
     # one was specified
@@ -240,7 +256,7 @@ def plot_run_metric(
         (
             summary.rename_axis(index="run", columns="metric").copy()
             if baseline_run is None
-            else normalize_metric_summaries(baseline_run, summary, metric_sets=metric_set)
+            else normalize_metric_summaries(baseline_run, summary, metric_subsets=metric_subset)
         )
         .stack(future_stack=True)
         .rename("value")
@@ -256,17 +272,18 @@ def plot_run_metric(
     if metric_label_map is not None:
         metric_order = [metric_label_map[m] for m in metric_order]
         norm_summary["metric"] = norm_summary["metric"].map(metric_label_map)
-        # Create this_metric_set - equivalent to metric_set but with updated names.
-        if metric_set is not None:
-            this_metric_set = (
-                metric_set.drop(columns=["metric"])
-                .assign(metric=metric_set["metric"].map(metric_label_map))
+        # Create this_metric_subset - equivalent to metric_subset
+        # but with updated names.
+        if metric_subset is not None:
+            this_metric_subset = (
+                metric_subset.drop(columns=["metric"])
+                .assign(metric=metric_subset["metric"].map(metric_label_map))
                 .set_index("metric", drop=False)
             )
         else:
-            this_metric_set = None
+            this_metric_subset = None
     else:
-        this_metric_set = metric_set
+        this_metric_subset = metric_subset
 
     plot_df = pd.DataFrame(
         {
@@ -324,23 +341,26 @@ def plot_run_metric(
         # make sure we get to pass the style argument
         # as a positional argument, whether or not it is
         # specified.
-        # Let the user know why some of their plot values might be disappearing
-        # (tends to happen if baseline value is 0 or Nan and plot_df being normalized)
+        # Let the user know why some of their plot values might be
+        # disappearing
+        # (tends to happen if baseline value is 0 or Nan and plot_df
+        # being normalized)
         if vertical_quantity == "value" and np.isinf(plot_df.loc[idx, "y"]).any():
             warnings.warn(f"There are infinite values in the plot of {idx}.")
         if horizontal_quantity == "value" and np.isinf(plot_df.loc[idx, "x"]).any():
             warnings.warn(f"There are infinite values in the plot of {idx}.")
         plot_args = [plot_df.loc[idx, "x"], plot_df.loc[idx, "y"]]
         idx_label = f"{str(idx).strip()}"
-        if this_metric_set is not None and idx in this_metric_set.index:
-            # Set the style from the metric_set if available
-            if "style" in this_metric_set.columns:
-                metric_style = this_metric_set.loc[idx, "style"]
+        if this_metric_subset is not None and idx in this_metric_subset.index:
+            # Set the style from the metric_subset if available
+            if "style" in this_metric_subset.columns:
+                metric_style = this_metric_subset.loc[idx, "style"]
                 if metric_style is not None:
                     plot_args.append(metric_style)
-            # Update the plot label if we inverted the column during normalization
-            if "invert" in this_metric_set.columns and baseline_run is not None:
-                inv = this_metric_set.loc[idx, "invert"]
+            # Update the plot label if we inverted the column during
+            # normalization
+            if "invert" in this_metric_subset.columns and baseline_run is not None:
+                inv = this_metric_subset.loc[idx, "invert"]
                 if inv:
                     idx_label = f"1 / {idx_label}"
         ax.plot(*plot_args, label=idx_label)
@@ -402,7 +422,7 @@ def plot_run_metric(
 
 def plot_run_metric_mesh(
     summary,
-    metric_set=None,
+    metric_subset=None,
     baseline_run=None,
     color_range=1,
     run_label_map=None,
@@ -452,7 +472,7 @@ def plot_run_metric_mesh(
 
     # Normalize the summary values, if a baseline was specified
     if baseline_run is not None:
-        norm_summary = normalize_metric_summaries(baseline_run, summary, metric_set)
+        norm_summary = normalize_metric_summaries(baseline_run, summary, metric_subset)
     else:
         norm_summary = summary.rename_axis(index="run", columns="metric").copy()
 
@@ -503,8 +523,8 @@ def plot_run_metric_mesh(
             pass
 
         # Figure out which metrics get inverted
-        if baseline_run is not None and metric_set is not None:
-            inverted_metrics = set(metric_set.query("invert").metric.values)
+        if baseline_run is not None and metric_subset is not None:
+            inverted_metrics = set(metric_subset.query("invert").metric.values)
         else:
             inverted_metrics = set()
 
@@ -526,6 +546,154 @@ def plot_run_metric_mesh(
         fig.colorbar(im, ax=ax, label=None)
     else:
         fig.colorbar(im, ax=ax, label="Fractional difference")
+
+    return fig, ax
+
+
+def plot_run_metric_uncert(
+    summary,
+    uncertainty,
+    run_label_map=None,
+    metric_label_map=None,
+    metric_subset=None,
+    cmap=None,
+    linestyles=["-"],
+    markers=["."],
+    sep_plots=True,
+    ax=None,
+):
+    """Plot normalized metric values as colored points on a cartesian plane.
+
+    Parameters
+    ----------
+    summary : `pandas.DataFrame`
+        Values to be plotted. Should only include runs and metrics that
+        should actually appear on the plot.
+    uncertainty : `pandas.DataFrame`
+        Uncertainty values to plot on each data point.
+        Should match summary metric columns.
+    run_label_map : mapping
+        A python `mapping` between canonical run names and run labels as they
+        should appear on plot labels. Use of this option is discouraged,
+        because it makes it harder to match plots to data.
+        run_label_map could be created by
+        archive.get_runs().loc[these_runs]['brief']
+    metric_label_map : mapping
+        A python `mapping` between canonical metric names and metric labels
+        as they should appear on plot labels. Use this option carefully,
+        because it makes it harder to match plots to metric calculation code..
+        metric_label_map could be equivalent to metric_subset['short_name']
+    metric_subset : `pandas.DataFrame`
+        Metric metadata as returned by `archive.get_metric_subsets`
+    ax : `matplotlib.axes.Axes`
+        The axes on which to plot the data.
+    cmap : `matplotlib.colors.ColorMap`
+        The color map to use for point colors.
+    linestyles : `list`
+        A list of matplotlib linestyles to use to connect the lines
+    markers : `list`, opt
+        A list of matplotlib markers to use to represent the points
+
+    Returns
+    -------
+    fig : `matplotlib.figure.Figure`
+        The plot figure.
+    ax : `matplotilb.axes.Axes`
+        The plot axes.
+
+
+    The run order and metric order (imposed into the summary
+    dataframe passed here as `summary`) are important and preserved in the
+    plot. These should be set in the (subset) `summary` dataframe
+    passed here; the metric_subset is available, but used for 'invert'
+    and plot styling and alternate labels.
+    """
+
+    # If the metric sets we are passed has a multilevel index,
+    # get rid of the levels we do not need.
+    if metric_subset is not None and metric_subset.index.nlevels > 1:
+        extra_levels = list(set(metric_subset.index.names) - set(["metric"]))
+        metric_subset = metric_subset.droplevel(extra_levels).groupby(level="metric").first()
+
+    # Pull original order for metric & runs from summary
+    run_order = summary.index.values
+    metric_order = summary.columns.values
+    if run_label_map is not None:
+        run_order = [run_label_map[r] for r in run_order]
+    if metric_label_map is not None:
+        metric_order = [metric_label_map[m] for m in metric_order]
+
+    if ax is None:
+        fig, ax = plt.subplots(figsize=(10, 6))
+    else:
+        fig = ax.get_figure()
+
+    if cmap is None:
+        cmap = colorcet.glasbey_hv
+        cmap_default = True
+    else:
+        cmap_default = False
+    # make the linestyles and symbols list the same length as cmap, for cycler
+    try:
+        num_colors = len(cmap)
+        colors = cmap
+    except TypeError:
+        num_colors = len(cmap.colors)
+        colors = cmap.colors
+    ls_grow = int(np.ceil(num_colors / len(linestyles)))
+    linestyles = (list(linestyles) * ls_grow)[:num_colors]
+    marker_grow = int(np.ceil(num_colors / len(markers)))
+    markers = (list(markers) * marker_grow)[:num_colors]
+
+    # But use styles from metric_subset if available
+    if metric_subset is not None:
+        for i, m in enumerate(summary):
+            if m in metric_subset.index:
+                style = metric_subset.loc[m, "style"]
+                if len(style) > 1:
+                    ci = style[0]
+                    # Let user specify color map for override
+                    if cmap_default:
+                        colors[i] = ci
+                    li = style[1]
+                    linestyles[i] = li
+                else:
+                    li = style[0:]
+                    linestyles[i] = li
+
+    ax.set_prop_cycle(
+        cycler.cycler(color=colors) + cycler.cycler(linestyle=linestyles) + cycler.cycler(marker=markers)
+    )
+
+    for i, m in enumerate(summary):
+        # new plots for each metric?
+        if sep_plots and i > 0:
+            fig, ax = plt.subplots(figsize=(10, 6))
+            cc = [colors[i]]
+            ax.set_prop_cycle(
+                cycler.cycler(color=cc)
+                + cycler.cycler(linestyle=linestyles[i])
+                + cycler.cycler(marker=markers[i])
+            )
+        if metric_label_map is not None:
+            label = metric_label_map[m]
+        else:
+            label = m
+        ax.errorbar(run_order, summary[m], yerr=uncertainty[m], label=label)
+        ax.set_ylabel(label, fontsize="large")
+        if sep_plots:
+            if metric_subset is not None:
+                if m in metric_subset.index:
+                    if metric_subset.loc[m, "invert"]:
+                        ax.invert_yaxis()
+            ax.tick_params(axis="x", labelrotation=90, labelsize="large")
+            ax.grid(True, alpha=0.5)
+            ax.legend()
+
+    if not sep_plots:
+        ax.tick_params(axis="x", labelrotation=90, labelsize="large")
+        ax.grid(True, alpha=0.5)
+        ax.legend(bbox_to_anchor=(1.0, 1.0))
 
     return fig, ax
 
