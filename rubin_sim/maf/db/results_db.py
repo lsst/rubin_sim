@@ -574,7 +574,7 @@ class ResultsDb:
         # np.ndarray with 'name' and 'value' columns.
         self.open()
         tries = 0
-        if isinstance(summary_value, np.ndarray):
+        if isinstance(summary_value, np.ndarray) and summary_value.dtype.names is not None:
             if ("name" in summary_value.dtype.names) and ("value" in summary_value.dtype.names):
                 for value in summary_value:
                     sSuffix = value["name"]
