@@ -141,51 +141,47 @@ def optimal_bins(datain, binmin=None, binmax=None, nbin_max=200, nbin_min=1,
         # Check if any data points remain within binmin/binmax.
         if np.size(data[cond]) == 0:
             nbins = nbin_max
-            if verbose:
-                warnings.warn(
-                    f"No data available for calculating optimal bin size within range of "
-                    f"({binmin}, {binmax}): returning {nbins} bins"
-                )
+            warnings.warn(
+                "No data available for calculating optimal bin size within range of %f, %f" % (binmin, binmax)
+                + ": returning %i bins" % (nbins)
+            )
         else:
             iqr = np.percentile(data[cond], 75) - np.percentile(data[cond], 25)
             binwidth = 2 * iqr * (np.size(data[cond]) ** (-1.0 / 3.0))
             nbins = (binmax - binmin) / binwidth
             if nbins > nbin_max:
-                if verbose:
-                    warnings.warn(
-                        "Optimal bin calculation tried to make %.0f bins, returning %i" % (nbins, nbin_max)
-                    )
+                warnings.warn(
+                    "Optimal bin calculation tried to make %.0f bins, returning %i" % (nbins, nbin_max)
+                )
                 nbins = nbin_max
             if nbins < nbin_min:
-                if verbose:
-                    warnings.warn(
-                        "Optimal bin calculation tried to make %.0f bins, returning %i" % (nbins, nbin_min)
-                    )
+                warnings.warn(
+                    "Optimal bin calculation tried to make %.0f bins, returning %i" % (nbins, nbin_min)
+                )
                 nbins = nbin_min
     if np.isnan(nbins):
-        if verbose:
-            warnings.warn("Optimal bin calculation calculated NaN: returning %i" % (nbin_max))
+        warnings.warn("Optimal bin calculation calculated NaN: returning %i" % (nbin_max))
         nbins = nbin_max
     return int(nbins)
 
 
 def percentile_clipping(data, percentile=95.0):
     """
-    Calculate the minimum and maximum values of a distribution of points,
-    after discarding data more than 'percentile' from the median.
+    Calculate the minimum and maximum values of a distribution of points, after
+    discarding data more than 'percentile' from the median.
     This is useful for determining useful data ranges for plots.
     Note that 'percentile' percent of the data is retained.
 
     Parameters
     ----------
-    data : `numpy.ndarray`, (N,)
+    data : numpy.ndarray
         The data to clip.
-    percentile : `float`
+    percentile : float
         Retain values within percentile of the median.
 
     Returns
     -------
-    min_value, max_value : `float`, `float`
+    float, float
         The minimum and maximum values of the clipped data.
     """
     lower_percentile = (100 - percentile) / 2.0
