@@ -4,12 +4,14 @@ __all__ = (
     "TgapsPercentMetric",
     "NightgapsMetric",
     "NVisitsPerNightMetric",
+    "CoaddM5PerNightMetric",
     "MaxGapMetric",
     "NightTimespanMetric",
 )
 
 import numpy as np
-
+from scipy.stats import binned_statistic
+from ..utils import coadd_m5
 from .base_metric import BaseMetric
 
 
@@ -257,6 +259,47 @@ class NVisitsPerNightMetric(BaseMetric):
     def run(self, data_slice, slice_point=None):
         n, counts = np.unique(data_slice[self.night_col], return_counts=True)
         result, bins = np.histogram(counts, self.bins)
+        return result
+
+
+class CoaddM5PerNightMetric(BaseMetric):
+    """Histogram the coadded depth of visits in each night.
+
+    Splits the visits by night, then histograms the coadded depth.
+
+    Parameters
+    ----------
+    night_col : `str`, optional
+        The column name for the night of each observation.
+        Default 'night'.
+    m5_col : `str`, optional
+        The column name for the five sigma depth of each observation.
+    bins : `np.ndarray`, (N,) optional
+        The bins to use for the histogram of magnitude values.
+
+    Returns
+    -------
+    histogram : `np.ndarray`
+        Returns a histogram of the coadded depth per night at each slice point;
+        these histograms can be combined and plotted using the
+        'SummaryHistogram plotter'.
+    """
+
+    def __init__(self, night_col="night", m5_col="fiveSigmaDepth", bins=np.arange(20, 25, 0.05),
+                 units="mag", **kwargs):
+        # Pass the same bins to the plotter.
+        self.night_col = night_col
+        self.m5_col = m5_col
+        self.bins = bins
+        super().__init__(col=[self.night_col, self.m5_col], metric_dtype="object", units=units, **kwargs)
+
+    def run(self, data_slice, slice_point=None):
+        m5_per_night, be, bn = binned_statistic(data_slice[self.night_col], data_slice[self.m5_col],
+                                              statistic=coadd_m5,
+                                              bins=np.arange(0, 3653, 1))
+        # Drop the nights with no observations (-inf)
+        m5_per_night = m5_per_night[np.where(m5_per_night > 0)]
+        result, bins = np.histogram(m5_per_night, self.bins)
         return result
 
 
