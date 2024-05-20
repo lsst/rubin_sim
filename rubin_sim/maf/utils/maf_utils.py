@@ -2,6 +2,7 @@ __all__ = (
     "optimal_bins",
     "percentile_clipping",
     "radec2pix",
+    "coadd_m5",
     "collapse_night",
     "load_inst_zeropoints",
 )
@@ -126,9 +127,10 @@ def optimal_bins(datain, binmin=None, binmax=None, nbin_max=200, nbin_min=1,
     # Check that any good data values remain.
     if data.size == 0:
         nbins = nbin_max
-        warnings.warn(
-            "No unmasked data available for calculating optimal bin size: returning %i bins" % (nbins)
-        )
+        if verbose:
+            warnings.warn(
+                f"No unmasked data available for calculating optimal bin size: returning {nbins} bins"
+            )
     # Else proceed.
     else:
         if binmin is None:
