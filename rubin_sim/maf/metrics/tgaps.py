@@ -15,16 +15,23 @@ from ..utils import coadd_m5
 from .base_metric import BaseMetric
 
 
+
 class GapsMetric(BaseMetric):
-    """Compute the number of times a gaps of a specified timescale (+/- 1/2 timescale) is sampled.
+    """Compute the number of times a gaps of a specified timescale
+    (+/- 1/2 timescale) is sampled.
 
     Parameters
     ----------
-    times_col : `str` (observationStartMJD)
+    times_col : `str`, optional
         The column name for the exposure times.  Values assumed to be in days.
-    time_scale : `float` (2)
-        Time scale to see how well it is sampled (hours). For example, the default of 2 hours means
-        observations spaced anywhere between 1 and 3 hours will count as a sample.
+        Default is 'observationStartMJD'.
+    time_scale : `float`, optional
+        Time scale to see how well it is sampled (hours).
+        For example, the default of 2 hours means
+        observations spaced anywhere between 1 and 3 hours apart
+        will count as a sample. Default 2 hours.
+    units : `str`, optional
+        Default units to use for plots, etc. Default is "N" (for number).
     """
 
     def __init__(
@@ -58,9 +65,10 @@ class TgapsMetric(BaseMetric):
 
 
     Measure the gaps between observations.  By default, only gaps
-    between neighboring visits are computed.  If all_gaps is set to true, all gaps are
-    computed (i.e., if there are observations at 10, 20, 30 and 40 the default will
-    return a histogram of [10,10,10] while all_gaps returns a histogram of [10,10,10,20,20,30])
+    between neighboring visits are computed.  If all_gaps is set to true,
+    all gaps are computed (i.e., if there are observations at 10, 20, 30
+    and 40 the default will return a histogram of [10,10,10] while
+    all_gaps returns a histogram of [10,10,10,20,20,30])
 
     Parameters
     ----------
@@ -68,17 +76,21 @@ class TgapsMetric(BaseMetric):
         The column name for the exposure times.  Values assumed to be in days.
         Default observationStartMJD.
     all_gaps : `bool`, optional
-        Histogram the gaps between all observations (True) or just successive observations (False)?
-        Default is False. If all gaps are used, this metric can become significantly slower.
+        Histogram the gaps between all observations (True) or just successive
+        observations (False)?
+        Default is False.
+        If all gaps are used, this metric can become significantly slower.
     bins : `np.ndarray`, optional
-        The bins to use for the histogram of time gaps (in days, or same units as times_col).
+        The bins to use for the histogram of time gaps
+        (in days, or same units as times_col).
         Default values are bins from 0 to 2 hours, in 5 minute intervals.
 
     Returns
     -------
     histogram : `np.ndarray`
         Returns a histogram of the tgaps at each slice point;
-        these histograms can be combined and plotted using the 'SummaryHistogram plotter'.
+        these histograms can be combined and plotted using the
+        'SummaryHistogram plotter'.
     """
 
     def __init__(
@@ -111,15 +123,22 @@ class TgapsMetric(BaseMetric):
 
 
 class TgapsPercentMetric(BaseMetric):
-    """Compute the fraction of the time gaps between observations that occur in a given time range.
+    """Compute the fraction of the time gaps between observations that occur
+    in a given time range.
 
     Measure the gaps between observations.  By default, only gaps
-    between neighboring visits are computed.  If all_gaps is set to true, all gaps are
-    computed (i.e., if there are observations at 10, 20, 30 and 40 the default will
-    Compute the percent of gaps between specified endpoints.
+    between neighboring visits are computed.  If all_gaps is set to true,
+    all gaps are computed (i.e., if there are observations at 10, 20, 30 and
+    40 the default will Compute the percent of gaps between specified endpoints.
 
-    This is different from the TgapsMetric in that this only looks at what percent of intervals fall
-    into the specified range, rather than histogramming the entire set of tgaps.
+    This is different from the TgapsMetric in that this only looks at
+    what percent of intervals fall into the specified range, rather than
+    histogramming the entire set of tgaps.
+
+    This metric has drawbacks in that the result is tied to the overall
+    number of tgaps (i.e. a result of 100 could still be worse than
+    a different simulation with a result of 50, in terms of how often a
+    particular Tgap is sampled).
 
     Parameters
     ----------
@@ -127,8 +146,10 @@ class TgapsPercentMetric(BaseMetric):
         The column name for the exposure times.  Values assumed to be in days.
         Default observationStartMJD.
     all_gaps : `bool`, opt
-        Histogram the gaps between all observations (True) or just successive observations (False)?
-        Default is False. If all gaps are used, this metric can become significantly slower.
+        Histogram the gaps between all observations (True) or
+        just successive observations (False)?
+        Default is False. If all gaps are used, this metric
+        can become significantly slower.
     min_time : `float`, opt
         Minimum time of gaps to include (days). Default 2/24 (2 hours).
     max_time : `float`, opt
@@ -177,8 +198,9 @@ class NightgapsMetric(BaseMetric):
 
 
     Measure the gaps between observations.  By default, only gaps
-    between neighboring visits are computed.  If all_gaps is set to true, all gaps are
-    computed (i.e., if there are observations at 10, 20, 30 and 40 the default will
+    between neighboring visits are computed.  If all_gaps is set to true,
+    all gaps are computed (i.e., if there are observations at 10, 20, 30 and
+    40 the default will
     histogram [10,10,10] while all_gaps histograms [10,10,10,20,20,30])
 
     Parameters
@@ -187,17 +209,21 @@ class NightgapsMetric(BaseMetric):
         The column name for the night of each observation.
         Default 'night'.
     all_gaps : `bool`, optional
-        Histogram the gaps between all observations (True) or just successive observations (False)?
-        Default is False. If all gaps are used, this metric can become significantly slower.
+        Histogram the gaps between all observations (True) or just successive
+        observations (False)?
+        Default is False. If all gaps are used, this metric can become
+        significantly slower.
     bins : `np.ndarray`, optional
-        The bins to use for the histogram of time gaps (in days, or same units as timesCol).
+        The bins to use for the histogram of time gaps (in days, or same
+        units as timesCol).
         Default values are bins from 0 to 10 days, in 1 day intervals.
 
     Returns
     -------
     histogram : `np.ndarray`
         Returns a histogram of the deltaT between nights at each slice point;
-        these histograms can be combined and plotted using the 'SummaryHistogram plotter'.
+        these histograms can be combined and plotted using the
+        'SummaryHistogram plotter'.
     """
 
     def __init__(
@@ -232,7 +258,8 @@ class NightgapsMetric(BaseMetric):
 class NVisitsPerNightMetric(BaseMetric):
     """Histogram the number of visits in each night.
 
-    Splits the visits by night, then histograms how many visits occur in each night.
+    Splits the visits by night, then histograms how many visits occur
+    in each night.
 
     Parameters
     ----------
@@ -240,14 +267,16 @@ class NVisitsPerNightMetric(BaseMetric):
         The column name for the night of each observation.
         Default 'night'.
     bins : `np.ndarray`, optional
-        The bins to use for the histogram of time gaps (in days, or same units as timesCol).
+        The bins to use for the histogram of time gaps (in days, or same
+        units as timesCol).
         Default values are bins from 0 to 5 visits, in steps of 1.
 
     Returns
     -------
     histogram : `np.ndarray`
-        Returns a histogram of the number of visits per night at each slice point;
-        these histograms can be combined and plotted using the 'SummaryHistogram plotter'.
+        Returns a histogram of the number of visits per night at each
+        slice point; these histograms can be combined and plotted using the
+        'SummaryHistogram plotter'.
     """
 
     def __init__(self, night_col="night", bins=np.arange(0, 10, 1), units="#", **kwargs):
