@@ -1,4 +1,3 @@
-# Collection of utilities for MAF that relate to Opsim specifically.
 __all__ = (
     "get_sim_data",
     "scale_benchmarks",
@@ -22,29 +21,33 @@ def get_sim_data(
     table_name=None,
     full_sql_query=None,
 ):
-    """Query an opsim database for the needed data columns and run any required stackers.
+    """Query an opsim database for the needed data columns
+    and run any required stackers.
 
     Parameters
     ----------
     db_con : `str` or SQLAlchemy connectable, or sqlite3 connection
-        Filename to a sqlite3 file, or a connection object that can be used by pandas.read_sql
+        Filename to a sqlite3 file, or a connection object that
+        can be used by pandas.read_sql
     sqlconstraint : `str` or None
-        SQL constraint to apply to query for observations. Ignored if full_sql_query is set.
+        SQL constraint to apply to query for observations.
+        Ignored if full_sql_query is set.
     dbcols : `list` [`str`]
         Columns required from the database. Ignored if full_sql_query is set.
     stackers : `list` [`rubin_sim.maf.stackers`], optional
         Stackers to be used to generate additional columns. Default None.
     table_name : `str` (None)
-        Name of the table to query. Default None will try "observations" and "SummaryAllProps".
+        Name of the table to query.
+        Default None will try "observations".
         Ignored if full_sql_query is set.
     full_sql_query : `str`
         The full SQL query to use. Overrides sqlconstraint, dbcols, tablename.
 
     Returns
     -------
-    sim_data: `np.ndarray`
-        A numpy structured array with columns resulting from dbcols + stackers, for observations matching
-        the SQLconstraint.
+    sim_data : `np.ndarray`
+        A numpy structured array with columns resulting from dbcols + stackers,
+        for observations matching the SQLconstraint.
     """
     if sqlconstraint is None:
         sqlconstraint = ""
@@ -69,7 +72,8 @@ def get_sim_data(
         else:
             ValueError("Could not guess table_name, set with table_name or full_sql_query kwargs")
     elif (table_name is None) & (full_sql_query is None):
-        # If someone passes in a connection object with an old table_name things will fail
+        # If someone passes in a connection object with an old table_name
+        # things will fail
         # that's probably fine, keep people from getting fancy with old sims
         table_name = "observations"
 
@@ -84,8 +88,6 @@ def get_sim_data(
             col_str += colname + ", "
         col_str = col_str[0:-2] + " "
 
-        # Need to guess "observations" and "SummaryAllProps" for the table name
-        # to be backwards compatible I guess
         query = "SELECT %s FROM %s" % (col_str, table_name)
         if len(sqlconstraint) > 0:
             query += " WHERE %s" % (sqlconstraint)
@@ -106,25 +108,24 @@ def get_sim_data(
 
 
 def scale_benchmarks(run_length, benchmark="design"):
-    """
-    Set the design and stretch values of the number of visits, area of the footprint,
-    seeing values, FWHMeff values, skybrightness, and single visit depth (based on SRD values).
+    """Set design and stretch values of the number of visits or
+    area of the footprint or seeing/Fwhmeff/skybrightness and single visit
+    depth (based on SRD values).
     Scales number of visits for the length of the run, relative to 10 years.
 
     Parameters
     ----------
-    run_length : float
+    run_length : `float`
         The length (in years) of the run.
-    benchmark : str
+    benchmark : `str`
         design or stretch - which version of the SRD values to return.
-        requested is another option, in which case the values of the number of visits requested
-        by the OpSim run (recorded in the Config table) is returned.
 
     Returns
     -------
     benchmarks: `dict` of floats
-       A dictionary containing the number of visits, area of footprint, seeing and FWHMeff values,
-       skybrightness and single visit depth for either the design or stretch SRD values.
+       A dictionary containing the number of visits, area of footprint,
+       seeing and FWHMeff values, skybrightness and single visit depth
+       for either the design or stretch SRD values.
     """
     # Set baseline (default) numbers for the baseline survey length (10 years).
     baseline = 10.0
@@ -207,7 +208,8 @@ def scale_benchmarks(run_length, benchmark="design"):
     # Scale the number of visits.
     if run_length != baseline:
         scalefactor = float(run_length) / float(baseline)
-        # Calculate scaled value for design and stretch values of nvisits, per filter.
+        # Calculate scaled value for design and stretch values of nvisits,
+        # per filter.
         for f in design["nvisits"]:
             design["nvisits"][f] = int(np.floor(design["nvisits"][f] * scalefactor))
             stretch["nvisits"][f] = int(np.floor(stretch["nvisits"][f] * scalefactor))
@@ -221,19 +223,19 @@ def scale_benchmarks(run_length, benchmark="design"):
 
 
 def calc_coadded_depth(nvisits, single_visit_depth):
-    """
-    Calculate the coadded depth expected for a given number of visits and single visit depth.
+    """Calculate the coadded depth expected for a given number of visits
+    and single visit depth.
 
     Parameters
     ----------
-    nvisits : dict of ints or floats
+    nvisits : `dict` of `int` or `float`
         Dictionary (per filter) of number of visits
-    single_visit_depth : dict of floats
+    single_visit_depth : `dict` of `float`
         Dictionary (per filter) of the single visit depth
 
     Returns
     -------
-    dict of floats
+    coadded_depth : `dict` of `float`
         Dictionary of coadded depths per filter.
     """
     coadded_depth = {}

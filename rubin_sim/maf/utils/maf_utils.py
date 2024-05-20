@@ -19,11 +19,13 @@ from rubin_sim.phot_utils import Bandpass, PhotometricParameters
 
 
 def load_inst_zeropoints():
-    """Load up and return instumental zeropoints and atmospheric extinctions"""
+    """Load up and return instrumental zeropoints and atmospheric extinctions
+    """
     zp_inst = {}
     datadir = get_data_dir()
     for filtername in "ugrizy":
-        # set gain and exptime to 1 so the instrumental zeropoint will be in photoelectrons and per second
+        # set gain and exptime to 1 so the instrumental zeropoint will be in
+        # photoelectrons and per second
         phot_params = PhotometricParameters(nexp=1, gain=1, exptime=1, bandpass=filtername)
         bp = Bandpass()
         bp.read_throughput(os.path.join(datadir, "throughputs/baseline/", "total_%s.dat" % filtername))
@@ -87,27 +89,33 @@ def collapse_night(
     return night_slice
 
 
-def optimal_bins(datain, binmin=None, binmax=None, nbin_max=200, nbin_min=1):
+def optimal_bins(datain, binmin=None, binmax=None, nbin_max=200, nbin_min=1,
+                 verbose=False):
     """
     Set an 'optimal' number of bins using the Freedman-Diaconis rule.
 
     Parameters
     ----------
-    datain : numpy.ndarray or numpy.ma.MaskedArray
+    datain : `numpy.ndarray` or `numpy.ma.MaskedArray`
         The data for which we want to set the bin_size.
-    binmin : float
+    binmin : `float`
         The minimum bin value to consider (if None, uses minimum data value).
-    binmax : float
+    binmax : `float`
         The maximum bin value to consider (if None, uses maximum data value).
-    nbin_max : int
-        The maximum number of bins to create. Sometimes the 'optimal bin_size' implies
-        an unreasonably large number of bins, if the data distribution is unusual.
-    nbin_min : int
+    nbin_max : `int`
+        The maximum number of bins to create.
+        Sometimes the 'optimal bin_size' implies an unreasonably large number
+        of bins, if the data distribution is unusual.
+    nbin_min : `int`
         The minimum number of bins to create. Default is 1.
+    verbose : `bool`
+        Turn off warning messages. This utility very often raises warnings
+        and these should likely be logging messages at a lower logging level,
+        but for now - just use the verbose flag to turn these off or on.
 
     Returns
     -------
-    int
+    nbins : `int`
         The number of bins.
     """
     # if it's a masked array, only use unmasked values
@@ -131,47 +139,51 @@ def optimal_bins(datain, binmin=None, binmax=None, nbin_max=200, nbin_min=1):
         # Check if any data points remain within binmin/binmax.
         if np.size(data[cond]) == 0:
             nbins = nbin_max
-            warnings.warn(
-                "No data available for calculating optimal bin size within range of %f, %f" % (binmin, binmax)
-                + ": returning %i bins" % (nbins)
-            )
+            if verbose:
+                warnings.warn(
+                    f"No data available for calculating optimal bin size within range of "
+                    f"({binmin}, {binmax}): returning {nbins} bins"
+                )
         else:
             iqr = np.percentile(data[cond], 75) - np.percentile(data[cond], 25)
             binwidth = 2 * iqr * (np.size(data[cond]) ** (-1.0 / 3.0))
             nbins = (binmax - binmin) / binwidth
             if nbins > nbin_max:
-                warnings.warn(
-                    "Optimal bin calculation tried to make %.0f bins, returning %i" % (nbins, nbin_max)
-                )
+                if verbose:
+                    warnings.warn(
+                        "Optimal bin calculation tried to make %.0f bins, returning %i" % (nbins, nbin_max)
+                    )
                 nbins = nbin_max
             if nbins < nbin_min:
-                warnings.warn(
-                    "Optimal bin calculation tried to make %.0f bins, returning %i" % (nbins, nbin_min)
-                )
+                if verbose:
+                    warnings.warn(
+                        "Optimal bin calculation tried to make %.0f bins, returning %i" % (nbins, nbin_min)
+                    )
                 nbins = nbin_min
     if np.isnan(nbins):
-        warnings.warn("Optimal bin calculation calculated NaN: returning %i" % (nbin_max))
+        if verbose:
+            warnings.warn("Optimal bin calculation calculated NaN: returning %i" % (nbin_max))
         nbins = nbin_max
     return int(nbins)
 
 
 def percentile_clipping(data, percentile=95.0):
     """
-    Calculate the minimum and maximum values of a distribution of points, after
-    discarding data more than 'percentile' from the median.
+    Calculate the minimum and maximum values of a distribution of points,
+    after discarding data more than 'percentile' from the median.
     This is useful for determining useful data ranges for plots.
     Note that 'percentile' percent of the data is retained.
 
     Parameters
     ----------
-    data : numpy.ndarray
+    data : `numpy.ndarray`, (N,)
         The data to clip.
-    percentile : float
+    percentile : `float`
         Retain values within percentile of the median.
 
     Returns
     -------
-    float, float
+    min_value, max_value : `float`, `float`
         The minimum and maximum values of the clipped data.
     """
     lower_percentile = (100 - percentile) / 2.0
@@ -187,18 +199,19 @@ def radec2pix(nside, ra, dec):
 
     Parameters
     ----------
-    nside : int
+    nside : `int`
         The nside value of the healpix grid.
-    ra : numpy.ndarray
+    ra : `numpy.ndarray`, (N,)
         The RA values to be converted to healpix ids, in radians.
-    dec : numpy.ndarray
+    dec : `numpy.ndarray`, (N,)
         The Dec values to be converted to healpix ids, in radians.
 
     Returns
     -------
-    numpy.ndarray
+    hpid : `numpy.ndarray`, (N,)
         The healpix ids.
     """
     lat = np.pi / 2.0 - dec
     hpid = hp.ang2pix(nside, lat, ra)
     return hpid
+
