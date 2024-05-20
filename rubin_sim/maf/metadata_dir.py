@@ -12,9 +12,8 @@ matplotlib.use("Agg")
 
 from . import batches as batches
 from .db import ResultsDb
-from .metric_bundles import MetricBundle, MetricBundleGroup
-from .metrics import CountExplimMetric
-from .slicers import HealpixSlicer, HealpixSubsetSlicer
+from .metric_bundles import MetricBundleGroup
+from .slicers import HealpixSlicer, make_wfd_subset_slicer
 
 
 def metadata_dir():
@@ -77,17 +76,9 @@ def metadata_dir():
             if os.path.isdir(out_dir):
                 shutil.rmtree(out_dir)
 
-        # Find the 'wfd' footprint
-        m = CountExplimMetric(col="observationStartMJD")
+        # Find the 'wfd' footprint - use the scheduler footprint.
         allsky_slicer = HealpixSlicer(nside=args.nside)
-        constraint = 'note not like "%DD%"'
-        bundle = MetricBundle(m, allsky_slicer, constraint, run_name=sim_name)
-        g = MetricBundleGroup({f"{sim_name} footprint": bundle}, filename, out_dir=out_dir)
-        g.run_all()
-        wfd_footprint = bundle.metric_values.filled(0)
-        wfd_footprint = np.where(wfd_footprint > args.wfd_threshold, 1, 0)
-        wfd_hpix = np.where(wfd_footprint == 1)[0]
-        wfd_slicer = HealpixSubsetSlicer(nside=args.nside, hpid=wfd_hpix)
+        wfd_slicer = make_wfd_subset_slicer(nside=args.nside)
 
         bdict = batches.info_bundle_dicts(allsky_slicer, wfd_slicer, sim_name, colmap)
 
