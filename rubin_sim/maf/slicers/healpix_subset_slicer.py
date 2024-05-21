@@ -1,4 +1,8 @@
-__all__ = ("make_circle_subset_slicer", "make_wfd_subset_slicer", "HealpixSubsetSlicer",)
+__all__ = (
+    "make_circle_subset_slicer",
+    "make_wfd_subset_slicer",
+    "HealpixSubsetSlicer",
+)
 
 from functools import wraps
 
@@ -8,6 +12,7 @@ import rubin_scheduler.utils as simsUtils
 from rubin_scheduler.scheduler.utils import get_current_footprint
 
 from .healpix_slicer import HealpixSlicer
+
 
 def make_circle_subset_slicer(ra_cen, dec_cen, radius=3.0, nside=512, use_cache=False):
     """Create a circular healpix subset slicer, centered on ra_cen/dec_cen.
@@ -38,10 +43,11 @@ def make_circle_subset_slicer(ra_cen, dec_cen, radius=3.0, nside=512, use_cache=
     dist = simsUtils.angular_separation(ra_cen, dec_cen, ra, dec)
     close = np.where(dist <= radius)[0]
     subsetslicer = HealpixSubsetSlicer(nside, close, use_cache=use_cache)
-    plot_dict = {"visufunc": hp.gnomview,
-                 "rot": (ra_cen, dec_cen, 0),
-                "xsize": 500,
-                }
+    plot_dict = {
+        "visufunc": hp.gnomview,
+        "rot": (ra_cen, dec_cen, 0),
+        "xsize": 500,
+    }
     return subsetslicer, plot_dict
 
 
@@ -66,11 +72,12 @@ def make_wfd_subset_slicer(nside=64, use_cache=True, wfd_labels=None):
         version of the scheduler footprint using `get_current_footprint`.
     """
     if wfd_labels is None:
-        wfd_labels = ['lowdust', 'euclid_overlap', 'virgo', 'bulgy', 'LMC_SMC']
+        wfd_labels = ["lowdust", "euclid_overlap", "virgo", "bulgy", "LMC_SMC"]
     footprints, labels = get_current_footprint(nside=nside)
     wfdpix = np.where(np.in1d(labels, wfd_labels))[0]
     slicer = HealpixSubsetSlicer(nside=nside, hpid=wfdpix, use_cache=use_cache)
     return slicer
+
 
 class HealpixSubsetSlicer(HealpixSlicer):
     """A spatial slicer that evaluates pointings on a subset of a healpix grid.

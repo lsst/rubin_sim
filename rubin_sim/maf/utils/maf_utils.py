@@ -20,8 +20,7 @@ from rubin_sim.phot_utils import Bandpass, PhotometricParameters
 
 
 def load_inst_zeropoints():
-    """Load up and return instrumental zeropoints and atmospheric extinctions
-    """
+    """Load up and return instrumental zeropoints and atmospheric extinctions"""
     zp_inst = {}
     datadir = get_data_dir()
     for filtername in "ugrizy":
@@ -90,8 +89,7 @@ def collapse_night(
     return night_slice
 
 
-def optimal_bins(datain, binmin=None, binmax=None, nbin_max=200, nbin_min=1,
-                 verbose=False):
+def optimal_bins(datain, binmin=None, binmax=None, nbin_max=200, nbin_min=1, verbose=False):
     """
     Set an 'optimal' number of bins using the Freedman-Diaconis rule.
 
@@ -167,8 +165,8 @@ def optimal_bins(datain, binmin=None, binmax=None, nbin_max=200, nbin_min=1,
 
 def percentile_clipping(data, percentile=95.0):
     """
-    Calculate the minimum and maximum values of a distribution of points, after
-    discarding data more than 'percentile' from the median.
+    Calculate the minimum and maximum values of a distribution of points,
+    after discarding data more than 'percentile' from the median.
     This is useful for determining useful data ranges for plots.
     Note that 'percentile' percent of the data is retained.
 
@@ -212,4 +210,3 @@ def radec2pix(nside, ra, dec):
     lat = np.pi / 2.0 - dec
     hpid = hp.ang2pix(nside, lat, ra)
     return hpid
-

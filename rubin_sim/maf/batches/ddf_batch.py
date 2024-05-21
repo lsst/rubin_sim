@@ -460,7 +460,7 @@ def ddfBatch(
         if fieldname == "WFD":
             ptslicer = maf.UserPointsSlicer(np.mean(ddfs[ddf]["ra"]), np.mean(ddfs[ddf]["dec"]))
         else:
-            ptslicer = maf.UniSlicer() # rely on query to remove non-DD visits
+            ptslicer = maf.UniSlicer()  # rely on query to remove non-DD visits
             # Add RA and Dec to slice_point data (for season calculations)
             # slice_points store ra/dec internally in radians.
             ptslicer.slice_points["ra"] = np.radians(np.mean(ddfs[ddf]["ra"]))
@@ -492,9 +492,7 @@ def ddfBatch(
             metric_name=f"{fieldname} NVisitsPerNight",
         )
         plotDict = {"bins": countbins, "xlabel": "Number of visits per night"}
-        displayDict["caption"] = (
-            f"Histogram of the number of visits in each night per DDF."
-        )
+        displayDict["caption"] = "Histogram of the number of visits in each night per DDF."
         plotFunc = maf.SummaryHistogram()
         bundle = maf.MetricBundle(
             metric,
@@ -509,10 +507,10 @@ def ddfBatch(
 
         # Coadded depth of observations per night, each filter
         # "magic numbers" to fill plot come from baseline v3.4
-        min_coadds = {'u': 22.3, 'g': 22.3,  'r': 22.9, 'i': 23.1, 'z': 21.7, 'y': 21.5}
-        max_coadds = {'u': 26, 'g': 27.2, 'r': 27, 'i': 26.5, 'z': 26.5, 'y': 25.1}
+        min_coadds = {"u": 22.3, "g": 22.3, "r": 22.9, "i": 23.1, "z": 21.7, "y": 21.5}
+        max_coadds = {"u": 26, "g": 27.2, "r": 27, "i": 26.5, "z": 26.5, "y": 25.1}
         # Histogram the coadded depth per night, per filter
-        for f in 'ugrizy':
+        for f in "ugrizy":
             magbins = np.arange(min_coadds[f], max_coadds[f], 0.05)
             metric = maf.CoaddM5PerNightMetric(
                 night_col="night",
@@ -521,9 +519,7 @@ def ddfBatch(
                 metric_name=f"{fieldname} CoaddM5PerNight",
             )
             plotDict = {"bins": magbins, "xlabel": "Coadded Depth Per Night"}
-            displayDict["caption"] = (
-                f"Histogram of the coadded depth in {f} in each night per DDF."
-            )
+            displayDict["caption"] = f"Histogram of the coadded depth in {f} in each night per DDF."
             plotFunc = maf.SummaryHistogram()
             bundle = maf.MetricBundle(
                 metric,
@@ -543,7 +539,7 @@ def ddfBatch(
             displayDict["caption"] = f"Number of visits per night for {fieldname}."
             metric = maf.CountMetric("observationStartMJD", metric_name=f"{fieldname} Nvisits Per Night")
             slicer = maf.OneDSlicer(slice_col_name="night", bin_size=1, badval=0)
-            plot_dict = {'filled_data': True}
+            plot_dict = {"filled_data": True}
             bundle = maf.MetricBundle(
                 metric,
                 slicer,
@@ -564,11 +560,11 @@ def ddfBatch(
         if fieldname.endswith("WFD"):
             pass
         else:
-            for f in 'ugrizy':
+            for f in "ugrizy":
                 displayDict["caption"] = f"Coadded depth per night for {fieldname} in band {f}."
                 metric = maf.Coaddm5Metric(metric_name=f"{fieldname} CoaddedM5 Per Night")
                 slicer = maf.OneDSlicer(slice_col_name="night", bin_size=1, badval=min_coadds[f])
-                plot_dict = {'filled_data': True}
+                plot_dict = {"filled_data": True}
                 bundle = maf.MetricBundle(
                     metric,
                     slicer,

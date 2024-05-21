@@ -10,7 +10,7 @@ from rubin_sim.maf.slicers import MoObjSlicer
 
 from . import batches as batches
 from . import db as db
-from . import metricBundles as mmb
+from . import metricBundles as mmB
 
 
 def run_moving_calc():
@@ -171,7 +171,7 @@ def run_moving_calc():
     )
     # Run these discovery metrics
     print("Calculating quick discovery metrics with simple trailing losses.")
-    bg = mmb.MoMetricBundleGroup(bdictT, out_dir=args.out_dir, results_db=results_db)
+    bg = mmB.MoMetricBundleGroup(bdictT, out_dir=args.out_dir, results_db=results_db)
     bg.run_all()
 
     # Run all discovery metrics using 'detection' losses
@@ -201,7 +201,7 @@ def run_moving_calc():
 
     # Run these discovery metrics
     print("Calculating full discovery metrics with detection losses.")
-    bg = mmb.MoMetricBundleGroup(bdictD, out_dir=args.out_dir, results_db=results_db)
+    bg = mmB.MoMetricBundleGroup(bdictD, out_dir=args.out_dir, results_db=results_db)
     bg.run_all()
 
     # Run all characterization metrics
@@ -229,5 +229,5 @@ def run_moving_calc():
         )
     # Run these characterization metrics
     print("Calculating characterization metrics.")
-    bg = mmb.MoMetricBundleGroup(bdictC, out_dir=args.out_dir, results_db=results_db)
+    bg = mmB.MoMetricBundleGroup(bdictC, out_dir=args.out_dir, results_db=results_db)
     bg.run_all()

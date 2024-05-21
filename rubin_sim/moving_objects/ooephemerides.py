@@ -10,8 +10,10 @@ import pandas as pd
 
 try:
     import pyoorb as oo
+    PYOORB_PRESENT = True
+
 except ModuleNotFoundError:
-    NO_PYOORB = True
+    PYOORB_PRESENT = False
 
 
 def dtime(time_prev):
@@ -61,7 +63,7 @@ class PyOrbEphemerides:
 
     def __init__(self, ephfile=None):
 
-        if NO_PYOORB:
+        if not PYOORB_PRESENT:
             warnings.warn("No pyoorb available, use another ephemeris generator.")
             raise ModuleNotFoundError
 

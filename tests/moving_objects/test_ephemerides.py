@@ -154,7 +154,7 @@ class TestJPLValues(unittest.TestCase):
         self.jpl_dir = os.path.join(get_data_dir(), "tests", "jpl_testdata")
         self.orbits.read_orbits(os.path.join(self.jpl_dir, "S0_n747.des"), skiprows=1)
         # Read JPL ephems.
-        self.jpl = pd.read_csv(os.path.join(self.jpl_dir, "807_n747.txt"), delim_whitespace=True)
+        self.jpl = pd.read_csv(os.path.join(self.jpl_dir, "807_n747.txt"), sep="\s+")
         # Temp key fix
         self.jpl["obj_id"] = self.jpl["objId"]
         # Add times in TAI and UTC, because.

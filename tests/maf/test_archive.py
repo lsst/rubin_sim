@@ -16,7 +16,7 @@ from rubin_sim.data import get_data_dir
 URLROOT = "https://raw.githubusercontent.com/lsst-pst/survey_strategy/main/fbs_2.0/"
 FAMILY_SOURCE = URLROOT + "runs_v2.1.json"
 METRIC_SUBSET_SOURCE = os.path.join(get_data_dir(), "maf", "metric_subsets.json")
-SUMMARY_SOURCE = os.path.join(get_data_dir(), "maf", "summary_v34.h5")
+SUMMARY_SOURCE = os.path.join(get_data_dir(), "maf", "baseline_summary.h5")
 
 # exception classes
 

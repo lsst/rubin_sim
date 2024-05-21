@@ -6,7 +6,6 @@ import os
 import shutil
 
 import matplotlib
-import numpy as np
 
 matplotlib.use("Agg")
 

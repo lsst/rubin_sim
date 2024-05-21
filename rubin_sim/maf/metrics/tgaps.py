@@ -11,9 +11,9 @@ __all__ = (
 
 import numpy as np
 from scipy.stats import binned_statistic
+
 from ..utils import coadd_m5
 from .base_metric import BaseMetric
-
 
 
 class GapsMetric(BaseMetric):
@@ -129,7 +129,8 @@ class TgapsPercentMetric(BaseMetric):
     Measure the gaps between observations.  By default, only gaps
     between neighboring visits are computed.  If all_gaps is set to true,
     all gaps are computed (i.e., if there are observations at 10, 20, 30 and
-    40 the default will Compute the percent of gaps between specified endpoints.
+    40 the default will compute the percent of gaps between
+    specified endpoints.
 
     This is different from the TgapsMetric in that this only looks at
     what percent of intervals fall into the specified range, rather than
@@ -314,8 +315,9 @@ class CoaddM5PerNightMetric(BaseMetric):
         'SummaryHistogram plotter'.
     """
 
-    def __init__(self, night_col="night", m5_col="fiveSigmaDepth", bins=np.arange(20, 25, 0.05),
-                 units="mag", **kwargs):
+    def __init__(
+        self, night_col="night", m5_col="fiveSigmaDepth", bins=np.arange(20, 25, 0.05), units="mag", **kwargs
+    ):
         # Pass the same bins to the plotter.
         self.night_col = night_col
         self.m5_col = m5_col
@@ -323,9 +325,12 @@ class CoaddM5PerNightMetric(BaseMetric):
         super().__init__(col=[self.night_col, self.m5_col], metric_dtype="object", units=units, **kwargs)
 
     def run(self, data_slice, slice_point=None):
-        m5_per_night, be, bn = binned_statistic(data_slice[self.night_col], data_slice[self.m5_col],
-                                              statistic=coadd_m5,
-                                              bins=np.arange(0, 3653, 1))
+        m5_per_night, be, bn = binned_statistic(
+            data_slice[self.night_col],
+            data_slice[self.m5_col],
+            statistic=coadd_m5,
+            bins=np.arange(0, 3653, 1),
+        )
         # Drop the nights with no observations (-inf)
         m5_per_night = m5_per_night[np.where(m5_per_night > 0)]
         result, bins = np.histogram(m5_per_night, self.bins)
@@ -335,7 +340,8 @@ class CoaddM5PerNightMetric(BaseMetric):
 class MaxGapMetric(BaseMetric):
     """Find the maximum gap (in days) in between successive observations.
 
-    Useful for making sure there is an image within the last year that would make a good template image.
+    Useful for making sure there is an image within the last year that
+    would make a good template image.
 
     Parameters
     ----------
@@ -363,7 +369,8 @@ class MaxGapMetric(BaseMetric):
 
 
 class NightTimespanMetric(BaseMetric):
-    """Calculate the maximum time span covered in each night, report the `percentile` value of all timespans.
+    """Calculate the maximum time span covered in each night,
+    report the `percentile` value of all timespans.
 
     Parameters
     ----------
