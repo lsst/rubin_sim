@@ -46,10 +46,9 @@ class ChebyValues:
             ChebyFits object, with attribute 'coeffs' -
             a dictionary of lists of coefficients.
         """
-        self.coeffs = cheby_fits.coeffs
         # Convert list of coefficients into numpy arrays.
-        for k in self.coeffs:
-            self.coeffs[k] = np.array(self.coeffs[k])
+        for k in cheby_fits.coeffs:
+            self.coeffs[k] = np.array(cheby_fits.coeffs[k])
         # Check that expected values were received.
         missing_keys = set(self.coeff_keys) - set(self.coeffs)
         if len(missing_keys) > 0:
