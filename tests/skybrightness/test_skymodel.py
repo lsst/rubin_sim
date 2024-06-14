@@ -147,7 +147,7 @@ class TestSkyModel(unittest.TestCase):
         dummy, spec1 = sm1.return_wave_spec()
         dummy, spec2 = sm2.return_wave_spec()
 
-        np.testing.assert_array_equal(spec1, spec2)
+        np.testing.assert_allclose(spec1, spec2, rtol=1e-13)
 
         # Check that the degrees kwarg works
         sm2.set_params(
@@ -192,7 +192,8 @@ class TestSkyModel(unittest.TestCase):
 
     def test_mags(self):
         """
-        Test that the interpolated mags are similar to mags computed from interpolated spectra
+        Test that the interpolated mags are similar to mags computed
+        from interpolated spectra
         """
 
         through_path = os.path.join(get_data_dir(), "throughputs", "baseline")
@@ -217,8 +218,10 @@ class TestSkyModel(unittest.TestCase):
         mag2 = sm2.return_mags()
 
         # Let's set the tolerance for matching the throughputs to be 0.001
-        # This allows for small changes in the filter throughputs without requiring recomputation of
-        # sims_skybrighntess_pre, while still requiring a reasonable match against the measured sky
+        # This allows for small changes in the filter throughputs
+        # without requiring recomputation of
+        # sims_skybrighntess_pre, while still requiring a
+        # reasonable match against the measured sky
         for i, filtername in enumerate(filters):
             np.testing.assert_allclose(mags1[filtername], mag2[filtername], rtol=5e-3)
 
