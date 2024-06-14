@@ -10,6 +10,7 @@ import pandas as pd
 
 try:
     import pyoorb as oo
+
     PYOORB_PRESENT = True
 
 except ModuleNotFoundError:
