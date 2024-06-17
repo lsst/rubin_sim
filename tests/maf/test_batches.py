@@ -13,6 +13,8 @@ from rubin_sim.data import get_data_dir
 from rubin_sim.maf.slicers import MoObjSlicer
 
 TEST_DB = "example_v3.4_0yrs.db"
+
+
 class TestBatches(unittest.TestCase):
     @classmethod
     def tearDown_class(cls):

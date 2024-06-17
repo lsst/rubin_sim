@@ -429,8 +429,6 @@ class RandomDitherPerNightStacker(RandomDitherPerVisitStacker):
         return sim_data
 
 
-
-
 class RandomRotDitherPerFilterChangeStacker(BaseDitherStacker):
     """
     Randomly dither the physical angle of the telescope rotator wrt the mount,

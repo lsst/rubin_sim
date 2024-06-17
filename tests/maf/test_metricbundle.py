@@ -16,6 +16,7 @@ import rubin_sim.maf.stackers as stackers
 
 TEST_DB = "example_v3.4_0yrs.db"
 
+
 class TestMetricBundle(unittest.TestCase):
     @classmethod
     def tearDown_class(cls):

@@ -10,6 +10,7 @@ import rubin_sim.maf as maf
 
 TEST_DB = "example_v3.4_0yrs.db"
 
+
 class Test3x2(unittest.TestCase):
     @classmethod
     def tearDownClass(cls):

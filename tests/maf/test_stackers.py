@@ -20,6 +20,7 @@ except ModuleNotFoundError:
 
 TEST_DB = "example_v3.4_0yrs.db"
 
+
 class TestStackerClasses(unittest.TestCase):
     def setUp(self):
         # get some of the test data
@@ -146,8 +147,6 @@ class TestStackerClasses(unittest.TestCase):
             self.assertAlmostEqual(dra_on_night.max(), 0)
             self.assertAlmostEqual(ddec_on_night.max(), 0)
 
-
-
     def test_random_dither(self):
         """
         Test the random dither pattern.
@@ -162,9 +161,7 @@ class TestStackerClasses(unittest.TestCase):
         data["fieldDec"] = np.degrees(rng.random_sample(600) * np.pi / 2.0 - np.pi / 4.0)
         stacker = stackers.RandomDitherPerVisitStacker(max_dither=max_dither)
         data = stacker.run(data)
-        diffsra = (data["fieldRA"] - data["randomDitherPerVisitRa"]) * np.cos(
-            np.radians(data["fieldDec"])
-        )
+        diffsra = (data["fieldRA"] - data["randomDitherPerVisitRa"]) * np.cos(np.radians(data["fieldDec"]))
         diffsdec = data["fieldDec"] - data["randomDitherPerVisitDec"]
         # Check dithers within expected range.
         self._t_dither_range(diffsra, diffsdec, data["fieldRA"], data["fieldDec"], max_dither)
@@ -199,7 +196,6 @@ class TestStackerClasses(unittest.TestCase):
         self._t_dither_range(diffsra, diffsdec, data["fieldRA"], data["fieldDec"], max_dither)
         # Check that dithers on the same night are the same.
         self._t_dither_per_night(diffsra, diffsdec, data["fieldRA"], data["fieldDec"], data["night"])
-
 
     def test_random_rot_dither_per_filter_change_stacker(self):
         """

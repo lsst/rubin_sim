@@ -8,6 +8,8 @@ from rubin_scheduler.data import get_data_dir
 import rubin_sim.maf.utils.opsim_utils as opsimUtils
 
 TEST_DB = "example_v3.4_0yrs.db"
+
+
 class TestOpsimUtils(unittest.TestCase):
     def test_scale_benchmarks(self):
         """Test scaling the design and stretch benchmarks for the
