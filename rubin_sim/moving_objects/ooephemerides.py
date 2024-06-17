@@ -7,7 +7,14 @@ from itertools import repeat
 
 import numpy as np
 import pandas as pd
-import pyoorb as oo
+
+try:
+    import pyoorb as oo
+
+    PYOORB_PRESENT = True
+
+except ModuleNotFoundError:
+    PYOORB_PRESENT = False
 
 
 def dtime(time_prev):
@@ -56,6 +63,11 @@ class PyOrbEphemerides:
     """
 
     def __init__(self, ephfile=None):
+
+        if not PYOORB_PRESENT:
+            warnings.warn("No pyoorb available, use another ephemeris generator.")
+            raise ModuleNotFoundError
+
         # Set translation from timescale to OpenOrb numerical representation.
         # Note all orbits are assumed to be in TT timescale.
         # Also, all dates are expected to be in MJD.

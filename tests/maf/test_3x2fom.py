@@ -8,6 +8,8 @@ from rubin_scheduler.utils.code_utilities import sims_clean_up
 
 import rubin_sim.maf as maf
 
+TEST_DB = "example_v3.4_0yrs.db"
+
 
 class Test3x2(unittest.TestCase):
     @classmethod
@@ -55,7 +57,7 @@ class Test3x2(unittest.TestCase):
             )
         )
 
-        database = os.path.join(get_data_dir(), "tests", "example_dbv1.7_0yrs.db")
+        database = os.path.join(get_data_dir(), "tests", TEST_DB)
         results_db = maf.db.ResultsDb(out_dir=self.out_dir)
         bd = maf.metric_bundles.make_bundles_dict_from_list(bundle_list)
         bg = maf.metric_bundles.MetricBundleGroup(bd, database, out_dir=self.out_dir, results_db=results_db)

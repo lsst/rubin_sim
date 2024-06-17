@@ -9,7 +9,7 @@ from rubin_scheduler.utils import survey_start_mjd
 
 from . import batches as batches
 from . import db as db
-from . import metricBundles as mmb
+from . import metricBundles as mmB
 
 
 def run_moving_fractions():
@@ -74,7 +74,7 @@ def run_moving_fractions():
 
     bdict = {}
     for mName, mFile in zip(metric_names, metricfiles):
-        bdict[mName] = mmb.create_empty_mo_metric_bundle()
+        bdict[mName] = mmB.create_empty_mo_metric_bundle()
         bdict[mName].read(mFile)
 
     first = bdict[metric_names[0]]

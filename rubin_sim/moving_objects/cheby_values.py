@@ -68,7 +68,7 @@ class ChebyValues:
         if not os.path.isfile(cheby_fits_file):
             raise IOError("Could not find cheby_fits_file at %s" % (cheby_fits_file))
         # Read the coefficients file.
-        coeffs = pd.read_table(cheby_fits_file, delim_whitespace=True)
+        coeffs = pd.read_table(cheby_fits_file, sep="\s+")
         # The header line provides information on the number of
         # coefficients for each parameter.
         datacols = coeffs.columns.values

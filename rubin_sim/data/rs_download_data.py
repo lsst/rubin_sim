@@ -52,15 +52,15 @@ def data_dict():
     # to create tar files and follow any sym links, run: e.g.
     #  ``tar -chvzf maf_may_2021.tgz maf``
     file_dict = {
-        "maf": "maf_2022_08_26.tgz",
+        "maf": "maf_2024_06_13.tgz",
         "maps": "maps_2022_2_28.tgz",
         "movingObjects": "movingObjects_oct_2021.tgz",
         "orbits": "orbits_2022_3_1.tgz",
         "orbits_precompute": "orbits_precompute_2023_05_23.tgz",
-        "sim_baseline": "sim_baseline_2023_09_22.tgz",
+        "sim_baseline": "sim_baseline_2024_06_13.tgz",
         "skybrightness": "skybrightness_2023_09_11.tgz",
         "throughputs": "throughputs_2023_09_22.tgz",
-        "tests": "tests_2022_10_18.tgz",
+        "tests": "tests_2024_04_23.tgz",
     }
     return file_dict
 

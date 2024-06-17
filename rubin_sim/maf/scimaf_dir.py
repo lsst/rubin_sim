@@ -14,7 +14,7 @@ matplotlib.use("Agg")
 
 from . import batches as batches
 from . import db as db
-from . import metricBundles as mb
+from . import metricBundles as mmB
 
 
 def scimaf_dir():
@@ -70,7 +70,7 @@ def scimaf_dir():
                 mjd0=mjd0,
             )
         # Run them, including generating plots
-        group = mb.MetricBundleGroup(
+        group = mmB.MetricBundleGroup(
             bdict, filename, out_dir=out_dir, results_db=results_db, save_early=False
         )
         group.run_all(clear_memory=True, plot_now=True)

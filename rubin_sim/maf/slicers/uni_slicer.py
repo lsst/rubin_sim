@@ -35,7 +35,17 @@ class UniSlicer(BaseSlicer):
         def _slice_sim_data(islice):
             """Return all indexes in sim_data."""
             idxs = self.indices
-            return {"idxs": idxs, "slice_point": {"sid": islice}}
+            slice_point = {"sid": islice}
+            for key in self.slice_points:
+                if len(np.shape(self.slice_points[key])) == 0:
+                    keyShape = 0
+                else:
+                    keyShape = np.shape(self.slice_points[key])[0]
+                if keyShape == self.nslice:
+                    slice_point[key] = self.slice_points[key][islice]
+                else:
+                    slice_point[key] = self.slice_points[key]
+            return {"idxs": idxs, "slice_point": slice_point}
 
         setattr(self, "_slice_sim_data", _slice_sim_data)
 
