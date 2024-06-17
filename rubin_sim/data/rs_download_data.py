@@ -60,7 +60,7 @@ def data_dict():
         "sim_baseline": "sim_baseline_2024_06_13.tgz",
         "skybrightness": "skybrightness_2023_09_11.tgz",
         "throughputs": "throughputs_2023_09_22.tgz",
-        "tests": "tests_2022_10_18.tgz",
+        "tests": "tests_2024_04_23.tgz",
     }
     return file_dict
 
