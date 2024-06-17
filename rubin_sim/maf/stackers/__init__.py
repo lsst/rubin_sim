@@ -11,3 +11,4 @@ from .neo_dist_stacker import *
 from .sdss_stackers import *
 from .sn_stacker import *
 from .teff_stacker import *
+from .dither_stackers import *
