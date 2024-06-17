@@ -18,11 +18,12 @@ try:
 except ModuleNotFoundError:
     pass
 
+TEST_DB = "example_v3.4_0yrs.db"
 
 class TestStackerClasses(unittest.TestCase):
     def setUp(self):
         # get some of the test data
-        test_db = os.path.join(get_data_dir(), "tests", "example_dbv1.7_0yrs.db")
+        test_db = os.path.join(get_data_dir(), "tests", TEST_DB)
         query = "select * from observations limit 1000"
         self.test_data = get_sim_data(test_db, None, [], full_sql_query=query)
 
@@ -145,34 +146,8 @@ class TestStackerClasses(unittest.TestCase):
             self.assertAlmostEqual(dra_on_night.max(), 0)
             self.assertAlmostEqual(ddec_on_night.max(), 0)
 
-    @unittest.skip("Dither Stackers deprecated")
-    def test_setup_dither_stackers(self):
-        # Test that we get no stacker when using default columns.
-        ra_col = "fieldRA"
-        dec_col = "fieldDec"
-        degrees = True
-        stackerlist = stackers.setup_dither_stackers(ra_col, dec_col, degrees)
-        self.assertEqual(len(stackerlist), 0)
-        # Test that we get one (and the right one)
-        # when using particular columns.
-        ra_col = "hexDitherFieldPerNightRa"
-        dec_col = "hexDitherFieldPerNightDec"
-        stackerlist = stackers.setup_dither_stackers(ra_col, dec_col, degrees)
-        self.assertEqual(len(stackerlist), 1)
-        self.assertEqual(stackerlist[0], stackers.HexDitherFieldPerNightStacker())
-        # Test that kwargs are passed along.
-        stackerlist = stackers.setup_dither_stackers(ra_col, dec_col, degrees, max_dither=0.5)
-        self.assertEqual(stackerlist[0].max_dither, np.radians(0.5))
 
-    @unittest.skip("Dither Stackers deprecated")
-    def test_base_dither_stacker(self):
-        # Test that the base dither stacker matches the type of a stacker.
-        s = stackers.HexDitherFieldPerNightStacker()
-        self.assertTrue(isinstance(s, stackers.BaseDitherStacker))
-        s = stackers.ParallaxFactorStacker()
-        self.assertFalse(isinstance(s, stackers.BaseDitherStacker))
 
-    @unittest.skip("Dither Stackers deprecated")
     def test_random_dither(self):
         """
         Test the random dither pattern.
@@ -185,16 +160,15 @@ class TestStackerClasses(unittest.TestCase):
         # comparisons.
         data["fieldRA"] = np.degrees(rng.random_sample(600) * (np.pi) + np.pi / 2.0)
         data["fieldDec"] = np.degrees(rng.random_sample(600) * np.pi / 2.0 - np.pi / 4.0)
-        stacker = stackers.RandomDitherFieldPerVisitStacker(max_dither=max_dither)
+        stacker = stackers.RandomDitherPerVisitStacker(max_dither=max_dither)
         data = stacker.run(data)
-        diffsra = (data["fieldRA"] - data["randomDitherFieldPerVisitRa"]) * np.cos(
+        diffsra = (data["fieldRA"] - data["randomDitherPerVisitRa"]) * np.cos(
             np.radians(data["fieldDec"])
         )
-        diffsdec = data["fieldDec"] - data["randomDitherFieldPerVisitDec"]
+        diffsdec = data["fieldDec"] - data["randomDitherPerVisitDec"]
         # Check dithers within expected range.
         self._t_dither_range(diffsra, diffsdec, data["fieldRA"], data["fieldDec"], max_dither)
 
-    @unittest.skip("Dither Stackers deprecated")
     def test_random_dither_per_night(self):
         """
         Test the per-night random dither pattern.
@@ -215,7 +189,6 @@ class TestStackerClasses(unittest.TestCase):
         )
         data["fieldRA"] = rng.rand(ndata) * (np.pi) + np.pi / 2.0
         data["fieldDec"] = rng.rand(ndata) * np.pi / 2.0 - np.pi / 4.0
-        data["fieldId"] = np.floor(rng.rand(ndata) * ndata)
         data["night"] = np.floor(rng.rand(ndata) * 10).astype("int")
         stacker = stackers.RandomDitherPerNightStacker(max_dither=max_dither)
         data = stacker.run(data)
@@ -227,71 +200,7 @@ class TestStackerClasses(unittest.TestCase):
         # Check that dithers on the same night are the same.
         self._t_dither_per_night(diffsra, diffsdec, data["fieldRA"], data["fieldDec"], data["night"])
 
-    @unittest.skip("Dither Stackers deprecated")
-    def test_spiral_dither_per_night(self):
-        """
-        Test the per-night spiral dither pattern.
-        """
-        max_dither = 0.5
-        ndata = 2000
-        # Set seed so the test is stable
-        rng = np.random.RandomState(42)
 
-        data = np.zeros(
-            ndata,
-            dtype=list(
-                zip(
-                    ["fieldRA", "fieldDec", "fieldId", "night"],
-                    [float, float, int, int],
-                )
-            ),
-        )
-        data["fieldRA"] = rng.rand(ndata) * (np.pi) + np.pi / 2.0
-        data["fieldRA"] = np.zeros(ndata) + np.pi / 2.0
-        data["fieldDec"] = rng.rand(ndata) * np.pi / 2.0 - np.pi / 4.0
-        data["fieldDec"] = np.zeros(ndata)
-        data["fieldId"] = np.floor(rng.rand(ndata) * ndata)
-        data["night"] = np.floor(rng.rand(ndata) * 20).astype("int")
-        stacker = stackers.SpiralDitherPerNightStacker(max_dither=max_dither)
-        data = stacker.run(data)
-        diffsra = (data["fieldRA"] - data["spiralDitherPerNightRa"]) * np.cos(np.radians(data["fieldDec"]))
-        diffsdec = data["fieldDec"] - data["spiralDitherPerNightDec"]
-        self._t_dither_range(diffsra, diffsdec, data["fieldRA"], data["fieldDec"], max_dither)
-        # Check that dithers on the same night are the same.
-        self._t_dither_per_night(diffsra, diffsdec, data["fieldRA"], data["fieldDec"], data["night"])
-
-    @unittest.skip("Dither Stackers deprecated")
-    def test_hex_dither_per_night(self):
-        """
-        Test the per-night hex dither pattern.
-        """
-        max_dither = 0.5
-        ndata = 2000
-        # Set seed so the test is stable
-        rng = np.random.RandomState(42)
-
-        data = np.zeros(
-            ndata,
-            dtype=list(
-                zip(
-                    ["fieldRA", "fieldDec", "fieldId", "night"],
-                    [float, float, int, int],
-                )
-            ),
-        )
-        data["fieldRA"] = rng.rand(ndata) * (np.pi) + np.pi / 2.0
-        data["fieldDec"] = rng.rand(ndata) * np.pi / 2.0 - np.pi / 4.0
-        data["fieldId"] = np.floor(rng.rand(ndata) * ndata)
-        data["night"] = np.floor(rng.rand(ndata) * 217).astype("int")
-        stacker = stackers.HexDitherPerNightStacker(max_dither=max_dither)
-        data = stacker.run(data)
-        diffsra = (data["fieldRA"] - data["hexDitherPerNightRa"]) * np.cos(np.radians(data["fieldDec"]))
-        diffsdec = data["fieldDec"] - data["hexDitherPerNightDec"]
-        self._t_dither_range(diffsra, diffsdec, data["fieldRA"], data["fieldDec"], max_dither)
-        # Check that dithers on the same night are the same.
-        self._t_dither_per_night(diffsra, diffsdec, data["fieldRA"], data["fieldDec"], data["night"])
-
-    @unittest.skip("Dither Stackers deprecated")
     def test_random_rot_dither_per_filter_change_stacker(self):
         """
         Test the rotational dither stacker.

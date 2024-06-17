@@ -14,6 +14,7 @@ import rubin_sim.maf.metrics as metrics
 import rubin_sim.maf.slicers as slicers
 import rubin_sim.maf.stackers as stackers
 
+TEST_DB = "example_v3.4_0yrs.db"
 
 class TestMetricBundle(unittest.TestCase):
     @classmethod
@@ -38,7 +39,7 @@ class TestMetricBundle(unittest.TestCase):
         metric_b = metric_bundles.MetricBundle(
             metric, slicer, sql, stacker_list=[stacker1, stacker2], maps_list=[map]
         )
-        database = os.path.join(get_data_dir(), "tests", "example_dbv1.7_0yrs.db")
+        database = os.path.join(get_data_dir(), "tests", TEST_DB)
 
         results_db = db.ResultsDb(out_dir=self.out_dir)
 

@@ -7,7 +7,7 @@ from rubin_scheduler.data import get_data_dir
 
 import rubin_sim.maf.utils.opsim_utils as opsimUtils
 
-
+TEST_DB = "example_v3.4_0yrs.db"
 class TestOpsimUtils(unittest.TestCase):
     def test_scale_benchmarks(self):
         """Test scaling the design and stretch benchmarks for the
@@ -51,7 +51,7 @@ class TestOpsimUtils(unittest.TestCase):
 
     def test_get_sim_data(self):
         """Test that we can get simulation data"""
-        database_file = os.path.join(get_data_dir(), "tests", "example_dbv1.7_0yrs.db")
+        database_file = os.path.join(get_data_dir(), "tests", TEST_DB)
         dbcols = ["fieldRA", "fieldDec", "note"]
         sql = "night < 10"
         full_sql = "SELECT fieldRA, fieldDec, note FROM observations where night < 10;"
