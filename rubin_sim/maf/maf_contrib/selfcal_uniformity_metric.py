@@ -39,7 +39,7 @@ class PhotometricSelfCalUniformityMetric(BaseMetric):
             "rotSkyPos",
             "filter",
         ]
-        super().__init__(col=cols, metric_name="photometricSelfCalUniformityMetric")
+        super().__init__(col=cols, metric_name="PhotometricSelfCalUniformityMetric")
 
         filename = os.path.join(get_data_dir(), "maf", "monster_stars_uniformity_i15-18_sampled.parquet")
         self.stars = Table.read(filename)
@@ -163,3 +163,6 @@ class PhotometricSelfCalUniformityMetric(BaseMetric):
 
     def reduce_outlier_frac_highglat(self, metric_value):
         return metric_value["outlier_frac_highglat"]
+
+    def reduce_uniformity_map(self, metric_value):
+        return metric_value["uniformity_map"]
