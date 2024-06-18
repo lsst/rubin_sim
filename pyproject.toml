@@ -40,6 +40,7 @@ dependencies = [
     "skyproj",
     "pyoorb",
     "rubin-scheduler",
+    "pyarrow",
 ]
 
 [project.optional-dependencies]
@@ -68,6 +69,7 @@ run_moving_calc = "rubin_sim.maf.run_moving_calc:run_moving_calc"
 run_moving_fractions = "rubin_sim.maf.run_moving_fractions:run_moving_fractions"
 run_moving_join = "rubin_sim.maf.run_moving_join:run_moving_join"
 scimaf_dir = "rubin_sim.maf.scimaf_dir:scimaf_dir"
+run_selfcal_metric = "rubin_sim.maf.run_selfcal_metric:run_selfcal_metric"
 show_maf = "rubin_sim.maf.show_maf:show_maf"
 make_lsst_obs = "rubin_sim.moving_objects.make_lsst_obs:make_lsst_obs"
 
