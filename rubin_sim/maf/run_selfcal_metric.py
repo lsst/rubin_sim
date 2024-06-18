@@ -27,7 +27,8 @@ def run_selfcal_metric():
     parser.add_argument(
         "--no_clobber",
         dest="no_clobber",
-        action="store_false",
+        default=False,
+        action="store_true",
         help="Do not remove existing directory outputs",
     )
     args = parser.parse_args()
@@ -73,11 +74,11 @@ def run_selfcal_metric():
         mask=np.zeros(map_bundle.slicer.shape, "bool"),
         fill_value=map_bundle.slicer.badval,
     )
-    map_bundle.write()
+    map_bundle.write(out_dir=out_dir, results_db=results_db)
 
     ph = PlotHandler(results_db=results_db, out_dir=out_dir)
     ph.set_metric_bundles([map_bundle])
-    ph.plot(HealpixSkyMap, plot_dicts={"percentile_clip": 98})
-    ph.plot(HealpixHistogram)
+    _ = ph.plot(HealpixSkyMap(), plot_dicts={'color_min': -0.02, 'color_max': 0.02})
+    _ = ph.plot(HealpixHistogram(), plot_dicts={'percentile_clip': 99})
 
     results_db.close()
