@@ -9,10 +9,10 @@ import matplotlib
 matplotlib.use("Agg")
 
 from .db import ResultsDb
-from .metric_bundles import MetricBundle, MetricBundleGroup
-from .slicers import UniSlicer, HealpixSlicer
 from .maf_contrib import PhotometricSelfCalUniformityMetric
-from .plots import PlotHandler, HealpixSkyMap, HealpixHistogram
+from .metric_bundles import MetricBundle, MetricBundleGroup
+from .plots import HealpixHistogram, HealpixSkyMap, PlotHandler
+from .slicers import HealpixSlicer, UniSlicer
 
 
 def run_selfcal_metric():
