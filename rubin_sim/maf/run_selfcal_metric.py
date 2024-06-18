@@ -78,7 +78,7 @@ def run_selfcal_metric():
 
     ph = PlotHandler(results_db=results_db, out_dir=out_dir)
     ph.set_metric_bundles([map_bundle])
-    _ = ph.plot(HealpixSkyMap(), plot_dicts={'color_min': -0.02, 'color_max': 0.02})
-    _ = ph.plot(HealpixHistogram(), plot_dicts={'percentile_clip': 99})
+    _ = ph.plot(HealpixSkyMap(), plot_dicts={"color_min": -0.02, "color_max": 0.02})
+    _ = ph.plot(HealpixHistogram(), plot_dicts={"percentile_clip": 99})
 
     results_db.close()
