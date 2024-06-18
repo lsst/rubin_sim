@@ -163,6 +163,3 @@ class PhotometricSelfCalUniformityMetric(BaseMetric):
 
     def reduce_outlier_frac_highglat(self, metric_value):
         return metric_value["outlier_frac_highglat"]
-
-    def reduce_uniformity_map(self, metric_value):
-        return metric_value["uniformity_map"]
