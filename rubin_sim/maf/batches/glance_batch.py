@@ -2,6 +2,7 @@ __all__ = ("glanceBatch",)
 
 import warnings
 
+import numpy as np
 from rubin_scheduler.scheduler.utils import EuclidOverlapFootprint
 from rubin_scheduler.utils import ddf_locations
 
@@ -488,11 +489,15 @@ def glanceBatch(
     slicer = slicers.HealpixSlicer(nside=nside_foot, badval=0)
     sky = EuclidOverlapFootprint(nside=nside_foot, smc_radius=4, lmc_radius=6)
     footprints_hp_array, labels = sky.return_maps()
+    label_no_templates = ["scp", "dusty_plane"]
     for filtername in filternames:
         sql = "filter='%s' and night < 365" % filtername
         metric = metrics.CountMetric(col="night", metric_name="N year 1")
+        footprint = footprints_hp_array[filtername].copy()
+        for label in label_no_templates:
+            footprint[np.where(labels == label)] = np.nan
         summary_stat = metrics.FootprintFractionMetric(
-            footprint=footprints_hp_array[filtername],
+            footprint=footprint,
             n_min=3,
         )
         bundle = metric_bundles.MetricBundle(
