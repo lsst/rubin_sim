@@ -2,7 +2,13 @@ __all__ = ("ddfBatch",)
 
 import healpy as hp
 import numpy as np
-from rubin_scheduler.utils import angular_separation, ddf_locations, hpid2_ra_dec, sample_patch_on_sphere
+from rubin_scheduler.utils import (
+    angular_separation,
+    ddf_locations,
+    ddf_locations_pre3_5,
+    hpid2_ra_dec,
+    sample_patch_on_sphere,
+)
 
 import rubin_sim.maf as maf
 
@@ -16,6 +22,7 @@ def ddfBatch(
     nside_sne=128,
     extra_sql=None,
     extra_info_label=None,
+    old_coords=False,
 ):
     """
     A set of metrics to evaluate DDF fields.
@@ -42,6 +49,8 @@ def ddfBatch(
         necessary sql constraints for each metric.
     extra_info_label : `str`, optional
         Additional description information to add (alongside the extra_sql)
+    old_coords : `bool`
+        Use the default locations for the DDFs from pre-July 2024. Default False.
 
     Returns
     -------
@@ -53,7 +62,10 @@ def ddfBatch(
     # Define the slicer to use for each DDF
     # Get standard DDF locations and reformat information as a dictionary
     ddfs = {}
-    ddfs_rough = ddf_locations()
+    if old_coords:
+        ddfs_rough = ddf_locations_pre3_5()
+    else:
+        ddfs_rough = ddf_locations()
     for ddf in ddfs_rough:
         ddfs[ddf] = {"ra": ddfs_rough[ddf][0], "dec": ddfs_rough[ddf][1]}
     # Combine the Euclid double-field into one - but with two ra/dec values
