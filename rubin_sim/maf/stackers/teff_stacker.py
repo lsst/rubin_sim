@@ -121,7 +121,7 @@ class TeffStacker(BaseStacker):
         self.normed = normed
         self.fiducial_depth = TEFF_FIDUCIAL_DEPTH if fiducial_depth is None else fiducial_depth
         self.fiducial_exptime = TEFF_FIDUCIAL_EXPTIME if fiducial_exptime is None else fiducial_exptime
-        self.cols_req = [self.m5_col, self.filter_col]
+        self.cols_req = [self.m5_col, self.filter_col, self.exptime_col]
         if self.normed and self.exptime_col not in self.cols_req:
             self.cols_req.append(self.exptime_col)
 
