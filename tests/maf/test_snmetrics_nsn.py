@@ -18,7 +18,7 @@ class TestSNmetrics(unittest.TestCase):
         if not os.path.isfile(testfile):
             raise FileExistsError("%s not found" % testfile)
         self.simdata = {}
-        with pd.HDFStore(testfile) as f:
+        with pd.HDFStore(testfile, mode="r") as f:
             keys = f.keys()
             for k in keys:
                 newkey = k.lstrip("/")
