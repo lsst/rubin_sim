@@ -1039,6 +1039,102 @@ class MultibandMeanzBiasMetric(BaseMetric):
         result["y1ratio"] = y1ratio
         result["y10ratio"] = y10ratio
 
+def get_stats_by_region(use_map, nside, maskval=0, region="all"):
+    if region not in ["all", "north", "south"]:
+        raise ValueError("Invalid region %s" % region)
+    to_use = use_map > maskval
+
+    if region != "all":
+        # Find the north/south part of the map as requested
+        npix = hp.nside2npix(nside)
+        ra, dec = hp.pix2ang(hp.npix2nside(npix), range(npix), lonlat=True)
+        ngp_mask = _is_ngp(ra, dec)
+        if region == "north":
+            reg_mask = ngp_mask
+        else:
+            reg_mask = ~ngp_mask
+        to_use = to_use & reg_mask
+
+    # Calculate the desired stats
+    reg_mad = median_abs_deviation(use_map[to_use])
+    reg_median = np.median(use_map[to_use])
+    reg_std = np.std(use_map[to_use])
+
+    # Return the values
+    return (reg_mad, reg_median, reg_std)
+
+def stripiness_test_statistic(data_slice, nside):
+    """
+    A utility to find whether a particular routine has stripey features in the exposure time map.
+    """
+    # Analyze the exposure time map to get MAD, median, std in north/south.
+    mad = {}
+    med = {}
+    frac_scatter = {}
+    regions = ["north", "south"]
+    for region in regions:
+        mad[region], med[region], _ = get_stats_by_region(data_slice, nside, region=region)
+        frac_scatter[region] = mad[region] / med[region]
+    test_statistic = frac_scatter["north"] / frac_scatter["south"] - 1
+    return test_statistic
+
+class StripinessMetric(BaseMetric):
+    """
+    Run as summary metric on NestedRIZExptimeExgalM5Metric or ExgalM5Metric
+
+    TODO
+
+
+    Points of contact / contributors: Rachel Mandelbaum, Boris Leistedt
+
+    Parameters
+    ----------
+    year: `int`
+        year of observation, in order to adjust the cut on the depth fluctuations for the stipe detection
+    nside: `int`
+        must be the nside at which the base metric NestedRIZExptimeExgalM5Metric is calculated at
+    verbose: bool, optional
+        if true, will display the segmentation maps and the areas and FOMs of the two regions found
+    Returns
+    -------
+    result: `float`
+        The ratio of the FOMs of the two areas found
+    """
+
+    def __init__(
+        self,
+        year,
+        nside,
+        verbose=True,
+        **kwargs,
+    ):
+        self.year = year
+        self.mask_val = hp.UNSEEN
+        self.verbose = verbose
+        self.nside = nside
+        names = ["riz_exptime"]
+        types = [float]
+        self.mask_val_arr = np.zeros(1, dtype=list(zip(names, types)))
+        self.mask_val_arr["riz_exptime"] = self.mask_val
+
+        super().__init__(col="metricdata", **kwargs)
+
+    def run(self, data_slice, slice_point=None):
+        data_slice_list = [
+            self.mask_val_arr if isinstance(x, float) else x for x in data_slice["metricdata"].tolist()
+        ]
+        data_slice_arr = np.asarray(data_slice_list, dtype=self.mask_val_arr.dtype)
+        # a bit of gymnastics to make sure all bad values (nan, -666) are recast as hp.UNSEEN
+        ind = data_slice_arr["riz_exptime"] == -666
+        ind |= ~np.isfinite(data_slice_arr["riz_exptime"])
+        data_slice_arr["riz_exptime"][ind.ravel()] = hp.UNSEEN
+        # sanity check
+        nside = hp.npix2nside(data_slice["metricdata"].size)
+        assert nside == self.nside
+
+        test_statistic = stripiness_test_statistic(data_slice_arr["riz_exptime"].ravel(), nside)
+
+        return test_statistic
 
 
 
@@ -1112,54 +1208,20 @@ class UniformAreaFoMFractionMetric(BaseMetric):
         nside = hp.npix2nside(data_slice["metricdata"].size)
         assert nside == self.nside
 
+        # Check for stripiness
+        threshold = 0.7 / np.sqrt(self.year)
+        test_statistic = stripiness_test_statistic(data_slice_arr["riz_exptime"].ravel(), nside)
+
+        if np.abs(test_statistic) < np.abs(threshold):
+            stripes = False
+        else:
+            stripes = True
+
         # Let's make code that pulls out the northern/southern galactic regions, and gets statistics of the footprint by region.
         def _is_ngp(ra, dec):
             c = SkyCoord(ra=ra * u.degree, dec=dec * u.degree, frame="icrs")
             lat = c.galactic.b.deg
             return lat >= 0
-
-        def get_stats_by_region(use_map, nside, maskval=0, region="all"):
-            if region not in ["all", "north", "south"]:
-                raise ValueError("Invalid region %s" % region)
-            to_use = use_map > maskval
-
-            if region != "all":
-                # Find the north/south part of the map as requested
-                npix = hp.nside2npix(nside)
-                ra, dec = hp.pix2ang(hp.npix2nside(npix), range(npix), lonlat=True)
-                ngp_mask = _is_ngp(ra, dec)
-                if region == "north":
-                    reg_mask = ngp_mask
-                else:
-                    reg_mask = ~ngp_mask
-                to_use = to_use & reg_mask
-
-            # Calculate the desired stats
-            reg_mad = median_abs_deviation(use_map[to_use])
-            reg_median = np.median(use_map[to_use])
-            reg_std = np.std(use_map[to_use])
-
-            # Return the values
-            return (reg_mad, reg_median, reg_std)
-
-        def has_stripes(data_slice, nside, threshold=0.1):
-            """
-            A utility to find whether a particular routine has stripey features in the exposure time map.
-            """
-            # Analyze the exposure time map to get MAD, median, std in north/south.
-            mad = {}
-            med = {}
-            frac_scatter = {}
-            regions = ["north", "south"]
-            for region in regions:
-                mad[region], med[region], _ = get_stats_by_region(data_slice, nside, region=region)
-                frac_scatter[region] = mad[region] / med[region]
-            test_statistic = np.abs(frac_scatter["north"] / frac_scatter["south"] - 1)
-            if test_statistic < threshold:
-                return False
-            else:
-                return True
-
         def apply_clustering(clustering_data):
             # A thin wrapper around sklearn routines (can swap out which one we are using systematically).
             # We fix parameters like `n_clusters` since realistically we know for rolling that we should expect 2 clusters.
@@ -1237,10 +1299,6 @@ class UniformAreaFoMFractionMetric(BaseMetric):
             my_data[:, 2] = depth_map[depth_map > cutval]
             return my_data
 
-        # Check for stripiness
-        use_threshold = 0.7 / self.year
-        stripes = has_stripes(data_slice_arr["riz_exptime"].ravel(), nside, threshold=use_threshold)
-
         if not stripes:
             return 1
         else:
@@ -1277,3 +1335,244 @@ class UniformAreaFoMFractionMetric(BaseMetric):
             if self.verbose:
                 print("FOMs:", fom1, fom2, fom, fom_total)
             return fom / fom_total
+
+
+
+
+class uDropoutsNumbersShallowestDepth(BaseMetric):
+    """
+    Run as summary metric on MultibandExgalM5.
+
+
+
+    Parameters
+    ----------
+    year : `int`, optional
+        The year of the survey to calculate the bias.
+        This is used to derive the dm/dz derivative used to translate m5 rms into dz rms.
+
+    Returns
+    -------
+    result : `float` array
+        The ratio of this bias to the desired DESC y1 upper bound on the bias, and the ratio
+        between the clbias and the y10 DESC SRD requirement.
+        Desired values are less than 1 by Y10.
+
+
+    Notes
+    -----
+    This is a summary metric to be run on the results
+    of the MultibandExgalM5.
+
+    MultibandExgalM5 provides the m5 depth in all LSST bands given a specific slice.
+
+    """
+
+    def __init__(self,
+                 filter_list=["u", "g", "r", "i", "z", "y"],
+                 **kwargs):
+
+        super().__init__(col="metricdata", percentile=5, **kwargs)
+        # Set mask_val, so that we receive metric_values.filled(mask_val)
+        self.mask_val = hp.UNSEEN
+        self.badval = hp.UNSEEN
+        self.percentileMetric = PercentileMetric(percentile=5, name='percentile')
+        self.filter_list = filter_list
+
+    def run(self, data_slice, slice_point=None):
+
+        # Technically don't need this for now (isn't used in previous one)
+        # need to define an array of bad values for the masked pixels
+        badval_arr = np.repeat(self.badval, len(self.filter_list))
+        # converts the input recarray to an array
+        data_slice_list = [
+            badval_arr if isinstance(x, float) else x for x in data_slice["metricdata"].tolist()
+        ]
+        lengths = np.array([len(x) for x in data_slice_list])
+        # should be (nbins, npix)
+        data_slice_arr = np.asarray(data_slice_list, dtype=float).T
+        data_slice_arr[~np.isfinite(data_slice_arr)] = (
+            hp.UNSEEN
+        )  # need to work with TotalPowerMetric and healpix
+
+        # measure rms in each bin.
+        # The original metric returns an array at each slice_point (of the
+        # original slicer) -- so there is a bit of "rearrangement" that
+        # has to happen to be able to pass a np.array with right dtype
+        # (i.e. dtype = [("metricdata", float)]) to each call to
+        # the rmsMetric `run` methods.
+        percentiles = np.array(
+            [
+                self.percentileMetric.run(np.core.records.fromrecords(x, dtype=[("metricdata", float)]))
+                for x in data_slice_arr
+            ]
+        ) # 6 numbers
+
+        from astropy.modeling.models import Schechter1D
+        from astropy.cosmology import Planck18 as cosmo
+        import astropy.units as u
+
+        def schecter_lf(
+            m_grid: np.ndarray,
+            log_phi_star: float = -2.84,
+            M_star: float = -20.91,
+            alpha: float = -1.68,
+            redshift: float = 3,
+        ) -> np.ndarray:
+            """Schecter Luminosity Function on grid of apparent magnitudes.
+
+            Defaults are for z~3 u-dropout Luminosity Function from Table 6
+            of Harikane et al. 2022.
+
+            Parameters
+            ----------
+            m_grid: np.ndarray
+                Array of apparent AB magnitudes on which to calculate the
+                luminosity function.
+            log_phi_star: float, default=-2.84
+                Natural log of phi_star, the normalization of the luminosity
+                function in units of mag^-1 Mpc^-3
+            M_star: float, default=-20.91
+                The characteristic absolute magnitude where the power-law form
+                of the luminosity function cuts off.
+            alpha: float, default=-1.68
+                The power law index, also known as the faint-end slope.
+            redshift: float, default=3
+                Redshift used for converting apparent magnitudes into absolute
+                magnitudes.
+
+            Returns
+            -------
+            np.ndarray
+                Number density in units mag^-1 Mpc^-3
+            """
+            # Convert observed magnitudes to absolute
+            DL = cosmo.luminosity_distance(redshift).to(u.pc).value  # Lum. Dist. in pc
+            M_grid = m_grid - 5 * np.log10(DL / 10) + 2.5 * np.log10(1 + redshift)
+
+            # Calculate luminosity function in absolute magnitudes
+            schechter = Schechter1D(10**log_phi_star, M_star, alpha)
+
+            return schechter(M_grid)
+
+        def number_density(
+            m_grid: np.ndarray,
+            LF: np.ndarray,
+            redshift: float = 3,
+            dz: float = 1,
+        ) -> float:
+            """Calculate number density per deg^2.
+
+            Parameters
+            ----------
+            m_grid: np.ndarray
+                Array of apparent AB magnitudes corresponding to the
+                luminosity function values.
+            LF: np.ndarray
+                The luminosity function evaluated on m_grid, in units
+                mag^-1 Mpc^-3.
+            redshift: float, default=3
+                The central redshift used for evaluating comoving quantities.
+            dz: float, default=1
+                The full width of the redshift bin
+
+            Returns
+            -------
+            float
+                The total number density of galaxies in units deg^-2.
+            """
+            # Calculate comoving depth of redshift bin (Mpc)
+            chi_far = cosmo.comoving_distance(redshift + dz / 2)
+            chi_near = cosmo.comoving_distance(redshift - dz / 2)
+            dchi = chi_far - chi_near
+
+            # Calculate number density (mag^-1 Mpc^-2)
+            n_dm = (LF / u.Mpc**3) * dchi
+
+            # Convert to mag^-1 deg^-2
+            deg_per_Mpc = cosmo.arcsec_per_kpc_comoving(redshift).to(u.deg / u.Mpc)
+            n_dm /= deg_per_Mpc**2
+
+            # Integrate the luminosity function
+            n = np.trapz(n_dm, m_grid)
+
+            return n.value
+
+
+        u5 = percentiles[self.filter_list == 'u'] # uband m5
+        u3 = u5 + 2.5*np.log10(5 / 3) # convert to uband 3-sigma
+        g_cut = u3 - 1.5 # cut on g band
+        # Calculate LF up to g_cut
+        m_grid = np.linspace(20, g_cut)
+        LF = schecter_lf(m_grid)
+        n_deg2 = number_density(m_grid, LF) # number of objects per sq deg
+
+        return n_deg2
+
+
+class uDropoutsArea(BaseMetric):
+    """
+    Run as summary metric on MultibandExgalM5.
+
+    Parameters
+    ----------
+    year : `int`, optional
+        The year of the survey to calculate the bias.
+        This is used to derive the dm/dz derivative used to translate m5 rms into dz rms.
+
+    Returns
+    -------
+    result : `float` array
+        The ratio of this bias to the desired DESC y1 upper bound on the bias, and the ratio
+        between the clbias and the y10 DESC SRD requirement.
+        Desired values are less than 1 by Y10.
+
+
+    Notes
+    -----
+    This is a summary metric to be run on the results
+    of the MultibandExgalM5.
+
+    MultibandExgalM5 provides the m5 depth in all LSST bands given a specific slice.
+
+    """
+
+    def __init__(self,
+                 filter_list=["u", "g", "r", "i", "z", "y"],
+                 **kwargs):
+
+        super().__init__(col="metricdata", percentile=5, **kwargs)
+        # Set mask_val, so that we receive metric_values.filled(mask_val)
+        self.mask_val = hp.UNSEEN
+        self.badval = hp.UNSEEN
+        self.percentileMetric = PercentileMetric(percentile=5, name='percentile')
+        self.filter_list = filter_list
+
+    def run(self, data_slice, slice_point=None):
+
+        # Technically don't need this for now (isn't used in previous one)
+        # need to define an array of bad values for the masked pixels
+        badval_arr = np.repeat(self.badval, len(self.filter_list))
+        # converts the input recarray to an array
+        data_slice_list = [
+            badval_arr if isinstance(x, float) else x for x in data_slice["metricdata"].tolist()
+        ]
+        lengths = np.array([len(x) for x in data_slice_list])
+        # should be (nbins, npix)
+        data_slice_arr = np.asarray(data_slice_list, dtype=float).T
+        data_slice_arr[~np.isfinite(data_slice_arr)] = (
+            hp.UNSEEN
+        )  # need to work with TotalPowerMetric and healpix
+
+        # measure rms in each bin.
+        # The original metric returns an array at each slice_point (of the
+        # original slicer) -- so there is a bit of "rearrangement" that
+        # has to happen to be able to pass a np.array with right dtype
+        # (i.e. dtype = [("metricdata", float)]) to each call to
+        # the rmsMetric `run` methods.
+        percentiles = np.array(
+            [
+                self.percentileMetric.run(np.core.records.fromrecords(x, dtype=[("metricdata", float)]))
+                for x in data_slice_arr
+            ]
+        ) # 6 numbers
