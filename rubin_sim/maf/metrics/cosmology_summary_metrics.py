@@ -21,6 +21,7 @@ from .area_summary_metrics import AreaThresholdMetric
 from .base_metric import BaseMetric
 from .simple_metrics import RmsMetric
 
+
 # Cosmology-related summary metrics.
 # These generally calculate a FoM for various DESC metrics.
 
@@ -51,14 +52,14 @@ class TotalPowerMetric(BaseMetric):
     """
 
     def __init__(
-        self,
-        lmin=100.0,
-        lmax=300.0,
-        remove_monopole=True,
-        remove_dipole=True,
-        col="metricdata",
-        mask_val=np.nan,
-        **kwargs,
+            self,
+            lmin=100.0,
+            lmax=300.0,
+            remove_monopole=True,
+            remove_dipole=True,
+            col="metricdata",
+            mask_val=np.nan,
+            **kwargs,
     ):
         self.lmin = lmin
         self.lmax = lmax
@@ -225,12 +226,12 @@ class TomographicClusteringSigma8biasMetric(BaseMetric):
     """
 
     def __init__(
-        self,
-        density_tomography_model,
-        power_multiplier=0.1,
-        lmin=10,
-        convert_to_sigma8=True,
-        **kwargs,
+            self,
+            density_tomography_model,
+            power_multiplier=0.1,
+            lmin=10,
+            convert_to_sigma8=True,
+            **kwargs,
     ):
         super().__init__(col="metricdata", **kwargs)
         # Set mask_val, so that we receive metric_values.filled(mask_val)
@@ -285,15 +286,15 @@ class TomographicClusteringSigma8biasMetric(BaseMetric):
             ]
         )  # sky fraction
         spuriousdensitypowers = (
-            np.array(
-                [
-                    self.totalPowerMetrics[i].run(
-                        np.core.records.fromrecords(x, dtype=[("metricdata", float)])
-                    )
-                    for i, x in enumerate(data_slice_arr)
-                ]
-            )
-            / fskys
+                np.array(
+                    [
+                        self.totalPowerMetrics[i].run(
+                            np.core.records.fromrecords(x, dtype=[("metricdata", float)])
+                        )
+                        for i, x in enumerate(data_slice_arr)
+                    ]
+                )
+                / fskys
         )
         print("spuriousdensitypowers:", spuriousdensitypowers)
         print("fskys:", fskys)
@@ -331,7 +332,7 @@ class TomographicClusteringSigma8biasMetric(BaseMetric):
                 totalvar_obs[i, 0] = totalvar_mod[i, 0] + spurious_powers[i] * power_multiplier
 
                 # simple model variance of cell based on Gaussian covariance
-                cells_var = 2 * cells_model**2 / (2 * ells + 1) / fskys[i]
+                cells_var = 2 * cells_model ** 2 / (2 * ells + 1) / fskys[i]
                 totalvar_var[i, 0] = np.sum(cells_var * (2 * ells + 1) ** 2)
 
             # model assumed sigma8 = 0.8
@@ -349,7 +350,7 @@ class TomographicClusteringSigma8biasMetric(BaseMetric):
             FTT = np.sum(transfers[:, 0] * transfers[:, 0] / totalvar_var[:, 0])
             # mean and stddev of multiplicative factor
             sigma8square_fit = FOT / FTT
-            sigma8square_error = FTT**-0.5
+            sigma8square_error = FTT ** -0.5
 
             return sigma8square_fit, sigma8square_error, sigma8square_model
 
@@ -366,8 +367,8 @@ class TomographicClusteringSigma8biasMetric(BaseMetric):
 
             # turn result into bias on sigma8,
             # via change of variable and simple propagation of uncertainty.
-            sigma8_fit = sigma8square_fit**0.5
-            sigma8_model = sigma8square_model**0.5
+            sigma8_fit = sigma8square_fit ** 0.5
+            sigma8_model = sigma8square_model ** 0.5
             sigma8_error = 0.5 * sigma8square_error * sigma8_fit / sigma8square_fit
             results_sigma8_bias = (sigma8_fit - sigma8_model) / sigma8_error
             print(sigma8square_model, sigma8square_fit, sigma8square_error, results_sigma8_square_bias)
@@ -410,7 +411,6 @@ class UniformMeanzBiasMetric(BaseMetric):
         super().__init__(col="metricdata", mask_val=-666, **kwargs)
 
     def run(self, data_slice, slice_point=None):
-
         result = np.empty(1, dtype=[("name", np.str_, 20), ("y1ratio", float), ("y10ratio", float)])
         result["name"][0] = "UniformMeanzBiasMetric"
 
@@ -539,7 +539,7 @@ class UniformMeanzBiasMetric(BaseMetric):
 
             clbias, meanz_use = compute_Clbias(meanzinterp, stdz)
 
-            totdz += [float(st**2) for st in stdz]
+            totdz += [float(st ** 2) for st in stdz]
             totclbias += clbias
             avmeanz += meanzinterp
 
@@ -580,7 +580,6 @@ class MultibandMeanzBiasMetric(BaseMetric):
     """
 
     def __init__(self, filter_list=["u", "g", "r", "i", "z", "y"], year=10, n_filters=6, **kwargs):
-
         super().__init__(col="metricdata", **kwargs)
         # Set mask_val, so that we receive metric_values.filled(mask_val)
         self.mask_val = hp.UNSEEN
@@ -590,7 +589,6 @@ class MultibandMeanzBiasMetric(BaseMetric):
         self.filter_list = filter_list
 
     def run(self, data_slice, slice_point=None):
-
         def compute_dzfromdm(zbins, band_ind, year):
             """This computes the dm/dz relationship calibrated from simulations
             by Jeff Newmann.
@@ -742,7 +740,7 @@ class MultibandMeanzBiasMetric(BaseMetric):
 
             clbias, meanz_use = compute_Clbias(meanzinterp, stdz)
 
-            totdz += [float(st**2) for st in stdz]
+            totdz += [float(st ** 2) for st in stdz]
             totclbias += clbias
             avmeanz += meanzinterp
 
@@ -756,6 +754,14 @@ class MultibandMeanzBiasMetric(BaseMetric):
 
         result["y1ratio"] = y1ratio
         result["y10ratio"] = y10ratio
+
+
+# Let's make code that pulls out the northern/southern galactic regions, and gets statistics of the footprint by region.
+def _is_ngp(ra, dec):
+    c = SkyCoord(ra=ra * u.degree, dec=dec * u.degree, frame="icrs")
+    lat = c.galactic.b.deg
+    return lat >= 0
+
 
 def get_stats_by_region(use_map, nside, maskval=0, region="all"):
     if region not in ["all", "north", "south"]:
@@ -781,6 +787,7 @@ def get_stats_by_region(use_map, nside, maskval=0, region="all"):
     # Return the values
     return (reg_mad, reg_median, reg_std)
 
+
 def stripiness_test_statistic(data_slice, nside):
     """
     A utility to find whether a particular routine has stripey features in the exposure time map.
@@ -796,12 +803,16 @@ def stripiness_test_statistic(data_slice, nside):
     test_statistic = frac_scatter["north"] / frac_scatter["south"] - 1
     return test_statistic
 
+
 class StripinessMetric(BaseMetric):
     """
-    Run as summary metric on NestedRIZExptimeExgalM5Metric or ExgalM5Metric
+    Run as summary metric on NestedRIZExptimeExgalM5Metric.
 
-    TODO
-
+    This metric uses maps of the combined RIZ exposure time to identify stripes or residual rolling features,
+    for the UniformAreaFoMFractionMetric.
+    The number returned quantifies the stripiness of the field.
+    In UniformAreaFoMFractionMetric it is a test statistic: if it is outside of +-0.7/np.sqrt(year) then
+    the RIZ exposure time map is considered to have stripes.
 
     Points of contact / contributors: Rachel Mandelbaum, Boris Leistedt
 
@@ -816,23 +827,24 @@ class StripinessMetric(BaseMetric):
     Returns
     -------
     result: `float`
-        The ratio of the FOMs of the two areas found
+        A number quantifying the stripiness of the RIZ exposure time.
     """
 
     def __init__(
-        self,
-        year,
-        nside,
-        verbose=True,
-        **kwargs,
+            self,
+            year,
+            nside,
+            verbose=True,
+            **kwargs,
     ):
         self.year = year
         self.mask_val = hp.UNSEEN
         self.verbose = verbose
         self.nside = nside
-        names = ["riz_exptime"]
-        types = [float]
+        names = ["exgal_m5", "riz_exptime"]
+        types = [float] * 2
         self.mask_val_arr = np.zeros(1, dtype=list(zip(names, types)))
+        self.mask_val_arr["exgal_m5"] = self.mask_val
         self.mask_val_arr["riz_exptime"] = self.mask_val
 
         super().__init__(col="metricdata", **kwargs)
@@ -854,6 +866,7 @@ class StripinessMetric(BaseMetric):
 
         return test_statistic
 
+
 class UniformAreaFoMFractionMetric(BaseMetric):
     """
     Run as summary metric on NestedRIZExptimeExgalM5Metric.
@@ -862,6 +875,7 @@ class UniformAreaFoMFractionMetric(BaseMetric):
     to identify potential reductions in cosmological constraining power due to substantial large-scale power
     in non-uniform coadds at a particular data release.
     The RIZ exposure time map is used to identify whether there are residual rolling features.
+    Under the hood, this runs the StripinessMetric.
     If not, the metric returns 1. If there are such features, then the region is segmented into similar-depth regions
     and the one with the largest cosmological constraining power is presumed to be used for science.
     In that case, the metric returns the 3x2pt FoM (StaticProbesFoMEmulatorMetric,
@@ -887,11 +901,11 @@ class UniformAreaFoMFractionMetric(BaseMetric):
     """
 
     def __init__(
-        self,
-        year,
-        nside,
-        verbose=True,
-        **kwargs,
+            self,
+            year,
+            nside,
+            verbose=True,
+            **kwargs,
     ):
         self.year = year
         self.mask_val = hp.UNSEEN
@@ -933,11 +947,6 @@ class UniformAreaFoMFractionMetric(BaseMetric):
         else:
             stripes = True
 
-        # Let's make code that pulls out the northern/southern galactic regions, and gets statistics of the footprint by region.
-        def _is_ngp(ra, dec):
-            c = SkyCoord(ra=ra * u.degree, dec=dec * u.degree, frame="icrs")
-            lat = c.galactic.b.deg
-            return lat >= 0
         def apply_clustering(clustering_data):
             # A thin wrapper around sklearn routines (can swap out which one we are using systematically).
             # We fix parameters like `n_clusters` since realistically we know for rolling that we should expect 2 clusters.
@@ -1001,16 +1010,16 @@ class UniformAreaFoMFractionMetric(BaseMetric):
             my_data = np.zeros((n_unmasked, 3))
             cutval = 0.1 + maskval
             my_data[:, 0] = (
-                ra[depth_map > cutval]
-                * (1 - priority_fac)
-                * np.std(depth_map[depth_map > cutval])
-                / np.std(ra[depth_map > cutval])
+                    ra[depth_map > cutval]
+                    * (1 - priority_fac)
+                    * np.std(depth_map[depth_map > cutval])
+                    / np.std(ra[depth_map > cutval])
             )
             my_data[:, 1] = (
-                dec[depth_map > cutval]
-                * (1 - priority_fac)
-                * np.std(depth_map[depth_map > cutval])
-                / np.std(dec[depth_map > cutval])
+                    dec[depth_map > cutval]
+                    * (1 - priority_fac)
+                    * np.std(depth_map[depth_map > cutval])
+                    / np.std(dec[depth_map > cutval])
             )
             my_data[:, 2] = depth_map[depth_map > cutval]
             return my_data
@@ -1053,8 +1062,6 @@ class UniformAreaFoMFractionMetric(BaseMetric):
             return fom / fom_total
 
 
-
-
 class uDropoutsNumbersShallowestDepth(BaseMetric):
     """
     Run as summary metric on MultibandExgalM5.
@@ -1087,7 +1094,6 @@ class uDropoutsNumbersShallowestDepth(BaseMetric):
     def __init__(self,
                  filter_list=["u", "g", "r", "i", "z", "y"],
                  **kwargs):
-
         super().__init__(col="metricdata", percentile=5, **kwargs)
         # Set mask_val, so that we receive metric_values.filled(mask_val)
         self.mask_val = hp.UNSEEN
@@ -1096,7 +1102,6 @@ class uDropoutsNumbersShallowestDepth(BaseMetric):
         self.filter_list = filter_list
 
     def run(self, data_slice, slice_point=None):
-
         # Technically don't need this for now (isn't used in previous one)
         # need to define an array of bad values for the masked pixels
         badval_arr = np.repeat(self.badval, len(self.filter_list))
@@ -1122,18 +1127,18 @@ class uDropoutsNumbersShallowestDepth(BaseMetric):
                 self.percentileMetric.run(np.core.records.fromrecords(x, dtype=[("metricdata", float)]))
                 for x in data_slice_arr
             ]
-        ) # 6 numbers
+        )  # 6 numbers
 
         from astropy.modeling.models import Schechter1D
         from astropy.cosmology import Planck18 as cosmo
         import astropy.units as u
 
         def schecter_lf(
-            m_grid: np.ndarray,
-            log_phi_star: float = -2.84,
-            M_star: float = -20.91,
-            alpha: float = -1.68,
-            redshift: float = 3,
+                m_grid: np.ndarray,
+                log_phi_star: float = -2.84,
+                M_star: float = -20.91,
+                alpha: float = -1.68,
+                redshift: float = 3,
         ) -> np.ndarray:
             """Schecter Luminosity Function on grid of apparent magnitudes.
 
@@ -1167,15 +1172,15 @@ class uDropoutsNumbersShallowestDepth(BaseMetric):
             M_grid = m_grid - 5 * np.log10(DL / 10) + 2.5 * np.log10(1 + redshift)
 
             # Calculate luminosity function in absolute magnitudes
-            schechter = Schechter1D(10**log_phi_star, M_star, alpha)
+            schechter = Schechter1D(10 ** log_phi_star, M_star, alpha)
 
             return schechter(M_grid)
 
         def number_density(
-            m_grid: np.ndarray,
-            LF: np.ndarray,
-            redshift: float = 3,
-            dz: float = 1,
+                m_grid: np.ndarray,
+                LF: np.ndarray,
+                redshift: float = 3,
+                dz: float = 1,
         ) -> float:
             """Calculate number density per deg^2.
 
@@ -1203,25 +1208,24 @@ class uDropoutsNumbersShallowestDepth(BaseMetric):
             dchi = chi_far - chi_near
 
             # Calculate number density (mag^-1 Mpc^-2)
-            n_dm = (LF / u.Mpc**3) * dchi
+            n_dm = (LF / u.Mpc ** 3) * dchi
 
             # Convert to mag^-1 deg^-2
             deg_per_Mpc = cosmo.arcsec_per_kpc_comoving(redshift).to(u.deg / u.Mpc)
-            n_dm /= deg_per_Mpc**2
+            n_dm /= deg_per_Mpc ** 2
 
             # Integrate the luminosity function
             n = np.trapz(n_dm, m_grid)
 
             return n.value
 
-
-        u5 = percentiles[self.filter_list == 'u'] # uband m5
-        u3 = u5 + 2.5*np.log10(5 / 3) # convert to uband 3-sigma
-        g_cut = u3 - 1.5 # cut on g band
+        u5 = percentiles[self.filter_list == 'u']  # uband m5
+        u3 = u5 + 2.5 * np.log10(5 / 3)  # convert to uband 3-sigma
+        g_cut = u3 - 1.5  # cut on g band
         # Calculate LF up to g_cut
         m_grid = np.linspace(20, g_cut)
         LF = schecter_lf(m_grid)
-        n_deg2 = number_density(m_grid, LF) # number of objects per sq deg
+        n_deg2 = number_density(m_grid, LF)  # number of objects per sq deg
 
         return n_deg2
 
@@ -1256,7 +1260,6 @@ class uDropoutsArea(BaseMetric):
     def __init__(self,
                  filter_list=["u", "g", "r", "i", "z", "y"],
                  **kwargs):
-
         super().__init__(col="metricdata", percentile=5, **kwargs)
         # Set mask_val, so that we receive metric_values.filled(mask_val)
         self.mask_val = hp.UNSEEN
@@ -1265,7 +1268,6 @@ class uDropoutsArea(BaseMetric):
         self.filter_list = filter_list
 
     def run(self, data_slice, slice_point=None):
-
         # Technically don't need this for now (isn't used in previous one)
         # need to define an array of bad values for the masked pixels
         badval_arr = np.repeat(self.badval, len(self.filter_list))
@@ -1291,4 +1293,6 @@ class uDropoutsArea(BaseMetric):
                 self.percentileMetric.run(np.core.records.fromrecords(x, dtype=[("metricdata", float)]))
                 for x in data_slice_arr
             ]
-        ) # 6 numbers
+        )  # 6 numbers
+
+
