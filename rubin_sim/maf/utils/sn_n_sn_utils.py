@@ -16,6 +16,7 @@ from astropy.cosmology import FlatLambdaCDM
 from astropy.table import Table
 from rubin_scheduler.data import get_data_dir
 from scipy.interpolate import RegularGridInterpolator
+from rubin_sim.maf.utils import m52snr
 
 warnings.filterwarnings("ignore", category=RuntimeWarning)
 
@@ -267,16 +268,9 @@ class LcfastNew:
         lc.loc[:, "color"] = self.color
 
         # estimate errors
-        lc["flux_e_sec"] = self.reference_lc.mag_to_flux[band](
-            (lc["mag"], lc[self.exptime_col] / lc[self.nexp_col], lc[self.nexp_col])
-        )
-        lc["flux_5"] = 10 ** (-0.4 * (lc[self.m5_col] - self.reference_lc.zp[band]))
-        lc["snr_m5"] = lc["flux_e_sec"] / np.sqrt(
-            (lc["flux_5"] / 5.0) ** 2 + lc["flux_e_sec"] / lc[self.exptime_col]
-        )
+        lc["snr_m5"] = m52snr(lc["mag"], lc["fiveSigmaDepth"])
         lc["fluxerr_photo"] = lc["flux"] / lc["snr_m5"]
         lc["magerr"] = (2.5 / np.log(10.0)) / lc["snr_m5"]
-        lc["fluxerr"] = lc["fluxerr_photo"]
 
         # Fisher matrix components
         for key, vals in fisher__mat.items():
@@ -291,8 +285,8 @@ class LcfastNew:
         # if len(lc) > 0.:
         #    lc = self.dust_corrections(lc, ebvof_mw)
 
-        # remove lc points with no flux
-        idx = lc["flux_e_sec"] > 0.0
+        # remove lc points with no detectable flux
+        idx = lc["mag"] < lc["fiveSigmaDepth"] + 0.5
         lc_flux = lc[idx]
 
         return lc_flux
