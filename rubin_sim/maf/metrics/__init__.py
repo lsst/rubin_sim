@@ -27,6 +27,7 @@ from .periodic_detect_metric import *
 from .phase_gap_metric import *
 from .qso_number_counts_metric import *
 from .scaling_metrics import *
+from .schedview_metrics import *
 from .season_metrics import *
 from .simple_metrics import *
 from .sky_sat_metric import *
