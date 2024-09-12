@@ -7,7 +7,24 @@ from astropy.time import Time
 from rubin_scheduler.utils import calc_lmst
 
 from .base_stacker import BaseStacker
-from .dither_stackers import wrap_ra
+
+
+def wrap_ra(ra):
+    """
+    Wrap only RA values into 0-2pi (using mod).
+
+    Parameters
+    ----------
+    ra : numpy.ndarray
+        RA in radians
+
+    Returns
+    -------
+    numpy.ndarray
+        Wrapped RA values, in radians.
+    """
+    ra = ra % (2.0 * np.pi)
+    return ra
 
 
 def ra_dec2_alt_az(ra, dec, lat, lon, mjd, altonly=False):
