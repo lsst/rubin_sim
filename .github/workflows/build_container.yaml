@@ -1,0 +1,29 @@
+name: Docker Build
+
+"on":
+  # Modify workflow to run on tag, when update dockerfile
+  workflow_dispatch:
+
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    # (optional) only build on tags or ticket branches
+    if: >
+      startsWith(github.ref, 'refs/tags/')
+      || startsWith(github.head_ref, 'tickets/')
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: lsst-sqre/build-and-push-to-ghcr@v1
+        id: build
+        with:
+          image: ${{ github.repository }} 
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          dockerfile: Dockerfile
+          cache-from: type=local,src=/tmp/.buildx-cache
+          cache-to: type=local,dest=/tmp/.buildx-cache
+
+      - run: echo Pushed ghcr.io/${{ github.repository }}:${{ steps.build.outputs.tag }}
