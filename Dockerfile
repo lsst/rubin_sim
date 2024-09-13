@@ -20,10 +20,10 @@ RUN python -m pip install /home/$MAMBA_USER/rubin_sim --no-deps
 # Mount fbs simulation outputs expected at /data/fbs_sims
 # Mount rubin_sim_data (if needed) at /data/rubin_sim_data
 
-EXPOSE 80
-ENV PORT=80
+EXPOSE 8080
+ENV PORT=8080
 
 ENV RUBIN_SIM_DATA_DIR=/data/rubin_sim_data
 
-# Start up show_maf on port 80
-CMD cd /data/fbs_sims && show_maf -p 80 --no_browser
+# Start up show_maf on port 8080
+CMD cd /data/fbs_sims && show_maf -p 8080 --no_browser
