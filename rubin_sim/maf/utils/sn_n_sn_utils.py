@@ -16,6 +16,7 @@ from astropy.cosmology import FlatLambdaCDM
 from astropy.table import Table
 from rubin_scheduler.data import get_data_dir
 from scipy.interpolate import RegularGridInterpolator
+
 from rubin_sim.maf.utils import m52snr
 
 warnings.filterwarnings("ignore", category=RuntimeWarning)

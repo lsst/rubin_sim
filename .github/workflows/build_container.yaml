@@ -9,15 +9,11 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
-    # (optional) only build on tags or ticket branches
-    if: >
-      startsWith(github.ref, 'refs/tags/')
-      || startsWith(github.head_ref, 'tickets/')
 
     steps:
       - uses: actions/checkout@v4
 
-      - uses: lsst-sqre/build-and-push-to-ghcr@v1
+      - uses: lsst-sqre/build-and-push-to-ghcr@tickets/DM-41857
         id: build
         with:
           image: ${{ github.repository }} 

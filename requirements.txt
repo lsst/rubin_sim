@@ -1,6 +1,6 @@
 setuptools_scm
 setuptools_scm_git_archive
-numpy<2
+numpy
 matplotlib
 healpy
 pandas
@@ -21,5 +21,5 @@ scikit-learn
 shapely
 skyfield
 skyproj
-tdqm
+tqdm
 rubin-scheduler

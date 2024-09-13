@@ -1,0 +1,28 @@
+name: base
+channels:
+ - conda-forge
+dependencies:
+ - numpy <2
+ - matplotlib-base
+ - healpy
+ - pandas
+ - pyarrow
+ - numexpr
+ - scipy
+ - sqlalchemy
+ - astropy
+ - pytables
+ - h5py
+ - astroplan
+ - git
+ - colorcet
+ - cycler
+ - george
+ - scikit-learn
+ - shapely
+ - skyproj
+ - tqdm
+ - jinja2
+ - tornado
+ - rubin-scheduler
+
