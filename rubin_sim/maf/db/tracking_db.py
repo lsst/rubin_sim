@@ -70,9 +70,11 @@ class TrackingDb:
         # connecting to non-existent database creates it automatically
         if database is None:
             # Default is a file in the current directory.
-            self.database = os.path.join(os.getcwd(), "trackingDb_sqlite.db")
+            self.database = "trackingDb_sqlite.db"
+            self.tracking_db_dir = "."
         else:
             self.database = database
+            self.tracking_db_dir = os.path.dirname(database)
         # only sqlite
         dbAddress = url.URL.create(drivername=self.driver, database=self.database)
         engine = create_engine(dbAddress, echo=self.verbose)
@@ -127,6 +129,7 @@ class TrackingDb:
             Set the date the MAF analysis was run.
         maf_dir : `str`, optional
             The relative path to the MAF directory.
+            Will be converted to a relative path if absolute.
         db_file : `str`, optional
             The relative path to the Opsim SQLite database file.
         maf_run_id : `int`, optional
@@ -158,6 +161,8 @@ class TrackingDb:
             maf_date = "NULL"
         if maf_dir is None:
             maf_dir = "NULL"
+        if maf_dir is not None:
+            maf_dir = os.path.relpath(maf_dir, start=self.tracking_db_dir)
         if db_file is None:
             db_file = "NULL"
         # Test if maf_dir already exists in database.
@@ -275,11 +280,11 @@ def add_run_to_database(
     db_file : `str`, optional
         Relative path + name of the opsim database file.
     """
-    maf_dir = os.path.abspath(maf_dir)
+    trackingDb = TrackingDb(database=tracking_db_file)
+
+    maf_dir = os.path.relpath(maf_dir, start=os.path.dirname(trackingDb.tracking_db_dir))
     if not os.path.isdir(maf_dir):
         raise ValueError("There is no directory containing MAF outputs at %s." % (maf_dir))
-
-    trackingDb = TrackingDb(database=tracking_db_file)
 
     # Connect to resultsDb for additional information if available
     if os.path.isfile(os.path.join(maf_dir, "resultsDb_sqlite.db")) and not skip_extras:

@@ -25,8 +25,9 @@ class MafTracking:
     def __init__(self, database=None):
         if database is None:
             database = os.path.join(os.getcwd(), "trackingDb_sqlite.db")
+        self.tracking_db = database
 
-        # Read in the results database.
+        # Read in the tracking database.
         cols = [
             "maf_run_id",
             "run_name",
@@ -40,7 +41,7 @@ class MafTracking:
             "maf_version",
             "maf_date",
         ]
-        self.runs = get_sim_data(database, "", cols, table_name="runs")
+        self.runs = get_sim_data(self.tracking_db, "", cols, table_name="runs")
         self.runs = self.sort_runs(self.runs, order=["maf_run_id", "run_name", "maf_comment"])
         self.runs_page = {}
 
@@ -59,16 +60,17 @@ class MafTracking:
             Ordered dict version of the numpy structured array.
         """
         runInfo = OrderedDict()
+        maf_dir = os.path.relpath(run["maf_dir"], start=os.path.dirname(self.tracking_db))
         runInfo["Run Name"] = run["run_name"]
         runInfo["Group"] = run["run_group"]
         runInfo["Maf Comment"] = run["maf_comment"]
         runInfo["Run Comment"] = run["run_comment"]
-        runInfo["SQLite File"] = [
+        runInfo["RunDb File"] = [
             os.path.relpath(run["db_file"]),
             os.path.split(run["db_file"])[1],
         ]
-        runInfo["ResultsDb"] = os.path.relpath(os.path.join(run["maf_dir"], "resultsDb_sqlite.db"))
-        runInfo["maf_dir"] = run["maf_dir"]
+        runInfo["ResultsDb"] = os.path.join(maf_dir, "resultsDb_sqlite.db")
+        runInfo["maf_dir"] = maf_dir
         runInfo["sched_version"] = run["run_version"]
         runInfo["sched_date"] = run["run_date"]
         runInfo["maf_version"] = run["maf_version"]

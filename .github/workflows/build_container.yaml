@@ -13,7 +13,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: lsst-sqre/build-and-push-to-ghcr@v1
+      - uses: lsst-sqre/build-and-push-to-ghcr@tickets/DM-41857
         id: build
         with:
           image: ${{ github.repository }} 
