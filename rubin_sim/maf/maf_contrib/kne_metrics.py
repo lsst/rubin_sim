@@ -5,7 +5,7 @@ import os
 
 import numpy as np
 from rubin_scheduler.data import get_data_dir
-from rubin_scheduler.utils import survey_start_mjd, uniform_sphere
+from rubin_scheduler.utils import SURVEY_START_MJD, uniform_sphere
 
 from rubin_sim.maf.metrics import BaseMetric
 from rubin_sim.maf.slicers import UserPointsSlicer
@@ -147,7 +147,7 @@ class KNePopMetric(BaseMetric):
         night_col="night",
         pts_needed=2,
         file_list=None,
-        mjd0=None,
+        mjd0=SURVEY_START_MJD,
         output_lc=False,
         badval=-666,
         **kwargs,
@@ -162,7 +162,7 @@ class KNePopMetric(BaseMetric):
         self.output_lc = output_lc
 
         self.lightcurves = KnLc(file_list=file_list)
-        self.mjd0 = survey_start_mjd() if mjd0 is None else mjd0
+        self.mjd0 = mjd0
 
         dust_properties = DustValues()
         self.ax1 = dust_properties.ax1
