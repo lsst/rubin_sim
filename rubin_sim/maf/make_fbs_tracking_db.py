@@ -27,8 +27,8 @@ def make_fbs_tracking_db():
     args = parser.parse_args()
 
     batches = {
-        "meta": "General Info Metrics",
         "glance": "Quick Look Metrics",
+        "meta": "General Info Metrics",
         "sci": "Science Metrics",
         "ss": "Solar System Metrics",
         "ddf": "Deep Drilling Metrics",
@@ -45,12 +45,16 @@ def make_fbs_tracking_db():
             db_name = vals[-1]
             run_name = db_name.replace(".db", "")
             run_version = run_name.split("_10yrs")[0][-4:]
-            run_group = run_version + family
+            run_group = run_version  + " " + family
 
             # Try to build a comment on the run based on the run_name
-            run_comment = run_name.replace("_10yrs", "")[0:-4]
-            run_comment = run_comment.replace("_", "")
+            run_comment = run_name.replace("_10yrs", "")[0:-4] 
+            run_comment = run_comment.replace("_", " ")
 
+            # Or ..
+            run_group = run_version
+            run_comment = family
+            
             print(run_name, db_file)
             conn = sqlite3.connect(db_file)
             query = "select Value from info where Parameter == 'Date, ymd'"
