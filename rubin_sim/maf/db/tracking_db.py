@@ -282,7 +282,7 @@ def add_run_to_database(
     """
     trackingDb = TrackingDb(database=tracking_db_file)
 
-    maf_dir = os.path.relpath(maf_dir, start=os.path.dirname(trackingDb.tracking_db_dir))
+    #maf_dir = os.path.relpath(maf_dir, start=os.path.dirname(trackingDb.tracking_db_dir))
     if not os.path.isdir(maf_dir):
         raise ValueError("There is no directory containing MAF outputs at %s." % (maf_dir))
 

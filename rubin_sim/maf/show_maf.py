@@ -191,7 +191,7 @@ def show_maf():
     startRunId = -666
     # If given a directory argument:
     if args.maf_dir is not None:
-        maf_dir = os.path.realpath(args.maf_dir)
+        maf_dir = os.path.relpath(args.maf_dir)
         if not os.path.isdir(maf_dir):
             print("There is no directory containing MAF outputs at %s." % (maf_dir))
             print("Just opening using tracking db at %s." % (tracking_db))
