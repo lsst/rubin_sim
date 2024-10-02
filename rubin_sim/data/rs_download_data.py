@@ -8,7 +8,7 @@ from rubin_scheduler.data import DEFAULT_DATA_URL, download_rubin_data
 from rubin_scheduler.data import get_data_dir as gdd
 
 
-def get_data_dir():
+def get_data_dir() -> str:
     """Wraps rubin_scheduler.data.get_data_dir().
     Provided here for backwards compatibility.
 
@@ -20,7 +20,7 @@ def get_data_dir():
     return gdd()
 
 
-def get_baseline():
+def get_baseline() -> str:
     """Get the path to the baseline cadence simulation sqlite file.
 
     Returns
@@ -34,7 +34,7 @@ def get_baseline():
     return file
 
 
-def data_dict():
+def data_dict() -> dict:
     """
     Dictionary containing expected version information for rubin_sim_data
     data sets, for this version of rubin_sim.
@@ -65,7 +65,7 @@ def data_dict():
     return file_dict
 
 
-def rs_download_testing():
+def rs_download_testing() -> None:
     """Convenience function for github actions, to download only a subset
     of data.
 
@@ -89,7 +89,7 @@ def rs_download_testing():
     )
 
 
-def rs_download_data():
+def rs_download_data() -> None:
     """Utility to download necessary data for rubin_sim.
 
     Wrapper around rubin_scheduler.scheduler_download_data,
