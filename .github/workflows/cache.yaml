@@ -16,7 +16,7 @@ jobs:
         with:
           auto-update-conda: true
           python-version: ${{ matrix.python-version }}
-          miniforge-variant: Mambaforge
+          miniforge-variant: Miniforge3
           channels: conda-forge,defaults
           use-mamba: true
           channel-priority: strict
@@ -32,7 +32,7 @@ jobs:
         run: |
           echo `pwd`
           ls ${{ github.workspace }}
-          python -m pip install -e . --no-deps      
+          python -m pip install -e . --no-deps
 
       - name: Access rubin-sim-data cache
         id: cache-rs

@@ -19,7 +19,7 @@ jobs:
         with:
           auto-update-conda: true
           python-version: ${{ matrix.python-version }}
-          miniforge-variant: Mambaforge
+          miniforge-variant: Miniforge3
           channels: conda-forge,defaults
           use-mamba: true
           channel-priority: strict
@@ -28,7 +28,7 @@ jobs:
       - name: configure conda and install requirements
         shell: bash -l {0}
         run: |
-          mamba install --quiet --file=requirements.txt          
+          mamba install --quiet --file=requirements.txt
           mamba install --quiet pip
           pip install "documenteer[guide]"
 

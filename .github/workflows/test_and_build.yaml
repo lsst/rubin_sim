@@ -28,7 +28,7 @@ jobs:
         with:
           auto-update-conda: true
           python-version: ${{ matrix.python-version }}
-          miniforge-variant: Mambaforge
+          miniforge-variant: Miniforge3
           channels: conda-forge,defaults
           use-mamba: true
           channel-priority: strict
@@ -63,7 +63,7 @@ jobs:
         run: |
           export RUBIN_SIM_DATA_DIR=~/rubin_sim_data
           scheduler_download_data --tdqm_disable --update
-          rs_download_testing         
+          rs_download_testing
 
       - name: conda list
         shell: bash -l {0}
