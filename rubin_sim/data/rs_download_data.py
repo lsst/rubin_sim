@@ -57,7 +57,7 @@ def data_dict():
         "movingObjects": "movingObjects_oct_2021.tgz",
         "orbits": "orbits_2022_3_1.tgz",
         "orbits_precompute": "orbits_precompute_2023_05_23.tgz",
-        "sim_baseline": "sim_baseline_2024_06_13.tgz",
+        "sim_baseline": "sim_baseline_2024_10_08.tgz",
         "skybrightness": "skybrightness_2023_09_11.tgz",
         "throughputs": "throughputs_2023_09_22.tgz",
         "tests": "tests_2024_04_23.tgz",
