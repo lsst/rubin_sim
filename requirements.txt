@@ -21,5 +21,7 @@ scikit-learn
 shapely
 skyfield
 skyproj
+tornado
+jinja2
 tqdm
 rubin-scheduler
