@@ -20,7 +20,9 @@ from rubin_sim.phot_utils import Bandpass, PhotometricParameters
 
 
 def load_inst_zeropoints():
-    """Load up and return instrumental zeropoints and atmospheric extinctions"""
+    """Load up and return instrumental zeropoints and atmospheric
+    extinctions.
+    """
     zp_inst = {}
     datadir = get_data_dir()
     for filtername in "ugrizy":
@@ -38,7 +40,7 @@ def load_inst_zeropoints():
 
 
 def coadd_m5(mags):
-    """Coadded depth, assuming Gaussian noise"""
+    """Coadded depth, assuming Gaussian noise."""
     return 1.25 * np.log10(np.sum(10.0 ** (0.8 * np.array(mags))))
 
 
@@ -164,22 +166,21 @@ def optimal_bins(datain, binmin=None, binmax=None, nbin_max=200, nbin_min=1, ver
 
 
 def percentile_clipping(data, percentile=95.0):
-    """
-    Calculate the minimum and maximum values of a distribution of points,
+    """Calculate the minimum and maximum values of a distribution of points,
     after discarding data more than 'percentile' from the median.
     This is useful for determining useful data ranges for plots.
     Note that 'percentile' percent of the data is retained.
 
     Parameters
     ----------
-    data : numpy.ndarray
+    data : `numpy.ndarray`
         The data to clip.
-    percentile : float
+    percentile : `float`
         Retain values within percentile of the median.
 
     Returns
     -------
-    float, float
+    minimum, maximum : `float`, `float`
         The minimum and maximum values of the clipped data.
     """
     lower_percentile = (100 - percentile) / 2.0
@@ -190,8 +191,7 @@ def percentile_clipping(data, percentile=95.0):
 
 
 def radec2pix(nside, ra, dec):
-    """
-    Calculate the nearest healpixel ID of an RA/Dec array, assuming nside.
+    """Calculate the nearest healpixel ID of an RA/Dec array, assuming nside.
 
     Parameters
     ----------

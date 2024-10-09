@@ -8,7 +8,8 @@ from .coord_stackers import ra_dec2_alt_az
 
 
 def find_telescopes(min_size=3.0):
-    """Finds telescopes larger than min_size, from list of large telescopes based on
+    """Finds telescopes larger than min_size,
+    from list of large telescopes based on
     http://astro.nineplanets.org/bigeyes.html.
 
     Returns
@@ -105,17 +106,20 @@ def find_telescopes(min_size=3.0):
 
 
 class NFollowStacker(BaseStacker):
-    """Add the number of telescopes ('nObservatories') that could follow up any visit
-    at (any of the) times in timeStep, specifying the minimum telescope size (in meters) and airmass limit.
+    """Add the number of telescopes ('nObservatories') that could
+    follow up any visit at (any of the) times in timeStep,
+    specifying the minimum telescope size (in meters) and airmass limit.
 
     Parameters
     ----------
     minSize: float, optional
         The minimum telescope aperture to use, in meters. Default 3.0.
     airmass_limit: float, optional
-        The maximum airmass allowable at the follow-up observatory. Default 2.5.
+        The maximum airmass allowable at the follow-up observatory.
+        Default 2.5.
     time_steps: np.array or list of floats, optional
-        The timesteps to check for followup opportunities, in hours. Default is np.arange(0.5, 12., 3.0).
+        The timesteps to check for followup opportunities, in hours.
+        Default is np.arange(0.5, 12., 3.0).
     mjd_col: str, optional
         The exposure MJD column name. Default 'observationStartMJD'.
     ra_col: str, optional
@@ -174,7 +178,8 @@ class NFollowStacker(BaseStacker):
                 )
                 airmass = 1.0 / (np.cos(np.pi / 2.0 - alt))
                 followed = np.where((airmass <= self.airmass_limit) & (airmass >= 1.0))
-                # If the observatory got an observation, save this into obs_got_it.
+                # If the observatory got an observation, save this
+                # into obs_got_it.
                 # obs_got_it will be 1 if ANY of the times got an observation.
                 obs_got_it[followed] = 1
             # If an observatory got an observation, count it in nObservatories.

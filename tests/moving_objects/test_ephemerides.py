@@ -57,7 +57,8 @@ class TestPyOrbEphemerides(unittest.TestCase):
 
     def test_convert_from_oorb_array(self):
         # Check that we can convert orbital elements TO oorb format and back
-        # without losing info (except ObjId -- we will lose that unless we use updateOrbits.)
+        # without losing info
+        # (except ObjId -- we will lose that unless we use updateOrbits.)
         self.ephems._convert_to_oorb_elem(self.orbits.orbits, self.orbits.orb_format)
         new_orbits = Orbits()
         new_orbits.set_orbits(self.orbits.orbits)
@@ -116,8 +117,11 @@ class TestPyOrbEphemerides(unittest.TestCase):
             time_scale="UTC",
             by_object=False,
         )
-        # Temp removing this as it is giving an intermittent fail. Not sure why
-        # np.testing.assert_equal(ephs_all, ephs)
+        # See https://rubinobs.atlassian.net/browse/SP-1633
+        # This needs to be fixed, but on a separate ticket
+        # for key in ephs_all.dtype.names:
+        #    np.testing.assert_almost_equal(ephs_all[key], ephs[key])
+
         # Reset ephems to use KEP Orbits, and calculate new ephemerides.
         self.ephems.set_orbits(self.orbits_kep)
         oorb_ephs = self.ephems._generate_oorb_ephs_basic(eph_times, obscode=807, eph_mode="N")
@@ -135,18 +139,23 @@ class TestPyOrbEphemerides(unittest.TestCase):
             time_scale="UTC",
             by_object=False,
         )
-        # Also seems to be an intermitent fail
-        # np.testing.assert_equal(ephsAllKEP, ephsKEP)
-        # Check that ephemerides calculated from the different (COM/KEP) orbits are almost equal.
-        # for column in ephs.dtype.names:
-        #    np.testing.assert_allclose(ephs[column], ephsKEP[column], rtol=0, atol=1e-7)
-        # Check that the wrapped method using KEP elements and the wrapped method using COM elements match.
-        # for column in ephsAll.dtype.names:
-        #    np.testing.assert_allclose(ephsAllKEP[column], ephsAll[column], rtol=0, atol=1e-7)
+        # Also https://rubinobs.atlassian.net/browse/SP-1633
+        # for key in ephs_all_kep.dtype.names:
+        #    np.testing.assert_almost_equal(ephs_all_kep[key], ephs_kep[key])
+
+        # Check that ephemerides calculated from the different (COM/KEP)
+        # orbits are almost equal
+        for column in ephs.dtype.names:
+            np.testing.assert_allclose(ephs[column], ephs_kep[column], rtol=1e-5, atol=1e-4)
+        # Check that the wrapped method using KEP elements and the wrapped
+        # method using COM elements match.
+        for column in ephs_all.dtype.names:
+            np.testing.assert_allclose(ephs_all_kep[column], ephs_all[column], rtol=1e-5, atol=1e-4)
 
 
 class TestJPLValues(unittest.TestCase):
-    """Test the oorb generated RA/Dec values against JPL generated RA/Dec values."""
+    """Test the oorb generated RA/Dec values against
+    JPL generated RA/Dec values."""
 
     def setUp(self):
         # Read orbits.
@@ -154,7 +163,7 @@ class TestJPLValues(unittest.TestCase):
         self.jpl_dir = os.path.join(get_data_dir(), "tests", "jpl_testdata")
         self.orbits.read_orbits(os.path.join(self.jpl_dir, "S0_n747.des"), skiprows=1)
         # Read JPL ephems.
-        self.jpl = pd.read_csv(os.path.join(self.jpl_dir, "807_n747.txt"), sep="\s+")
+        self.jpl = pd.read_csv(os.path.join(self.jpl_dir, "807_n747.txt"), sep=r"\s+")
         # Temp key fix
         self.jpl["obj_id"] = self.jpl["objId"]
         # Add times in TAI and UTC, because.
@@ -167,7 +176,8 @@ class TestJPLValues(unittest.TestCase):
         del self.jpl
 
     def test_ra_dec(self):
-        # We won't compare Vmag, because this also needs information on trailing losses.
+        # We won't compare Vmag, because this also needs information
+        # on trailing losses.
         times = self.jpl["mjdUTC"].unique()
         delta_ra = np.zeros(len(times), float)
         delta_dec = np.zeros(len(times), float)
@@ -193,7 +203,8 @@ class TestJPLValues(unittest.TestCase):
         # Convert to mas
         delta_ra *= 3600.0 * 1000.0
         delta_dec *= 3600.0 * 1000.0
-        # Much of the time we're closer than 1mas, but there are a few which hit higher values.
+        # Much of the time we're closer than 1mas,
+        # but there are a few which hit higher values.
         print("max JPL errors", np.max(delta_ra), np.max(delta_dec))
         print("std JPL errors", np.std(delta_ra), np.std(delta_dec))
         self.assertLess(np.max(delta_ra), 25)

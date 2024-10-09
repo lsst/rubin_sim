@@ -8,7 +8,7 @@ from itertools import combinations
 import numpy as np
 import pandas as pd
 from rubin_scheduler.data import get_data_dir
-from rubin_scheduler.utils import survey_start_mjd, uniform_sphere
+from rubin_scheduler.utils import SURVEY_START_MJD, uniform_sphere
 
 import rubin_sim.maf.metrics as metrics
 import rubin_sim.maf.slicers as slicers
@@ -81,6 +81,7 @@ def generate_presto_pop_slicer(
 ):
     """Generate a population of KNe events, and put the info about them
     into a UserPointSlicer object
+
     Parameters
     ----------
     skyregion : `str`
@@ -100,6 +101,10 @@ def generate_presto_pop_slicer(
         Minimum luminosity distance (Mpc)
     d_max : `float` or `int`
         Maximum luminosity distance (Mpc)
+
+    Returns
+    -------
+    kne_slicer : `~.maf.UserPointsSlicer`
     """
 
     def rndm(a, b, g, size=1):
@@ -182,7 +187,7 @@ class PrestoColorKNePopMetric(metrics.BaseMetric):
         self.skyregion = skyregion
         # read in file as light curve object;
         self.lightcurves = KnLc(file_list=file_list)
-        self.mjd0 = survey_start_mjd() if mjd0 is None else mjd0
+        self.mjd0 = SURVEY_START_MJD if mjd0 is None else mjd0
 
         dust_properties = DustValues()
         self.ax1 = dust_properties.ax1

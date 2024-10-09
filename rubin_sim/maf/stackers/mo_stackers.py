@@ -22,9 +22,11 @@ KM_PER_AU = 149597870.7
 
 
 class BaseMoStacker(BaseStacker):
-    """Base class for moving object (SSobject)  stackers. Relevant for MoSlicer ssObs (pd.dataframe).
+    """Base class for moving object (SSobject)  stackers.
+    Relevant for MoSlicer ssObs (pd.dataframe).
 
-    Provided to add moving-object specific API for 'run' method of moving object stackers.
+    Provided to add moving-object specific API for 'run'
+    method of moving object stackers.
     """
 
     def run(self, sso_obs, href, hval=None):
@@ -37,38 +39,48 @@ class BaseMoStacker(BaseStacker):
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
             sso_obs, cols_present = self._add_stacker_cols(sso_obs)
-        # Here we don't really care about cols_present, because almost every time we will be readding
+        # Here we don't really care about cols_present, because almost
+        # every time we will be readding
         # columns anymore (for different H values).
         return self._run(sso_obs, href, hval)
 
 
 class MoMagStacker(BaseMoStacker):
-    """Add columns relevant to SSobject apparent magnitudes and visibility to the slicer ssoObs
+    """Add columns relevant to SSobject apparent magnitudes and
+    visibility to the slicer ssoObs
     dataframe, given a particular Href and current h_val.
 
     Specifically, this stacker adds magLimit, appMag, SNR, and vis.
-    magLimit indicates the appropriate limiting magnitude to consider for a particular object in a particular
-    observation, when combined with the losses due to detection (dmag_detect) or trailing (dmagTrail).
-    appMag adds the apparent magnitude in the filter of the current object, at the current h_val.
+    magLimit indicates the appropriate limiting magnitude to consider
+    for a particular object in a particular
+    observation, when combined with the losses due to detection
+    (dmag_detect) or trailing (dmagTrail).
+    appMag adds the apparent magnitude in the filter of the current object,
+    at the current h_val.
     SNR adds the SNR of this object, given the magLimit.
-    vis adds a flag (0/1) indicating whether an object was visible (assuming a 5sigma threshhold including
+    vis adds a flag (0/1) indicating whether an object was visible
+    (assuming a 5sigma threshhold including
     some probabilistic determination of visibility).
 
     Parameters
     ----------
     m5Col : `str`, optional
-        Name of the column describing the 5 sigma depth of each visit. Default fiveSigmaDepth.
+        Name of the column describing the 5 sigma depth of each visit.
+        Default fiveSigmaDepth.
     lossCol : `str`, optional
         Name of the column describing the magnitude losses,
-        due to trailing (dmagTrail) or detection (dmag_detect). Default dmag_detect.
+        due to trailing (dmagTrail) or detection (dmag_detect).
+        Default dmag_detect.
     gamma : `float`, optional
         The 'gamma' value for calculating SNR. Default 0.038.
         LSST range under normal conditions is about 0.037 to 0.039.
     sigma : `float`, optional
-        The 'sigma' value for probabilistic prediction of whether or not an object is visible at 5sigma.
+        The 'sigma' value for probabilistic prediction of whether or not
+        an object is visible at 5sigma.
         Default 0.12.
-        The probabilistic prediction of visibility is based on Fermi-Dirac completeness formula (see SDSS,
-        eqn 24, Stripe82 analysis: http://iopscience.iop.org/0004-637X/794/2/120/pdf/apj_794_2_120.pdf).
+        The probabilistic prediction of visibility is based on
+        Fermi-Dirac completeness formula (see SDSS, eqn 24, Stripe82 analysis:
+        http://iopscience.iop.org/0004-637X/794/2/120/pdf/apj_794_2_120.pdf).
     randomSeed: `int` or None, optional
         If set, then used as the random seed for the numpy random number
         generation for the dither offsets.
@@ -133,7 +145,8 @@ class MoMagStacker(BaseMoStacker):
         self.units = ["mag", "mag", "SNR", ""]
 
     def _run(self, sso_obs, href, hval):
-        # hval = current H value (useful if cloning over H range), href = reference H value from orbit.
+        # hval = current H value (useful if cloning over H range),
+        # href = reference H value from orbit.
         # Without cloning, href = hval.
         # add apparent magnitude
         self.mag_stacker._run(sso_obs, href, hval)
@@ -145,11 +158,14 @@ class MoMagStacker(BaseMoStacker):
 class AppMagNullStacker(BaseMoStacker):
     """Do nothing to calculate an apparent magnitude.
 
-    This assumes an apparent magnitude was part of the input data and does not need to be modified (no
+    This assumes an apparent magnitude was part of the input data and
+    does not need to be modified (no
     cloning, color terms, trailing losses, etc). Just return the appMag column.
 
-    This would not be necessary in general, but appMag is treated as a special column (because we must have an
-    apparent magnitude for most of the basic moving object metrics, and it must be calculated before SNR
+    This would not be necessary in general, but appMag is treated as a
+    special column (because we must have an
+    apparent magnitude for most of the basic moving object metrics,
+    and it must be calculated before SNR
     if that is also needed).
     """
 
@@ -168,25 +184,36 @@ class AppMagNullStacker(BaseMoStacker):
 
 
 class AppMagStacker(BaseMoStacker):
-    """Add apparent magnitude of an object for the current h_val (compared to Href in the orbit file),
-    incorporating the magnitude losses due to trailing/detection, as well as the color of the object.
+    """Add apparent magnitude of an object for the current h_val
+    (compared to Href in the orbit file),
+    incorporating the magnitude losses due to trailing/detection,
+    as well as the color of the object.
 
-    This is calculated from the reported mag_v in the input observation file (calculated assuming Href) as:
-    ssoObs['appMag'] = ssoObs[self.vMagCol] + ssoObs[self.colorCol] + ssoObs[self.lossCol] + h_val - Href
+    This is calculated from the reported mag_v in the input observation
+    file (calculated assuming Href) as:
+    .. codeblock::python
 
-    Using the vMag reported in the input observations implicitly uses the phase curve coded in at that point;
-    for Oorb this is an H/G phase curve, with G=0.15 unless otherwise specified in the orbit file.
+        ssoObs['appMag'] = ssoObs[self.vMagCol] + ssoObs[self.colorCol] +
+        ssoObs[self.lossCol] + h_val - Href
+
+    Using the vMag reported in the input observations implicitly uses
+    the phase curve coded in at that point;
+    for Oorb this is an H/G phase curve, with G=0.15 unless otherwise
+    specified in the orbit file.
     See sims_movingObjects for more details on the color and loss quantities.
 
     Parameters
     ----------
     v_mag_col : `str`, optional
-        Name of the column containing the base V magnitude for the object at H=Href.
+        Name of the column containing the base V magnitude for the
+        object at H=Href.
     loss_col : `str`, optional
         Name of the column describing the magnitude losses,
-        due to trailing (dmagTrail) or detection (dmag_detect). Default dmag_detect.
+        due to trailing (dmagTrail) or detection (dmag_detect).
+        Default dmag_detect.
     color_col : `str`, optional
-        Name of the column describing the color correction (into the observation filter, from V).
+        Name of the column describing the color correction
+        (into the observation filter, from V).
         Default dmag_color.
     """
 
@@ -202,7 +229,8 @@ class AppMagStacker(BaseMoStacker):
         ]
 
     def _run(self, sso_obs, href, hval):
-        # hval = current H value (useful if cloning over H range), href = reference H value from orbit.
+        # hval = current H value (useful if cloning over H range),
+        # href = reference H value from orbit.
         # Without cloning, href = hval.
         sso_obs["appMag"] = (
             sso_obs[self.v_mag_col] + sso_obs[self.color_col] + sso_obs[self.loss_col] + hval - href
@@ -211,28 +239,35 @@ class AppMagStacker(BaseMoStacker):
 
 
 class CometAppMagStacker(BaseMoStacker):
-    """Add a cometary apparent magnitude, including nucleus and coma, based on a calculation of
-    Afrho (using the current h_val) and a Halley-Marcus phase curve for the coma brightness.
+    """Add a cometary apparent magnitude, including nucleus and coma,
+    based on a calculation of
+    Afrho (using the current h_val) and a Halley-Marcus phase curve
+    for the coma brightness.
 
     Parameters
     ----------
     cometType : `str`, optional
-        Type of comet - short, oort, or mbc. This setting also sets the value of Afrho1 and k:
+        Type of comet - short, oort, or mbc.
+        This setting also sets the value of Afrho1 and k:
         short = Afrho1 / R^2 = 100 cm/km2, k = -4
         oort = Afrho1 / R^2 = 1000 cm/km2, k = -2
         mbc = Afrho1 / R^2 = 4000 cm/km2, k = -6.
         Default = 'oort'.
-        It is also possible to pass this a dictionary instead: the dictionary should contain 'k' and
+        It is also possible to pass this a dictionary instead:
+        the dictionary should contain 'k' and
         'afrho1_const' keys, which will be used to set these values directly.
         (e.g. cometType = {'k': -3.5, 'afrho1_const': 1500}).
     ap : `float`, optional
         The albedo for calculating the object's size. Default 0.04
     rh_col : `str`, optional
-        The column name for the heliocentric distance (in AU). Default 'helio_dist'.
+        The column name for the heliocentric distance (in AU).
+        Default 'helio_dist'.
     delta_col : `str`, optional
-        The column name for the geocentric distance (in AU). Default 'geo_dist'.
+        The column name for the geocentric distance (in AU).
+        Default 'geo_dist'.
     phase_col : `str`, optional
-        The column name for the phase value (in degrees). Default 'phase'.
+        The column name for the phase value (in degrees).
+        Default 'phase'.
     """
 
     cols_added = ["appMag"]
@@ -300,12 +335,14 @@ class CometAppMagStacker(BaseMoStacker):
     def _run(self, sso_obs, href, hval):
         # Calculate radius from the current H value (hval).
         radius = 10 ** (0.2 * (VMAG_SUN - hval)) / np.sqrt(self.ap) * KM_PER_AU
-        # Calculate expected Afrho - this is a value that describes how the brightness of the coma changes
+        # Calculate expected Afrho - this is a value that describes
+        # how the brightness of the coma changes
         afrho1 = self.afrho1_const * radius**2
         phase_val = phase__halley_marcus(sso_obs[self.phase_col])
         # afrho is equivalent to a sort of 'absolute' magnitude of the coma
         afrho = afrho1 * sso_obs[self.rh_col] ** self.k * phase_val
-        # rho describes the projected area on the sky (project the aperture into cm on-sky)
+        # rho describes the projected area on the sky
+        # (project the aperture into cm on-sky)
         # Using the seeing * apScale as the aperture
         radius_aperture = sso_obs[self.seeing_col] * self.ap_scale
         rho = 725e5 * sso_obs[self.delta_col] * radius_aperture
@@ -313,13 +350,16 @@ class CometAppMagStacker(BaseMoStacker):
         delta = sso_obs[self.delta_col] * KM_PER_AU * 1000  # delta in cm
         dm = -2.5 * np.log10(afrho * rho / (2 * sso_obs[self.rh_col] * delta) ** 2)
         coma = np.zeros(len(sso_obs), float)
-        # This calculates a coma mag that scales with the sun's color in each bandpass, but the coma
+        # This calculates a coma mag that scales with the sun's color in
+        # each bandpass, but the coma
         # modification is gray (i.e. it's just reflecting sunlight)
         for f in sso_obs[self.filter_col]:
             match = np.where(sso_obs[self.filter_col] == f)
             coma[match] = AB_SUN[f] + dm[match]
-        # Calculate cometary nucleus magnitude -- we'll use the apparent V mag adapted from OOrb as well as
-        # the object's color - these are generally assumed to be D type (which was used in sims_movingObjects)
+        # Calculate cometary nucleus magnitude -- we'll use the
+        # apparent V mag adapted from OOrb as well as
+        # the object's color - these are generally assumed to be
+        # D type (which was used in sims_movingObjects)
         nucleus = sso_obs[self.v_mag_col] + sso_obs[self.color_col] + sso_obs[self.loss_col] + hval - href
         # add coma and nucleus then ready for calculation of SNR, etc.
         sso_obs["appMag"] = -2.5 * np.log10(10 ** (-0.4 * coma) + 10 ** (-0.4 * nucleus))
@@ -327,30 +367,41 @@ class CometAppMagStacker(BaseMoStacker):
 
 
 class SNRStacker(BaseMoStacker):
-    """Add SNR and visibility for a particular object, given the five sigma depth of the image and the
-    apparent magnitude (whether from AppMagStacker or CometAppMagStacker, etc).
+    """Add SNR and visibility for a particular object,
+    given the five sigma depth of the image and the
+    apparent magnitude (whether from AppMagStacker or CometAppMagStacker etc).
 
-    The SNR simply calculates the SNR based on the five sigma depth and the apparent magnitude.
-    The 'vis' column is a probabilistic flag (0/1) indicating whether the object was detected, assuming
-    a 5-sigma SNR threshold and then applying a probabilistic cut on whether it was detected or not (i.e.
-    there is a gentle roll-over in 'vis' from 1 to 0 depending on the SNR of the object).
-    This is based on the Fermi-Dirac completeness formula as described in equation 24 of the Stripe 82 SDSS
-    analysis here: http://iopscience.iop.org/0004-637X/794/2/120/pdf/apj_794_2_120.pdf.
+    The SNR simply calculates the SNR based on the five sigma depth and
+    the apparent magnitude.
+    The 'vis' column is a probabilistic flag (0/1) indicating whether
+    the object was detected, assuming
+    a 5-sigma SNR threshold and then applying a probabilistic cut on whether
+    it was detected or not (i.e.
+    there is a gentle roll-over in 'vis' from 1 to 0 depending on the
+    SNR of the object).
+    This is based on the Fermi-Dirac completeness formula as described
+    in equation 24 of the Stripe 82 SDSS
+    analysis here:
+    http://iopscience.iop.org/0004-637X/794/2/120/pdf/apj_794_2_120.pdf.
 
     Parameters
     ----------
     app_mag_col : `str`, optional
-        Name of the column describing the apparent magnitude of the object. Default 'appMag'.
+        Name of the column describing the apparent magnitude of the object.
+        Default 'appMag'.
     m5_col : `str`, optional
-        Name of the column describing the 5 sigma depth of each visit. Default fiveSigmaDepth.
+        Name of the column describing the 5 sigma depth of each visit.
+        Default fiveSigmaDepth.
     gamma : `float`, optional
         The 'gamma' value for calculating SNR. Default 0.038.
         LSST range under normal conditions is about 0.037 to 0.039.
     sigma : `float`, optional
-        The 'sigma' value for probabilistic prediction of whether or not an object is visible at 5sigma.
+        The 'sigma' value for probabilistic prediction of whether or not
+        an object is visible at 5sigma.
         Default 0.12.
-        The probabilistic prediction of visibility is based on Fermi-Dirac completeness formula (see SDSS,
-        eqn 24, Stripe82 analysis: http://iopscience.iop.org/0004-637X/794/2/120/pdf/apj_794_2_120.pdf).
+        The probabilistic prediction of visibility is based on Fermi-Dirac
+        completeness formula (see SDSS, eqn 24, Stripe82 analysis:
+        http://iopscience.iop.org/0004-637X/794/2/120/pdf/apj_794_2_120.pdf).
     random_seed: `int` or None, optional
         If set, then used as the random seed for the numpy random number
         generation for the probability of detection. Default: None.
@@ -375,7 +426,8 @@ class SNRStacker(BaseMoStacker):
         self.units = ["SNR", ""]
 
     def _run(self, sso_obs, href, hval):
-        # hval = current H value (useful if cloning over H range), href = reference H value from orbit.
+        # hval = current H value (useful if cloning over H range),
+        # href = reference H value from orbit.
         # Without cloning, href = hval.
         xval = np.power(10, 0.5 * (sso_obs[self.app_mag_col] - sso_obs[self.m5_col]))
         sso_obs["SNR"] = 1.0 / np.sqrt((0.04 - self.gamma) * xval + self.gamma * xval * xval)
@@ -392,7 +444,8 @@ class SNRStacker(BaseMoStacker):
 
 class EclStacker(BaseMoStacker):
     """
-    Add ecliptic latitude/longitude (ecLat/ecLon) to the slicer ssoObs (in degrees).
+    Add ecliptic latitude/longitude (ecLat/ecLon) to the slicer ssoObs
+    (in degrees).
 
     Parameters
     -----------

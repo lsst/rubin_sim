@@ -5,8 +5,9 @@ import numpy as np
 
 def calc_wd_colors():
     """
-    Calculate a few example WD colors. Values to go in stellar_mags(). Here in case
-    values need to be regenerated (different stars, bandpasses change, etc.)
+    Calculate a few example WD colors. Values to go in stellar_mags().
+    Here in case values need to be regenerated
+    (different stars, bandpasses change, etc.)
     """
 
     try:
@@ -15,7 +16,7 @@ def calc_wd_colors():
         from lsst.utils import getPackageDir
 
         from rubin_sim.photUtils import Bandpass, Sed
-    except:
+    except ImportError:
         "Need to setup sims_photUtils to generate WD magnitudes."
 
     names = ["HeWD_25200_80", "WD_11000_85", "WD_3000_85"]

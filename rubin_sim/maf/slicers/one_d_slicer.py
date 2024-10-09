@@ -13,24 +13,30 @@ from .base_slicer import BaseSlicer
 
 
 class OneDSlicer(BaseSlicer):
-    """OneD Slicer allows the 'slicing' of data into bins in a single dimension.
+    """OneD Slicer allows the slicing of data into bins in a single dimension.
 
     Parameters
     ----------
     slice_col_name : `str`
         The name of the data column to base slicing on (i.e. 'airmass', etc.)
     slice_col_units : `str`, optional
-        Set a name for the units of the sliceCol. Used for plotting labels. Default None.
+        Set a name for the units of the sliceCol. Used for plotting labels.
     bins : np.ndarray, optional
-        The data will be sliced into 'bins': this can be defined as an array here. Default None.
+        The data will be sliced into 'bins': this can be defined as an
+        array here. Default None.
     bin_min : `float`, optional
     bin_max : `float`, optional
     bin_size : `float`, optional
-        If bins is not defined, then bin_min/bin_max/bin_size can be chosen to anchor the slice points.
+        If bins is not defined, then bin_min/bin_max/bin_size can be chosen
+        to anchor the slice points.
         Default None.
-        Priority goes: bins >> bin_min/bin_max/bin_size >> data values (if none of the above are chosen).
+        Priority goes: bins >> bin_min/bin_max/bin_size >> data values
+        (if none of the above are chosen).
 
-    All bins except for the last bin are half-open ([a, b)) while the last bin is ([a, b]).
+    Notes
+    -----
+    All bins except for the last bin are half-open ([a, b)) while the
+    last bin is ([a, b]).
     """
 
     def __init__(
@@ -49,8 +55,10 @@ class OneDSlicer(BaseSlicer):
             raise ValueError("slice_col_name cannot be left None - choose a data column to group data by")
         self.slice_col_name = slice_col_name
         self.columns_needed = [slice_col_name]
-        # We could try to set up the self.bins here -- but it's also possible that
-        # these bin_min/max/size values have not been set and should just be set from the data.
+        # We could try to set up the self.bins here --
+        # but it's also possible that
+        # these bin_min/max/size values have not been set and
+        # should just be set from the data.
         self.bins = bins
         self.bin_min = bin_min
         self.bin_max = bin_max
@@ -87,10 +95,12 @@ class OneDSlicer(BaseSlicer):
         ]
 
     def setup_slicer(self, sim_data, maps=None):
-        """
-        Set up bins in slicer.
-        This happens AFTER sim_data is defined, thus typically in the MetricBundleGroup.
-        This maps data into the bins; it's not a good idea to reuse a OneDSlicer as a result.
+        """Set up bins in slicer.
+
+        This happens AFTER sim_data is defined,
+        thus typically in the MetricBundleGroup.
+        This maps data into the bins;
+        it's not a good idea to reuse a OneDSlicer as a result.
         """
         if "bins" in self.slice_points:
             warning_msg = "Warning: this OneDSlicer was already set up once. "
@@ -101,14 +111,16 @@ class OneDSlicer(BaseSlicer):
             )
             warnings.warn(warning_msg)
         slice_col = sim_data[self.slice_col_name]
-        # Set bins from data or specified values, if they were previously defined.
+        # Set bins from data or specified values,
+        # if they were previously defined.
         if self.bins is None:
             # Set bin min/max values (could have been set in __init__)
             if self.bin_min is None:
                 self.bin_min = np.nanmin(slice_col)
             if self.bin_max is None:
                 self.bin_max = np.nanmax(slice_col)
-            # Give warning if bin_min = bin_max, and do something at least slightly reasonable.
+            # Give warning if bin_min = bin_max,
+            # and do something at least slightly reasonable.
             if self.bin_min == self.bin_max:
                 warnings.warn(
                     "bin_min = bin_max (maybe your data is single-valued?). "
@@ -124,10 +136,12 @@ class OneDSlicer(BaseSlicer):
                 self.bin_size = (self.bin_max - self.bin_min) / float(nbins)
             # Set bins
             self.bins = np.arange(self.bin_min, self.bin_max + self.bin_size / 2.0, self.bin_size, "float")
-        # nslice is used to stop iteration and should reflect the usable length of the bins
+        # nslice is used to stop iteration and should
+        # reflect the usable length of the bins
         self.nslice = len(self.bins) - 1
         # and "shape" refers to the length of the datavalues,
-        # and should be one less than # of bins because last binvalue is RH edge only
+        # and should be one less than # of bins because last
+        # binvalue is RH edge only
         self.shape = self.nslice
         # Set slice_point metadata.
         self.slice_points["sid"] = np.arange(self.nslice)
@@ -148,7 +162,9 @@ class OneDSlicer(BaseSlicer):
         # Set up _slice_sim_data method for this class.
         @wraps(self._slice_sim_data)
         def _slice_sim_data(islice):
-            """Slice sim_data on oneD sliceCol, to return relevant indexes for slice_point."""
+            """Slice sim_data on oneD sliceCol, to return relevant
+            indexes for slice_point.
+            """
             idxs = self.sim_idxs[islice]
             bin_left = self.bins[islice]
             bin_right = self.bins[islice + 1]
@@ -168,11 +184,13 @@ class OneDSlicer(BaseSlicer):
         result = False
         if isinstance(other_slicer, OneDSlicer):
             if self.slice_col_name == other_slicer.slice_col_name:
-                # If slicer restored from disk or setup, then 'bins' in slice_points dict.
+                # If slicer restored from disk or setup,
+                # then 'bins' in slice_points dict.
                 # This is preferred method to see if slicers are equal.
                 if ("bins" in self.slice_points) & ("bins" in other_slicer.slice_points):
                     result = np.array_equal(other_slicer.slice_points["bins"], self.slice_points["bins"])
-                # However, before we 'setup' the slicer with data, the slicers could be equivalent.
+                # However, before we 'setup' the slicer with data,
+                # the slicers could be equivalent.
                 else:
                     if (self.bins is not None) and (other_slicer.bins is not None):
                         result = np.array_equal(self.bins, other_slicer.bins)

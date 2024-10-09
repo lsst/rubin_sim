@@ -44,7 +44,7 @@ class TwoDMap(BasePlotter):
             The metric values from the bundle.
         slicer : `rubin_sim.maf.slicers.TwoDSlicer`
             The slicer.
-        user_plot_dict: `dict`
+        user_plot_dict : `dict`
             Dictionary of plot parameters set by user
             (overrides default values).
         fig : `matplotlib.figure.Figure`
@@ -52,8 +52,8 @@ class TwoDMap(BasePlotter):
 
         Returns
         -------
-        fig : `matplotlib.figure.Figure
-           Figure with the plot.
+        fig : `matplotlib.figure.Figure`
+            Figure with the plot.
         """
         if "Healpix" in slicer.slicer_name:
             self.default_plot_dict["ylabel"] = "Healpix ID"
@@ -124,7 +124,7 @@ class VisitPairsHist(BasePlotter):
         The metric values from the bundle.
     slicer : `rubin_sim.maf.slicers.TwoDSlicer`
         The slicer.
-    user_plot_dict: `dict`
+    user_plot_dict : `dict`
         Dictionary of plot parameters set by user
         (overrides default values).
     fig : `matplotlib.figure.Figure`
@@ -133,7 +133,7 @@ class VisitPairsHist(BasePlotter):
     Returns
     -------
     fig : `matplotlib.figure.Figure`
-       Figure with the plot.
+        Figure with the plot.
     """
 
     def __init__(self):

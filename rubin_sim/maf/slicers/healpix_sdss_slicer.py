@@ -25,7 +25,8 @@ class HealpixSDSSSlicer(HealpixSlicer):
         leafsize=100,
         **kwargs,
     ):
-        """Using one corner of the chip as the spatial key and the diagonal as the radius."""
+        """Using one corner of the chip as the spatial key and the
+        diagonal as the radius."""
         super().__init__(
             verbose=verbose,
             lon_col=lon_col,
@@ -57,9 +58,11 @@ class HealpixSDSSSlicer(HealpixSlicer):
             sx, sy, sz = _xyz_from_ra_dec(self.slice_points["ra"][islice], self.slice_points["dec"][islice])
             # Query against tree.
             initIndices = self.opsimtree.query_ball_point((sx, sy, sz), self.rad)
-            # Loop through all the images and check if the slice_point is inside the corners of the chip
+            # Loop through all the images and check if the slice_point
+            # is inside the corners of the chip
             indices = []
-            # Gnomic project all the corners that are near the slice point, centered on slice point
+            # Gnomic project all the corners that are near the slice point,
+            # centered on slice point
             x1, y1 = gnomonic_project_toxy(
                 self.corners["RA1"][initIndices],
                 self.corners["Dec1"][initIndices],
@@ -98,7 +101,8 @@ class HealpixSDSSSlicer(HealpixSlicer):
                         ]
                     )
                 )
-                # Check if the slice_point is inside the image corners and append to list if it is
+                # Check if the slice_point is inside the image corners
+                # and append to list if it is
                 if bbPath.contains_point((0.0, 0.0)) == 1:
                     indices.append(ind)
 

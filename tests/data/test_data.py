@@ -18,8 +18,8 @@ class DataTest(unittest.TestCase):
         assert data_dir == dd2
 
         if "sim_baseline" in os.listdir(data_dir):
-            baseline = get_baseline()
-        versions = data_versions()
+            _ = get_baseline()
+        _ = data_versions()
 
 
 if __name__ == "__main__":

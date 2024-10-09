@@ -1,5 +1,5 @@
-# UniSlicer class.
-# This slicer simply returns the indexes of all data points. No slicing done at all.
+"""UniSlicer - no slicing at all, simply return all data points."""
+
 __all__ = ("UniSlicer",)
 
 from functools import wraps

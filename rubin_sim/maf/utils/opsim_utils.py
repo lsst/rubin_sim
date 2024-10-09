@@ -53,12 +53,12 @@ def get_sim_data(
         sqlconstraint = ""
 
     # Check that file exists
-    if type(db_con) == str:
+    if isinstance(db_con, str):
         if os.path.isfile(db_con) is False:
             raise FileNotFoundError("No file %s" % db_con)
 
     # Check if table is "observations" or "SummaryAllProps"
-    if (table_name is None) & (full_sql_query is None) & (type(db_con) == str):
+    if (table_name is None) & (full_sql_query is None) & (isinstance(db_con, str)):
         url = make_url("sqlite:///" + db_con)
         eng = create_engine(url)
         inspector = inspect(eng)
@@ -77,7 +77,7 @@ def get_sim_data(
         # that's probably fine, keep people from getting fancy with old sims
         table_name = "observations"
 
-    if type(db_con) == str:
+    if isinstance(db_con, str):
         con = sqlite3.connect(db_con)
     else:
         con = db_con

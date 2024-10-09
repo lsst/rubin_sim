@@ -18,7 +18,8 @@ from rubin_sim.maf.utils import radec2pix
 
 def gp_priority_map_components_to_keys(filtername, science_map):
     """A convenience function to help keep the map key
-    formats in sync in various places"""
+    formats in sync in various places.
+    """
     return f"galplane_priority_{science_map}:{filtername}"
 
 
@@ -71,7 +72,6 @@ def galplane_priority_map(
         Use the priority_GalPlane_footprint_alt_map_data_{ugrizysum}.fits
         files instead of the default
         priority_galPlane_footprint_map_data_{ugrizysum}.fits files.
-         Default False.
     """
     # This is a function that will read the galactic plane priority map data
     # and hold onto it indefinitely

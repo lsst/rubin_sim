@@ -67,7 +67,8 @@ class CheckColorSlope(object):
 
 class ColorSlopeMetric(BaseMetric):
     """How many times do we get a color and slope in a night
-    A proxie metric for seeing how many times
+
+    A proxy metric for seeing how many times
     there would be the possibility of identifying and
     classifying a transient.
 
@@ -81,7 +82,8 @@ class ColorSlopeMetric(BaseMetric):
         to still count as a color (hours). Default 1 hour.
     slope_length : `float`
         The length of time to demand observations in the
-        same filter be greater than (hours). Default 3 hours."""
+        same filter be greater than (hours). Default 3 hours.
+    """
 
     def __init__(
         self,
@@ -128,7 +130,7 @@ class ColorSlopeMetric(BaseMetric):
 class ColorSlope2NightMetric(ColorSlopeMetric):
     """Like ColorSlopeMetric, but span over 2 nights
 
-     Parameters
+    Parameters
     ----------
     mag : `dict`
         Dictionary with filternames as keys and minimum depth m5
@@ -138,7 +140,8 @@ class ColorSlope2NightMetric(ColorSlopeMetric):
         to still count as a color (hours). Default 1 hour.
     slope_length : `float`
         The length of time to demand observations in the
-        same filter be greater than (hours). Default 15 hours."""
+        same filter be greater than (hours). Default 15 hours.
+    """
 
     def __init__(
         self,

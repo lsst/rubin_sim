@@ -5,7 +5,7 @@ import glob
 import os
 
 import numpy as np
-from rubin_scheduler.utils import survey_start_mjd
+from rubin_scheduler.utils import SURVEY_START_MJD
 
 from . import batches as batches
 from . import db as db
@@ -50,7 +50,7 @@ def run_moving_fractions():
 
     # Default parameters for metric setup.
     if args.start_time is None:
-        start_time = survey_start_mjd()
+        start_time = SURVEY_START_MJD
     else:
         start_time = args.start_time
     stepsize = 365 / 6.0
@@ -60,7 +60,8 @@ def run_moving_fractions():
     # Create a results Db.
     results_db = db.ResultsDb(out_dir=args.work_dir)
 
-    # Just read in all metrics in the (joint or single) directory, then run completeness and fraction
+    # Just read in all metrics in the (joint or single) directory,
+    # then run completeness and fraction
     # summaries, using the methods in the batches.
     if args.metadata is None:
         matchstring = os.path.join(args.work_dir, "*MOOB.npz")
@@ -79,8 +80,10 @@ def run_moving_fractions():
 
     first = bdict[metric_names[0]]
     figroot = f"{first.run_name}"
-    # adding args.metadata to the figroot means that we can narrow down *which* subset of files to work on
-    # this lets us add different h_mark values to the output plots, if desired (leaving None/default is ok)
+    # adding args.metadata to the figroot means that we can narrow
+    # down *which* subset of files to work on
+    # this lets us add different h_mark values to the output plots,
+    # if desired (leaving None/default is ok)
     if args.metadata != ".":
         figroot += f"_{args.metadata}"
 
@@ -97,7 +100,8 @@ def run_moving_fractions():
         out_dir=args.work_dir,
     )
 
-    # Calculate fractions of population for characterization. This utility writes these to disk.
+    # Calculate fractions of population for characterization.
+    # This utility writes these to disk.
     bdict_fractions = batches.run_fraction_summary(bdict, args.h_mark, args.work_dir, results_db)
     # Plot the fractions for colors and lightcurves.
     batches.plot_fractions(bdict_fractions, figroot=figroot, results_db=results_db, out_dir=args.work_dir)
@@ -109,7 +113,8 @@ def run_moving_fractions():
         if "ObsArc" in k:
             batches.plot_single(bdict[k], results_db=results_db, out_dir=args.work_dir)
 
-    # Plot the number of chances of discovery metric - this is different than completeness
+    # Plot the number of chances of discovery metric -
+    # this is different than completeness
     # As it plots the metric value directly
     for k in bdict:
         if "DiscoveryNChances" in k and "3_pairs_in_15_nights_detection_loss" in k:
