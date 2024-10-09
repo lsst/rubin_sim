@@ -3,7 +3,7 @@ __all__ = ("ModelObservatory",)
 import numpy as np
 from rubin_scheduler.scheduler.model_observatory import ModelObservatory as oMO
 from rubin_scheduler.site_models import Almanac
-from rubin_scheduler.utils import _healbin, SURVEY_START_MJD
+from rubin_scheduler.utils import SURVEY_START_MJD, _healbin
 
 # Take the model observatory from the scheduler and
 # subclass to expand to include satellite constellations

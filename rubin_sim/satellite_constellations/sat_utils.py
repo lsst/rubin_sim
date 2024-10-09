@@ -10,7 +10,7 @@ __all__ = (
 import numpy as np
 from astropy import constants as const
 from astropy import units as u
-from rubin_scheduler.utils import Site, gnomonic_project_toxy, point_to_line_distance, SURVEY_START_MJD
+from rubin_scheduler.utils import SURVEY_START_MJD, Site, gnomonic_project_toxy, point_to_line_distance
 from shapely.geometry import LineString, Point
 from skyfield.api import EarthSatellite, load, wgs84
 
