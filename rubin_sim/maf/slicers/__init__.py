@@ -1,6 +1,5 @@
 from .base_slicer import *
 from .base_spatial_slicer import *
-from .healpix_comcam_slicer import *
 from .healpix_sdss_slicer import *
 from .healpix_slicer import *
 from .healpix_subset_slicer import *
