@@ -162,6 +162,7 @@ class KNePopMetric(BaseMetric):
         self.output_lc = output_lc
 
         self.lightcurves = KnLc(file_list=file_list)
+
         self.mjd0 = mjd0
 
         dust_properties = DustValues()

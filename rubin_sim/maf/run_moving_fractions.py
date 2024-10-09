@@ -5,7 +5,7 @@ import glob
 import os
 
 import numpy as np
-from rubin_scheduler.utils import survey_start_mjd
+from rubin_scheduler.utils import SURVEY_START_MJD
 
 from . import batches as batches
 from . import db as db
@@ -50,7 +50,7 @@ def run_moving_fractions():
 
     # Default parameters for metric setup.
     if args.start_time is None:
-        start_time = survey_start_mjd()
+        start_time = SURVEY_START_MJD
     else:
         start_time = args.start_time
     stepsize = 365 / 6.0

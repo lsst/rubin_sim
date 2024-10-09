@@ -12,8 +12,8 @@ class TestSatellites(unittest.TestCase):
 
         mjd0 = SURVEY_START_MJD
         sv1 = starlink_tles_v1()
-        sv2 = starlink_tles_v2()
-        ow = oneweb_tles()
+        _ = starlink_tles_v2()
+        _ = oneweb_tles()
 
         const = Constellation(sv1)
 
