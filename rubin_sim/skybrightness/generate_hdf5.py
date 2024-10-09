@@ -225,7 +225,7 @@ def generate_sky(
 if __name__ == "__main__":
     # Make a quick small one for speed loading
     print("generating small file")
-    m0 = utils.survey_start_mjd()
+    m0 = utils.SURVEY_START_MJD
     generate_sky(mjd0=m0 - 1, mjd_max=m0 + 31)
 
     nyears = 25.0  # 20  # 13
