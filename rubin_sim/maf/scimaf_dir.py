@@ -50,7 +50,7 @@ def scimaf_dir():
             con.close()
             mjd0 = mjd0_df.values.min()
         # If this fails for any reason (aka schema change)
-        except:
+        except:  #noqa E722
             warnings.warn("Could not find survey start date for Presto KNe, setting mjd0=None.")
             mjd0 = None
         # Clobber output directory if it exists
