@@ -33,8 +33,8 @@ for more details on setting up $RUBIN_SIM_DATA_DIR (which is
 shared between ``rubin_scheduler``, ``rubin_sim`` and ``schedview``).
 
 Using either the default path to $RUBIN_SIM_DATA_DIR, or after setting it
-explicitly, first download the necessary data for `rubin_scheduler` and
-then add the (larger) data set for `rubin_sim`:
+explicitly, first download the necessary data for ``rubin_scheduler`` and
+then add the (larger) data set for ``rubin_sim``:
 
 .. code-block:: bash
 

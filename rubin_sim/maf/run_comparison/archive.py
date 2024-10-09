@@ -221,7 +221,9 @@ def get_metric_summaries(
     ----
     The entire summary statistic values for all of the runs and metrics can
     be downloaded from the default sources first, by simply calling
+
     .. code-block:: python
+
         summary = get_metric_summaries()
 
     Then, you can use `get_metric_summaries` to get a subset without

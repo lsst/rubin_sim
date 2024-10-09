@@ -191,10 +191,10 @@ class AppMagStacker(BaseMoStacker):
 
     This is calculated from the reported mag_v in the input observation
     file (calculated assuming Href) as:
-    ```
-    ssoObs['appMag'] = ssoObs[self.vMagCol] + ssoObs[self.colorCol] +
-          ssoObs[self.lossCol] + h_val - Href
-    ```
+    .. codeblock::python
+
+        ssoObs['appMag'] = ssoObs[self.vMagCol] + ssoObs[self.colorCol] +
+        ssoObs[self.lossCol] + h_val - Href
 
     Using the vMag reported in the input observations implicitly uses
     the phase curve coded in at that point;

@@ -36,7 +36,7 @@ else:
 
 
 def id2intid(ids):
-    """take an array of ids, and convert them to an integer id.
+    """Take an array of ids, and convert them to an integer id.
     Handy if you want to put things into a sparse array.
     """
     uids = np.unique(ids)
@@ -76,10 +76,11 @@ def load_spec_files(filenames, mags=False):
     * filter_wave: The central wavelengths of the pre-computed magnitudes
     * wave: wavelengths for the spectra
     * spec: array of spectra and magnitudes along with the relevant
-        variable inputs.  For example, airglow has dtype =
-        [('airmass', '<f8'), ('solar_flux', '<f8'), ('spectra',
-        '<f8', (17001,)),
-        ('mags', '<f8', (6,)]
+    variable inputs.  For example, airglow has dtype =
+    [('airmass', '<f8'),
+    ('solar_flux', '<f8'),
+    ('spectra','<f8', (17001,)),
+    ('mags', '<f8', (6,)]
 
     For each unique airmass and solar_flux value, there is a 17001 elements
     spectra and 6 magnitudes.
