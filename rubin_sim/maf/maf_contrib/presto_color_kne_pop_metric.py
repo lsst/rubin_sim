@@ -81,6 +81,7 @@ def generate_presto_pop_slicer(
 ):
     """Generate a population of KNe events, and put the info about them
     into a UserPointSlicer object
+
     Parameters
     ----------
     skyregion : `str`
@@ -100,6 +101,10 @@ def generate_presto_pop_slicer(
         Minimum luminosity distance (Mpc)
     d_max : `float` or `int`
         Maximum luminosity distance (Mpc)
+
+    Returns
+    -------
+    kne_slicer : `~.maf.UserPointsSlicer`
     """
 
     def rndm(a, b, g, size=1):

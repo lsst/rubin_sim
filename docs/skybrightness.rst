@@ -6,7 +6,7 @@
 Skybrightness
 #############
 
-The `rubin_sim.skybrightness` module generates
+The ``rubin_sim.skybrightness`` module generates
 predicted skybrightness values (in either magnitudes per
 square arcsecond for any LSST bandpass or
 as a SED over the relevant wavelengths).

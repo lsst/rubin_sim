@@ -44,9 +44,9 @@ def data_dict() -> dict:
     file_dict : `dict`
         Data bucket filenames dictionary with keys:
         ``"name"``
-            Data bucket name (`str`).
+        Data bucket name (`str`).
         ``"version"``
-            Versioned file name (`str`).
+        Versioned file name (`str`).
     """
     # Note for developers:
     # to create tar files and follow any sym links, run: e.g.

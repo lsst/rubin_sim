@@ -36,7 +36,9 @@ from .common import (
 
 
 def ss_population_defaults(objtype):
-    "Provide useful default ranges for H, based on objtype of population type."
+    """Provide useful default ranges for H,
+    based on objtype of population type.
+    """
     defaults = {}
     defaults["Vatira"] = {
         "h_range": [16, 28, 0.2],
@@ -135,6 +137,9 @@ def quick_discovery_batch(
     constraint=None,
     magtype="asteroid",
 ):
+    """A subset of discovery metrics, using only the default discovery
+    criteria of 3 pairs in 15 or 30 nights.
+    """
     if colmap is None:
         colmap = col_map_dict()
     bundleList = []
@@ -276,6 +281,9 @@ def discovery_batch(
     constraint=None,
     magtype="asteroid",
 ):
+    """A comprehensive set of discovery metrics, using a wide range
+    of discovery criteria.
+    """
     if colmap is None:
         colmap = col_map_dict()
     bundleList = []
@@ -648,8 +656,7 @@ def discovery_batch(
 
 
 def run_completeness_summary(bdict, h_mark, times, out_dir, results_db):
-    """
-    Calculate completeness and create completeness bundles from all
+    """Calculate completeness and create completeness bundles from all
     N_Chances and Time (child) metrics of the (discovery) bundles in bdict,
     and write completeness at h_mark to results_db, save bundle to disk.
 
@@ -665,7 +672,7 @@ def run_completeness_summary(bdict, h_mark, times, out_dir, results_db):
         If not defined (None), then the h_mark from the plotdict from the
         metric bundle will be used if available.
         If None and h_mark not in plot_dict, then median of h_range values
-         will be used.
+        will be used.
     times : `np.ndarray`
         The times at which to calculate completeness (over time).
     out_dir : `str`

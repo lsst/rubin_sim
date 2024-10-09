@@ -1115,7 +1115,7 @@ class ColorAsteroidMetric(BaseMoMetric):
         1 = g and (r or i) and (z or y).
         i.e. obtain colors g-r or g-i PLUS g-z or g-y
         2 = Any 4 different filters (from grizy).
-         i.e. colors = g-r, r-i, i-z, OR r-i, i-z, z-y..
+        i.e. colors = g-r, r-i, i-z, OR r-i, i-z, z-y..
         3 = All 5 from grizy. i.e. colors g-r, r-i, i-z, z-y.
         4 = All 6 filters (ugrizy) -- best possible! add u-g.
 
