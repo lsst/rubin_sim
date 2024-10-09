@@ -122,7 +122,7 @@ class TestOrbits(unittest.TestCase):
             self.assertEqual(len(new_orbits), 1)
             self.assertEqual(new_orbits.orb_format, "COM")
             assert_frame_equal(new_orbits.orbits, suborbits)
-        # Test that we can set the orbits using a numpy array with many objects.
+        # Test that we can set the orbits using a numpy array of many objects.
         numpyorbits = orbits.orbits.to_records(index=False)
         new_orbits = Orbits()
         new_orbits.set_orbits(numpyorbits)
