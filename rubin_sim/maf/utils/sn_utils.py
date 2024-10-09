@@ -9,18 +9,18 @@ class Lims:
 
     Parameters
     -------------
-    Li_files : str
+    Li_files : `str`
        light curve reference file
-    mag_to_flux_files : str
+    mag_to_flux_files : `str`
        files of magnitude to flux
-    band : str
+    band : `str`
         band considered
-    SNR : float
+    SNR : `float`
         Signal-To-Noise Ratio cut
-    mag_range : pair(float), optional
+    mag_range : `float`, `float`, optional
         mag range considered
         Default : (23., 27.5)
-    dt_range : pair(float)
+    dt_range : `float`, `float`, optional
         difference time range considered (cadence)
         Default : (0.5, 25.)
     """
@@ -53,16 +53,17 @@ class Lims:
 
         Parameters
         -------------
-        band : str
+        band : `str`
           band to consider
-        tab : numpy array
+        tab : `np.ndarray`, (N,)
           table of data
-        SNR : float
+        SNR : `float`
            Signal-to-Noise Ratio cut
 
         Returns
         ---------
-        dict of limits with redshift and band as keys.
+        lims : `dict`
+            dict of limits with redshift and band as keys.
 
         """
 
@@ -83,18 +84,18 @@ class Lims:
         return lims
 
     def mesh(self, mag_to_flux):
-        """
-        Mesh grid to estimate five-sigma depth values (m5) from mags input.
+        """Mesh grid to estimate five-sigma depth values (m5) from mags input.
 
         Parameters
-        ---------------
-        mag_to_flux : magnitude to flux values
+        -----------
+        mag_to_flux : `np.ndarray`, (N,2)
+            magnitude to flux values
 
         Returns
-        -----------
-        m5 values
-        time difference dt (cadence)
-        metric=sqrt(dt)*f5 where f5 is the 5-sigma flux
+        -------
+        m5, Dt, metric : `np.ndarray`, np.ndarray`, `np.ndarray`
+            m5 values, time difference dt (cadence),
+            metric=sqrt(dt)*f5 where f5 is the 5-sigma flux
 
         """
         dt = np.linspace(self.dt_range[0], self.dt_range[1], 100)
@@ -109,7 +110,9 @@ class Lims:
         return m5, DT, metric
 
     def interp(self):
-        """Estimate a grid of interpolated values in the plane (m5, cadence, metric)"""
+        """Estimate a grid of interpolated values in the plane
+        (m5, cadence, metric).
+        """
 
         m5_all = []
         dt_all = []
@@ -127,13 +130,12 @@ class Lims:
         figa, axa = plt.subplots()
 
         for kk, lim in enumerate(self.lims):
-            fmt = {}
             ll = [lim[zz][self.band] for zz in sorted_keys[kk]]
             cs = axa.contour(m5_all[kk], dt_all[kk], metric_all[kk], ll)
 
             points_values = None
             for io, col in enumerate(cs.collections):
-                # Update in matplotlib changed get_segements to get_paths
+                # Update in matplotlib changed get_segments to get_paths
                 if hasattr(col, "get_segments"):
                     segments = col.get_segments()
                 else:
@@ -155,17 +157,17 @@ class Lims:
         plt.close(figa)  # do not display
 
     def interp_griddata(self, data):
-        """
-        Estimate metric interpolation for data (m5,cadence)
+        """Estimate metric interpolation for data (m5,cadence)
 
         Parameters
-        ---------------
-        data : data where interpolation has to be done (m5,cadence)
+        ----------
+        data : `np.ndarray`
+            data where interpolation has to be done (m5,cadence)
 
         Returns
-        -----------
-        griddata interpolation (m5,cadence,metric)
-
+        --------
+        res : `np.ndarray`
+            griddata interpolation (m5,cadence,metric)
         """
 
         ref_points = self.points_ref
@@ -184,16 +186,17 @@ class GenerateFakeObservations:
     Parameters
     -----------
     config: yaml-like
-       configuration file (parameter choice: filter, cadence, m5,Nseasons, ...)
-    list : str, optional
+       configuration file (parameter choice: filter, cadence, m5,Nseasons, ..)
+    list : `str`, optional
         Name of the columns used.
-        Default : 'observationStartMJD', 'fieldRA', 'fieldDec','filter','fiveSigmaDepth',
-        'visitExposureTime','numExposures','visitTime','season'
+        Default : 'observationStartMJD', 'fieldRA', 'fieldDec','filter',
+        'fiveSigmaDepth', 'visitExposureTime','numExposures',
+        'visitTime','season'
 
     Returns
     ---------
-
-    recordarray of observations with the fields:
+    observations : `np.ndarray`, (N, M)
+        recordarray of observations with the fields:
         MJD, Ra, Dec, band,m5,Nexp, ExpTime, Season
     """
 
@@ -227,7 +230,8 @@ class GenerateFakeObservations:
         Parameters
         -----------
         config: yaml-like
-            configuration file (parameter choice: filter, cadence, m5,Nseasons, ...)
+            configuration file (parameter choice: filter,
+            cadence, m5,Nseasons, ...)
         """
         bands = config["bands"]
         cadence = dict(zip(bands, config["Cadence"]))
@@ -294,18 +298,17 @@ class GenerateFakeObservations:
 
 
 class ReferenceData:
-    """
-    class to handle light curve of SN
+    """class to handle light curve of SN
 
     Parameters
     ------------
-    Li_files : str
+    Li_files : `str`
         light curve reference file
-    mag_to_flux_files : str
+    mag_to_flux_files : `str`
         files of magnitude to flux
-    band : str
+    band : `str`
         band considered
-    z : float
+    z : `float`
         redshift considered
     """
 
@@ -321,23 +324,22 @@ class ReferenceData:
             self.mag_to_flux.append(self.interp_mag(self.band, np.load(val)))
 
     def interp_fluxes(self, band, tab, z):
-        """
-        Flux interpolator
+        """Flux interpolator
 
         Parameters
         ---------------
-        band : str
+        band : `str`
             band considered
-        tab : array
+        tab : `np.ndarray`
             reference data with (at least) fields z,band,time,DayMax
-        z : float
+        z : `float`
             redshift considered
 
         Returns
         --------
-        list (float) of interpolated fluxes (in e/sec)
+        fluxes : `list` [`float`]
+            list (float) of interpolated fluxes (in e/sec)
         """
-        lims = {}
         idx = (np.abs(tab["z"] - z) < 1.0e-5) & (tab["band"] == "LSST::" + band)
         sel = tab[idx]
         selc = np.copy(sel)
@@ -346,21 +348,21 @@ class ReferenceData:
         return interpolate.interp1d(selc["deltaT"], selc["flux_e"], bounds_error=False, fill_value=0.0)
 
     def interp_mag(self, band, tab):
-        """
-        magnitude (m5) to flux (e/sec) interpolator
+        """magnitude (m5) to flux (e/sec) interpolator
 
         Parameters
         ---------------
-        band : str
+        band : `str`
             band considered
-        tab : array
+        tab : `np.ndarray`
             reference data with (at least) fields band,m5,flux_e,
-        z : float
+        z : `float`
             redshift considered
 
         Returns
         --------
-        list (float) of interpolated fluxes (in e/sec)
+        mags : `list` [`float`]
+            list (float) of interpolated magnitudes (in e/sec)
         """
         idx = tab["band"] == band
         sel = tab[idx]
