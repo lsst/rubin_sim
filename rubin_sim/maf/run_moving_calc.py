@@ -149,7 +149,8 @@ def run_moving_calc():
         try:
             os.makedirs(args.out_dir)
         except FileExistsError:
-            # This can happen if you are running these in parallel and two scripts try to make
+            # This can happen if you are running these in parallel
+            # and two scripts try to make
             # the same directory.
             pass
     results_db = db.ResultsDb(out_dir=args.out_dir)
@@ -168,6 +169,7 @@ def run_moving_calc():
         detection_losses="trailing",
         albedo=args.albedo,
         h_mark=h_mark,
+        magtype=magtype
     )
     # Run these discovery metrics
     print("Calculating quick discovery metrics with simple trailing losses.")
@@ -185,6 +187,7 @@ def run_moving_calc():
         detection_losses="detection",
         albedo=args.albedo,
         h_mark=h_mark,
+        magtype=magtype
     )
     bdict = batches.discovery_batch(
         slicer,
@@ -196,6 +199,7 @@ def run_moving_calc():
         detection_losses="detection",
         albedo=args.albedo,
         h_mark=h_mark,
+        magtype=magtype
     )
     bdictD.update(bdict)
 
@@ -215,6 +219,7 @@ def run_moving_calc():
             constraint_info_label=args.constraint_info_label,
             constraint=args.constraint,
             h_mark=h_mark,
+            magtype=magtype
         )
     elif characterization.lower() == "outer":
         bdictC = batches.characterization_outer_batch(
@@ -226,6 +231,7 @@ def run_moving_calc():
             constraint_info_label=args.constraint_info_label,
             constraint=args.constraint,
             h_mark=h_mark,
+            magtype=magtype
         )
     # Run these characterization metrics
     print("Calculating characterization metrics.")
