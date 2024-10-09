@@ -21,17 +21,14 @@ class NDSlicer(BaseSlicer):
     slice_col_list : `list` of `str`
         Names of the data columns for slicing (e.g. 'airmass`, etc)
     bins_list : `int` or `list` of `int` or `np.ndarray`, opt
-        Single integer (for same number of slices in each dimension) or a list of integers (matching
+        Single integer (for same number of slices in each dimension)
+        or a list of integers (matching
         slice_col_list) or list of arrays. Default 100, in all dimensions.
 
     All bins are half-open ([a, b)).
     """
 
     def __init__(self, slice_col_list=None, bins_list=100, verbose=True):
-        """Instantiate object.
-        bins_list can be a list of numpy arrays with the respective slicepoints for slice_col_list,
-         or a list of integers (one per column in slice_col_list) or a single value
-            (repeated for all columns, default=100)."""
         super().__init__(verbose=verbose)
         self.slice_col_list = slice_col_list
         self.columns_needed = self.slice_col_list
@@ -70,7 +67,8 @@ class NDSlicer(BaseSlicer):
             else:
                 self.bins.append(np.sort(bl))
         self.nslice = (np.array(list(map(len, self.bins))) - 1).prod()
-        # Count how many bins we have total (not counting last 'RHS' bin values, as in oneDSlicer).
+        # Count how many bins we have total
+        # (not counting last 'RHS' bin values, as in oneDSlicer).
         self.shape = self.nslice
         # Set up slice metadata.
         self.slice_points["sid"] = np.arange(self.nslice)
@@ -110,7 +108,8 @@ class NDSlicer(BaseSlicer):
                     ),
                 )
             )
-            # Add these calculated values into the class lists of sim_idxs and lefts.
+            # Add these calculated values into the class lists of
+            # sim_idxs and lefts.
             self.sim_idxs.append(sim_idxs)
             self.lefts.append(left)
 
