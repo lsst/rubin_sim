@@ -80,6 +80,9 @@ class HealpixSlicer(BaseSpatialSlicer):
         Only used if use_camera is True.
         Describes the orientation of the camera orientation
         compared to the sky.
+    badval: `float`, optional
+        The value to place use in place of bad data values.
+        Use np.nan unless specifically needing other values.
     """
 
     def __init__(
@@ -95,12 +98,13 @@ class HealpixSlicer(BaseSpatialSlicer):
         use_camera=True,
         camera_footprint_file=None,
         rot_sky_pos_col_name="rotSkyPos",
+        badval=np.nan,
     ):
         super().__init__(
             verbose=verbose,
             lon_col=lon_col,
             lat_col=lat_col,
-            badval=np.nan,
+            badval=badval,
             radius=radius,
             leafsize=leafsize,
             use_camera=use_camera,
