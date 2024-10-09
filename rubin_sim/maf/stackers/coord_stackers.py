@@ -103,7 +103,8 @@ class GalacticStacker(BaseStacker):
     def _run(self, sim_data, cols_present=False):
         # raCol and DecCol in radians, gall/b in radians.
         if cols_present:
-            # Column already present in data; assume it is correct and does not need recalculating.
+            # Column already present in data;
+            # assume it is correct and does not need recalculating.
             return sim_data
         if self.degrees:
             c = SkyCoord(ra=sim_data[self.ra_col] * u.deg, dec=sim_data[self.dec_col] * u.deg).transform_to(
@@ -119,7 +120,9 @@ class GalacticStacker(BaseStacker):
 
 
 class EclipticStacker(BaseStacker):
-    """Add the ecliptic coordinates of each RA/Dec pointing: eclipLat, eclipLon
+    """Add the ecliptic coordinates of each RA/Dec pointing:
+    eclipLat, eclipLon
+
     Optionally subtract off the sun's ecliptic longitude and wrap.
 
     Parameters
@@ -157,7 +160,8 @@ class EclipticStacker(BaseStacker):
 
     def _run(self, sim_data, cols_present=False):
         if cols_present:
-            # Column already present in data; assume it is correct and does not need recalculating.
+            # Column already present in data;
+            # assume it is correct and does not need recalculating.
             return sim_data
         for i in np.arange(sim_data.size):
             if self.degrees:

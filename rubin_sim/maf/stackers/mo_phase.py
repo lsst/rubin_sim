@@ -202,7 +202,8 @@ _halley_marcus_phase_curve = splrep(
 
 def phase__halley_marcus(phase):
     """Halley-Marcus composite dust phase function.
-    This is appropriate for use when calculating the brightness of cometary coma.
+    This is appropriate for use when calculating the brightness of
+    cometary coma.
 
     Parameters
     ----------
@@ -253,7 +254,8 @@ def phase_hg(phase, G=0.15):
     phi : float or array
         Phase function evaluated at phase
     """
-    # see Muinonen et al 2010, eqn 6 (http://dx.doi.org/10.1016/j.icarus.2010.04.003)
+    # see Muinonen et al 2010, eqn 6
+    # (http://dx.doi.org/10.1016/j.icarus.2010.04.003)
     phi1 = np.exp(-3.33 * np.power(np.tan(np.radians(phase) / 2), 0.63))
     phi2 = np.exp(-1.87 * np.power(np.tan(np.radians(phase) / 2), 1.22))
     return (1 - G) * phi1 + G * phi2
