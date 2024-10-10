@@ -1,7 +1,7 @@
 import unittest
 
 import numpy as np
-from rubin_scheduler.utils import survey_start_mjd
+from rubin_scheduler.utils import SURVEY_START_MJD
 
 from rubin_sim.satellite_constellations import Constellation, oneweb_tles, starlink_tles_v1, starlink_tles_v2
 
@@ -10,7 +10,7 @@ class TestSatellites(unittest.TestCase):
     def test_constellations(self):
         """Test stellite constellations"""
 
-        mjd0 = survey_start_mjd()
+        mjd0 = SURVEY_START_MJD
         sv1 = starlink_tles_v1()
         sv2 = starlink_tles_v2()
         ow = oneweb_tles()

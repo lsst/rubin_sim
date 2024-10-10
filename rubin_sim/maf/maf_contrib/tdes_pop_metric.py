@@ -5,7 +5,7 @@ import os
 
 import numpy as np
 from rubin_scheduler.data import get_data_dir
-from rubin_scheduler.utils import survey_start_mjd, uniform_sphere
+from rubin_scheduler.utils import SURVEY_START_MJD, uniform_sphere
 
 import rubin_sim.maf.metrics as metrics
 import rubin_sim.maf.slicers as slicers
@@ -72,7 +72,7 @@ class TdePopMetric(metrics.BaseMetric):
         night_col="night",
         pts_needed=2,
         file_list=None,
-        mjd0=None,
+        mjd0=SURVEY_START_MJD,
         **kwargs,
     ):
         maps = ["DustMap"]
@@ -83,7 +83,7 @@ class TdePopMetric(metrics.BaseMetric):
         self.pts_needed = pts_needed
 
         self.lightcurves = TdeLc(file_list=file_list)
-        self.mjd0 = survey_start_mjd() if mjd0 is None else mjd0
+        self.mjd0 = mjd0
 
         dust_properties = DustValues()
         self.ax1 = dust_properties.ax1
@@ -213,7 +213,7 @@ class TdePopMetricQuality(metrics.BaseMetric):
         tmin=-30,
         tmax=100,
         file_list=None,
-        mjd0=59853.5,
+        mjd0=SURVEY_START_MJD,
         **kwargs,
     ):
         maps = ["DustMap"]
