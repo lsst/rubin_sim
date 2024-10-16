@@ -1,14 +1,12 @@
 __all__ = ("CoaddStacker",)
 
 import numpy as np
-import numpy.lib.recfunctions as rf
 
 from rubin_sim.maf.stackers import BaseStacker
 
 
 class CoaddStacker(BaseStacker):
-    """
-    Stacker to estimate m5 "coadded" per band and par night
+    """Stacker to estimate m5 "coadded" per band and par night
 
     Parameters
     ----------
@@ -69,25 +67,9 @@ class CoaddStacker(BaseStacker):
         self.units = ["int"]
 
     def _run(self, sim_data, cols_present=False):
-        """
-        Parameters
-        ------------
-        sim_data : simulation data
-        cols_present: to check whether the field has already been estimated
-
-        Returns
-        --------
-        numpy array of initial fields plus modified fields:
-        - m5Col: "coadded" m5
-        - numExposuresCol: sum of  numExposuresCol
-        - visitTimeCol: sum of visitTimeCol
-        - visitExposureTimeCol: sum of visitExposureTimeCol
-        - all other input fields except band (Ra, Dec, night) : median(field)
-
-        """
-
         if cols_present:
-            # Column already present in data; assume it is correct and does not need recalculating.
+            # Column already present in data; assume it is correct
+            # and does not need recalculating.
             return sim_data
         self.dtype = sim_data.dtype
         r = []
@@ -105,8 +87,7 @@ class CoaddStacker(BaseStacker):
         return myarray
 
     def fill(self, tab):
-        """
-        Estimation of new fields (m5 "coadded" values, ...)
+        """Estimation of new fields (m5 "coadded" values, ...)
 
         Parameters
         ---------------
@@ -154,8 +135,7 @@ class CoaddStacker(BaseStacker):
         return r
 
     def m5_coadd(self, m5):
-        """
-        Estimation of "coadded" m5 values based on:
+        """Estimation of "coadded" m5 values based on:
         flux_5sigma = 10**(-0.4*m5)
         sigmas = flux_5sigma/5.
         sigma_tot = 1./sqrt(np.sum(1/sigmas**2))

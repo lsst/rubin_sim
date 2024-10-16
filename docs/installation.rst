@@ -45,14 +45,14 @@ Create a conda environment for it:
 
 ::
 
- conda create --channel conda-forge --name rubin_sim --file requirements.txt python=3.11
+ conda create --channel conda-forge --name rubin-sim --file requirements.txt python=3.11
 
 
 If you want to run tests (please do), install the test requirements as well:
 
 ::
 
- conda activate rubin_scheduler
+ conda activate rubin-sim
  conda install -c conda-forge --file=test-requirements.txt
 
 

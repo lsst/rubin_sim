@@ -81,6 +81,7 @@ def generate_presto_pop_slicer(
 ):
     """Generate a population of KNe events, and put the info about them
     into a UserPointSlicer object
+
     Parameters
     ----------
     skyregion : `str`
@@ -100,6 +101,10 @@ def generate_presto_pop_slicer(
         Minimum luminosity distance (Mpc)
     d_max : `float` or `int`
         Maximum luminosity distance (Mpc)
+
+    Returns
+    -------
+    kne_slicer : `~.maf.UserPointsSlicer`
     """
 
     def rndm(a, b, g, size=1):
@@ -182,6 +187,7 @@ class PrestoColorKNePopMetric(metrics.BaseMetric):
         self.skyregion = skyregion
         # read in file as light curve object;
         self.lightcurves = KnLc(file_list=file_list)
+
         self.mjd0 = mjd0
 
         dust_properties = DustValues()
@@ -189,6 +195,9 @@ class PrestoColorKNePopMetric(metrics.BaseMetric):
 
         cols = [self.mjd_col, self.m5_col, self.filter_col, self.night_col]
         super().__init__(col=cols, units="Detected, 0 or 1", metric_name=metric_name, maps=maps, **kwargs)
+
+        # Unused ..
+        self.pts_needed = pts_needed
 
     def _presto_color_detect(self, around_peak, filters):
         """Detection criteria of presto cadence:

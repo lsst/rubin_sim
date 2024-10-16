@@ -24,10 +24,8 @@ def get_kne_filename(inj_params_list=None):
         mass of the dynamical ejecta (mej_dyn), mass of the disk wind ejecta
         (mej_wind), semi opening angle of the cylindrically-symmetric ejecta
         fan ('phi'), and viewing angle ('theta'). For example
-        inj_params_list = [{'mej_dyn': 0.005,
-              'mej_wind': 0.050,
-              'phi': 30,
-              'theta': 25.8}]
+        inj_params_list =
+        [{'mej_dyn': 0.005, 'mej_wind': 0.050, 'phi': 30, 'theta': 25.8}]
     """
     # Get files, model grid developed by M. Bulla
     datadir = get_data_dir()
@@ -162,6 +160,7 @@ class KNePopMetric(BaseMetric):
         self.output_lc = output_lc
 
         self.lightcurves = KnLc(file_list=file_list)
+
         self.mjd0 = mjd0
 
         dust_properties = DustValues()

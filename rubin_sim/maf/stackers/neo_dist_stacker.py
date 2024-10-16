@@ -3,7 +3,6 @@ __all__ = ("NEODistStacker",)
 import numpy as np
 
 from .base_stacker import BaseStacker
-from .general_stackers import FiveSigmaStacker
 
 
 class NEODistStacker(BaseStacker):

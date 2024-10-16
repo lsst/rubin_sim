@@ -7,9 +7,7 @@ from .base_stacker import BaseStacker
 
 
 def generate_sky_slopes():
-    """
-    Fit a line to how the sky brightness changes with airmass.
-    """
+    """Fit a line to how the sky brightness changes with airmass."""
     import healpy as hp
 
     import rubin_sim.skybrightness as sb
@@ -32,36 +30,30 @@ def generate_sky_slopes():
 
 
 class M5OptimalStacker(BaseStacker):
-    """
-    Make a new m5 column as if observations were taken on the meridian.
+    """Make a new m5 column as if observations were taken on the meridian.
     If the moon is up, assume sky brightness stays the same.
 
-    Assumes seeing scales as airmass^0.6. Uses linear fits for sky and airmass relation.
+    Assumes seeing scales as airmass^0.6. Uses linear fits for sky
+    and airmass relation.
 
     Parameters
     ----------
-    airmass_col : str ('airmass')
+    airmass_col : `str`
         Column name for the airmass per pointing.
-    dec_col : str ('dec_rad')
+    dec_col : `str`
         Column name for the pointing declination.
-    sky_bright_col: str ('filtSkyBrightness')
+    sky_bright_col : `str`
         Column name for the sky brighntess per pointing.
-    filter_col : str ('filter')
+    filter_col : `str`
         Column name for the filter name.
-    m5_col : str ('fiveSigmaDepth')
+    m5_col : `str`
         Colum name for the five sigma limiting depth per pointing.
-    moon_alt_col : str ('moonAlt')
+    moon_alt_col : `str`
         Column name for the moon altitude per pointing.
-    sun_alt_col : str ('sun_alt_col')
+    sun_alt_col : `str`
         Column name for the sun altitude column.
-    site : str ('LSST')
+    site : `str`
         Name of the site.
-
-    Returns
-    -------
-    numpy.array
-        Adds a column to that is approximately what the five-sigma depth would have
-        been if the observation had been taken on the meridian.
     """
 
     cols_added = ["m5_optimal"]
@@ -102,7 +94,8 @@ class M5OptimalStacker(BaseStacker):
     def _run(self, sim_data, cols_present=False):
         # k_atm values from rubin_sim.operations gen_output.py
         k_atm = {"u": 0.50, "g": 0.21, "r": 0.13, "i": 0.10, "z": 0.07, "y": 0.18}
-        # Linear fits to sky brightness change, no moon, twilight, or zodiacal components
+        # Linear fits to sky brightness change,
+        # no moon, twilight, or zodiacal components
         # Use generate_sky_slopes to regenerate if needed.
         sky_slopes = {
             "g": -0.52611780327408397,
@@ -119,7 +112,8 @@ class M5OptimalStacker(BaseStacker):
             delta_sky[
                 np.where((sim_data[self.moon_alt_col] > 0) | (sim_data[self.sun_alt_col] > np.radians(-18.0)))
             ] = 0
-            # Using Approximation that FWHM~X^0.6. So seeing term in m5 of: 0.25 * log (7.0/FWHMeff )
+            # Using Approximation that FWHM~X^0.6.
+            # So seeing term in m5 of: 0.25 * log (7.0/FWHMeff )
             # Goes to 0.15 log(FWHM_min / FWHM_eff) in the difference
             m5_optimal = (
                 sim_data[self.m5_col]

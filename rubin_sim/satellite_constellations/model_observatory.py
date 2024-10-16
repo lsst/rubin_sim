@@ -71,6 +71,7 @@ class ModelObservatory(oMO):
         # Need to do a little fiddle with the MJD since
         # self.mjd needs self.night set now.
         self.mjd_start = mjd_start
+
         self.almanac = Almanac(mjd_start=self.mjd_start)
         self.night = -1
 

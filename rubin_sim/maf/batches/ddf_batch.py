@@ -50,7 +50,8 @@ def ddfBatch(
     extra_info_label : `str`, optional
         Additional description information to add (alongside the extra_sql)
     old_coords : `bool`
-        Use the default locations for the DDFs from pre-July 2024. Default False.
+        Use the default locations for the DDFs from pre-July 2024.
+        Default False.
 
     Returns
     -------
