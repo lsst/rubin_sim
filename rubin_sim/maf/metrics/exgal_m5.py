@@ -1,5 +1,7 @@
 __all__ = ("ExgalM5",)
 
+import warnings
+
 from rubin_sim.phot_utils import DustValues
 
 from .base_metric import BaseMetric
@@ -48,6 +50,8 @@ class ExgalM5(BaseMetric):
         """Compute the co-added m5 depth and then apply
         dust extinction to that magnitude.
         """
+        if len(set(data_slice[self.filter_col])) > 1:
+            warnings.warn("Called coadd m5 with more than one filter in data.")
         m5 = self.coaddm5_metric.run(data_slice)
         if m5 == self.coaddm5_metric.badval:
             return self.badval

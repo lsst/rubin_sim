@@ -16,6 +16,7 @@ astroplan
 colorcet
 cycler
 george
+pzflow
 scikit-learn
 shapely
 skyfield
