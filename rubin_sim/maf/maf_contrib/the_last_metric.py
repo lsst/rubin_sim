@@ -347,7 +347,8 @@ class TheLastMetric(BaseMetric):
     def get_median_coaddM5(self, dataSlice):
         """Run ExgalM5WithCuts over the sky, return median per filter."""
         lsst_filters = ["u", "g", "r", "i", "z", "y"]
-        metric = ExgalM5WithCuts(m5_col=self.m5_col, filter_col=self.filter_col, lsst_filter=lsst_filters)
+        metric = ExgalM5WithCuts(m5_col=self.m5_col, filter_col=self.filter_col,
+            depth_cut=20, lsst_filter=lsst_filters)
         slicer = HealpixSlicer(nside=64, use_cache=False)
         exgal_bundle = MetricBundle(metric=metric, slicer=slicer, constraint="")
 
