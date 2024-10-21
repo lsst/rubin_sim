@@ -74,17 +74,6 @@ class Bandpass:
             self.set_bandpass(wavelen, sb)
         return
 
-    def _check_wavelength_sampling(self):
-        """Check that the wavelength sampling is above some threshold."""
-        if self.wavelen is not None:
-            dif = np.diff(self.wavelen)
-            if np.max(dif) > self.sampling_warning:
-                warnings.warn(
-                    "Wavelength sampling of %.1f nm is > %.1f nm" % (np.max(dif), self.sampling_warning)
-                    + ", this may not work well"
-                    " with a Sed object. Consider resampling with resample_bandpass method."
-                )
-
     def set_bandpass(self, wavelen, sb):
         """
         Populate bandpass data with wavelen/sb arrays.
@@ -114,7 +103,6 @@ class Bandpass:
         self.phi = None
         self.sb = np.copy(sb)
         self.bandpassname = "FromArrays"
-        self._check_wavelength_sampling()
 
     def imsim_bandpass(self, imsimwavelen=500.0, wavelen_min=300, wavelen_max=1150, wavelen_step=0.1):
         """
@@ -134,7 +122,6 @@ class Bandpass:
         self.sb = np.zeros(len(self.wavelen), dtype="float")
         self.sb[abs(self.wavelen - imsimwavelen) < wavelen_step / 2.0] = 1.0
         self.bandpassname = "IMSIM"
-        self._check_wavelength_sampling()
 
     def read_throughput(self, filename):
         """
@@ -194,7 +181,6 @@ class Bandpass:
         p = self.wavelen.argsort()
         self.wavelen = self.wavelen[p]
         self.sb = self.sb[p]
-        self._check_wavelength_sampling()
 
     def read_throughput_list(
         self,
@@ -252,7 +238,6 @@ class Bandpass:
             # Multiply self by new sb values.
             self.sb = self.sb * tempbandpass.sb
         self.bandpassname = "".join(component_list)
-        self._check_wavelength_sampling()
 
     def get_bandpass(self):
         wavelen = np.copy(self.wavelen)
@@ -324,7 +309,6 @@ class Bandpass:
             self.wavelen = wavelen_grid
             self.sb = sb_grid
             return
-        self._check_wavelength_sampling()
         return wavelen_grid, sb_grid
 
     # more complicated bandpass functions
