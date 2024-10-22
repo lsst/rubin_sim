@@ -77,6 +77,36 @@ class TestSedWavelenLimits(unittest.TestCase):
         np.testing.assert_equal(testsed.flambda[0], np.NaN)
         np.testing.assert_equal(testsed.flambda[49], np.NaN)
 
+    def test_rebin(self):
+        """Test that rebinning an SED does not change integrated flux
+        much.
+        """
+        sed = Sed()
+        sed.set_flat_sed(wavelen_step=0.01)
+
+        # Make a line feature.
+        sigma = 0.05
+        fnu = sed.fnu - sed.fnu.max() * np.exp(-((sed.wavelen - 365.2) ** 2) / sigma**2)
+
+        sed.set_sed(sed.wavelen, fnu=fnu)
+        wave_fine = np.arange(350, 380 + 0.01, 0.01)
+        bp_fine = Bandpass(wavelen=wave_fine, sb=np.ones(wave_fine.size))
+
+        wave_rough = np.arange(350, 380 + 0.5, 0.5)
+        bp_rough = Bandpass(wavelen=wave_rough, sb=np.ones(wave_rough.size))
+
+        # Flux computed with a fine sampled bandpass
+        # should match lower resolution bandpass
+        flux_fine = sed.calc_flux(bp_fine)
+        flux_rough = sed.calc_flux(bp_rough)
+
+        assert np.isclose(flux_fine, flux_rough, rtol=1e-5)
+
+        # Check magnitudes as well.
+        mag_fine = sed.calc_mag(bp_fine)
+        mag_rough = sed.calc_mag(bp_rough)
+        assert np.isclose(mag_fine, mag_rough, rtol=1e-3)
+
     def test_sed_mag_errors(self):
         """Test error handling at mag and adu calculation levels of sed."""
         sedwavelen = np.arange(self.wmin + 50, self.wmax, 1)
@@ -279,7 +309,7 @@ class SedBasicFunctionsTestCase(unittest.TestCase):
         # Now test it on a bandpass with throughput=0.25 and an wavelength
         # array that is not the same as the SED
 
-        wavelen_arr = np.arange(10.0, 100000.0, 146.0)  # in nm
+        wavelen_arr = np.arange(5.0, 100000.0, 146.0)  # in nm
         bp = Bandpass(wavelen=wavelen_arr, sb=0.25 * np.ones(len(wavelen_arr)))
 
         wavelen_arr = np.arange(5.0, 200000.0, 17.0)
@@ -306,12 +336,13 @@ class SedBasicFunctionsTestCase(unittest.TestCase):
             bb_flambda = np.pi * np.power(10.0, log10_bb_factor + log10_bose_factor - 7.0)
 
             sed = Sed(wavelen=wavelen_arr, flambda=bb_flambda)
-            ergs = sed.calc_ergs(bp)
+            ergs = sed.calc_ergs(bp, fill=0)
 
             log10_ergs = np.log10(stefan_boltzmann_sigma) + 4.0 * np.log10(temp)
             ergs_truth = np.power(10.0, log10_ergs)
 
             msg = "\ntemp: %e\nergs: %e\nergs_truth: %e" % (temp, ergs, ergs_truth)
+
             self.assertAlmostEqual(ergs / ergs_truth, 0.25, 3, msg=msg)
 
     def test_mags_vs_flux(self):
