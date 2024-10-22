@@ -107,7 +107,7 @@ class MoMagStacker(BaseMoStacker):
             self.cols_req = [m5_col, v_mag_col, color_col, loss_col]
         elif magtype.startswith("comet"):
             # magtype should be = comet_oort comet_short or comet_mbc
-            comet_type = magtype.split(magtype, "_")[-1]
+            comet_type = magtype.split("_")[-1]
             self.mag_stacker = CometAppMagStacker(
                 comet_type=comet_type,
                 ap=0.04,
