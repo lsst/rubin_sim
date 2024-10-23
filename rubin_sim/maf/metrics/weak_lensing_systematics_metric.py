@@ -8,16 +8,37 @@ from .exgal_m5 import ExgalM5
 
 class ExgalM5WithCuts(BaseMetric):
     """
-    Calculate co-added five-sigma limiting depth, but apply dust extinction and depth cuts.
-    This means that places on the sky that don't meet the dust extinction, coadded depth, or filter coverage
-    cuts will have masked values on those places.
+    Calculate co-added five-sigma limiting depth,
+    but apply dust extinction and depth cuts.
+    This means that places on the sky that don't meet the dust extinction,
+    coadded depth, or filter coverage cuts will have masked values
+    on those places, providing a way to limit the footprint to extragalactic
+    useful areas.
 
-    This metric is useful for DESC static science and weak lensing metrics.
-    In particular, it is required as input for the StaticProbesFoMEmulatorMetricSimple
-    (a summary metric to emulate a 3x2pt FOM).
+    Parameters
+    ----------
+    m5_col : `str`
+        Name of the fiveSigmaDepth column.
+    filter_col : `str`
+        Name of the filter column.
+    metric_name : `str`
+        Name for the metric.
+    units : `str`
+        Units for the metric (for plot labels).
+    lsst_filter : `str` or `list` [`str`]
+        The filter or filters in which to calculate dust-extincted m5 values.
+    extinction_cut : `float`
+        The maximum E(B-V) value to allow.
+    depth_cut : `float`
+        Minimum coadded depth to allow.
+    n_filters : `int`
+        Number of filters required in coverage.
 
-    Note: this metric calculates the depth after dust extinction in band 'lsst_filter', but because
-    it looks for coverage in all bands, there should generally be no filter-constraint on the sql query.
+    Notes
+    -----
+    This metric calculates the depth after dust extinction in band(s)
+    'lsst_filter', but because it looks for coverage in all bands, there
+    should generally be no filter-constraint on the sql query.
     """
 
     def __init__(
@@ -38,7 +59,8 @@ class ExgalM5WithCuts(BaseMetric):
         self.depth_cut = depth_cut
         self.n_filters = n_filters
         self.lsst_filter = lsst_filter
-        # I thought about inheriting from ExGalM5 instead, but the columns specification is more complicated
+        # I thought about inheriting from ExGalM5 instead,
+        # but the columns specification is more complicated
         self.exgal_m5 = ExgalM5(m5_col=m5_col, units=units)
         super().__init__(
             col=[self.m5_col, self.filter_col],
@@ -47,37 +69,53 @@ class ExgalM5WithCuts(BaseMetric):
             maps=self.exgal_m5.maps,
             **kwargs,
         )
+        self.shape = len(self.lsst_filter)
 
     def run(self, data_slice, slice_point):
         # exclude areas with high extinction
         if slice_point["ebv"] > self.extinction_cut:
             return self.badval
 
-        # check to make sure there is at least some coverage in the required number of bands
+        # check to make sure there is coverage in the required number of bands
         n_filters = len(set(data_slice[self.filter_col]))
         if n_filters < self.n_filters:
             return self.badval
 
-        # if coverage and dust criteria are valid, move forward with only lsstFilter-band visits
-        d_s = data_slice[data_slice[self.filter_col] == self.lsst_filter]
-        # calculate the lsstFilter-band coadded depth
-        dustdepth = self.exgal_m5.run(d_s, slice_point)
-
-        # exclude areas that are shallower than the depth cut
-        if dustdepth < self.depth_cut:
-            return self.badval
+        # if coverage and dust criteria are valid,
+        # move forward with calculating depth in lsstFilter-band visits
+        dustdepths = []
+        if not isinstance(self.lsst_filter, list):
+            lsst_filter = [self.lsst_filter]
         else:
-            return dustdepth
+            lsst_filter = self.lsst_filter
+
+        for f in lsst_filter:
+            d_s = data_slice[data_slice[self.filter_col] == f]
+            # calculate the lsstFilter-band coadded depth
+            dustdepth = self.exgal_m5.run(d_s, slice_point)
+            # exclude areas that are shallower than the depth cut
+            if dustdepth < self.depth_cut:
+                return self.badval
+            else:
+                dustdepths.append(dustdepth)
+
+        # Return a single number, not a list, if only asked for single filter
+        if len(dustdepths) == 1:
+            dustdepths = dustdepths[0]
+
+        return dustdepths
 
 
 class WeakLensingNvisits(BaseMetric):
-    """A proxy metric for WL systematics. Higher values indicate better systematics mitigation.
+    """A proxy metric for WL systematics.
+    Higher values indicate better systematics mitigation.
 
-    Weak Lensing systematics metric : Computes the average number of visits per point on a HEALPix grid
+    Weak Lensing systematics metric : Computes the average number of
+    visits per point on a HEALPix grid
     after a maximum E(B-V) cut and a minimum co-added depth cut.
-    Intended to be used to count visits in gri, but can be any filter combination as long as it
+    Intended to be used to count visits in gri, but can be any filter
+    combination as long as it
     includes `lsst_filter` band visits.
-
     """
 
     def __init__(
@@ -130,34 +168,34 @@ class RIZDetectionCoaddExposureTime(BaseMetric):
     circular (and thus confuses MRB's feeble mind :/).
 
     TODO maybe:
-     - apply some sort of inverse variance weighting to the coadd based on sky
-       level?
-     - use some sort of effective exposure time that accounts for the PSF?
-     - @rhiannonlynne nicely suggested this Teff computation:
-       rubin_sim/rubin_sim/maf/metrics/technicalMetrics.py
+    - apply some sort of inverse variance weighting to the coadd based on sky
+    level?
+    - use some sort of effective exposure time that accounts for the PSF?
+    - @rhiannonlynne nicely suggested this Teff computation:
+    rubin_sim/rubin_sim/maf/metrics/technicalMetrics.py
 
     However, given the unknown nature of detection will look like in LSST,
     a simple sum of exposure time is probably ok.
 
     Parameters
     ----------
-    bins : list of float
+    bins : `list` [`float`]
         The bin edges. Typically this will be a list of nights for which to
         compute the riz coadd exposure times.
-    bin_col : str, optional
+    bin_col : `str`, optional
         The column to bin on. The default is 'night'.
-    exp_time_col : str, optional
+    exp_time_col : `str`, optional
         The column name for the exposure time.
-    filter_col : str, optional
+    filter_col : `str`, optional
         The column name for the filter name.
-    ebvlim : float, optional
+    ebvlim : `float`, optional
         The upper limit on E(B-V). Regions with E(B-V) greater than this
         limit are excluded.
-    min_exp_time : float, optional
+    min_exp_time : `float`, optional
         The minimal exposure time for a visit to contribute to a coadd.
-    det_bands : list of str, optional
+    det_bands : `list`  [`str`], optional
         If not None, the bands to use for detection. If None, defaults to riz.
-    min_bands : list of str, optional
+    min_bands : `list`  [`str`], optional
         If not None, the bands whose presence is used to cut the survey data.
         If None, defaults to ugrizY.
     """
