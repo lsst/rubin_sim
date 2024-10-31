@@ -30,7 +30,14 @@ def _match(arr1, arr2):
 
 
 class PhotometricSelfCalUniformityMetric(BaseMetric):
-    def __init__(self, nside_residual=128, highglat_cut=30.0, outlier_nsig=4.0):
+    def __init__(
+        self,
+        nside_residual=128,
+        highglat_cut=30.0,
+        outlier_nsig=4.0,
+        metric_name="PhotometricSelfCalUniformityMetric",
+        filter_name="r",
+    ):
         cols = [
             "observationid",
             "fieldra",
@@ -39,7 +46,7 @@ class PhotometricSelfCalUniformityMetric(BaseMetric):
             "rotSkyPos",
             "filter",
         ]
-        super().__init__(col=cols, metric_name="PhotometricSelfCalUniformityMetric")
+        super().__init__(col=cols, metric_name=metric_name)
 
         filename = os.path.join(get_data_dir(), "maf", "monster_stars_uniformity_i15-18_sampled.parquet")
         self.stars = Table.read(filename)
@@ -55,11 +62,10 @@ class PhotometricSelfCalUniformityMetric(BaseMetric):
         self.outlier_nsig = outlier_nsig
 
         self.units = "mmag"
+        self.filter_name = filter_name
 
     def run(self, data_slice, slice_point=None):
-        filter_name = data_slice["filter"][0]
-
-        offsets = [OffsetSys(error_sys=0.03), OffsetSNR(lsst_filter=filter_name)]
+        offsets = [OffsetSys(error_sys=0.03), OffsetSNR(lsst_filter=self.filter_name)]
 
         visits = np.zeros(
             len(data_slice),
@@ -77,14 +83,14 @@ class PhotometricSelfCalUniformityMetric(BaseMetric):
         visits["fiveSigmaDepth"] = data_slice["fiveSigmaDepth"]
         visits["rotSkyPos"] = data_slice["rotSkyPos"]
 
-        good_stars = np.isfinite(self.stars[f"{filter_name}mag"])
+        good_stars = np.isfinite(self.stars[f"{self.filter_name}mag"])
         stars = self.stars[good_stars]
 
         observed_stars = generate_catalog(
             visits,
             stars,
             offsets=offsets,
-            lsst_filter=filter_name,
+            lsst_filter=self.filter_name,
             n_patches=16,
             verbose=False,
         )
@@ -107,7 +113,7 @@ class PhotometricSelfCalUniformityMetric(BaseMetric):
         fit_stars_trimmed = fit_stars[b]
 
         # Residuals after fit, removing floating zeropoint
-        resid = stars_trimmed[f"{filter_name}mag"] - fit_stars_trimmed["fit_mag"]
+        resid = stars_trimmed[f"{self.filter_name}mag"] - fit_stars_trimmed["fit_mag"]
         resid = resid - np.median(resid)
 
         resid_map = healbin(
