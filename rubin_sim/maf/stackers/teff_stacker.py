@@ -1,5 +1,7 @@
 __all__ = ["TEFF_FIDUCIAL_DEPTH", "TEFF_FIDUCIAL_EXPTIME", "TeffStacker", "compute_teff"]
 
+from collections import defaultdict
+
 import numpy as np
 
 from .base_stacker import BaseStacker
@@ -14,14 +16,21 @@ from .base_stacker import BaseStacker
 #   https://github.com/lsst-pst/syseng_throughputs/blob/master/notebooks/generate_sims_values.ipynb
 #   commit 7abb90951fcbc70d9c4d0c805c55a67224f9069f (2021-05-05)
 # See https://github.com/lsst-sims/smtn-002/blob/master/notebooks/teff_fiducial.ipynb
-TEFF_FIDUCIAL_DEPTH = {
-    "u": 23.71,
-    "g": 24.67,
-    "r": 24.24,
-    "i": 23.82,
-    "z": 23.21,
-    "y": 22.40,
-}
+
+# If we do not recognize the filter, return a nan. The np.array(np.nan).item
+# is a hack to define a function that retruns a nan without defining a useless
+# new function or violating the style guide by using a lambda function.
+TEFF_FIDUCIAL_DEPTH = defaultdict(
+    np.array(np.nan).item,
+    {
+        "u": 23.71,
+        "g": 24.67,
+        "r": 24.24,
+        "i": 23.82,
+        "z": 23.21,
+        "y": 22.40,
+    }.items(),
+)
 
 TEFF_FIDUCIAL_EXPTIME = 30.0
 
