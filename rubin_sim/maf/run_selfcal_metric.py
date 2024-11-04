@@ -31,6 +31,8 @@ def run_selfcal_metric():
         action="store_true",
         help="Do not remove existing directory outputs",
     )
+    parser.add_argument("--filter", type=str, default="r")
+
     args = parser.parse_args()
 
     opsdb = args.db
@@ -43,13 +45,19 @@ def run_selfcal_metric():
 
     # Set up the metric bundle.
     map_nside = 128
-    selfcal_metric = PhotometricSelfCalUniformityMetric(nside_residual=map_nside)
+    selfcal_metric = PhotometricSelfCalUniformityMetric(
+        nside_residual=map_nside, filter_name=args.filter, metric_name="selfcal_uniformity-%s" % args.filter
+    )
     slicer = UniSlicer()
     # Exclude DDF visits
-    sql = "note not like '%DD%'"
+    sql = "scheduler_note not like '%DD%'"
     # And run on only year 1 (?)
     sql += " and night < 366"
-    bundle = MetricBundle(selfcal_metric, slicer, sql, run_name=sim_name, info_label="year 1 no-DD")
+    sql += " and filter='%s'" % args.filter
+
+    bundle = MetricBundle(
+        selfcal_metric, slicer, sql, run_name=sim_name, info_label="year 1 no-DD %s" % args.filter
+    )
 
     # Set up the resultsDB
     results_db = ResultsDb(out_dir=out_dir)
@@ -61,7 +69,7 @@ def run_selfcal_metric():
 
     # Make plots of the residuals map
     map_bundle = MetricBundle(
-        IdentityMetric(metric_name="PhotoCal Uniformity"),
+        IdentityMetric(metric_name="PhotoCal Uniformity %s" % args.filter),
         HealpixSlicer(map_nside),
         sql,
         run_name=sim_name,
