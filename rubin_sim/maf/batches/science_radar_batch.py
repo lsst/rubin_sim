@@ -599,7 +599,7 @@ def science_radar_batch(
             maps_list=[dustmap],
             info_label=info_label,
             summary_metrics=summaryMetrics + [ThreebyTwoSummary],
-        #, ThreebyTwoSummary_simple],
+            # , ThreebyTwoSummary_simple],
             display_dict=displayDict,
         )
         displayDict["order"] += 1
