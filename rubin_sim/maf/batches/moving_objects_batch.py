@@ -910,6 +910,7 @@ def characterization_inner_batch(
     colmap=None,
     run_name="run_name",
     objtype="",
+    magtype="asteroid",
     albedo=None,
     h_mark=None,
     constraint_info_label="",
@@ -950,7 +951,7 @@ def characterization_inner_batch(
     display_dict = {"group": f"{objtype}"}
 
     # Stackers
-    magStacker = stackers.MoMagStacker(loss_col="dmag_detect")
+    magStacker = stackers.MoMagStacker(loss_col="dmag_detect", magtype=magtype)
     eclStacker = stackers.EclStacker()
     stackerList = [magStacker, eclStacker]
 
@@ -1107,6 +1108,7 @@ def characterization_outer_batch(
     colmap=None,
     run_name="run_name",
     objtype="",
+    magtype="asteroid",
     albedo=None,
     h_mark=None,
     constraint_info_label="",
@@ -1147,7 +1149,7 @@ def characterization_outer_batch(
     display_dict = {"group": f"{objtype}"}
 
     # Stackers
-    magStacker = stackers.MoMagStacker(loss_col="dmag_detect")
+    magStacker = stackers.MoMagStacker(loss_col="dmag_detect", magtype=magtype)
     eclStacker = stackers.EclStacker()
     stackerList = [magStacker, eclStacker]
 
