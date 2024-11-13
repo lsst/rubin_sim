@@ -1207,6 +1207,7 @@ def science_radar_batch(
         run_name=runName,
         summary_metrics=lightcurve_summary(),
         display_dict=displayDict,
+        plot_funcs=[plots.HealpixSkyMap()],
     )
     bundleList.append(bundle)
 
@@ -1219,6 +1220,7 @@ def science_radar_batch(
         run_name=runName,
         summary_metrics=lightcurve_summary(),
         display_dict=displayDict,
+        plot_funcs=[plots.HealpixSkyMap()],
     )
     bundleList.append(bundle)
 
@@ -1364,6 +1366,7 @@ def science_radar_batch(
         info_label="single model",
         summary_metrics=lightcurve_summary(),
         display_dict=displayDict,
+        plot_funcs=[plots.HealpixSkyMap()],
     )
     bundleList.append(bundle)
 
@@ -1386,6 +1389,7 @@ def science_radar_batch(
         info_label="all models",
         summary_metrics=lightcurve_summary(),
         display_dict=displayDict,
+        plot_funcs=[plots.HealpixSkyMap()],
     )
     bundleList.append(bundle)
 
