@@ -365,13 +365,15 @@ def glanceBatch(
     # stats from the scheduler_note column
     if "scheduler_note" in colmap.keys():
         displayDict = {"group": "Basic Stats", "subgroup": "Percent stats"}
-        metric = metrics.StringCountMetric(col=colmap["scheduler_note"], percent=True, metric_name="Percents")
+        metric = metrics.StringCountMetric(
+            col=colmap["scheduler_note"], percent=True, metric_name="Percents", clip_end=True
+        )
         sql = ""
         slicer = slicers.UniSlicer()
         bundle = metric_bundles.MetricBundle(metric, slicer, sql, display_dict=displayDict)
         bundle_list.append(bundle)
         displayDict["subgroup"] = "Count Stats"
-        metric = metrics.StringCountMetric(col=colmap["scheduler_note"], metric_name="Counts")
+        metric = metrics.StringCountMetric(col=colmap["scheduler_note"], metric_name="Counts", clip_end=True)
         bundle = metric_bundles.MetricBundle(metric, slicer, sql, display_dict=displayDict)
         bundle_list.append(bundle)
 
