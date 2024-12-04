@@ -1,15 +1,20 @@
-__all__ = ["predicted_zeropoint",
+__all__ = [
+    "predicted_zeropoint",
     "predicted_zeropoint_hardware",
     "predicted_zeropoint_itl",
     "predicted_zeropoint_hardware_itl",
     "predicted_zeropoint_e2v",
-    "predicted_zeropoint_hardware_e2v",]
+    "predicted_zeropoint_hardware_e2v",
+]
 
 import numpy as np
 
 
 def predicted_zeropoint(band: str, airmass: float, exptime: float = 1) -> float:
     """General zeropoint values derived from v1.9 throughputs.
+
+    Extinction coefficients and zeropoint intercepts calculated in
+    https://github.com/lsst-pst/syseng_throughputs/blob/main/notebooks/InterpolateZeropoint.ipynb
 
     Parameters
     ----------

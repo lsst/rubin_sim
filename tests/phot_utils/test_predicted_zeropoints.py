@@ -2,12 +2,16 @@ import unittest
 
 import numpy as np
 from rubin_scheduler.utils import SysEngVals
-from rubin_sim.phot_utils import (predicted_zeropoint,
+
+from rubin_sim.phot_utils import (
+    predicted_zeropoint,
     predicted_zeropoint_e2v,
     predicted_zeropoint_hardware,
     predicted_zeropoint_hardware_e2v,
     predicted_zeropoint_hardware_itl,
-    predicted_zeropoint_itl)
+    predicted_zeropoint_itl,
+)
+
 
 class PredictedZeropointsTst(unittest.TestCase):
     def test_predicted_zeropoints(self):
@@ -43,6 +47,7 @@ class PredictedZeropointsTst(unittest.TestCase):
                 self.assertTrue(zp.max() - zp.min() < 6)
                 self.assertTrue(zp.max() < 35)
                 self.assertTrue(zp.min() > 25)
+
 
 if __name__ == "__main__":
     unittest.main()
