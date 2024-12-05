@@ -8,9 +8,9 @@
 # Two different functions are present that do the conversion, and a third
 # that uses ephem package, for redundancy purposes.
 # For use with Field Star Count metric
-
-
+import astropy.units as u
 import numpy as np
+from astropy.coordinates import SkyCoord
 from scipy.optimize import fsolve
 
 rad1 = np.radians(282.25)
@@ -76,12 +76,14 @@ def eq_gal2(eq_ra, eq_dec):
 
 
 def eq_gal3(eq_ra, eq_dec):
-    coordset = ephem.Equatorial(np.radians(eq_ra), np.radians(eq_dec), epoch="2000")
-    g = ephem.Galactic(coordset)
-    templon, templat = float(g.lon), float(g.lat)
-    l_deg = np.degrees(templon)
-    b_deg = np.degrees(templat)
-    return b_deg, l_deg
+    # assume input ra, dec are in deg
+    coordset = SkyCoord(
+        ra=np.radians(eq_ra) * u.radians, dec=np.rad(eq_dec) * u.rad, frame="icrs", unit="deg"
+    )
+    # convert to galactic
+    galactic = coordset.galactic
+    # return b,l in deg
+    return galactic.b.value, galactic.l.values
 
 
 def gal_cyn(b_deg, l_deg, dist):
