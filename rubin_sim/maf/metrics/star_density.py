@@ -11,12 +11,13 @@ class StarDensityMetric(BaseMetric):
     """Interpolate the stellar luminosity function to return the number of
     stars per square arcsecond brighter than the mag_limit.
     Note that the map is built from CatSim stars in the range 20 < r < 28.
-    mag_limit values outside that the range of the map's starMapBins will return self.badval
+    mag_limit values outside that the range of the map's starMapBins will
+    return self.badval
 
-    The stellar density maps are available in any bandpass, but bandpasses other
-    than r band must use a pre-configured StellarDensityMap (not just the default).
-    In other words, when setting up the metric bundle for an i-band stellar density
-    using (as an example) a HealpixSlicer:
+    The stellar density maps are available in any bandpass, but bandpasses
+    other than r band must use a pre-configured StellarDensityMap (not just the
+    default). In other words, when setting up the metric bundle for an i-band
+    stellar density using (as an example) a HealpixSlicer:
     ```
     map = maf.StellarDensityMap(filtername='i')
     metric = maf.StarDensityMetric(filtername='i', mag_limit=25.0)
@@ -31,8 +32,9 @@ class StarDensityMetric(BaseMetric):
         Returns number of stars per square arcsecond brighter than this limit.
         Default 25.
     filtername : `str`, opt
-        Which filter to evaluate the luminosity function in; Note that using bands other than r
-        will require setting up a custom (rather than default) version of the stellar density map.
+        Which filter to evaluate the luminosity function in; Note that using
+        bands other than r will require setting up a custom (rather than
+        default) version of the stellar density map.
         Default r.
     units : `str`, opt
         Units for the output values. Default "stars/sq arcsec".
@@ -42,7 +44,8 @@ class StarDensityMetric(BaseMetric):
     Returns
     -------
     result : `float`
-        Number of stars brighter than mag_limit in filtername, based on the stellar density map.
+        Number of stars brighter than mag_limit in filtername, based on the
+        stellar density map.
     """
 
     def __init__(
@@ -68,6 +71,7 @@ class StarDensityMetric(BaseMetric):
         try:
             result = interp(self.mag_limit) / (3600.0**2)
         except ValueError:
-            # This probably means the interpolation went out of range (magLimit <15 or >28)
+            # This probably means the interpolation went out of range
+            # (magLimit <15 or >28)
             return self.badval
         return result

@@ -21,7 +21,8 @@ def surface_brightness_limit_approx(
     tot_area=100.0,
     mag_diff_warn=0.1,
 ):
-    """Compute surface brightness limit in 3 limiting cases, return the brightest.
+    """Compute surface brightness limit in 3 limiting cases, return the
+    brightest.
 
     Algerbra worked out in this technote:
     https://github.com/lsst-sims/smtn-016
@@ -52,8 +53,8 @@ def surface_brightness_limit_approx(
 
     Returns
     -------
-    surface brightness limit in mags/sq arcsec
-    aka the surface brightness that reaches SNR=nsigma when measured over tot_area.
+    surface brightness limit in mags/sq arcsec, aka the surface brightness that
+    reaches SNR=nsigma when measured over tot_area.
     """
 
     a_pix = pixscale**2
@@ -76,7 +77,8 @@ def surface_brightness_limit_approx(
 
     if np.min([d1, d2, d3]) < mag_diff_warn:
         warnings.warn(
-            "Limiting magnitudes in different cases are within %.3f mags, result may be too optimistic by up 0.38 mags/sq arcsec."
+            "Limiting magnitudes in different cases are within %.3f mags, \
+            result may be too optimistic by up 0.38 mags/sq arcsec."
             % mag_diff_warn
         )
 
