@@ -58,12 +58,13 @@ def noise_calc(band):
     m5 = {"u": 23.9, "g": 25.0, "r": 24.7, "i": 24.0, "z": 23.3, "y": 22.1}
     sigma = 0.03
     sigma_sys = 0.005
-    fun = (
-        lambda x: sigma_sys**2
-        + (0.04 - gamma[band]) * 10 ** (0.4 * (x - m5[band]))
-        + gamma[band] * 10 ** (0.8 * (x - m5[band]))
-        - sigma**2
-    )
+
+    def fun(x):
+        sigma_sys**2
+        +(0.04 - gamma[band]) * 10 ** (0.4 * (x - m5[band]))
+        +gamma[band] * 10 ** (0.8 * (x - m5[band]))
+        -(sigma**2)
+
     return newton(fun, 25)
 
 
