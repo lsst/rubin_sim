@@ -40,6 +40,7 @@ def col_map_dict(dict_name=None):
         ]
         col_map["metadataAngleList"] = ["rotSkyPos"]
         col_map["scheduler_note"] = "scheduler_note"
+        col_map["scheduler_note_root"] = "scheduler_note_root"
 
     elif dict_name == "opsimv4":
         col_map = {}
