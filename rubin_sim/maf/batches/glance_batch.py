@@ -364,16 +364,35 @@ def glanceBatch(
 
     # stats from the scheduler_note column
     if "scheduler_note" in colmap.keys():
-        displayDict = {"group": "Basic Stats", "subgroup": "Percent stats"}
+        displayDict = {"group": "Basic Stats", "subgroup": "Percent root stats"}
         metric = metrics.StringCountMetric(
-            col=colmap["scheduler_note"], percent=True, metric_name="Percents", clip_end=True
+            col=colmap["scheduler_note_root"], percent=True, metric_name="Percents", clip_end=False
         )
         sql = ""
         slicer = slicers.UniSlicer()
         bundle = metric_bundles.MetricBundle(metric, slicer, sql, display_dict=displayDict)
         bundle_list.append(bundle)
+        displayDict["subgroup"] = "Count root Stats"
+        metric = metrics.StringCountMetric(
+            col=colmap["scheduler_note_root"], metric_name="Counts", clip_end=False
+        )
+        bundle = metric_bundles.MetricBundle(metric, slicer, sql, display_dict=displayDict)
+        bundle_list.append(bundle)
+
+    # For pairs and twilights
+    if "scheduler_note" in colmap.keys():
+        displayDict = {"group": "Basic Stats", "subgroup": "Percent stats"}
+        metric = metrics.StringCountMetric(
+            col=colmap["scheduler_note"], percent=True, metric_name="Percents", clip_end=False
+        )
+        sql = (
+            "scheduler_note like 'pair%%' or scheduler_note like 'twilight%%' or scheduler_note like 'blob%%'"
+        )
+        slicer = slicers.UniSlicer()
+        bundle = metric_bundles.MetricBundle(metric, slicer, sql, display_dict=displayDict)
+        bundle_list.append(bundle)
         displayDict["subgroup"] = "Count Stats"
-        metric = metrics.StringCountMetric(col=colmap["scheduler_note"], metric_name="Counts", clip_end=True)
+        metric = metrics.StringCountMetric(col=colmap["scheduler_note"], metric_name="Counts", clip_end=False)
         bundle = metric_bundles.MetricBundle(metric, slicer, sql, display_dict=displayDict)
         bundle_list.append(bundle)
 
