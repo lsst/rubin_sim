@@ -204,6 +204,7 @@ def ddfBatch(
                 info_label=" ".join([fieldname]),
                 summary_metrics=lightcurve_summary(),
                 display_dict=displayDict,
+                plot_funcs=[],
             )
         )
 
