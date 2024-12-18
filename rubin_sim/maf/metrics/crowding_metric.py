@@ -9,6 +9,7 @@ from rubin_sim.maf.metrics import BaseMetric
 # Originally contributed by Knut Olson (@knutago).
 
 
+
 def _comp_crowd_error(mag_vector, lum_func, seeing, single_mag=None):
     """
     Compute the photometric crowding error given the luminosity
@@ -36,6 +37,10 @@ def _comp_crowd_error(mag_vector, lum_func, seeing, single_mag=None):
     mag_uncert : `np.array` (N,)
         Magnitude uncertainties.
     """
+    # Our saved luminosity functions are cumulative,
+    # so we must here convert to differential
+    lum_func = np.diff(lum_func)
+    mag_vector = mag_vector[1:]
     lum_area_arcsec = 3600.0**2
     lum_vector = 10 ** (-0.4 * mag_vector)
     coeff = np.sqrt(np.pi / lum_area_arcsec) * seeing / 2.0
