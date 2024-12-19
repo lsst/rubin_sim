@@ -119,6 +119,26 @@ class SaturationStacker(BaseStacker):
         return sim_data
 
 
+class NoteRootStacker(BaseStacker):
+    """Strip off things after a comma in the scheduler_note"""
+
+    cols_added = ["scheduler_note_root"]
+
+    def __init__(self, note_col="scheduler_note"):
+        self.units = ["mag"]
+        self.cols_req = [note_col]
+        self.note_col = note_col
+        self.cols_added_dtypes = ["<U50"]
+
+    def _run(self, sim_data, cols_present=False):
+        if cols_present:
+            # Column already present in data; assume it is fine.
+            return sim_data
+        new_note = [note.split(",")[0] for note in sim_data[self.note_col]]
+        sim_data["scheduler_note_root"] = new_note
+        return sim_data
+
+
 class FiveSigmaStacker(BaseStacker):
     """Calculate the 5-sigma limiting depth for a point source in the given
     conditions.
