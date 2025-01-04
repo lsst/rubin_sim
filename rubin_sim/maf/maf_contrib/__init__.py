@@ -19,6 +19,7 @@ from .star_count_mass_metric import *
 from .star_count_metric import *
 from .static_probes_fom_summary_metric import *
 from .tdes_pop_metric import *
+from .the_last_metric import *
 from .triplet_metric import *
 from .var_depth_metric import *
 from .xrb_metrics import *
