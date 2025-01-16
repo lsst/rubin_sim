@@ -8,7 +8,8 @@ from .base_metric import BaseMetric
 
 class TransientMetric(BaseMetric):
     """
-    Calculate what fraction of the transients would be detected. Best paired with a spatial slicer.
+    Calculate what fraction of the transients would be detected. Best paired
+    with a spatial slicer.
     We are assuming simple light curves with no color evolution.
 
     Parameters
@@ -19,7 +20,8 @@ class TransientMetric(BaseMetric):
         How long it takes to reach the peak magnitude (days). Default 5.
     rise_slope : float, optional
         Slope of the light curve before peak time (mags/day).
-        This should be negative since mags are backwards (magnitudes decrease towards brighter fluxes).
+        This should be negative since mags are backwards (magnitudes decrease
+        towards brighter fluxes).
         Default 0.
     decline_slope : float, optional
         Slope of the light curve after peak time (mags/day).
@@ -43,25 +45,31 @@ class TransientMetric(BaseMetric):
         MJD for the survey start date.
         Default None (uses the time of the first observation).
     detect_m5_plus : float, optional
-        An observation will be used if the light curve magnitude is brighter than m5+detect_m5_plus.
+        An observation will be used if the light curve magnitude is brighter
+        than m5+detect_m5_plus.
         Default 0.
     n_pre_peak : int, optional
         Number of observations (in any filter(s)) to demand before peak_time,
         before saying a transient has been detected.
         Default 0.
     n_per_lc : int, optional
-        Number of sections of the light curve that must be sampled above the detect_m5_plus theshold
+        Number of sections of the light curve that must be sampled above the
+        detect_m5_plus theshold
         (in a single filter) for the light curve to be counted.
-        For example, setting n_per_lc = 2 means a light curve  is only considered detected if there
-        is at least 1 observation in the first half of the LC, and at least one in the second half of the LC.
-        n_per_lc = 4 means each quarter of the light curve must be detected to count.
+        For example, setting n_per_lc = 2 means a light curve  is only
+        considered detected if there is at least 1 observation in the first
+        half of the LC, and at least one in the second half of the LC.
+        n_per_lc = 4 means each quarter of the light curve must be detected to
+        count.
         Default 1.
     n_filters : int, optional
-        Number of filters that need to be observed for an object to be counted as detected.
+        Number of filters that need to be observed for an object to be counted
+        as detected.
         Default 1.
     n_phase_check : int, optional
         Sets the number of phases that should be checked.
-        One can imagine pathological cadences where many objects pass the detection criteria,
+        One can imagine pathological cadences where many objects pass the
+        detection criteria,
         but would not if the observations were offset by a phase-shift.
         Default 1.
     count_method : {'full' 'partialLC'}, defaults to 'full'
@@ -154,15 +162,18 @@ class TransientMetric(BaseMetric):
         return lc_mags
 
     def run(self, data_slice, slice_point=None):
-        """ "
-        Calculate the detectability of a transient with the specified lightcurve.
+        """
+        Calculate the detectability of a transient with the specified
+        lightcurve.
 
         Parameters
         ----------
         data_slice : numpy.array
-            Numpy structured array containing the data related to the visits provided by the slicer.
+            Numpy structured array containing the data related to the visits
+            provided by the slicer.
         slice_point : dict, optional
-            Dictionary containing information about the slice_point currently active in the slicer.
+            Dictionary containing information about the slice_point currently
+            active in the slicer.
 
         Returns
         -------
@@ -178,8 +189,8 @@ class TransientMetric(BaseMetric):
         n_detected = 0
         n_trans_max = 0
         for tshift in tshifts:
-            # Compute the total number of back-to-back transients are possible to detect
-            # given the survey duration and the transient duration.
+            # Compute the total number of back-to-back transients are possible
+            # to detect given the survey duration and the transient duration.
             n_trans_max += _n_trans_max
             if tshift != 0:
                 n_trans_max -= 1
@@ -211,9 +222,10 @@ class TransientMetric(BaseMetric):
                 ulc_number = np.unique(lc_number)
                 left = np.searchsorted(lc_number, ulc_number)
                 right = np.searchsorted(lc_number, ulc_number, side="right")
-                # Note here I'm using np.searchsorted to basically do a 'group by'
-                # might be clearer to use scipy.ndimage.measurements.find_objects or pandas, but
-                # this numpy function is known for being efficient.
+                # Note here I'm using np.searchsorted to basically do a
+                # 'group by' might be clearer to use
+                # scipy.ndimage.measurements.find_objects or pandas, but this
+                # numpy function is known for being efficient.
                 for le, ri in zip(left, right):
                     # Number of points where there are a detection
                     good = np.where(time[le:ri] < self.peak_time)
@@ -221,7 +233,8 @@ class TransientMetric(BaseMetric):
                     if nd >= self.n_pre_peak:
                         detected[le:ri] += 1
 
-            # Check if we need multiple points per light curve or multiple filters
+            # Check if we need multiple points per light curve
+            # or multiple filters
             if (self.n_per_lc > 1) | (self.n_filters > 1):
                 # make sure things are sorted by time
                 ord = np.argsort(data_slice[self.mjd_col])
@@ -243,11 +256,13 @@ class TransientMetric(BaseMetric):
                         if np.size(np.unique(phase_sections[good])) >= self.n_per_lc:
                             detected[le:ri] += 1
 
-            # Find the unique number of light curves that passed the required number of conditions
+            # Find the unique number of light curves that passed the required
+            # number of conditions
             n_detected += np.size(np.unique(lc_number[np.where(detected >= detect_thresh)]))
 
-        # Rather than keeping a single "detected" variable, maybe make a mask for each criteria, then
-        # reduce functions like: reduce_singleDetect, reduce_NDetect, reduce_PerLC, reduce_perFilter.
+        # Rather than keeping a single "detected" variable, maybe make a mask
+        # for each criteria, then reduce functions like: reduce_singleDetect,
+        # reduce_NDetect, reduce_PerLC, reduce_perFilter.
         # The way I'm running now it would speed things up.
 
         return float(n_detected) / n_trans_max

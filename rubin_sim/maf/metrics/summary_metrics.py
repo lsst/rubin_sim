@@ -173,7 +173,8 @@ class IdentityMetric(BaseMetric):
 
 class NormalizeMetric(BaseMetric):
     """
-    Return a metric values divided by 'norm_val'. Useful for turning summary statistics into fractions.
+    Return a metric values divided by 'norm_val'.
+    Useful for turning summary statistics into fractions.
     """
 
     def __init__(self, col="metricdata", norm_val=1, **kwargs):
@@ -190,7 +191,8 @@ class NormalizeMetric(BaseMetric):
 
 class ZeropointMetric(BaseMetric):
     """
-    Return a metric values with the addition of 'zp'. Useful for altering the zeropoint for summary statistics.
+    Return a metric values with the addition of 'zp'.
+    Useful for altering the zeropoint for summary statistics.
     """
 
     def __init__(self, col="metricdata", zp=0, **kwargs):
@@ -271,7 +273,8 @@ class StaticProbesFoMEmulatorMetricSimple(BaseMetric):
         Returns:
              float: Interpolated static-probe statistical Figure-of-Merit.
         Raises:
-             ValueError: If year is not one of the 4 for which a FoM is calculated
+             ValueError: If year is not one of the 4 for which a FoM is
+             calculated
         """
         # Chop off any outliers
         good_pix = np.where(data_slice[self.col] > 0)[0]

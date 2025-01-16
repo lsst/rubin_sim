@@ -570,9 +570,6 @@ def science_radar_batch(
         sqlconstraint = "night <= %s" % (yr_cut * 365.25 + 0.5)
         sqlconstraint += ' and scheduler_note not like "DD%"'
         info_label = f"{bandpass} band non-DD year {yr_cut}"
-        ThreebyTwoSummary_simple = metrics.StaticProbesFoMEmulatorMetricSimple(
-            nside=nside, year=yr_cut, metric_name="3x2ptFoM_simple"
-        )
         ThreebyTwoSummary = maf.StaticProbesFoMEmulatorMetric(nside=nside, metric_name="3x2ptFoM")
 
         m = metrics.ExgalM5WithCuts(
