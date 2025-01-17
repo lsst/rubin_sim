@@ -13,6 +13,7 @@ from rubin_sim.moving_objects import ChebyFits, ChebyValues, Orbits, PyOrbEpheme
 
 ROOT = os.path.abspath(os.path.dirname(__file__))
 
+
 @unittest.skip("Temporary skip until ephemerides replaced")
 class TestChebyValues(unittest.TestCase):
     def setUp(self):
@@ -147,6 +148,7 @@ class TestChebyValues(unittest.TestCase):
                 np.isnan(ephemerides["ra"][0]),
                 msg=f"Expected Nan for out of range ephemeris, got {ephemerides['ra'][0]}",
             )
+
 
 @unittest.skip("Temporary skip until ephemerides replaced")
 class TestJPLValues(unittest.TestCase):

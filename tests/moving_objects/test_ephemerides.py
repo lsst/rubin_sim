@@ -8,6 +8,7 @@ from rubin_scheduler.data import get_data_dir
 
 from rubin_sim.moving_objects import Orbits, PyOrbEphemerides
 
+
 @unittest.skip("Temporary skip until ephemerides replaced")
 class TestPyOrbEphemerides(unittest.TestCase):
     def setUp(self):
@@ -151,6 +152,7 @@ class TestPyOrbEphemerides(unittest.TestCase):
         # method using COM elements match.
         for column in ephs_all.dtype.names:
             np.testing.assert_allclose(ephs_all_kep[column], ephs_all[column], rtol=1e-5, atol=1e-4)
+
 
 @unittest.skip("Temporary skip until ephemerides replaced")
 class TestJPLValues(unittest.TestCase):
