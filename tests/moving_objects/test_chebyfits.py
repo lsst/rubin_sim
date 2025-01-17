@@ -11,7 +11,7 @@ from rubin_sim.moving_objects import ChebyFits, Orbits
 
 ROOT = os.path.abspath(os.path.dirname(__file__))
 
-
+@unittest.skip("Temporary skip until ephemerides replaced")
 class TestChebyFits(unittest.TestCase):
     def setUp(self):
         self.testdir = os.path.join(get_data_dir(), "tests", "orbits_testdata")
@@ -134,7 +134,7 @@ class TestChebyFits(unittest.TestCase):
         self.assertTrue(os.path.isfile(coeff_name))
         self.assertTrue(os.path.isfile(resid_name))
 
-
+@unittest.skip("Temporary skip until ephemerides replaced")
 class TestRun(unittest.TestCase):
     def setUp(self):
         self.testdir = os.path.join(get_data_dir(), "tests", "orbits_testdata")
