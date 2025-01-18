@@ -254,7 +254,7 @@ class SNNSNMetric(BaseMetric):
             data_slice[self.m5_col] = new_m5
 
         # select observations filter
-        good_filters = np.in1d(data_slice[self.filter_col], list(self.bands))
+        good_filters = np.isin(data_slice[self.filter_col], list(self.bands))
         data_slice = data_slice[good_filters]
 
         # coaddition per night and per band (if requested by the user)

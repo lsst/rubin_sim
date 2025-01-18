@@ -177,7 +177,7 @@ class MafRunResults:
         """
         if metrics is None:
             metrics = self.metrics
-        metrics = metrics[np.in1d(metrics["metric_id"], metric_ids)]
+        metrics = metrics[np.isin(metrics["metric_id"], metric_ids)]
         return metrics
 
     def metrics_to_metric_ids(self, metrics):
@@ -267,7 +267,7 @@ class MafRunResults:
         if metrics is None:
             metrics = self.metrics
         # Identify the plots with the right plot_type, get their IDs.
-        plot_match = self.plots[np.in1d(self.plots["plot_type"], plot_types)]
+        plot_match = self.plots[np.isin(self.plots["plot_type"], plot_types)]
         # Convert those potentially matching metricIds to metrics,
         # using the subset info.
         metrics = self.metric_ids_to_metrics(plot_match["metric_id"], metrics)
@@ -295,7 +295,7 @@ class MafRunResults:
         if metrics is None:
             metrics = self.metrics
         # Identify the potentially matching stats.
-        stats = self.stats[np.in1d(self.stats["summary_metric"], summary_stat_name)]
+        stats = self.stats[np.isin(self.stats["summary_metric"], summary_stat_name)]
         # Identify the subset of relevant metrics.
         metrics = self.metric_ids_to_metrics(stats["metric_id"], metrics)
         # Re-sort metrics because at this point, probably want displayOrder
@@ -320,7 +320,7 @@ class MafRunResults:
         if metrics is None:
             metrics = self.metrics
         # Identify metricIds which are also in stats.
-        metrics = metrics[np.in1d(metrics["metric_id"], self.stats["metric_id"])]
+        metrics = metrics[np.isin(metrics["metric_id"], self.stats["metric_id"])]
         metrics = self.sort_metrics(
             metrics,
             order=[
@@ -548,7 +548,7 @@ class MafRunResults:
                     ordered_sky_plots.append(self.plot_dict(np.array([sky_plot])))
 
         elif too_many_plots:
-            metrics = self.metrics[np.in1d(self.metrics["metric_id"], sky_plots["metric_id"])]
+            metrics = self.metrics[np.isin(self.metrics["metric_id"], sky_plots["metric_id"])]
             metrics = self.sort_metrics(metrics, order=["display_order"])
             ordered_sky_plots = []
             for m in metrics:
@@ -569,9 +569,9 @@ class MafRunResults:
         if metrics is None:
             metrics = self.metrics
         # Match the plots to the metrics required.
-        plot_metric_match = self.plots[np.in1d(self.plots["metric_id"], metrics["metric_id"])]
+        plot_metric_match = self.plots[np.isin(self.plots["metric_id"], metrics["metric_id"])]
         # Match the plot type (which could be a list)
-        plot_match = plot_metric_match[np.in1d(plot_metric_match["plot_type"], plot_type)]
+        plot_match = plot_metric_match[np.isin(plot_metric_match["plot_type"], plot_type)]
         return plot_match
 
     # Set of methods to deal with summary stats.
@@ -631,7 +631,7 @@ class MafRunResults:
         unique 'summary_metric' names in a default ordering.
         """
         names = np.unique(
-            self.stats["summary_metric"][np.in1d(self.stats["metric_id"], metrics["metric_id"])]
+            self.stats["summary_metric"][np.isin(self.stats["metric_id"], metrics["metric_id"])]
         )
         names = list(names)
         # Add some default sorting.

@@ -15,6 +15,7 @@ classifiers = [
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
     "Topic :: Scientific/Engineering :: Astronomy",
  ]
 urls = {documentation = "https://rubin-sim.lsst.io", repository = "https://github.com/lsst/rubin_sim" }
@@ -38,7 +39,6 @@ dependencies = [
     "shapely",
     "skyfield",
     "skyproj",
-    "pyoorb",
     "tqdm",
     "rubin-scheduler",
     "pyarrow",

@@ -74,7 +74,7 @@ def make_wfd_subset_slicer(nside=64, use_cache=True, wfd_labels=None):
     if wfd_labels is None:
         wfd_labels = ["lowdust", "euclid_overlap", "virgo", "bulgy", "LMC_SMC"]
     footprints, labels = get_current_footprint(nside=nside)
-    wfdpix = np.where(np.in1d(labels, wfd_labels))[0]
+    wfdpix = np.where(np.isin(labels, wfd_labels))[0]
     slicer = HealpixSubsetSlicer(nside=nside, hpid=wfdpix, use_cache=use_cache)
     return slicer
 

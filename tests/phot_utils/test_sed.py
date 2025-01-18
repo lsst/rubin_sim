@@ -66,7 +66,7 @@ class TestSedWavelenLimits(unittest.TestCase):
             testsed.resample_sed(wavelen_match=self.testbandpass.wavelen)
             self.assertEqual(len(wa), 1)
             self.assertIn("non-overlap", str(wa[-1].message))
-        np.testing.assert_equal(testsed.flambda[-1:], np.NaN)
+        np.testing.assert_equal(testsed.flambda[-1:], np.nan)
         sedwavelen = np.arange(self.wmin + 50, self.wmax, 1)
         sedflambda = np.ones(len(sedwavelen))
         testsed = Sed(wavelen=sedwavelen, flambda=sedflambda)
@@ -74,8 +74,8 @@ class TestSedWavelenLimits(unittest.TestCase):
             testsed.resample_sed(wavelen_match=self.testbandpass.wavelen)
             self.assertEqual(len(wa), 1)
             self.assertIn("non-overlap", str(wa[-1].message))
-        np.testing.assert_equal(testsed.flambda[0], np.NaN)
-        np.testing.assert_equal(testsed.flambda[49], np.NaN)
+        np.testing.assert_equal(testsed.flambda[0], np.nan)
+        np.testing.assert_equal(testsed.flambda[49], np.nan)
 
     def test_rebin(self):
         """Test that rebinning an SED does not change integrated flux
@@ -117,19 +117,19 @@ class TestSedWavelenLimits(unittest.TestCase):
             mag = testsed.calc_mag(self.testbandpass)
             self.assertEqual(len(w), 1)
             self.assertIn("non-overlap", str(w[-1].message))
-        np.testing.assert_equal(mag, np.NaN)
+        np.testing.assert_equal(mag, np.nan)
         # Test handling in calc_adu
         with warnings.catch_warnings(record=True) as w:
             adu = testsed.calc_adu(self.testbandpass, phot_params=PhotometricParameters())
             self.assertEqual(len(w), 1)
             self.assertIn("non-overlap", str(w[-1].message))
-        np.testing.assert_equal(adu, np.NaN)
+        np.testing.assert_equal(adu, np.nan)
         # Test handling in calc_flux
         with warnings.catch_warnings(record=True) as w:
             flux = testsed.calc_flux(self.testbandpass)
             self.assertEqual(len(w), 1)
             self.assertIn("non-overlap", str(w[-1].message))
-        np.testing.assert_equal(flux, np.NaN)
+        np.testing.assert_equal(flux, np.nan)
 
 
 class TestSedName(unittest.TestCase):

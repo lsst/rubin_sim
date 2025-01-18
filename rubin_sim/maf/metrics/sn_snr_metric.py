@@ -107,7 +107,7 @@ class SNSNRMetric(metrics.BaseMetric):
         -------
         detection rate : `float`
         """
-        good_filters = np.in1d(data_slice["filter"], self.filter_names)
+        good_filters = np.isin(data_slice["filter"], self.filter_names)
         data_slice = data_slice[good_filters]
         if data_slice.size == 0:
             return None
@@ -134,7 +134,7 @@ class SNSNRMetric(metrics.BaseMetric):
         if self.info_season is None:
             return 0.0
 
-        sel = data_slice[np.in1d(data_slice["season"], np.array(seasons))]
+        sel = data_slice[np.isin(data_slice["season"], np.array(seasons))]
 
         detect_frac = None
         if len(sel) >= 5:

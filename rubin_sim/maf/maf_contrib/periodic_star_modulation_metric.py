@@ -116,7 +116,7 @@ class PeriodicStarModulationMetric(BaseMetric):
         self.amplitude = amplitude
         self.time_interval = time_interval
         if random_phase:
-            self.phase = np.NaN
+            self.phase = np.nan
         else:
             self.phase = phase
         self.n_monte = n_monte

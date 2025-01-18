@@ -14,6 +14,7 @@ from rubin_sim.moving_objects import ChebyFits, ChebyValues, Orbits, PyOrbEpheme
 ROOT = os.path.abspath(os.path.dirname(__file__))
 
 
+@unittest.skip("Temporary skip until ephemerides replaced")
 class TestChebyValues(unittest.TestCase):
     def setUp(self):
         self.testdatadir = os.path.join(get_data_dir(), "tests", "orbits_testdata")
@@ -149,6 +150,7 @@ class TestChebyValues(unittest.TestCase):
             )
 
 
+@unittest.skip("Temporary skip until ephemerides replaced")
 class TestJPLValues(unittest.TestCase):
     # Test the interpolation-generated RA/Dec values against JPL
     # generated RA/Dec values.
