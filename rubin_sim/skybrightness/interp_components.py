@@ -712,7 +712,7 @@ class MoonInterp(BaseSingleInterp):
             self.nside, np.pi / 2.0 - interp_points["alt"], interp_points["azRelMoon"]
         )
 
-        badhp = np.in1d(hpids.ravel(), self.dim_dict["hpid"], invert=True).reshape(hpids.shape)
+        badhp = np.isin(hpids.ravel(), self.dim_dict["hpid"], invert=True).reshape(hpids.shape)
         hweights[badhp] = 0.0
 
         norm = np.sum(hweights, axis=0)
@@ -777,7 +777,7 @@ class ZodiacalInterp(BaseSingleInterp):
             use_points["azEclipRelSun"],
         )
 
-        badhp = np.in1d(hpids.ravel(), self.dim_dict["hpid"], invert=True).reshape(hpids.shape)
+        badhp = np.isin(hpids.ravel(), self.dim_dict["hpid"], invert=True).reshape(hpids.shape)
         hweights[badhp] = 0.0
 
         norm = np.sum(hweights, axis=0)

@@ -202,7 +202,7 @@ class RIZDetectionCoaddExposureTime(BaseMetric):
         # find all entries where exposure time is long enough and
         # in the detection bands
         exptime_msk = data_slice[self.exp_time_col] > self.min_exp_time
-        filter_msk = np.in1d(data_slice[self.filter_col], self.det_bands)
+        filter_msk = np.isin(data_slice[self.filter_col], self.det_bands)
         tot_msk = exptime_msk & filter_msk
 
         res = np.sum(data_slice[self.exp_time_col][tot_msk])
