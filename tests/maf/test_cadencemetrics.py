@@ -1,3 +1,4 @@
+import math
 import unittest
 
 import numpy as np
@@ -136,7 +137,7 @@ class TestCadenceMetrics(unittest.TestCase):
         metric = metrics.TgapsMetric(all_gaps=True, bins=np.arange(1, 100, 10))
         result3 = metric.run(data)
         self.assertEqual(result3[1], 2)
-        ngaps = np.math.factorial(data.size - 1)
+        ngaps = math.factorial(data.size - 1)
         self.assertEqual(np.sum(result3), ngaps)
 
     def test_t_gaps_percent_metric(self):
@@ -187,7 +188,7 @@ class TestCadenceMetrics(unittest.TestCase):
         metric = metrics.NightgapsMetric(all_gaps=True, bins=np.arange(1, 100, 10))
         result3 = metric.run(data)
         self.assertEqual(result3[1], 2)
-        ngaps = np.math.factorial(data.size - 1)
+        ngaps = math.factorial(data.size - 1)
         self.assertEqual(np.sum(result3), ngaps)
 
         data = np.zeros(6, dtype=list(zip(names, types)))
