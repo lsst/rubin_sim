@@ -78,6 +78,11 @@ import time
 import warnings
 
 import numpy
+
+try:
+    from numpy import trapezoid as trapezoid
+except ImportError:
+    from numpy import trapz as trapezoid
 from rubin_scheduler.data import get_data_dir
 
 from .physical_parameters import PhysicalParameters
@@ -1318,7 +1323,7 @@ class Sed:
         if bandpass.phi is None:
             bandpass.sb_tophi()
         # Calculate flux in bandpass and return this value.
-        flux = numpy.trapz(fnu * bandpass.phi, x=wavelen)
+        flux = trapezoid(fnu * bandpass.phi, x=wavelen)
         return flux
 
     def calc_mag(self, bandpass, wavelen=None, fnu=None, fill=numpy.nan):

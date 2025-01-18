@@ -27,6 +27,11 @@ import os
 import warnings
 
 import numpy as np
+
+try:
+    from numpy import trapezoid as trapezoid
+except ImportError:
+    from numpy import trapz as trapezoid
 import scipy.interpolate as interpolate
 
 from rubin_sim.data import get_data_dir
@@ -322,7 +327,7 @@ class Bandpass:
         # The definition of phi = (Sb/wavelength)/\int(Sb/wavelength)dlambda.
         self.phi = self.sb / self.wavelen
         # Normalize phi so that the integral of phi is 1.
-        norm = np.trapz(self.phi, x=self.wavelen)
+        norm = trapezoid(self.phi, x=self.wavelen)
         self.phi = self.phi / norm
         return
 
