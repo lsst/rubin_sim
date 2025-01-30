@@ -335,15 +335,15 @@ class SkyprojPlotter(BasePlotter, abc.ABC):
         # or specified as decorators.
         if self.plot_dict["xlabel"] is None:
             if "xlabel" not in self.plot_dict["decorations"]:
-                self.skyproj.set_xlabel("", visible=False)
+                self.skyproj.ax.set_xlabel("", visible=False)
         else:
-            self.skyproj.set_xlabel(self.plot_dict["xlabel"])
+            self.skyproj.ax.set_xlabel(self.plot_dict["xlabel"])
 
         if self.plot_dict["ylabel"] is None:
             if "ylabel" not in self.plot_dict["decorations"]:
-                self.skyproj.set_ylabel("", visible=False)
+                self.skyproj.ax.set_ylabel("", visible=False)
         else:
-            self.skyproj.set_ylabel(self.plot_dict["ylabel"])
+            self.skyproj.ax.set_ylabel(self.plot_dict["ylabel"])
 
         if self.plot_dict["label"] is not None:
             label_kwargs = {}
