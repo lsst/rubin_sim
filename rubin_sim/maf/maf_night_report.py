@@ -127,11 +127,11 @@ def make_bundle_list(
     # stats from the note column
     if notes:
         display_dict = {"group": "Basic Stats", "subgroup": "Percent stats"}
-        metric = metrics.StringCountMetric(col="note", percent=True, metric_name="Percents")
+        metric = metrics.StringCountMetric(col="scheduler_note", percent=True, metric_name="Percents")
         bundle = metricBundles.MetricBundle(metric, unislicer, sql, display_dict=display_dict)
         bundleList.append(bundle)
         display_dict["subgroup"] = "Count Stats"
-        metric = metrics.StringCountMetric(col="note", metric_name="Counts")
+        metric = metrics.StringCountMetric(col="scheduler_note", metric_name="Counts")
         bundle = metricBundles.MetricBundle(metric, unislicer, sql, display_dict=display_dict)
         bundleList.append(bundle)
 
