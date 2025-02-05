@@ -1,4 +1,5 @@
 import numpy as np
+from rubin_scheduler.utils import SURVEY_START_MJD, calc_season
 
 from .base_metric import BaseMetric
 
@@ -22,12 +23,14 @@ class TemplateTime(BaseMetric):
         Default 3.
     seeing_percentile : `float`, opt
         Maximum percentile seeing to allow in the qualified images (0 - 100).
-
-        Default 50.
+        XXX--deceptive kwarg since it checks the percentile at each point on the sky
+        and not continuously.
+        Default 100.
     m5_percentile : `float`, opt
         Maximum percentile m5 to allow in the qualified images (0 - 100).
-
-        Default 50.
+        XXX--deceptive kwarg since it checks the percentile at each point on the sky
+        and not continuously.
+        Default 100.
     seeing_col : `str`, opt
         Name of the seeing column to use.
     m5_col : `str`, opt
@@ -43,13 +46,14 @@ class TemplateTime(BaseMetric):
     def __init__(
         self,
         n_images_in_template=3,
-        seeing_percentile=50,
-        m5_percentile=50,
+        seeing_percentile=100,
+        m5_percentile=100,
         seeing_col="seeingFwhmEff",
         m5_col="fiveSigmaDepth",
         night_col="night",
         mjd_col="observationStartMJD",
         filter_col="filter",
+        mjd_start=None,
         **kwargs,
     ):
         self.n_images_in_template = n_images_in_template
@@ -65,6 +69,11 @@ class TemplateTime(BaseMetric):
             del kwargs["metric_name"]
         else:
             self.metric_name = "TemplateTime"
+        if mjd_start is None:
+            self.mjd_start = SURVEY_START_MJD
+        else:
+            self.mjd_start = mjd_start
+
         super().__init__(
             col=[self.seeing_col, self.m5_col, self.night_col, self.mjd_col, self.filter_col],
             metric_name=self.metric_name,
@@ -86,9 +95,9 @@ class TemplateTime(BaseMetric):
         bench_seeing = np.percentile(data_slice[self.seeing_col], self.seeing_percentile)
         bench_m5 = np.percentile(data_slice[self.m5_col], 100 - self.m5_percentile)
 
-        seeing_ok = np.where(data_slice[self.seeing_col] < bench_seeing, True, False)
+        seeing_ok = np.where(data_slice[self.seeing_col] <= bench_seeing, True, False)
 
-        m5_ok = np.where(data_slice[self.m5_col] > bench_m5, True, False)
+        m5_ok = np.where(data_slice[self.m5_col] >= bench_m5, True, False)
 
         ok_template_input = np.where(seeing_ok & m5_ok)[0]
         if (
@@ -102,7 +111,13 @@ class TemplateTime(BaseMetric):
         idx_template_inputs = ok_template_input[: self.n_images_in_template]  # Images included in template
 
         Night_template_created = data_slice[self.night_col][idx_template_created]
-        N_nights_without_template = Night_template_created - data_slice[self.night_col][0]
+        N_nights_without_template = Night_template_created
+
+        Frac_into_season_template_created = calc_season(
+            np.degrees(slice_point["ra"]),
+            data_slice[self.mjd_col][idx_template_created],
+            mjd_start=self.mjd_start,
+        )
 
         where_template = (
             data_slice[self.night_col] > Night_template_created
@@ -130,6 +145,7 @@ class TemplateTime(BaseMetric):
 
         result["Night_template_created"] = Night_template_created
         result["N_nights_without_template"] = N_nights_without_template
+        result["Frac_into_season_template_created"] = Frac_into_season_template_created
         result["N_images_until_template"] = idx_template_created + 1
         result["N_images_with_template"] = N_images_with_template
         result["Template_m5"] = template_m5
@@ -181,3 +197,6 @@ class TemplateTime(BaseMetric):
 
     def reduce_Total_alerts(self, metric_val):
         return metric_val["Total_alerts"]
+
+    def reduce_frac_into_season(self, metric_val):
+        return metric_val["Frac_into_season_template_created"]
