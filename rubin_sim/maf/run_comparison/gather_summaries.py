@@ -10,7 +10,6 @@ import pandas as pd
 
 logger = logging.getLogger(__name__)
 
-
 def combine_result_dbs(run_dirs, dbfilename="resultsDb_sqlite.db"):
     """Helper function for gather_summaries
 
