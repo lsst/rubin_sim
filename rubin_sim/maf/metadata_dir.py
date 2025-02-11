@@ -37,7 +37,8 @@ def metadata_dir():
     parser.add_argument(
         "--no_clobber",
         dest="no_clobber",
-        action="store_false",
+        action="store_true",
+        default=False,
         help="Do not remove existing directory outputs",
     )
     args = parser.parse_args()
