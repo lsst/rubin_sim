@@ -81,7 +81,7 @@ def stellar_mags(stellar_type, rmag=19.0):
     if not hasattr(stellar_mags, "data"):
         names = ["stellar_type", "Model Name", "u-g", "g-r", "r-i", "i-z", "z-y"]
         types = [("U", 20), ("U", 35), float, float, float, float, float]
-        data = np.core.records.fromrecords(
+        data = np._core.records.fromrecords(
             [
                 (
                     "O",

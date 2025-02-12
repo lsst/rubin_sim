@@ -338,17 +338,12 @@ class TestStackerClasses(unittest.TestCase):
         observation_end_mjds = start_mjd + np.cumsum(visit_times) / (24 * 60 * 60)
         mjds = observation_end_mjds - visit_times / (24 * 60 * 60)
         mjds[num_first_night_visits:] += 1
-
-        data = np.core.records.fromarrays(
-            (mjds, exposure_times, visit_times),
-            dtype=np.dtype(
-                [
-                    ("observationStartMJD", mjds.dtype),
-                    ("visitExposureTime", exposure_times.dtype),
-                    ("visitTime", visit_times.dtype),
-                ]
-            ),
-        )
+        names = ["observationStartMJD", "visitExposureTime", "visitTime"]
+        types = [float] * 3
+        data = np.zeros(mjds.size, dtype=list(zip(names, types)))
+        data["observationStartMJD"] = mjds
+        data["visitExposureTime"] = exposure_times
+        data["visitTime"] = visit_times
 
         overhead_stacker = stackers.OverheadStacker()
         new_data = overhead_stacker.run(data)

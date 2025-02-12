@@ -84,17 +84,15 @@ class TestPlotters(unittest.TestCase):
         field_dec = np.arange(-60, -60 + num_points, dtype=float)
         rot_sky_pos = np.arange(num_points, dtype=float) % 360
 
+        names = ["fieldRA", "fieldDec", "rotSkyPos"]
+        dtypes = [float] * 3
+        data = np.empty(field_ra.size, dtype=list(zip(names, dtypes)))
+        data["fieldRA"] = field_ra
+        data["fieldDec"] = field_dec
+        data["rotSkyPos"] = rot_sky_pos
+
         unmasked_data = np.empty(dtype=object, shape=(1,))
-        unmasked_data[0] = np.core.records.fromarrays(
-            (field_ra, field_dec, rot_sky_pos),
-            dtype=np.dtype(
-                [
-                    ("fieldRA", field_ra.dtype),
-                    ("fieldDec", field_dec.dtype),
-                    ("rotSkyPos", rot_sky_pos.dtype),
-                ]
-            ),
-        )
+        unmasked_data[0] = data
         masked_data = np.ma.MaskedArray(data=unmasked_data, mask=False, fill_value=-666, dtype=object)
 
         bundle = maf.create_empty_metric_bundle()

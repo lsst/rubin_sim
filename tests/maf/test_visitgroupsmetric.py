@@ -8,15 +8,17 @@ import rubin_sim.maf.metrics as metrics
 class TestVisitGroupsMetric(unittest.TestCase):
     def test_pair_fraction_metric(self):
         metric = metrics.PairFractionMetric(mjd_col="mjd")
-        times = np.arange(0, 200, 30) / 60.0 / 24.0
-        data = np.core.records.fromarrays([times], names="mjd")
+        mjds = np.arange(0, 200, 30) / 60.0 / 24.0
+        data = np.zeros(mjds.size, dtype=[("mjd", float)])
+        data["mjd"] = mjds
         # These should all have pairs
         result = metric.run(data)
         self.assertEqual(result, 1.0)
 
         # These should have none
-        times = np.arange(0, 400, 100) / 60.0 / 24.0
-        data = np.core.records.fromarrays([times], names="mjd")
+        mjds = np.arange(0, 400, 100) / 60.0 / 24.0
+        data = np.zeros(mjds.size, dtype=[("mjd", float)])
+        data["mjd"] = mjds
         result = metric.run(data)
         self.assertEqual(result, 0.0)
 
@@ -25,7 +27,8 @@ class TestVisitGroupsMetric(unittest.TestCase):
         t2 = np.arange(0, 400, 100) / 60.0 / 24.0 + 1000
 
         times = np.append(t1, t2)
-        data = np.core.records.fromarrays([times], names="mjd")
+        data = np.zeros(times.size, dtype=[("mjd", float)])
+        data["mjd"] = times
         result = metric.run(data)
         expected = np.size(t1) / float(np.size(t1) + np.size(t2))
         self.assertEqual(result, expected)
@@ -117,7 +120,9 @@ class TestVisitGroupsMetric(unittest.TestCase):
             "float",
         )
         expmjd = expmjd + night
-        testdata = np.core.records.fromarrays([expmjd, night], names=["expmjd", "night"])
+        testdata = np.zeros(night.size, dtype=[("expmjd", float), ("night", int)])
+        testdata["expmjd"] = expmjd
+        testdata["night"] = night
         # Set up metric.
         testmetric = metrics.VisitGroupsMetric(
             time_col="expmjd",
@@ -163,7 +168,10 @@ class TestVisitGroupsMetric(unittest.TestCase):
                 night.append(n)
         expmjd = np.array(expmjd)
         night = np.array(night)
-        testdata = np.core.records.fromarrays([expmjd, night], names=["expmjd", "night"])
+        testdata = np.zeros(night.size, dtype=[("expmjd", float), ("night", int)])
+        testdata["expmjd"] = expmjd
+        testdata["night"] = night
+
         metricval = testmetric.run(testdata)
         self.assertEqual(testmetric.reduce_n_lunations(metricval), 4)
         self.assertEqual(testmetric.reduce_max_seq_lunations(metricval), 3)
