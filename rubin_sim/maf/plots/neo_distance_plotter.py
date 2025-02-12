@@ -4,8 +4,8 @@ import copy
 
 import matplotlib.pyplot as plt
 import numpy as np
-from matplotlib.patches import Ellipse
 from matplotlib import colormaps
+from matplotlib.patches import Ellipse
 
 from .plot_handler import BasePlotter
 

@@ -1,5 +1,4 @@
-"""Sets of slew metrics.
-"""
+"""Sets of slew metrics."""
 
 __all__ = ("slewBasics",)
 

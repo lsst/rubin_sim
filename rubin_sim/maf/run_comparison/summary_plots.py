@@ -1,5 +1,4 @@
-"""Summary metric plotting functions.
-"""
+"""Summary metric plotting functions."""
 
 __all__ = (
     "normalize_metric_summaries",
