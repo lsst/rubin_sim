@@ -1016,10 +1016,6 @@ class LambertSkyMap(BasePlotter):
         ax.set_xlim([-max_val, max_val])
         ax.set_ylim([-max_val, max_val])
 
-        # Try to fix the ugly pdf contour problem
-        for c in tcf.collections:
-            c.set_edgecolor("face")
-
         cb = plt.colorbar(tcf, format=plot_dict["cbar_format"])
         cb.set_label(plot_dict["xlabel"])
         if plot_dict["labelsize"] is not None:
