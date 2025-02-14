@@ -1,3 +1,7 @@
+from . import batches as batches
+from . import db as db
+from . import metricBundles as mmB
+
 __all__ = ("scimaf_dir",)
 
 import argparse
@@ -11,10 +15,6 @@ import matplotlib
 import pandas as pd
 
 matplotlib.use("Agg")
-
-from . import batches as batches
-from . import db as db
-from . import metricBundles as mmB
 
 
 def scimaf_dir():
