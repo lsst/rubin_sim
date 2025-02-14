@@ -558,7 +558,7 @@ class SNNSNMetric(BaseMetric):
         `pd.DataFrame` with season_length, z, T0_min and T0_max cols
 
         """
-        ## IS THIS CALLED FROM ANYWHERE?
+        # IS THIS CALLED FROM ANYWHERE?
         daymin = grp["MJD_min"].values
         daymax = grp["MJD_max"].values
         dur_z = pd.DataFrame(self.zrange, columns=["z"])

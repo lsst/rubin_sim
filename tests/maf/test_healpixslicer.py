@@ -1,14 +1,14 @@
-import matplotlib
-
-matplotlib.use("Agg")
 import unittest
 
 import healpy as hp
+import matplotlib
 import numpy as np
 import numpy.lib.recfunctions as rfn
 import numpy.ma as ma
 
 from rubin_sim.maf.slicers import HealpixSlicer
+
+matplotlib.use("Agg")
 
 
 def make_data_values(
