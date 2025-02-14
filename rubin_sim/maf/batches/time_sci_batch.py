@@ -1,5 +1,4 @@
-"""Sets of metrics to look at impact of cadence on science
-"""
+"""Sets of metrics to look at impact of cadence on science"""
 
 __all__ = ("phaseGap",)
 

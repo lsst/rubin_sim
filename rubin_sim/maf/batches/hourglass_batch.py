@@ -1,5 +1,4 @@
-"""Run the hourglass metric.
-"""
+"""Run the hourglass metric."""
 
 __all__ = ("hourglassPlots",)
 
