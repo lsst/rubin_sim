@@ -550,7 +550,7 @@ def science_radar_batch(
     subgroupCount = 1
 
     displayDict["subgroup"] = f"{subgroupCount}: Static Science"
-    ## Static Science
+    # Static Science
     # Calculate the static science metrics - effective survey area,
     # mean/median coadded depth, stdev of coadded depth and
     # the 3x2ptFoM emulator.
@@ -602,7 +602,7 @@ def science_radar_batch(
         displayDict["order"] += 1
         bundleList.append(bundle)
 
-    ## LSS Science
+    # LSS Science
     # The only metric we have from LSS is the NGals metric -
     # which is similar to the GalaxyCountsExtended
     # metric, but evaluated only on the depth/dust cuts footprint.
@@ -645,7 +645,7 @@ def science_radar_batch(
     )
     bundleList.append(bundle)
 
-    ## WL metrics
+    # WL metrics
     # Calculates the number of visits per pointing,
     # after removing parts of the footprint due to dust/depth.
     # Count visits in gri bands.
@@ -1815,7 +1815,7 @@ def science_radar_batch(
         )
     )
 
-    ## Local Volume Dwarf Satellites
+    # Local Volume Dwarf Satellites
     displayDict["group"] = "Local Volume"
     displayDict["subgroup"] = "LV dwarf satellites"
     displayDict["order"] = 0

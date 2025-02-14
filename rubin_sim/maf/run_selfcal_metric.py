@@ -1,3 +1,10 @@
+from .db import ResultsDb
+from .maf_contrib import PhotometricSelfCalUniformityMetric
+from .metric_bundles import MetricBundle, MetricBundleGroup
+from .metrics import IdentityMetric
+from .plots import HealpixHistogram, HealpixSkyMap, PlotHandler
+from .slicers import HealpixSlicer, UniSlicer
+
 __all__ = ("run_selfcal_metric",)
 
 import argparse
@@ -9,13 +16,6 @@ import matplotlib
 import numpy as np
 
 matplotlib.use("Agg")
-
-from .db import ResultsDb
-from .maf_contrib import PhotometricSelfCalUniformityMetric
-from .metric_bundles import MetricBundle, MetricBundleGroup
-from .metrics import IdentityMetric
-from .plots import HealpixHistogram, HealpixSkyMap, PlotHandler
-from .slicers import HealpixSlicer, UniSlicer
 
 
 def run_selfcal_metric():

@@ -298,7 +298,7 @@ class Constellation:
         self.azimuth_rad = np.array(self.azimuth_rad)
         self.illum = np.array(self.illum)
         # Keep track of the ones that are up and illuminated
-        self.visible = np.where((self.altitudes_rad >= self.alt_limit_rad) & (self.illum == True))[0]
+        self.visible = np.where((self.altitudes_rad >= self.alt_limit_rad) & self.illum)[0]
 
     def paths_array(self, mjds):
         """Calculate and return the RA/Dec/Alt and illumination status
@@ -409,7 +409,7 @@ class Constellation:
         # np.where confuses me when used on a 2d array.
         above_illum_indx = np.where(
             ((sat_alt_1 > self.alt_limit_rad) | (sat_alt_2 > self.alt_limit_rad))
-            & ((sat_illum_1 == True) | (sat_illum_2 == True))
+            & (sat_illum_1 | sat_illum_2)
         )
 
         # point_to_line_distance can take arrays,

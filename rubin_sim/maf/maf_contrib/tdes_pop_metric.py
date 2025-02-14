@@ -49,7 +49,7 @@ class TdeLc:
         filtername : str
             The filter. one of ugrizy
         lc_index : int (0)
-            Which file to use.
+            Which file to use.
         """
 
         result = np.interp(

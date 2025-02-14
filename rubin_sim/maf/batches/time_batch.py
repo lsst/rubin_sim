@@ -1,5 +1,4 @@
-"""Sets of metrics to look at time between visits/pairs, etc.
-"""
+"""Sets of metrics to look at time between visits/pairs, etc."""
 
 __all__ = ("intraNight", "interNight", "timeGaps", "seasons")
 

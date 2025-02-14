@@ -1,3 +1,8 @@
+from . import batches as batches
+from .db import ResultsDb
+from .metric_bundles import MetricBundleGroup
+from .slicers import HealpixSlicer, make_wfd_subset_slicer
+
 __all__ = ("metadata_dir",)
 
 import argparse
@@ -8,11 +13,6 @@ import shutil
 import matplotlib
 
 matplotlib.use("Agg")
-
-from . import batches as batches
-from .db import ResultsDb
-from .metric_bundles import MetricBundleGroup
-from .slicers import HealpixSlicer, make_wfd_subset_slicer
 
 
 def metadata_dir():

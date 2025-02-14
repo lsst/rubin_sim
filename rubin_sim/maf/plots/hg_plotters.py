@@ -1,5 +1,4 @@
-"""Second generation hourglass plotting classes.
-"""
+"""Second generation hourglass plotting classes."""
 
 # pylint: disable=too-many-arguments
 # pylint: disable=super-init-not-called

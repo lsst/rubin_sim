@@ -1,8 +1,3 @@
-__all__ = ("glance_dir",)
-
-import matplotlib
-
-matplotlib.use("Agg")
 import argparse
 import glob
 import os
@@ -11,6 +6,12 @@ import shutil
 import rubin_sim.maf.batches as batches
 import rubin_sim.maf.db as db
 import rubin_sim.maf.metric_bundles as mb
+
+__all__ = ("glance_dir",)
+
+import matplotlib
+
+matplotlib.use("Agg")
 
 
 def glance_dir():
