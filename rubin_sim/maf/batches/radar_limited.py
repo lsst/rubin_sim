@@ -511,7 +511,7 @@ def radar_limited(
     subgroupCount = 1
 
     displayDict["subgroup"] = f"{subgroupCount}: Static Science"
-    ## Static Science
+    # Static Science
     # Calculate the static science metrics - effective survey area,
     # mean/median coadded depth, stdev of
     # coadded depth and the 3x2ptFoM emulator.
@@ -565,7 +565,7 @@ def radar_limited(
         displayDict["order"] += 1
         bundleList.append(bundle)
 
-    ## LSS Science
+    # LSS Science
     # The only metric we have from LSS is the NGals metric -
     # which is similar to the GalaxyCountsExtended
     # metric, but evaluated only on the depth/dust cuts footprint.
@@ -574,7 +574,7 @@ def radar_limited(
     displayDict["order"] = 0
     plotDict = {"n_ticks": 5}
 
-    ## WL metrics
+    # WL metrics
     # Calculates the number of visits per pointing, after removing
     # parts of the footprint due to dust/depth
     # Count visits in gri bands.

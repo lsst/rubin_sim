@@ -1,14 +1,13 @@
-import matplotlib
-
-matplotlib.use("Agg")
-
 import unittest
 
+import matplotlib
 import numpy as np
 
 import rubin_sim.maf.metric_bundles as metricBundle
 import rubin_sim.maf.metrics as metrics
 import rubin_sim.maf.slicers as slicers
+
+matplotlib.use("Agg")
 
 
 class Test2D(unittest.TestCase):

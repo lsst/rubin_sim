@@ -9,7 +9,7 @@ from rubin_scheduler.utils import angular_separation
 from rubin_sim.data import get_data_dir
 from rubin_sim.phot_utils import Bandpass, Sed
 
-## Tools for calling and reading things from the ESO sky model.
+# Tools for calling and reading things from the ESO sky model.
 # Installing 'calcskymodel' is a major headache,
 # let's hope we don't have to do this again anytime soon
 

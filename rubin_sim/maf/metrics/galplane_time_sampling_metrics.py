@@ -183,7 +183,7 @@ class GalPlaneSeasonGapsTimescaleMetric(BaseMetric):
             self.tau_var = tau_var
         else:
             self.tau_var = TAU_OBS * 5
-        ### NOTE: I would recommend dropping tau_var 10 and 25 from this
+        # NOTE: I would recommend dropping tau_var 10 and 25 from this
         # analysis unless the metric is changed
         # these intervals are so short they will *always* be dropped
         # during the season gap
