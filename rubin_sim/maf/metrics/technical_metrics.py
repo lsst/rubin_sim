@@ -25,7 +25,7 @@ class NChangesMetric(BaseMetric):
     def run(self, data_slice, slice_point=None):
         idxs = np.argsort(data_slice[self.order_by])
         diff = data_slice[self.col][idxs][1:] != data_slice[self.col][idxs][:-1]
-        return np.size(np.where(diff == True)[0])
+        return np.size(np.where(diff)[0])
 
 
 class MinTimeBetweenStatesMetric(BaseMetric):
@@ -60,7 +60,7 @@ class MinTimeBetweenStatesMetric(BaseMetric):
         # Sort on time, to be sure we've got changes in the right order.
         idxs = np.argsort(data_slice[self.time_col])
         changes = data_slice[self.change_col][idxs][1:] != data_slice[self.change_col][idxs][:-1]
-        condition = np.where(changes == True)[0]
+        condition = np.where(changes)[0]
         changetimes = data_slice[self.time_col][idxs][1:][condition]
         prevchangetime = np.concatenate(
             (
@@ -115,7 +115,7 @@ class NStateChangesFasterThanMetric(BaseMetric):
         # Sort on time, to be sure we've got changes in the right order.
         idxs = np.argsort(data_slice[self.time_col])
         changes = data_slice[self.change_col][idxs][1:] != data_slice[self.change_col][idxs][:-1]
-        condition = np.where(changes == True)[0]
+        condition = np.where(changes)[0]
         changetimes = data_slice[self.time_col][idxs][1:][condition]
         prevchangetime = np.concatenate(
             (
@@ -172,7 +172,7 @@ class MaxStateChangesWithinMetric(BaseMetric):
         # Sort on time, to be sure we've got changes in the right order.
         idxs = np.argsort(data_slice[self.time_col])
         changes = data_slice[self.change_col][idxs][:-1] != data_slice[self.change_col][idxs][1:]
-        condition = np.where(changes == True)[0]
+        condition = np.where(changes)[0]
         changetimes = data_slice[self.time_col][idxs][1:][condition]
         # If there are 0 filter changes ...
         if changetimes.size == 0:

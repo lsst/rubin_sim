@@ -542,7 +542,7 @@ class MafRunResults:
             #  that do NOT match original _*_ pattern.
             pattern = "_[ugrizy]_"
             nonmatches = np.array([bool(re.search(pattern, x)) for x in sky_plots["plot_file"]])
-            nonmatch_sky_plots = sky_plots[nonmatches == False]
+            nonmatch_sky_plots = sky_plots[~nonmatches]
             if len(nonmatch_sky_plots) > 0:
                 for sky_plot in nonmatch_sky_plots:
                     ordered_sky_plots.append(self.plot_dict(np.array([sky_plot])))
