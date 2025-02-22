@@ -119,7 +119,7 @@ def create_sample_visit_db(dir_name):
             88282: "g",
             82396: "r",
         },
-        "note": {
+        "scheduler_note": {
             75831: "blob, zy, b",
             88243: "blob, ug, b",
             84877: "blob, iz, b",

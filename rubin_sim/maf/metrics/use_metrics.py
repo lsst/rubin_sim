@@ -48,7 +48,7 @@ class UseMetric(BaseMetric):  # pylint: disable=too-few-public-methods
                 if band in note_elems[1]:
                     use_name = "wide with u, g, or r"
 
-        assert use_name is not None, f"Unrecognized note: {note}"
+        assert use_name is not None, f"Unrecognized scheduler_note: {note}"
         return use_name
 
 

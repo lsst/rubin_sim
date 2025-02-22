@@ -62,7 +62,7 @@ class MetricBundle:
         Setting this provides an easy way to specify different
         configurations of a metric, a slicer,
         or just to rewrite your constraint into friendlier terms.
-        (i.e. a constraint like 'note not like "%DD%"' can become
+        (i.e. a constraint like 'scheduler_note not like "%DD%"' can become
         "non-DD" in the file name and plot labels
         by specifying info_label).
     plot_dict : `dict` of plotting parameters, opt

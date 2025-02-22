@@ -23,7 +23,7 @@ SIMDATA = {
         60000.203,
     ],
     "visitTime": [86, 86, 86, 86, 86, 86],
-    "note": [
+    "scheduler_note": [
         "greedy",
         "blob, yy, a",
         "blob, yy, a",
@@ -71,7 +71,9 @@ class TestBlockIntervalSlicer(unittest.TestCase):
         visits = pd.DataFrame(SIMDATA)
         for sid in slice_points["sid"]:
             these_visits = visits.iloc[sim_idxs[sid]]
-            self.assertTrue(np.all(these_visits["note"] == these_visits["note"].values[0]))
+            self.assertTrue(
+                np.all(these_visits["scheduler_note"] == these_visits["scheduler_note"].values[0])
+                )
 
 
 class TestVisitIntervalSlicer(unittest.TestCase):
