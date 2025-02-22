@@ -479,7 +479,7 @@ def radar_limited(
     for filtername in "ugrizy":
         displayDict["caption"] = "Surface brightness limit in %s, no extinction applied." % filtername
         displayDict["order"] = filterorders[f]
-        sql = 'filter="%s"' % filtername
+        sql = "filter='%s'" % filtername
         metric = metrics.SurfaceBrightLimitMetric()
         bundle = mb.MetricBundle(
             metric,
@@ -529,7 +529,7 @@ def radar_limited(
     for yr_cut in yrs:
         ptsrc_lim_mag_i_band = mag_cuts[yr_cut]
         sqlconstraint = "night <= %s" % (yr_cut * 365.25 + 0.5)
-        sqlconstraint += ' and scheduler_note not like "DD%"'
+        sqlconstraint += " and scheduler_note not like 'DD%'"
         info_label = f"{bandpass} band non-DD year {yr_cut}"
         ThreebyTwoSummary_simple = metrics.StaticProbesFoMEmulatorMetricSimple(
             nside=nside, year=yr_cut, metric_name="3x2ptFoM_simple"
@@ -581,7 +581,7 @@ def radar_limited(
     subgroupCount += 1
     displayDict["subgroup"] = f"{subgroupCount}: WL"
     displayDict["order"] = 0
-    sqlconstraint = 'scheduler_note not like "DD%" and (filter="g" or filter="r" or filter="i")'
+    sqlconstraint = "scheduler_note not like 'DD%' and (filter='g' or filter='r' or filter='i')"
     info_label = "gri band non-DD"
     minExpTime = 15
     m = metrics.WeakLensingNvisits(
@@ -612,8 +612,8 @@ def radar_limited(
     # Do the weak lensing per year
     for year in [10]:
         sqlconstraint = (
-            'scheduler_note not like "DD%"'
-            + ' and (filter="g" or filter="r" or filter="i") and night < %i' % (year * 365.25)
+            "scheduler_note not like 'DD%'"
+            + " and (filter='g' or filter='r' or filter='i') and night < %i" % (year * 365.25)
         )
         m = metrics.WeakLensingNvisits(
             lsst_filter=bandpass,
@@ -648,8 +648,8 @@ def radar_limited(
         bundleList.append(bundle)
 
         sqlconstraint = (
-            'scheduler_note not like "DD%"'
-            + ' and (filter="r" or filter="i" or filter="z") and night < %i' % (year * 365.25)
+            "scheduler_note not like 'DD%'"
+            + " and (filter='r' or filter='i' or filter='z') and night < %i" % (year * 365.25)
         )
         m = metrics.WeakLensingNvisits(
             lsst_filter=bandpass,

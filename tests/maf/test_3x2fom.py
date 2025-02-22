@@ -41,7 +41,7 @@ class Test3x2(unittest.TestCase):
             depth_cut=ptsrc_lim_mag_i_band,
         )
         s = maf.slicers.HealpixSlicer(nside=nside, use_cache=False)
-        sql = 'scheduler_note not like "DD%" and night < 365'
+        sql = "scheduler_note not like 'DD%' and night < 365"
         threeby_two_summary_simple = maf.metrics.StaticProbesFoMEmulatorMetricSimple(
             nside=nside, metric_name="3x2ptFoM_simple"
         )

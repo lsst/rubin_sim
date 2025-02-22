@@ -32,7 +32,7 @@ class TestMetricBundle(unittest.TestCase):
         nside = 8
         slicer = slicers.HealpixSlicer(nside=nside)
         metric = metrics.MeanMetric(col="airmass")
-        sql = 'filter="r"'
+        sql = "filter='r'"
         stacker1 = stackers.HourAngleStacker()
         stacker2 = stackers.GalacticStacker()
         map = maps.GalCoordsMap()

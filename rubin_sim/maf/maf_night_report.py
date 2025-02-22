@@ -36,7 +36,7 @@ def make_bundle_list(
     azCol = "azimuth"
     # Construct sql queries for each filter and all filters
     filters = ["u", "g", "r", "i", "z", "y"]
-    sqls = ['night=%i and filter="%s"' % (night, f) for f in filters]
+    sqls = ["night=%i and filter='%s'" % (night, f) for f in filters]
     sqls.append("night=%i" % night)
 
     bundleList = []
@@ -107,12 +107,12 @@ def make_bundle_list(
 
     # Make plots of the solar system pairs that were taken in the night
     metric = metrics.PairMetric(mjd_col=mjdCol)
-    sql = 'night=%i and (filter ="r" or filter="g" or filter="i")' % night
+    sql = "night=%i and (filter ='r' or filter='g' or filter='i')" % night
     bundle = metricBundles.MetricBundle(metric, reg_slicer, sql)
     bundleList.append(bundle)
 
     metric = metrics.PairMetric(mjd_col=mjdCol, metric_name="z Pairs")
-    sql = 'night=%i and filter="z"' % night
+    sql = "night=%i and filter='z'" % night
     bundle = metricBundles.MetricBundle(metric, reg_slicer, sql)
     bundleList.append(bundle)
 

@@ -40,7 +40,7 @@ def all_sky_db(date_id, sql_q=None, dtypes=None, db_address=None, filt="R"):
     if sql_q is None:
         sql_q = (
             "select stars.ra, stars.dec,  obs.alt, obs.starMag, obs.sky, obs.filter from obs, "
-            'stars where obs.starID = stars.ID and obs.filter = "%s" and obs.dateID = %i;' % (filt, date_id)
+            "stars where obs.starID = stars.ID and obs.filter = '%s' and obs.dateID = %i;" % (filt, date_id)
         )
     if dtypes is None:
         names = ["ra", "dec", "alt", "starMag", "sky", "filter"]

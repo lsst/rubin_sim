@@ -76,7 +76,7 @@ def glanceBatch(
     else:
         raise ValueError("Camera must be LSST or Comcam")
 
-    sql_per_filt = ['%s %s="%s"' % (sqlC, colmap["filter"], filtername) for filtername in filternames]
+    sql_per_filt = ["%s %s='%s'" % (sqlC, colmap["filter"], filtername) for filtername in filternames]
     sql_per_and_all_filters = [sql_constraint] + sql_per_filt
 
     standardStats = standard_summary()
@@ -349,7 +349,7 @@ def glanceBatch(
     displayDict["caption"] = "Fraction of observations that are in pairs"
     displayDict["subgroup"] = "Solar System"
 
-    sql = '%s (filter="g" or filter="r" or filter="i")' % sqlC
+    sql = "%s (filter='g' or filter='r' or filter='i')" % sqlC
     pairSlicer = slicers.HealpixSlicer(
         nside=pairnside,
         lat_col=colmap["dec"],
@@ -402,7 +402,7 @@ def glanceBatch(
     displayDict["subgroup"] = ""
     for ddf in ddf_surveys:
         label = ddf.replace("DD:", "")
-        sql = 'scheduler_note like "%s%%"' % ("DD:" + label)
+        sql = f"scheduler_note like 'DD:{label}%'"
         slicer = slicers.UniSlicer()
         metric = metrics.CumulativeMetric()
         metricb = metric_bundles.MetricBundle(

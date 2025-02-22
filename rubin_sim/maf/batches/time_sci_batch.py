@@ -60,9 +60,9 @@ def phaseGap(
     # largest phase gap for periods
     periods = [0.1, 1.0, 10.0, 100.0]
     sqls = [
-        'filter = "u"',
-        'filter="r"',
-        'filter="g" or filter="r" or filter="i" or filter="z"',
+        "filter='u'",
+        "filter='r'",
+        "filter='g' or filter='r' or filter='i' or filter='z'",
         "",
     ]
     filter_names = ["u", "r", "griz", "all"]
