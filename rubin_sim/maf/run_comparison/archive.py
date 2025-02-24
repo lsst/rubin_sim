@@ -1,5 +1,4 @@
-"""Tools for use of project-generated opsim simulations and analysis.
-"""
+"""Tools for use of project-generated opsim simulations and analysis."""
 
 __all__ = (
     "get_metric_subsets",

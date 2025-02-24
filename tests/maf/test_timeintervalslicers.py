@@ -73,7 +73,7 @@ class TestBlockIntervalSlicer(unittest.TestCase):
             these_visits = visits.iloc[sim_idxs[sid]]
             self.assertTrue(
                 np.all(these_visits["scheduler_note"] == these_visits["scheduler_note"].values[0])
-                )
+            )
 
 
 class TestVisitIntervalSlicer(unittest.TestCase):

@@ -1,5 +1,4 @@
-"""Some basic physical quantity metrics.
-"""
+"""Some basic physical quantity metrics."""
 
 __all__ = (
     "metadataBasics",
