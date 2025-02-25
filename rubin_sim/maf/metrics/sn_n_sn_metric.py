@@ -39,7 +39,7 @@ class SNNSNMetric(BaseMetric):
     seeing_col : `str`, opt
         seeing column name (default: seeingFwhmEff)
     note_col : `str`, opt
-        note column name (default: note)
+        note column name (default: scheduler_note)
     season : `list`, opt
         list of seasons to process (float)(default: -1 = all seasons)
     coadd : `bool`, opt

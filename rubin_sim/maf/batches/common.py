@@ -73,7 +73,7 @@ def filter_list(all=True, extra_sql=None, extra_info_label=None):
             sqls[f] = ""
             info_labels[f] = md + "all bands"
         else:
-            sqls[f] = 'filter = "%s"' % f
+            sqls[f] = "filter = '%s'" % f
             info_labels[f] = md + "%s band" % f
     if extra_sql is not None and len(extra_sql) > 0:
         for s in sqls:

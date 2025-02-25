@@ -509,7 +509,7 @@ def science_radar_batch(
     for filtername in "ugrizy":
         displayDict["caption"] = "Surface brightness limit in %s, no extinction applied." % filtername
         displayDict["order"] = filterorders[f]
-        sql = 'filter="%s"' % filtername
+        sql = "filter='%s'" % filtername
         metric = metrics.SurfaceBrightLimitMetric()
         bundle = mb.MetricBundle(
             metric,
@@ -568,7 +568,7 @@ def science_radar_batch(
     for yr_cut in yrs:
         ptsrc_lim_mag_i_band = mag_cuts[yr_cut]
         sqlconstraint = "night <= %s" % (yr_cut * 365.25 + 0.5)
-        sqlconstraint += ' and scheduler_note not like "DD%"'
+        sqlconstraint += " and scheduler_note not like 'DD%'"
         info_label = f"{bandpass} band non-DD year {yr_cut}"
         ThreebyTwoSummary = maf.StaticProbesFoMEmulatorMetric(nside=nside, metric_name="3x2ptFoM")
 
@@ -612,7 +612,7 @@ def science_radar_batch(
     plotDict = {"n_ticks": 5}
     # Have to include all filters in query to check for filter coverage.
     # Galaxy numbers calculated using 'bandpass' images only though.
-    sqlconstraint = 'scheduler_note not like "DD%"'
+    sqlconstraint = "scheduler_note not like 'DD%'"
     info_label = f"{bandpass} band galaxies non-DD"
     metric = maf.DepthLimitedNumGalMetric(
         nside=nside,
@@ -652,7 +652,7 @@ def science_radar_batch(
     subgroupCount += 1
     displayDict["subgroup"] = f"{subgroupCount}: WL"
     displayDict["order"] = 0
-    sqlconstraint = 'scheduler_note not like "DD%" and (filter="g" or filter="r" or filter="i")'
+    sqlconstraint = "scheduler_note not like 'DD%' and (filter='g' or filter='r' or filter='i')"
     info_label = "gri band non-DD"
     minExpTime = 15
     m = metrics.WeakLensingNvisits(
@@ -684,8 +684,8 @@ def science_radar_batch(
     for year in np.arange(1, 10):
         displayDict["order"] = year
         sqlconstraint = (
-            'scheduler_note not like "DD%"'
-            + ' and (filter="g" or filter="r" or filter="i") and night < %i' % (year * 365.25)
+            "scheduler_note not like 'DD%'"
+            + " and (filter='g' or filter='r' or filter='i') and night < %i" % (year * 365.25)
         )
         m = metrics.WeakLensingNvisits(
             lsst_filter=bandpass,
@@ -720,8 +720,8 @@ def science_radar_batch(
         bundleList.append(bundle)
 
         sqlconstraint = (
-            'scheduler_note not like "DD%"'
-            + ' and (filter="r" or filter="i" or filter="z") and night < %i' % (year * 365.25)
+            "scheduler_note not like 'DD%'"
+            + " and (filter='r' or filter='i' or filter='z') and night < %i" % (year * 365.25)
         )
         m = metrics.WeakLensingNvisits(
             lsst_filter=bandpass,
@@ -779,8 +779,8 @@ def science_radar_batch(
     # Kuiper per year in gri and riz
     for year in np.arange(1, 10):
         sqlconstraint = (
-            'scheduler_note not like "DD%"'
-            + ' and (filter="g" or filter="r" or filter="i") and night < %i' % (year * 365.25)
+            "scheduler_note not like 'DD%'"
+            + " and (filter='g' or filter='r' or filter='i') and night < %i" % (year * 365.25)
         )
         metric1 = metrics.KuiperMetric("rotSkyPos", metric_name="Kuiper_rotSkyPos_gri_year%i" % year)
         metric2 = metrics.KuiperMetric("rotTelPos", metric_name="Kuiper_rotTelPos_gri_year%i" % year)
@@ -1827,7 +1827,7 @@ def science_radar_batch(
     i_starMap = maf.maps.StellarDensityMap(filtername="i")
     lv_slicer = maf.maf_contrib.generate_known_lv_dwarf_slicer()
     lv_metric = maf.maf_contrib.LVDwarfsMetric()
-    sqlconstraint = '(filter = "i" OR filter = "g")'
+    sqlconstraint = "(filter = 'i' OR filter = 'g')"
     info_label = "gi"
     cutoff = -6.4
     summary_metrics = [
@@ -1874,7 +1874,7 @@ def science_radar_batch(
         "star-galaxy separation), over the southern celestial pole,"
         "to a distance of 0.1 Mpc."
     )
-    sqlconstraint = '(filter = "i" OR filter = "g") and fieldDec < -60'
+    sqlconstraint = "(filter = 'i' OR filter = 'g') and fieldDec < -60"
     info_label = "gi SCP"
     lv_metric3 = maf.maf_contrib.LVDwarfsMetric(distlim=0.1 * u.Mpc)  # for a distance limit, healpix map
     summary_area = maf.metrics.AreaThresholdMetric(lower_threshold=0.0, metric_name="Area M_v>0.0")
@@ -1942,7 +1942,7 @@ def science_radar_batch(
 
     displayDict = {"group": "Scaling Numbers", "subgroup": ""}
     displayDict["subgroup"] = "N gals"
-    sql = 'filter="i"'
+    sql = "filter='i'"
     metric = metrics.NgalScaleMetric()
     # galaxy counting uses dustmap
     slicer = slicers.HealpixSlicer(nside=nside, use_cache=False)

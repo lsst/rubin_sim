@@ -179,7 +179,7 @@ class BlockIntervalSlicer(TimeIntervalSlicer):
         visits.sort_values("mjd", inplace=True)
         visits["end_mjd"] = visits.mjd + visits.duration / (60 * 60 * 24.0)
 
-        same_note = visits.note == visits.note.shift(-1)
+        same_note = visits.scheduler_note == visits.scheduler_note.shift(-1)
         adjacent_times = visits.end_mjd + self.gap_tolerance / 24.0 > visits.mjd.shift(-1)
         visits["sid"] = np.logical_not(np.logical_and(same_note, adjacent_times)).cumsum().shift()
         visits["sid"].fillna(0, inplace=True)

@@ -54,9 +54,9 @@ class TestOpsimUtils(unittest.TestCase):
     def test_get_sim_data(self):
         """Test that we can get simulation data"""
         database_file = os.path.join(get_data_dir(), "tests", TEST_DB)
-        dbcols = ["fieldRA", "fieldDec", "note"]
+        dbcols = ["fieldRA", "fieldDec", "scheduler_note"]
         sql = "night < 10"
-        full_sql = "SELECT fieldRA, fieldDec, note FROM observations where night < 10;"
+        full_sql = "SELECT fieldRA, fieldDec, scheduler_note FROM observations where night < 10;"
         # Check that we get data the usual way
         data = opsimUtils.get_sim_data(database_file, sql, dbcols)
         assert np.size(data) > 0

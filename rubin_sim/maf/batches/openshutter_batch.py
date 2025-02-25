@@ -1,5 +1,4 @@
-"""Evaluate the open shutter fraction.
-"""
+"""Evaluate the open shutter fraction."""
 
 __all__ = ("openshutterFractions",)
 

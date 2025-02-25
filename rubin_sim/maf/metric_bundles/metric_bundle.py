@@ -62,7 +62,7 @@ class MetricBundle:
         Setting this provides an easy way to specify different
         configurations of a metric, a slicer,
         or just to rewrite your constraint into friendlier terms.
-        (i.e. a constraint like 'note not like "%DD%"' can become
+        (i.e. a constraint like 'scheduler_note not like "%DD%"' can become
         "non-DD" in the file name and plot labels
         by specifying info_label).
     plot_dict : `dict` of plotting parameters, opt
@@ -90,7 +90,7 @@ class MetricBundle:
     Together these define a unique combination of an opsim benchmark,
     or "metric bundle".
     An example would be:
-    a CountMetric, a HealpixSlicer, and a constraint of 'filter="r"'.
+    a CountMetric, a HealpixSlicer, and a constraint of "filter='r'".
 
     After the metric is evaluated at each slice_point created by the
     slicer, the resulting metric values are saved in the MetricBundle.
@@ -243,7 +243,7 @@ class MetricBundle:
         """If no info_label is provided, process the constraint
         (by removing extra spaces, quotes, the word 'filter' and equal signs)
         to make a info_label version.
-        e.g. 'filter = "r"' becomes 'r'
+        e.g. "filter = 'r'" becomes 'r'
         """
         # Pass the deprecated version into info_label if info_label is not set
         if metadata is not None and info_label is None:
