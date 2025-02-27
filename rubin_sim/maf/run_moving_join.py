@@ -1,3 +1,5 @@
+from . import batches as batches
+
 __all__ = ("run_moving_join",)
 
 import argparse
@@ -8,8 +10,6 @@ import matplotlib
 import numpy as np
 
 matplotlib.use("Agg")
-
-from . import batches as batches
 
 
 def run_moving_join():
