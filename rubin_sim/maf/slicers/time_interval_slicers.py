@@ -182,7 +182,7 @@ class BlockIntervalSlicer(TimeIntervalSlicer):
         same_note = visits.scheduler_note == visits.scheduler_note.shift(-1)
         adjacent_times = visits.end_mjd + self.gap_tolerance / 24.0 > visits.mjd.shift(-1)
         visits["sid"] = np.logical_not(np.logical_and(same_note, adjacent_times)).cumsum().shift()
-        visits["sid"].fillna(0, inplace=True)
+        visits.fillna({"sid": 0}, inplace=True)
         visits["sid"] = visits["sid"].astype(int)
 
         blocks = visits.groupby("sid").agg(

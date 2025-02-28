@@ -223,7 +223,7 @@ class TotalPowerMetric(BaseMetric):
     def run(self, data_slice, slice_point=None):
         # Calculate the power spectrum.
         if self.remove_dipole:
-            cl = hp.anafast(hp.remove_dipole(data_slice[self.colname], verbose=False))
+            cl = hp.anafast(hp.remove_dipole(data_slice[self.colname]))
         else:
             cl = hp.anafast(data_slice[self.colname])
         ell = np.arange(np.size(cl))
