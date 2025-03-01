@@ -1005,6 +1005,7 @@ class LambertSkyMap(BasePlotter):
             cmap=plot_dict["cmap"],
             norm=norm,
         )
+        tcf.set_edgecolors("face")
 
         ax = draw_grat(ax)
 
