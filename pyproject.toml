@@ -81,7 +81,8 @@ version = { attr = "setuptools_scm.get_version" }
 where = [ "" ]
 
 [tool.setuptools_scm]
-version_file = "rubin_sim/version.py"
+version_file = "rubin_sim/_version.py"
+
 
 [tool.pytest.ini_options]
 addopts = "--ignore-glob=*/version.py --ignore-glob=*data_dir/*"
