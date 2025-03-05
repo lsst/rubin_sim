@@ -22,4 +22,4 @@ skyproj
 tornado
 jinja2
 tqdm
-rubin-scheduler
+rubin-scheduler >=3.0
