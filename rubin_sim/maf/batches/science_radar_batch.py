@@ -856,7 +856,7 @@ def science_radar_batch(
 
     # Calculate the number of expected QSOs, in each band
     for f in filterlist:
-        sql = filtersqls[f] + ' and scheduler_note not like "%DD%"'
+        sql = filtersqls[f] + " and scheduler_note not like '%DD%'"
         md = filterinfo_label[f] + " and non-DD"
         summaryMetrics = [metrics.SumMetric(metric_name="Total QSO")]
         zmin = 0.3
