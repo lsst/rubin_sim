@@ -632,10 +632,9 @@ class MetricBundle:
             self.summary_values = {}
         if self.summary_metrics is not None:
             # Build array of metric values, to use for  summary statistics.
-            rarr_std = np.array(
-                list(zip(self.metric_values.compressed())),
-                dtype=[("metricdata", self.metric_values.dtype)],
-            )
+            arr = self.metric_values.compressed()
+            rarr_std = np.empty(arr.shape, dtype=[("metricdata", arr.dtype)])
+            rarr_std["metricdata"] = arr
             for m in self.summary_metrics:
                 # The summary metric colname should already be set
                 # to 'metricdata', but in case it's not:
@@ -645,10 +644,9 @@ class MetricBundle:
                     # summary metric requests to use the mask value,
                     # as specified by itself,
                     # rather than skipping masked vals.
-                    rarr = np.array(
-                        list(zip(self.metric_values.filled(m.mask_val))),
-                        dtype=[("metricdata", self.metric_values.dtype)],
-                    )
+                    arr = self.metric_values.filled(m.mask_val)
+                    rarr = np.empty(arr.shape, dtype=[("metricdata", arr.dtype)])
+                    rarr["metricdata"] = arr
                 else:
                     rarr = rarr_std
                 if np.size(rarr) == 0:
