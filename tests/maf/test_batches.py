@@ -4,6 +4,8 @@ import tempfile
 import unittest
 
 import numpy as np
+from rubin_scheduler.scheduler.example import example_scheduler, run_sched
+from rubin_scheduler.utils import SURVEY_START_MJD
 from rubin_scheduler.utils.code_utilities import sims_clean_up
 
 import rubin_sim.maf.batches as batches
@@ -12,16 +14,31 @@ import rubin_sim.maf.metric_bundles as metric_bundles
 from rubin_sim.data import get_data_dir
 from rubin_sim.maf.slicers import MoObjSlicer
 
-TEST_DB = "example_v3.4_0yrs.db"
-
 
 class TestBatches(unittest.TestCase):
     @classmethod
     def tearDown_class(cls):
         sims_clean_up()
+        if os.path.isdir(cls.out_dir):
+            shutil.rmtree(cls.out_dir)
+        if os.path.exists(cls.example_file):
+            os.remove(cls.example_file)
 
-    def setUp(self):
-        self.out_dir = tempfile.mkdtemp(prefix="TMB")
+    @classmethod
+    def setUpClass(cls):
+        super(TestBatches, cls).setUpClass()
+        # Generate a fresh 10-day example database
+        cls.example_file = "short_example.db"
+        sched = example_scheduler()
+        _returned_stuff = run_sched(
+            sched, survey_length=10, filename=cls.example_file, mjd_start=SURVEY_START_MJD
+        )
+
+        cls.out_dir = tempfile.mkdtemp(prefix="TMB")
+
+    def setup(self):
+        self.out_dir = TestBatches.out_dir
+        self.example_file = TestBatches.example_file
 
     @unittest.skipUnless(
         os.path.isdir(os.path.join(get_data_dir(), "maf")),
@@ -126,15 +143,20 @@ class TestBatches(unittest.TestCase):
         "Skipping glance test because operating without full MAF test data",
     )
     def test_glance(self):
-        ack = batches.glanceBatch()
-        database = os.path.join(get_data_dir(), "tests", TEST_DB)
+        batch = batches.glanceBatch()
         results_db = db.ResultsDb(out_dir=self.out_dir)
-        bgroup = metric_bundles.MetricBundleGroup(ack, database, out_dir=self.out_dir, results_db=results_db)
+        bgroup = metric_bundles.MetricBundleGroup(
+            batch, self.example_file, out_dir=self.out_dir, results_db=results_db
+        )
         bgroup.run_all()
 
-    def tearDown(self):
-        if os.path.isdir(self.out_dir):
-            shutil.rmtree(self.out_dir)
+    def test_ddf(self):
+        batch = batches.ddfBatch()
+        results_db = db.ResultsDb(out_dir=self.out_dir)
+        bgroup = metric_bundles.MetricBundleGroup(
+            batch, self.example_file, out_dir=self.out_dir, results_db=results_db
+        )
+        bgroup.run_all()
 
 
 if __name__ == "__main__":
