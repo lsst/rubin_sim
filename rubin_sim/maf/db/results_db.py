@@ -20,7 +20,9 @@ from sqlalchemy.exc import DatabaseError
 from sqlalchemy.orm import backref, declarative_base, relationship, sessionmaker
 from sqlalchemy.sql import text
 
-import rubin_sim.version as rsVersion
+from rubin_sim import __version__
+
+rsVersion = __version__
 
 Base = declarative_base()
 
@@ -220,7 +222,7 @@ class ResultsDb:
 
         # record the version and date MAF was run with/on
         if needs_version:
-            vers = rsVersion.__version__
+            vers = rsVersion
             run_date = datetime.datetime.now().strftime("%Y-%m-%d")
             versioninfo = VersionRow(version=vers, run_date=run_date)
             self.session.add(versioninfo)

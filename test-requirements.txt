@@ -1,6 +1,6 @@
 pytest
 pytest-cov
-black>=24.0.0
+black>=25.0.0
 ruff
 isort
 
