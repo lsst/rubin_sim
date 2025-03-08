@@ -93,8 +93,7 @@ class FONv(BaseMetric):
             result["value"][1] = self.badval
             return result
         # Otherwise, calculate median and mean Nvis:
-        name = data_slice.dtype.names[0]
-        nvis_sorted = np.sort(data_slice[name])
+        nvis_sorted = np.sort(data_slice[self.colname])
         # Find the Asky's worth of healpixels with the largest # of visits.
         nvis__asky = nvis_sorted[-self.npix__asky :]
         result["value"][0] = np.median(nvis__asky)
@@ -143,8 +142,7 @@ class FOArea(BaseMetric):
         self.norm = norm
 
     def run(self, data_slice, slice_point=None):
-        name = data_slice.dtype.names[0]
-        nvis_sorted = np.sort(data_slice[name])
+        nvis_sorted = np.sort(data_slice[self.colname])
         # Identify the healpixels with more than Nvisits.
         nvis_min = nvis_sorted[np.where(nvis_sorted >= self.nvisit)]
         if len(nvis_min) == 0:
@@ -278,11 +276,12 @@ class StaticProbesFoMEmulatorMetricSimple(BaseMetric):
         """
         # Chop off any outliers
         good_pix = np.where(data_slice[self.col] > 0)[0]
+        if np.size(good_pix) == 0:
+            return self.badval
 
         # Calculate area and med depth from
         area = hp.nside2pixarea(self.nside, degrees=True) * np.size(good_pix)
         median_depth = np.median(data_slice[self.col][good_pix])
-
         # FoM is calculated at the following values
         if self.year == 1:
             areas = [7500, 13000, 16000]
@@ -325,6 +324,6 @@ class StaticProbesFoMEmulatorMetricSimple(BaseMetric):
         # Interpolate FoM to the actual values for this sim
         areas = [[i] * 3 for i in areas]
         depths = [depths] * 3
-        f = interpolate.interp2d(areas, depths, fom_arr, bounds_error=False)
+        f = interpolate.RectBivateateSpline(np.ravel(areas), np.ravel(depths), np.ravel(fom_arr))
         fom = f(area, median_depth)[0]
         return fom
