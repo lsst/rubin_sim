@@ -72,7 +72,10 @@ run_selfcal_metric = "rubin_sim.maf.run_selfcal_metric:run_selfcal_metric"
 make_fbs_tracking_db = "rubin_sim.maf.make_fbs_tracking_db:make_fbs_tracking_db"
 show_maf = "rubin_sim.maf.show_maf:show_maf"
 make_lsst_obs = "rubin_sim.moving_objects.make_lsst_obs:make_lsst_obs"
-
+archive_sim = "rubin_sim.sim_archive:make_sim_archive_cli"
+compile_sim_archive_metadata_resource = "rubin_sim.sim_archive.sim_archive:compile_sim_archive_metadata_cli"
+prenight_sim = "rubin_sim.sim_archive:prenight_sim_cli"
+scheduler_snapshot = "rubin_sim.sim_archive:make_scheduler_snapshot_cli"
 
 [tool.setuptools.dynamic]
 version = { attr = "setuptools_scm.get_version" }
