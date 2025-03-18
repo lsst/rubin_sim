@@ -21,7 +21,6 @@ User Guide
 
     Self Calibration <selfcal>
 
+    Simulation archive <archive>
+
     Skybrightness <skybrightness>
-
-
- 

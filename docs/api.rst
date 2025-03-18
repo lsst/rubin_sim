@@ -20,4 +20,6 @@ API
 
     Self Calibration <selfcal-api>
 
+    Sim archive <sim-archive-api>
+
     Skybrightness <skybrightness-api>
