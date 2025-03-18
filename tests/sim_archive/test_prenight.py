@@ -10,7 +10,7 @@ except ModuleNotFoundError:
     HAVE_RESOURCES = False
 
 if HAVE_RESOURCES:
-    from rubin_scheduler.sim_archive import prenight_sim_cli
+    from rubin_sim.sim_archive import prenight_sim_cli
 
 # We need rubin_sim to get the baseline sim
 # Tooling prefers checking that it exists using importlib rather

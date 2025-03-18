@@ -46,7 +46,7 @@ mkdir ${PACKAGE_DIR}
 
 # Get the scheduler version from the EFD and install it.
 RUBIN_SCHEDULER_TAG=v$(obs_version_at_time rubin_scheduler)
-# pip install --no-deps --target=${PACKAGE_DIR} git+https://github.com/lsst/rubin_scheduler.git@${RUBIN_SCHEDULER_TAG}
+pip install --no-deps --target=${PACKAGE_DIR} git+https://github.com/lsst/rubin_scheduler.git@${RUBIN_SCHEDULER_TAG}
 
 # Cannot get ts_fbs_utils from the EFD, so just guess the highest semantic version tag in the repo.
 TS_FBS_UTILS_TAG=$(curl -s https://api.github.com/repos/lsst-ts/ts_fbs_utils/tags | jq -r '.[].name' | egrep '^v[0-9]+.[0-9]+.[0-9]+$' | sort -V | tail -1)

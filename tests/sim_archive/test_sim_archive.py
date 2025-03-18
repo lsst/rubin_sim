@@ -14,7 +14,8 @@ from rubin_scheduler.utils import SURVEY_START_MJD
 HAVE_LSST_RESOURCES = importlib.util.find_spec("lsst") and importlib.util.find_spec("lsst.resources")
 if HAVE_LSST_RESOURCES:
     from lsst.resources import ResourcePath
-    from rubin_scheduler.sim_archive.sim_archive import (
+
+    from rubin_sim.sim_archive.sim_archive import (
         check_opsim_archive_resource,
         compile_sim_metadata,
         make_sim_archive_cli,

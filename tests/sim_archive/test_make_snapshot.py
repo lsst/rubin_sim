@@ -9,7 +9,7 @@ else:
     HAVE_TS = False
 
 if HAVE_TS:
-    from rubin_scheduler.sim_archive import get_scheduler_instance_from_repo
+    from rubin_sim.sim_archive import get_scheduler_instance_from_repo
 
 
 class TestMakeSnapshot(unittest.TestCase):

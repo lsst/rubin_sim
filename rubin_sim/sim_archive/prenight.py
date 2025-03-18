@@ -29,8 +29,9 @@ from rubin_scheduler.scheduler.example import example_scheduler
 from rubin_scheduler.scheduler.model_observatory import ModelObservatory
 from rubin_scheduler.scheduler.schedulers.core_scheduler import CoreScheduler
 from rubin_scheduler.scheduler.utils import SchemaConverter
-from rubin_scheduler.sim_archive.sim_archive import drive_sim
 from rubin_scheduler.site_models import Almanac
+
+from rubin_sim.sim_archive.sim_archive import drive_sim
 
 from .make_snapshot import add_make_scheduler_snapshot_args, get_scheduler, save_scheduler
 

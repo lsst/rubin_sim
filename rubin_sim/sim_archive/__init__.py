@@ -8,4 +8,4 @@ if HAVE_LSST_RESOURCES:
     from .prenight import *
     from .sim_archive import *
 else:
-    logging.error("rubin_scheduler.sim_archive requires lsst.resources.")
+    logging.error("rubin_sim.sim_archive requires lsst.resources.")
