@@ -24,7 +24,7 @@ class TestSummaryMetrics(unittest.TestCase):
         types = [int]
         data = np.zeros(npix, dtype=list(zip(names, types)))
         data["metricdata"] += 826
-        metric = metrics.FONv(col="ack", nside=nside, n_visit=825, asky=18000.0)
+        metric = metrics.FONv(nside=nside, n_visit=825, asky=18000.0)
         slice_point = {"sid": 0}
         result = metric.run(data, slice_point)
         # result is recarray with 'min' and 'median' number of visits
@@ -53,7 +53,7 @@ class TestSummaryMetrics(unittest.TestCase):
         types = [int]
         data = np.zeros(npix, dtype=list(zip(names, types)))
         data["metricdata"] += 826
-        metric = metrics.FOArea(col="ack", nside=nside, n_visit=825, asky=18000.0)
+        metric = metrics.FOArea(nside=nside, n_visit=825, asky=18000.0)
         slice_point = {"sid": 0}
         result = metric.run(data, slice_point)
         # fOArea returns the area with at least Nvisits.
