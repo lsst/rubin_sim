@@ -1,0 +1,73 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: maf
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: maf
+  name: maf-server
+  labels:
+    app: maf-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels: app maf-server
+  template:
+    metadata:
+      labels:
+        app: maf-server
+    spec:
+      containers:
+      - name: maf
+        image: "ghcr.io/....:tag"
+        imagePullPolicy: Always
+        resources:
+          limits:
+            cpu: 1
+            memory: "2Gi"
+          requests:
+            cpu: 500m
+            memory: "1Gi"
+        volumeMounts:
+        - mountPath: /sdf/data/rubin
+          name: sdf-data-rubin
+      volumes:
+      - name: sdf-data-rubin
+        persistentVolumeClaim:
+          claimName: sdf-data-rubin
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  namespace: maf
+  name: sdf-data-rubin
+spec:
+  storageClassName: sdf-data-rubin
+  accessModes:
+  - ReadOnlyMany
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: maf
+  name: usdf-maf
+  labels:
+    app: maf-server
+  annotations:
+    metallb.universe.tf/address-pool: sdf-services
+spec:
+  type: LoadBalancer
+  ports:
+  - name: http
+    port: 80
+    protocol: TCP
+    targetPort: 80
+  selector:
+    app: maf-server
