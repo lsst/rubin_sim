@@ -25,7 +25,6 @@ fi
 source /sdf/group/rubin/sw/w_latest/loadLSST.sh
 conda activate /sdf/data/rubin/shared/scheduler/envs/prenight
 
-conda activate prenight_devel
 set -o xtrace
 
 export AWS_PROFILE=prenight
@@ -55,8 +54,12 @@ pip install --no-deps --target=${PACKAGE_DIR} git+https://github.com/lsst-ts/ts_
 # Get the scheduler configuration script
 SCHEDULER_CONFIG_SCRIPT=$(scheduler_config_at_time latiss)
 
+# Get the path to prenight_sim as provided by the current environment,
+# so we do not accidentally run one from the adjusted PATH below.
+PRENIGHT_SIM=$(which prenight_sim)
+
 export PYTHONPATH=${PACKAGE_DIR}:${PYTHONPATH}
 export PATH=${PACKAGE_DIR}/bin:${PATH}
 printenv > env.out
-prenight_sim --scheduler auxtel.pickle.xz --opsim None --script ${SCHEDLURE_CONFIG_SCRIPT}
+${PRENIGHT_SIM} --scheduler auxtel.pickle.xz --opsim None --script ${SCHEDULER_CONFIG_SCRIPT}
 echo "******* END of run_prenight_sims.sh *********"
