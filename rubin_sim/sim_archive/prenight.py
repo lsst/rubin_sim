@@ -356,7 +356,7 @@ def prenight_sim_cli(cli_args: list = []) -> None:
     opsim_db = None if args.opsim in ("", "None") else args.opsim
 
     scheduler_file = args.scheduler
-    if args.repo is not None:
+    if args.repo is not None or args.script is not None:
         if os.path.exists(scheduler_file):
             raise ValueError(f"File {scheduler_file} already exists!")
 
