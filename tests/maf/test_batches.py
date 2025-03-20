@@ -36,10 +36,6 @@ class TestBatches(unittest.TestCase):
 
         cls.out_dir = tempfile.mkdtemp(prefix="TMB")
 
-    def setup(self):
-        self.out_dir = TestBatches.out_dir
-        self.example_file = TestBatches.example_file
-
     @unittest.skipUnless(
         os.path.isdir(os.path.join(get_data_dir(), "maf")),
         "Skip these batches unless MAF data present, required for setup",
@@ -146,7 +142,7 @@ class TestBatches(unittest.TestCase):
         batch = batches.glanceBatch()
         results_db = db.ResultsDb(out_dir=self.out_dir)
         bgroup = metric_bundles.MetricBundleGroup(
-            batch, self.example_file, out_dir=self.out_dir, results_db=results_db
+            batch, self.example_file, out_dir=self.out_dir, results_db=results_db, save_early=False
         )
         bgroup.run_all()
 
@@ -154,7 +150,7 @@ class TestBatches(unittest.TestCase):
         batch = batches.ddfBatch()
         results_db = db.ResultsDb(out_dir=self.out_dir)
         bgroup = metric_bundles.MetricBundleGroup(
-            batch, self.example_file, out_dir=self.out_dir, results_db=results_db
+            batch, self.example_file, out_dir=self.out_dir, results_db=results_db, save_early=False
         )
         bgroup.run_all()
 
