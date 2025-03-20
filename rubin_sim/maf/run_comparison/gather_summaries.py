@@ -9,7 +9,7 @@ import numpy as np
 import pandas as pd
 
 
-def dirname_to_runname(inpath, replaces=["_glance", "_sci", "_meta", "_ss", "_ddf"]):
+def dirname_to_runname(inpath, replaces=["_glance", "_sci", "_meta", "_ss", "_ddf", "_ttime"]):
     """Given a directory path, construct a plausible runname"""
     result = os.path.basename(os.path.normpath(inpath))
     for rstring in replaces:
