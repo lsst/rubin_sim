@@ -28,17 +28,15 @@ jobs:
         with:
           auto-update-conda: true
           python-version: ${{ matrix.python-version }}
-          miniforge-variant: Miniforge3
-          channels: conda-forge
-          use-mamba: true
-          channel-priority: strict
+          miniforge-version: latest
+          channels: conda-forge,defaults
           show-channel-urls: true
 
       - name: configure conda and install requirements
         shell: bash -l {0}
         run: |
-          mamba install --quiet --file=requirements.txt
-          mamba install --quiet --file=test-requirements.txt
+          conda install --yes --file=requirements.txt
+          conda install --yes --file=test-requirements.txt
 
       - name: install rubin_sim
         shell: bash -l {0}
@@ -99,7 +97,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: 3.11
+          python-version: "3.12"
           cache: "pip"
 
       - name: Install dependencies for build
