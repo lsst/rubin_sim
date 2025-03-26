@@ -34,6 +34,8 @@ from astropy.time import Time
 from rubin_scheduler.scheduler import sim_runner
 from rubin_scheduler.scheduler.utils import SchemaConverter
 
+from rubin_sim.maf.utils.opsim_utils import get_sim_data
+
 LOGGER = logging.getLogger(__name__)
 
 try:
@@ -931,3 +933,110 @@ def compile_sim_archive_metadata_cli(*args):
         compilation_resource = ResourcePath(compilation_uri)
 
     compilation_resource = compile_sim_metadata(archive_uri, compilation_resource, append=append)
+
+
+def fetch_prenight_visits(
+    day_obs: str | None = None,
+    tags: tuple[str] = ("ideal", "nominal"),
+    max_simulation_age: int = 2,
+    archive_uri: str = "s3://rubin:rubin-scheduler-prenight/opsim/",
+    compilation_uri: str = "s3://rubin:rubin-scheduler-prenight/opsim/compiled_metadata_cache.h5",
+    **kwargs,
+) -> pd.DataFrame:
+    """Fetches visit parameters from the latest archived pre-night simulation.
+
+    Parameters
+    ----------
+    day_obs : `str` or  `None`
+        The date of the evening for the night for which to get visits.
+        If `None`, then the current date will be used.
+    tags : `tuple[str]`
+        A tuple of tags to filter simulations by.
+        Defaults to ``('ideal', 'nominal')``.
+    max_simulation_age : `int`
+        The maximum age of simulations to consider, in days. Simulations older
+        than ``max_simulation_age`` will not be considered. Defaults to 2.
+    archive_uri : `str`
+        The URI of the archive from which to fetch the simulation.
+        Defaults to ``s3://rubin:rubin-scheduler-prenight/opsim/``.
+    compilation_uri : `str`
+        The URI of the compiled metadata HDF5 file for efficient querying.
+        Defaults to ``s3://rubin:rubin-scheduler-prenight/opsim/compiled_metadata_cache.h5``.
+
+    Returns
+    -------
+    visits : `pd.DataFrame`
+        A pandas DataFrame containing visit parameters.
+    """
+
+    if day_obs is None:
+        day_obs = Time(np.floor(Time.now().mjd - 0.5), format="mjd", scale="utc").iso[0:10]
+
+    sim_metadata = read_archived_sim_metadata(
+        archive_uri, num_nights=max_simulation_age, compilation_resource=compilation_uri
+    )
+
+    best_sim_uri = None
+    best_sim_exec_date = None
+    best_sim_date_index = None
+    for uri, sim in sim_metadata.items():
+        sim_exec_date = uri.split("/")[-3]
+        sim_date_index = int(uri.split("/")[-2])
+        if sim["simulated_dates"]["first"] > day_obs:
+            continue
+        if sim["simulated_dates"]["last"] < day_obs:
+            continue
+        if not set(tags).issubset(sim["tags"]):
+            continue
+        if best_sim_exec_date is not None and sim_exec_date < best_sim_exec_date:
+            continue
+        if best_sim_date_index is not None and sim_date_index < best_sim_date_index:
+            continue
+        best_sim_uri = uri
+        best_sim_exec_date = sim_exec_date
+        best_sim_date_index = sim_date_index
+
+    opsim_rp = (
+        ResourcePath(archive_uri)
+        .join(best_sim_exec_date, forceDirectory=True)
+        .join(f"{best_sim_date_index}", forceDirectory=True)
+        .join(sim_metadata[best_sim_uri]["files"]["observations"]["name"])
+    )
+    visits = get_sim_data(opsim_rp, **kwargs)
+
+    return visits
+
+
+def fetch_obslactap_visits(day_obs: str | None = None) -> pd.DataFrame:
+    """Return visits from best prenight briefing simulation.
+
+    Parameters
+    ----------
+    day_obs : `str`
+        The day_obs of the night, in YYYY-MM-DD format (e.g. 2025-03-26).
+        Default None will use today as the day_obs.
+
+    Returns
+    -------
+    visits : `pd.DataFrame`
+        The visits from the prenight simulation.
+    """
+    dbcols = [
+        "observationStartMJD",
+        "fieldRA",
+        "fieldDec",
+        "rotSkyPos",
+        "band",
+        "visitExposureTime",
+        "night",
+        "target_name",
+    ]
+
+    mjd = int(Time(day_obs, format="iso", scale="utc").mjd)
+    sqlconstraint = (f"FLOOR(observationStartMJD-0.5) = {mjd}",)
+
+    visits = fetch_prenight_visits(
+        day_obs, tags=("ideal", "nominal"), sqlconstraint=sqlconstraint, dbcols=dbcols
+    )
+
+    return visits
