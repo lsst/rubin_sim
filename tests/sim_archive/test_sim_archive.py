@@ -6,6 +6,9 @@ import urllib
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
+import numpy as np
+import pandas as pd
+from astropy.time import Time
 from rubin_scheduler.scheduler import sim_runner
 from rubin_scheduler.scheduler.example import example_scheduler
 from rubin_scheduler.scheduler.model_observatory import ModelObservatory
@@ -18,6 +21,9 @@ if HAVE_LSST_RESOURCES:
     from rubin_sim.sim_archive.sim_archive import (
         check_opsim_archive_resource,
         compile_sim_metadata,
+        fetch_latest_prenight_sim_for_night,
+        fetch_obsloctap_visits,
+        find_latest_prenight_sim_for_night,
         make_sim_archive_cli,
         make_sim_archive_dir,
         read_archived_sim_metadata,
@@ -133,6 +139,24 @@ class TestSimArchive(unittest.TestCase):
                 "--archive_base_uri",
                 test_archive_uri,
             )
+
+    @unittest.skipIf(not HAVE_LSST_RESOURCES, "No lsst.resources")
+    def test_find_latest_prenight_sim_for_night(self):
+        day_obs = "2025-03-25"
+        sim_metadata = find_latest_prenight_sim_for_night(day_obs)
+        assert sim_metadata["simulated_dates"]["first"] <= day_obs <= sim_metadata["simulated_dates"]["last"]
+
+    @unittest.skipIf(not HAVE_LSST_RESOURCES, "No lsst.resources")
+    def test_fetch_latest_prenight_sim_for_night(self):
+        day_obs = "2025-03-25"
+        visits = fetch_latest_prenight_sim_for_night(day_obs)
+        assert len(visits) > 0
+
+    @unittest.skipIf(not HAVE_LSST_RESOURCES, "No lsst.resources")
+    def test_fetch_obsloctap_visits(self):
+        day_obs = "2025-03-25"
+        visits = pd.DataFrame(fetch_obsloctap_visits(day_obs))
+        assert np.all(np.floor(visits["observationStartMJD"] - 0.5) == Time(day_obs).mjd)
 
 
 if __name__ == "__main__":
