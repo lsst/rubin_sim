@@ -935,7 +935,77 @@ def compile_sim_archive_metadata_cli(*args):
     compilation_resource = compile_sim_metadata(archive_uri, compilation_resource, append=append)
 
 
-def fetch_prenight_visits(
+def find_latest_prenight_sim_for_night(
+    day_obs: str | None = None,
+    tags: tuple[str] = ("ideal", "nominal"),
+    max_simulation_age: int = 2,
+    archive_uri: str = "s3://rubin:rubin-scheduler-prenight/opsim/",
+    compilation_uri: str = "s3://rubin:rubin-scheduler-prenight/opsim/compiled_metadata_cache.h5",
+) -> pd.DataFrame:
+    """Find the most recent prenight simulation that covers a night.
+
+    Parameters
+    ----------
+    day_obs : `str` or  `None`
+        The date of the evening for the night for which to get a simulation.
+        If `None`, then the current date will be used.
+    tags : `tuple[str]`
+        A tuple of tags to filter simulations by.
+        Defaults to ``('ideal', 'nominal')``.
+    max_simulation_age : `int`
+        The maximum age of simulations to consider, in days. Simulations older
+        than ``max_simulation_age`` will not be considered. Defaults to 2.
+    archive_uri : `str`
+        The URI of the archive from which to fetch the simulation.
+        Defaults to ``s3://rubin:rubin-scheduler-prenight/opsim/``.
+    compilation_uri : `str`
+        The URI of the compiled metadata HDF5 file for efficient querying.
+        Defaults to ``s3://rubin:rubin-scheduler-prenight/opsim/compiled_metadata_cache.h5``.
+
+    Returns
+    -------
+    sim_metadata : `dict`
+        A dictionary with metadata for the simulation.
+    """
+
+    if day_obs is None:
+        day_obs = Time(np.floor(Time.now().mjd - 0.5), format="mjd", scale="utc").iso[0:10]
+
+    sim_metadata = read_archived_sim_metadata(
+        archive_uri, num_nights=max_simulation_age, compilation_resource=compilation_uri
+    )
+
+    best_sim = None
+    for uri, sim in sim_metadata.items():
+        sim["uri"] = uri
+        sim["exec_date"] = uri.split("/")[-3]
+        sim["date_index"] = int(uri.split("/")[-2])
+
+        if sim["simulated_dates"]["first"] > day_obs:
+            continue
+        if sim["simulated_dates"]["last"] < day_obs:
+            continue
+        if not set(tags).issubset(sim["tags"]):
+            continue
+        if best_sim is not None:
+            if sim["exec_date"] < best_sim["exec_date"]:
+                continue
+            if sim["date_index"] < best_sim["date_index"]:
+                continue
+        best_sim = sim
+
+    if best_sim is not None:
+        best_sim["opsim_rp"] = (
+            ResourcePath(archive_uri)
+            .join(best_sim["exec_date"], forceDirectory=True)
+            .join(f"{best_sim['date_index']}", forceDirectory=True)
+            .join(best_sim["files"]["observations"]["name"])
+        )
+
+    return best_sim
+
+
+def fetch_latest_prenight_sim_for_night(
     day_obs: str | None = None,
     tags: tuple[str] = ("ideal", "nominal"),
     max_simulation_age: int = 2,
@@ -943,7 +1013,8 @@ def fetch_prenight_visits(
     compilation_uri: str = "s3://rubin:rubin-scheduler-prenight/opsim/compiled_metadata_cache.h5",
     **kwargs,
 ) -> pd.DataFrame:
-    """Fetches visit parameters from the latest archived pre-night simulation.
+    """Fetches visit parameters from the latest archived pre-night simulation
+    with requested tags for a specified day of observing.
 
     Parameters
     ----------
@@ -962,6 +1033,9 @@ def fetch_prenight_visits(
     compilation_uri : `str`
         The URI of the compiled metadata HDF5 file for efficient querying.
         Defaults to ``s3://rubin:rubin-scheduler-prenight/opsim/compiled_metadata_cache.h5``.
+    **kwargs
+        Additional keyword arguments passed to
+        `rubin_sim.maf.get_sim_data`.
 
     Returns
     -------
@@ -969,46 +1043,16 @@ def fetch_prenight_visits(
         A pandas DataFrame containing visit parameters.
     """
 
-    if day_obs is None:
-        day_obs = Time(np.floor(Time.now().mjd - 0.5), format="mjd", scale="utc").iso[0:10]
-
-    sim_metadata = read_archived_sim_metadata(
-        archive_uri, num_nights=max_simulation_age, compilation_resource=compilation_uri
+    sim_metadata = find_latest_prenight_sim_for_night(
+        day_obs, tags, max_simulation_age, archive_uri, compilation_uri
     )
-
-    best_sim_uri = None
-    best_sim_exec_date = None
-    best_sim_date_index = None
-    for uri, sim in sim_metadata.items():
-        sim_exec_date = uri.split("/")[-3]
-        sim_date_index = int(uri.split("/")[-2])
-        if sim["simulated_dates"]["first"] > day_obs:
-            continue
-        if sim["simulated_dates"]["last"] < day_obs:
-            continue
-        if not set(tags).issubset(sim["tags"]):
-            continue
-        if best_sim_exec_date is not None and sim_exec_date < best_sim_exec_date:
-            continue
-        if best_sim_date_index is not None and sim_date_index < best_sim_date_index:
-            continue
-        best_sim_uri = uri
-        best_sim_exec_date = sim_exec_date
-        best_sim_date_index = sim_date_index
-
-    opsim_rp = (
-        ResourcePath(archive_uri)
-        .join(best_sim_exec_date, forceDirectory=True)
-        .join(f"{best_sim_date_index}", forceDirectory=True)
-        .join(sim_metadata[best_sim_uri]["files"]["observations"]["name"])
-    )
-    visits = get_sim_data(opsim_rp, **kwargs)
+    visits = get_sim_data(sim_metadata["opsim_rp"], **kwargs)
 
     return visits
 
 
-def fetch_obslactap_visits(day_obs: str | None = None) -> pd.DataFrame:
-    """Return visits from best prenight briefing simulation.
+def fetch_obsloctap_visits(day_obs: str | None = None) -> pd.DataFrame:
+    """Return visits from latest nominal prenight briefing simulation.
 
     Parameters
     ----------
@@ -1035,7 +1079,7 @@ def fetch_obslactap_visits(day_obs: str | None = None) -> pd.DataFrame:
     mjd = int(Time(day_obs, format="iso", scale="utc").mjd)
     sqlconstraint = (f"FLOOR(observationStartMJD-0.5) = {mjd}",)
 
-    visits = fetch_prenight_visits(
+    visits = fetch_latest_prenight_sim_for_night(
         day_obs, tags=("ideal", "nominal"), sqlconstraint=sqlconstraint, dbcols=dbcols
     )
 
