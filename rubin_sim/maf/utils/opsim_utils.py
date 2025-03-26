@@ -16,8 +16,8 @@ from sqlalchemy.engine import make_url
 
 def get_sim_data(
     db_con,
-    sqlconstraint,
-    dbcols,
+    sqlconstraint=None,
+    dbcols=None,
     stackers=None,
     table_name=None,
     full_sql_query=None,
@@ -79,10 +79,13 @@ def get_sim_data(
         table_name = "observations"
 
     if full_sql_query is None:
-        col_str = ""
-        for colname in dbcols:
-            col_str += colname + ", "
-        col_str = col_str[0:-2] + " "
+        if dbcols is None:
+            col_str = "*"
+        else:
+            col_str = ""
+            for colname in dbcols:
+                col_str += colname + ", "
+            col_str = col_str[0:-2] + " "
 
         query = "SELECT %s FROM %s" % (col_str, table_name)
         if len(sqlconstraint) > 0:
@@ -101,7 +104,7 @@ def get_sim_data(
             from lsst.resources import ResourcePath
 
             with ResourcePath(db_con).as_local() as local_db_path:
-                with closing(sqlite3.connect(local_db_path.ospath)) is con:
+                with closing(sqlite3.connect(local_db_path.ospath)) as con:
                     sim_data = pd.read_sql(query, con).to_records(index=False)
         except ModuleNotFoundError:
             raise RuntimeError(
