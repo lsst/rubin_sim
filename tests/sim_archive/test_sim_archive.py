@@ -21,9 +21,9 @@ if HAVE_LSST_RESOURCES:
     from rubin_sim.sim_archive.sim_archive import (
         check_opsim_archive_resource,
         compile_sim_metadata,
-        fetch_latest_prenight_sim_for_night,
+        fetch_latest_prenight_sim_for_nights,
         fetch_obsloctap_visits,
-        find_latest_prenight_sim_for_night,
+        find_latest_prenight_sim_for_nights,
         make_sim_archive_cli,
         make_sim_archive_dir,
         read_archived_sim_metadata,
@@ -143,20 +143,24 @@ class TestSimArchive(unittest.TestCase):
     @unittest.skipIf(not HAVE_LSST_RESOURCES, "No lsst.resources")
     def test_find_latest_prenight_sim_for_night(self):
         day_obs = "2025-03-25"
-        sim_metadata = find_latest_prenight_sim_for_night(day_obs)
+        max_simulation_age = int(np.ceil(Time.now().mjd - Time(day_obs).mjd)) + 1
+        sim_metadata = find_latest_prenight_sim_for_nights(day_obs, max_simulation_age=max_simulation_age)
         assert sim_metadata["simulated_dates"]["first"] <= day_obs <= sim_metadata["simulated_dates"]["last"]
 
     @unittest.skipIf(not HAVE_LSST_RESOURCES, "No lsst.resources")
     def test_fetch_latest_prenight_sim_for_night(self):
         day_obs = "2025-03-25"
-        visits = fetch_latest_prenight_sim_for_night(day_obs)
+        max_simulation_age = int(np.ceil(Time.now().mjd - Time(day_obs).mjd)) + 1
+        visits = fetch_latest_prenight_sim_for_nights(day_obs, max_simulation_age=max_simulation_age)
         assert len(visits) > 0
 
     @unittest.skipIf(not HAVE_LSST_RESOURCES, "No lsst.resources")
     def test_fetch_obsloctap_visits(self):
         day_obs = "2025-03-25"
-        visits = pd.DataFrame(fetch_obsloctap_visits(day_obs))
-        assert np.all(np.floor(visits["observationStartMJD"] - 0.5) == Time(day_obs).mjd)
+        num_nights = 2
+        visits = pd.DataFrame(fetch_obsloctap_visits(day_obs, nights=num_nights))
+        assert np.floor(visits["observationStartMJD"].min() - 0.5) == Time(day_obs).mjd
+        assert np.floor(visits["observationStartMJD"].max() - 0.5) == Time(day_obs).mjd + num_nights - 1
 
 
 if __name__ == "__main__":

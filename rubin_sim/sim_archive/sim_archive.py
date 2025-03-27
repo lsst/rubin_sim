@@ -33,6 +33,7 @@ import yaml
 from astropy.time import Time
 from rubin_scheduler.scheduler import sim_runner
 from rubin_scheduler.scheduler.utils import SchemaConverter
+from rubin_scheduler.site_models.almanac import Almanac
 
 from rubin_sim.maf.utils.opsim_utils import get_sim_data
 
@@ -935,8 +936,9 @@ def compile_sim_archive_metadata_cli(*args):
     compilation_resource = compile_sim_metadata(archive_uri, compilation_resource, append=append)
 
 
-def find_latest_prenight_sim_for_night(
-    day_obs: str | None = None,
+def find_latest_prenight_sim_for_nights(
+    first_day_obs: str | None = None,
+    last_day_obs: str | None = None,
     tags: tuple[str] = ("ideal", "nominal"),
     max_simulation_age: int = 2,
     archive_uri: str = "s3://rubin:rubin-scheduler-prenight/opsim/",
@@ -946,21 +948,26 @@ def find_latest_prenight_sim_for_night(
 
     Parameters
     ----------
-    day_obs : `str` or  `None`
-        The date of the evening for the night for which to get a simulation.
-        If `None`, then the current date will be used.
+    first_day_obs : `str` or  `None`
+        The date of the evening for the first night for which to get
+        a simulation. If `None`, then the current date will be used.
+    last_day_obs : `str` or  `None`
+        The date of the evening for the last night for which to get
+        a simulation. If `None`, then the current date will be used.
     tags : `tuple[str]`
         A tuple of tags to filter simulations by.
         Defaults to ``('ideal', 'nominal')``.
     max_simulation_age : `int`
-        The maximum age of simulations to consider, in days. Simulations older
-        than ``max_simulation_age`` will not be considered. Defaults to 2.
+        The maximum age of simulations to consider, in days.
+        Simulations older than ``max_simulation_age`` will not be considered.
+        Defaults to 2.
     archive_uri : `str`
         The URI of the archive from which to fetch the simulation.
         Defaults to ``s3://rubin:rubin-scheduler-prenight/opsim/``.
     compilation_uri : `str`
         The URI of the compiled metadata HDF5 file for efficient querying.
-        Defaults to ``s3://rubin:rubin-scheduler-prenight/opsim/compiled_metadata_cache.h5``.
+        Defaults to
+        ``s3://rubin:rubin-scheduler-prenight/opsim/compiled_metadata_cache.h5``.
 
     Returns
     -------
@@ -968,8 +975,10 @@ def find_latest_prenight_sim_for_night(
         A dictionary with metadata for the simulation.
     """
 
-    if day_obs is None:
-        day_obs = Time(np.floor(Time.now().mjd - 0.5), format="mjd", scale="utc").iso[0:10]
+    if first_day_obs is None:
+        first_day_obs = Time(Time.now().mjd - 0.5, format="mjd").iso[:10]
+    if last_day_obs is None:
+        last_day_obs = first_day_obs
 
     sim_metadata = read_archived_sim_metadata(
         archive_uri, num_nights=max_simulation_age, compilation_resource=compilation_uri
@@ -981,9 +990,9 @@ def find_latest_prenight_sim_for_night(
         sim["exec_date"] = uri.split("/")[-3]
         sim["date_index"] = int(uri.split("/")[-2])
 
-        if sim["simulated_dates"]["first"] > day_obs:
+        if sim["simulated_dates"]["first"] > first_day_obs:
             continue
-        if sim["simulated_dates"]["last"] < day_obs:
+        if sim["simulated_dates"]["last"] < last_day_obs:
             continue
         if not set(tags).issubset(sim["tags"]):
             continue
@@ -1005,8 +1014,9 @@ def find_latest_prenight_sim_for_night(
     return best_sim
 
 
-def fetch_latest_prenight_sim_for_night(
-    day_obs: str | None = None,
+def fetch_latest_prenight_sim_for_nights(
+    first_day_obs: str | None = None,
+    last_day_obs: str | None = None,
     tags: tuple[str] = ("ideal", "nominal"),
     max_simulation_age: int = 2,
     archive_uri: str = "s3://rubin:rubin-scheduler-prenight/opsim/",
@@ -1018,9 +1028,12 @@ def fetch_latest_prenight_sim_for_night(
 
     Parameters
     ----------
-    day_obs : `str` or  `None`
-        The date of the evening for the night for which to get visits.
-        If `None`, then the current date will be used.
+    first_day_obs : `str` or  `None`
+        The date of the evening for the first night for which to get
+        a simulation. If `None`, then the current date will be used.
+    last_day_obs : `str` or  `None`
+        The date of the evening for the last night for which to get
+        a simulation. If `None`, then the current date will be used.
     tags : `tuple[str]`
         A tuple of tags to filter simulations by.
         Defaults to ``('ideal', 'nominal')``.
@@ -1043,22 +1056,25 @@ def fetch_latest_prenight_sim_for_night(
         A pandas DataFrame containing visit parameters.
     """
 
-    sim_metadata = find_latest_prenight_sim_for_night(
-        day_obs, tags, max_simulation_age, archive_uri, compilation_uri
+    sim_metadata = find_latest_prenight_sim_for_nights(
+        first_day_obs, last_day_obs, tags, max_simulation_age, archive_uri, compilation_uri
     )
     visits = get_sim_data(sim_metadata["opsim_rp"], **kwargs)
 
     return visits
 
 
-def fetch_obsloctap_visits(day_obs: str | None = None) -> pd.DataFrame:
+def fetch_obsloctap_visits(day_obs: str | None = None, nights: int = 2) -> pd.DataFrame:
     """Return visits from latest nominal prenight briefing simulation.
 
     Parameters
     ----------
     day_obs : `str`
         The day_obs of the night, in YYYY-MM-DD format (e.g. 2025-03-26).
-        Default None will use today as the day_obs.
+        Default None will use the date of the next sunset.
+    nights : `int`
+        The number of nights of observations to return.
+        Defaults to 2.
 
     Returns
     -------
@@ -1076,11 +1092,31 @@ def fetch_obsloctap_visits(day_obs: str | None = None) -> pd.DataFrame:
         "target_name",
     ]
 
-    mjd = int(Time(day_obs, format="iso", scale="utc").mjd)
-    sqlconstraint = (f"FLOOR(observationStartMJD-0.5) = {mjd}",)
+    # Start with the first night that starts after the reference time,
+    # which is the current time by default.
+    # So, if the reference time is during a night, it starts with the
+    # following night.
+    night_bounds = pd.DataFrame(Almanac().sunsets)
+    reference_time = Time.now() if day_obs is None else Time(day_obs, format="iso", scale="utc")
+    first_night = night_bounds.query(f"sunset > {reference_time.mjd}").night.min()
+    last_night = first_night + nights - 1
 
-    visits = fetch_latest_prenight_sim_for_night(
-        day_obs, tags=("ideal", "nominal"), sqlconstraint=sqlconstraint, dbcols=dbcols
+    night_bounds.set_index("night", inplace=True)
+    start_mjd = night_bounds.loc[first_night, "sunset"]
+    end_mjd = night_bounds.loc[last_night, "sunrise"]
+
+    sqlconstraint = (f"observationStartMJD BETWEEN {start_mjd} AND {end_mjd}",)
+    max_simulation_age = int(np.ceil(Time.now().mjd - reference_time.mjd)) + 1
+
+    first_day_obs = Time(start_mjd - 0.5, format="mjd").iso[:10]
+    last_day_obs = Time(end_mjd - 0.5, format="mjd").iso[:10]
+    visits = fetch_latest_prenight_sim_for_nights(
+        first_day_obs,
+        last_day_obs,
+        tags=("ideal", "nominal"),
+        max_simulation_age=max_simulation_age,
+        sqlconstraint=sqlconstraint,
+        dbcols=dbcols,
     )
 
     return visits
