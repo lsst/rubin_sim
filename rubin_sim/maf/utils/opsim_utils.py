@@ -96,7 +96,7 @@ def get_sim_data(
 
     if isinstance(db_con, sqlite3.Connection):
         sim_data = pd.read_sql(query, db_con).to_records(index=False)
-    elif isinstance(db_con, str) and os.path.isfile(str):
+    elif isinstance(db_con, str) and os.path.isfile(db_con):
         with closing(sqlite3.connect(db_con)) as con:
             sim_data = pd.read_sql(query, con).to_records(index=False)
     else:
