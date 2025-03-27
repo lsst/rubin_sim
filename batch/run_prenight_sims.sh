@@ -7,7 +7,7 @@
 #SBATCH --nodes=1                       # Number of nodes
 #SBATCH --ntasks=1                      # Number of tasks run in parallel
 #SBATCH --cpus-per-task=1               # Number of CPUs per task
-#SBATCH --mem=16G                       # Requested memory
+#SBATCH --mem=4G                       # Requested memory
 #SBATCH --time=1:00:00                 # Wall time (hh:mm:ss)
 
 echo "******** START of run_prenight_sims.sh **********"
