@@ -6,6 +6,8 @@ __all__ = (
 
 import os
 import sqlite3
+import urllib
+from contextlib import closing
 
 import numpy as np
 import pandas as pd
@@ -15,8 +17,8 @@ from sqlalchemy.engine import make_url
 
 def get_sim_data(
     db_con,
-    sqlconstraint,
-    dbcols,
+    sqlconstraint=None,
+    dbcols=None,
     stackers=None,
     table_name=None,
     full_sql_query=None,
@@ -77,26 +79,35 @@ def get_sim_data(
         # that's probably fine, keep people from getting fancy with old sims
         table_name = "observations"
 
-    if isinstance(db_con, str):
-        con = sqlite3.connect(db_con)
-    else:
-        con = db_con
-
     if full_sql_query is None:
-        col_str = ""
-        for colname in dbcols:
-            col_str += colname + ", "
-        col_str = col_str[0:-2] + " "
+        col_str = "*" if dbcols is None else ", ".join(dbcols)
 
         query = "SELECT %s FROM %s" % (col_str, table_name)
         if len(sqlconstraint) > 0:
             query += " WHERE %s" % (sqlconstraint)
         query += ";"
-        sim_data = pd.read_sql(query, con).to_records(index=False)
-
     else:
         query = full_sql_query
-        sim_data = pd.read_sql(query, con).to_records(index=False)
+
+    if isinstance(db_con, sqlite3.Connection):
+        sim_data = pd.read_sql(query, db_con).to_records(index=False)
+    elif isinstance(db_con, str) and os.path.isfile(db_con):
+        with closing(sqlite3.connect(db_con)) as con:
+            sim_data = pd.read_sql(query, con).to_records(index=False)
+    elif (not isinstance(db_con, str)) or urllib.parse.urlparse(db_con).scheme != "":
+        try:
+            from lsst.resources import ResourcePath
+
+            with ResourcePath(db_con).as_local() as local_db_path:
+                with closing(sqlite3.connect(local_db_path.ospath)) as con:
+                    sim_data = pd.read_sql(query, con).to_records(index=False)
+        except ModuleNotFoundError:
+            raise RuntimeError(
+                f"Cannot read visits from {db_con}."
+                "Maybe it does not exist, or maybe you need to install lsst.resources."
+            )
+    else:
+        raise RuntimeError("Cannot find {db_con}.")
 
     if len(sim_data) == 0:
         raise UserWarning("No data found matching sqlconstraint %s" % (sqlconstraint))
