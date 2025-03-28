@@ -22,4 +22,6 @@ skyproj
 tornado
 jinja2
 tqdm
+gitpython
+conda
 rubin-scheduler >=3.0

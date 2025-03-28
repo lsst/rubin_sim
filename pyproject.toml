@@ -40,6 +40,7 @@ dependencies = [
     "tqdm",
     "rubin-scheduler>=3.0",
     "pyarrow",
+    "gitpython",
 ]
 
 [project.optional-dependencies]
