@@ -26,6 +26,7 @@ class MafTracking:
         if database is None:
             database = os.path.join(os.getcwd(), "trackingDb_sqlite.db")
         self.tracking_db = database
+        self.stamp = os.stat(self.tracking_db).st_mtime
 
         # Read in the tracking database.
         cols = [
@@ -45,6 +46,12 @@ class MafTracking:
         self.runs = self.sort_runs(self.runs, order=["maf_run_id", "run_name", "maf_comment"])
         self.runs_page = {}
 
+    def _check_db(self):
+        """Check if the database file has changed"""
+        new_stamp = os.stat(self.tracking_db).st_mtime
+        if new_stamp != self.stamp:
+            self.__init__(database=self.tracking_db)
+
     def run_info(self, run):
         """Get the tracking database information relevant for a given run
         in a format that the jinja2 templates for show_maf  can use.
@@ -59,6 +66,7 @@ class MafTracking:
         run_info : `OrderedDict`
             Ordered dict version of the numpy structured array.
         """
+        self._check_db()
         runInfo = OrderedDict()
         maf_dir = os.path.relpath(run["maf_dir"], start=os.path.dirname(self.tracking_db))
         runInfo["Run Name"] = run["run_name"]
@@ -92,6 +100,7 @@ class MafTracking:
         runs : `numpy.NDarray`
            A sorted numpy array.
         """
+        self._check_db()
         return np.sort(runs, order=order)
 
     def get_run(self, maf_run_id):
@@ -113,6 +122,7 @@ class MafTracking:
            Stored internally in self.runs_page dict, but also passed
            back to the tornado server.
         """
+        self._check_db()
         if not isinstance(maf_run_id, int):
             if isinstance(maf_run_id, dict):
                 maf_run_id = int(maf_run_id["maf_run_id"][0][0])
