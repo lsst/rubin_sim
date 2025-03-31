@@ -21,6 +21,7 @@ from tempfile import TemporaryFile
 from typing import Callable, Optional, Sequence
 from warnings import warn
 
+import git
 import numpy as np
 import numpy.typing as npt
 from astropy.time import Time
@@ -33,7 +34,12 @@ from rubin_scheduler.site_models import Almanac
 
 from rubin_sim.sim_archive.sim_archive import drive_sim
 
-from .make_snapshot import add_make_scheduler_snapshot_args, get_scheduler, save_scheduler
+from .make_snapshot import (
+    add_make_scheduler_snapshot_args,
+    get_scheduler,
+    get_scheduler_instance_from_path,
+    save_scheduler,
+)
 
 try:
     from rubin_sim.data import get_baseline  # type: ignore
@@ -356,7 +362,7 @@ def prenight_sim_cli(cli_args: list = []) -> None:
     opsim_db = None if args.opsim in ("", "None") else args.opsim
 
     scheduler_file = args.scheduler
-    if args.repo is not None or args.script is not None:
+    if args.repo is not None:
         if os.path.exists(scheduler_file):
             raise ValueError(f"File {scheduler_file} already exists!")
 
@@ -368,6 +374,20 @@ def prenight_sim_cli(cli_args: list = []) -> None:
             "opsim_config_script": args.script,
             "opsim_config_branch": args.branch,
         }
+    elif args.script is not None:
+        if os.path.exists(scheduler_file):
+            raise ValueError(f"File {scheduler_file} already exists!")
+
+        scheduler: CoreScheduler = get_scheduler_instance_from_path(args.script)
+        save_scheduler(scheduler, scheduler_file)
+        opsim_metadata = {"opsim_config_script": args.script}
+        try:
+            script_repo = git.Repo(args.script, search_parent_directories=True)
+            opsim_metadata["opsim_config_repository"] = script_repo.remotes.origin.url
+            opsim_metadata["opsim_config_branch"] = script_repo.active_branch.name
+            opsim_metadata["opsim_config_version"] = script_repo.git.describe()
+        except (git.InvalidGitRepositoryError, git.NoSuchPathError):
+            pass
     else:
         opsim_metadata = None
 
