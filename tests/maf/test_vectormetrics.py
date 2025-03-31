@@ -53,7 +53,7 @@ class Test2D(unittest.TestCase):
         self.sim_data["observationStartMJD"] = self.sim_data["night"]
 
     def test_user_points2d_slicer(self):
-        metric = metrics.AccumulateCountMetric(bins=[0.5, 1.5, 2.5])
+        metric = metrics.AccumulateCountMetric(times=[0.5, 1.5, 2.5])
         slicer = slicers.UserPointsSlicer(
             ra=np.degrees(self.field_data["fieldRA"]),
             dec=np.degrees(self.field_data["fieldDec"]),
@@ -67,11 +67,11 @@ class Test2D(unittest.TestCase):
         mbg.set_current("")
         mbg.fieldData = self.field_data
         mbg.run_current("", sim_data=self.sim_data)
-        expected = np.array([[self.n1, self.n1], [-666.0, self.n2]])
+        expected = np.array([[1.0, self.n1, self.n1], [1.0, 1.0, self.n2]])
         assert np.array_equal(mb.metric_values.data, expected)
 
     def test_healpix2d_slicer(self):
-        metric = metrics.AccumulateCountMetric(bins=[0.5, 1.5, 2.5])
+        metric = metrics.AccumulateCountMetric(times=[0.5, 1.5, 2.5])
         slicer = slicers.HealpixSlicer(nside=16)
         sql = ""
         mb = metricBundle.MetricBundle(metric, slicer, sql)
@@ -82,7 +82,7 @@ class Test2D(unittest.TestCase):
         mbg.run_current("", sim_data=self.sim_data)
 
         good = np.where(mb.metric_values.mask[:, -1] == False)[0]
-        expected = np.array([[self.n1, self.n1], [-666.0, self.n2]])
+        expected = np.array([[1.0, self.n1, self.n1], [1.0, 1.0, self.n2]])
         assert np.array_equal(mb.metric_values.data[good, :], expected)
 
     def test_histogram_metric(self):
@@ -112,7 +112,7 @@ class Test2D(unittest.TestCase):
         assert np.array_equal(mb.metric_values.data[good, :], expected)
 
     def test_accumulate_metric(self):
-        metric = metrics.AccumulateMetric(col="fiveSigmaDepth", bins=[0.5, 1.5, 2.5])
+        metric = metrics.AccumulateMetric(col="fiveSigmaDepth", times=[1.5, 2.5])
         slicer = slicers.HealpixSlicer(nside=16)
         sql = ""
         mb = metricBundle.MetricBundle(metric, slicer, sql)
@@ -149,7 +149,7 @@ class Test2D(unittest.TestCase):
         assert np.array_equal(mb.metric_values.data[good, :], expected)
 
     def test_accumulate_m5_metric(self):
-        metric = metrics.AccumulateM5Metric(bins=[0.5, 1.5, 2.5])
+        metric = metrics.AccumulateM5Metric(times=[1.5, 2.5])
         slicer = slicers.HealpixSlicer(nside=16)
         sql = ""
         mb = metricBundle.MetricBundle(metric, slicer, sql)
@@ -201,7 +201,7 @@ class Test2D(unittest.TestCase):
         Test that a binned slicer and a regular slicer can run together
         """
         bundle_list = []
-        metric = metrics.AccumulateM5Metric(bins=[0.5, 1.5, 2.5])
+        metric = metrics.AccumulateM5Metric(times=[0.5, 1.5, 2.5])
         slicer = slicers.HealpixSlicer(nside=16)
         sql = ""
         bundle_list.append(metricBundle.MetricBundle(metric, slicer, sql))
@@ -214,9 +214,8 @@ class Test2D(unittest.TestCase):
         mbg = metricBundle.MetricBundleGroup(bd, None, save_early=False)
         mbg.set_current("")
         mbg.run_current("", sim_data=self.sim_data)
-
         assert np.array_equal(
-            bundle_list[0].metric_values[:, 1].compressed(),
+            bundle_list[0].metric_values[:, -1].compressed(),
             bundle_list[1].metric_values.compressed(),
         )
 
