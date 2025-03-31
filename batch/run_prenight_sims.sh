@@ -36,8 +36,9 @@ mkdir ${WORK_DIR}
 cd ${WORK_DIR}
 
 # Get ts_ocs_config
+TS_CONFIG_OCS_REPO="https://github.com/lsst-ts/ts_config_ocs"
 TS_CONFIG_OCS_VERSION=$(obs_version_at_time ts_config_ocs)
-curl --location --output ts_config_ocs.zip https://github.com/lsst-ts/ts_config_ocs/archive/${TS_CONFIG_OCS_VERSION}.zip
+curl --location --output ts_config_ocs.zip ${TS_CONFIG_OCS_REPO}/archive/${TS_CONFIG_OCS_VERSION}.zip
 unzip ts_config_ocs.zip
 mv $(find . -maxdepth 1 -type d -name ts_config_ocs\*) ts_config_ocs
 
@@ -64,6 +65,6 @@ export PYTHONPATH=${PACKAGE_DIR}:${PYTHONPATH}
 export PATH=${PACKAGE_DIR}/bin:${PATH}
 printenv > env.out
 date --iso=s
-time ${PRENIGHT_SIM} --scheduler auxtel.pickle.xz --opsim None --script ${SCHEDULER_CONFIG_SCRIPT}
+time ${PRENIGHT_SIM} --scheduler auxtel.pickle.xz --opsim None --repo=${TS_CONFIG_OCS_REPO} --script ${SCHEDULER_CONFIG_SCRIPT} --config_version ${TS_CONFIG_OCS_VERSION}
 date --iso=s
 echo "******* END of run_prenight_sims.sh *********"
