@@ -210,7 +210,7 @@ def run_prenights(
     opsim_db: Optional[str] = None,
     minutes_delays: tuple[float, ...] = (0, 1, 10, 60, 240),
     anomalous_overhead_seeds: tuple[int, ...] = (101, 102, 103, 104, 105),
-    sim_nights: int = 2,
+    sim_nights: int = 3,
     opsim_metadata: dict | None = None,
 ) -> None:
     """Run the set of scheduler simulations needed to prepare for a night.
@@ -234,7 +234,7 @@ def run_prenights(
     anomalous_overhead_seeds: `tuple` of `int`
         Random number seeds to use for anomalous overhead runs.
     sim_nights: `int`
-        Number of nights to simulate. Defaults to 2.
+        Number of nights to simulate. Defaults to 3.
     opsim_metadata: `dict`
         Extra metadata for the archive
     """
