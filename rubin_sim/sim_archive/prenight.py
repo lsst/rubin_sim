@@ -33,7 +33,12 @@ from rubin_scheduler.site_models import Almanac
 
 from rubin_sim.sim_archive.sim_archive import drive_sim
 
-from .make_snapshot import add_make_scheduler_snapshot_args, get_scheduler, save_scheduler
+from .make_snapshot import (
+    add_make_scheduler_snapshot_args,
+    get_scheduler,
+    get_scheduler_instance_from_path,
+    save_scheduler,
+)
 
 try:
     from rubin_sim.data import get_baseline  # type: ignore
@@ -337,6 +342,7 @@ def prenight_sim_cli(cli_args: list = []) -> None:
         help="Archive in which to store simulation results.",
     )
     parser.add_argument("--scheduler", type=str, default=None, help="pickle file of the scheduler to run.")
+    parser.add_argument("--config_version", type=str, default=None, help="Version of ts_config_ocs used.")
 
     # Only pass a default if we have an opsim
     baseline = get_baseline()
@@ -356,18 +362,29 @@ def prenight_sim_cli(cli_args: list = []) -> None:
     opsim_db = None if args.opsim in ("", "None") else args.opsim
 
     scheduler_file = args.scheduler
-    if args.repo is not None or args.script is not None:
+    if args.repo is not None:
         if os.path.exists(scheduler_file):
             raise ValueError(f"File {scheduler_file} already exists!")
 
-        scheduler: CoreScheduler = get_scheduler(args.repo, args.script, args.branch)
-        save_scheduler(scheduler, scheduler_file)
+        if args.config_version is not None:
+            scheduler: CoreScheduler = get_scheduler_instance_from_path(args.script)
+            save_scheduler(scheduler, scheduler_file)
+            opsim_metadata = {
+                "opsim_config_repository": args.repo,
+                "opsim_config_script": args.script,
+                "opsim_config_version": args.config_version,
+            }
+        elif args.branch is not None:
+            scheduler: CoreScheduler = get_scheduler(args.repo, args.script, args.branch)
+            save_scheduler(scheduler, scheduler_file)
 
-        opsim_metadata = {
-            "opsim_config_repository": args.repo,
-            "opsim_config_script": args.script,
-            "opsim_config_branch": args.branch,
-        }
+            opsim_metadata = {
+                "opsim_config_repository": args.repo,
+                "opsim_config_script": args.script,
+                "opsim_config_branch": args.branch,
+            }
+        else:
+            raise ValueError("Either the branch or the version of ts_ocs_config must be specified")
     else:
         opsim_metadata = None
 
