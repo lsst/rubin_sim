@@ -36,6 +36,7 @@ jobs:
         shell: bash -l {0}
         run: |
           conda install --yes --file=requirements.txt
+          conda install --yes --file=optional-requirements.txt
           conda install --yes --file=test-requirements.txt
 
       - name: install rubin_sim
