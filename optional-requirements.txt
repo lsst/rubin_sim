@@ -1,2 +1,6 @@
 openorb
 openorb-data-de405
+george
+scikit-learn
+jinja2
+tornado
