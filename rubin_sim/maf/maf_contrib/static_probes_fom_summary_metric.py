@@ -4,7 +4,6 @@ import healpy as hp
 import numpy as np
 import pandas as pd
 from scipy.optimize import minimize
-from sklearn.preprocessing import StandardScaler
 
 from rubin_sim.maf.metrics.base_metric import BaseMetric
 
@@ -326,6 +325,7 @@ class StaticProbesFoMEmulatorMetric(BaseMetric):
     def run(self, data_slice, slice_point=None):
         import george
         from george import kernels
+        from sklearn.preprocessing import StandardScaler
 
         # Chop off any outliers
         good_pix = np.where(data_slice[self.col] > 0)[0]
