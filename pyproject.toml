@@ -19,28 +19,26 @@ classifiers = [
 urls = {documentation = "https://rubin-sim.lsst.io", repository = "https://github.com/lsst/rubin_sim" }
 dynamic = [ "version" ]
 dependencies = [
-    "numpy",
-    "matplotlib",
-    "healpy",
-    "pandas",
-    "numexpr",
-    "scipy",
-    "sqlalchemy",
-    "astropy",
-    "tables",
-    "h5py",
     "astroplan",
+    "astropy",
     "colorcet",
     "cycler",
-    "george",
-    "scikit-learn",
-    "shapely",
-    "skyfield",
-    "skyproj",
-    "tqdm",
-    "rubin-scheduler>=3.0",
-    "pyarrow",
     "gitpython",
+    "h5py",
+    "healpy",
+    "matplotlib",
+    "numexpr",
+    "numpy",
+    "pandas",
+    "pyarrow",
+    "rubin-scheduler>=3.0",
+    "scipy",
+    "shapely",
+    "skyfield>=1.52",
+    "skyproj",
+    "sqlalchemy",
+    "tables",
+    "tqdm"
 ]
 
 [project.optional-dependencies]
@@ -53,6 +51,11 @@ test = [
 ]
 dev = [
   "documenteer[guide]",
+]
+extras = [
+    "george",
+    "scikit-learn",
+    "pyoorb",
 ]
 
 [project.scripts]
@@ -85,7 +88,7 @@ version = { attr = "setuptools_scm.get_version" }
 where = [ "" ]
 
 [tool.setuptools_scm]
-version_file = "rubin_sim/_version.py"
+version_file = "rubin_sim/version.py"
 
 
 [tool.pytest.ini_options]
@@ -98,7 +101,7 @@ exclude = "version.py"
 
 [tool.black]
 line-length = 110
-target-version = ["py311"]
+target-version = ["py312"]
 
 [tool.isort]
 profile = "black"
@@ -109,7 +112,7 @@ exclude = [
     "__init__.py",
 ]
 line-length = 110
-target-version = "py311"
+target-version = "py312"
 
 [tool.ruff.lint]
 ignore = [
