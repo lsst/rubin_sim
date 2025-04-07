@@ -72,7 +72,7 @@ def get_sim_data(
         elif "summary" in tables[0]:
             table_name = "summary"
         else:
-            ValueError("Could not guess table_name, set with table_name or full_sql_query kwargs")
+            raise ValueError("Could not guess table_name, set with table_name or full_sql_query kwargs")
     elif (table_name is None) & (full_sql_query is None):
         # If someone passes in a connection object with an old table_name
         # things will fail

@@ -1061,7 +1061,7 @@ def fetch_latest_prenight_sim_for_nights(
     )
     visits = get_sim_data(sim_metadata["opsim_rp"], **kwargs)
 
-    return visits
+    return pd.DataFrame(visits)
 
 
 def fetch_obsloctap_visits(day_obs: str | None = None, nights: int = 2) -> pd.DataFrame:
