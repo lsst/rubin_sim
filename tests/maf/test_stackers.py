@@ -257,6 +257,18 @@ class TestStackerClasses(unittest.TestCase):
         s = stackers.EclipticStacker(ra_col="ra", dec_col="dec", degrees=True, subtract_sun_lon=False)
         _ = s.run(data)
 
+    def test_healpix_stacker(self):
+        ra, dec = np.degrees(
+            np.meshgrid(np.arange(0, 2.0 * np.pi, 0.1), np.arange(-np.pi / 2, np.pi / 2, 0.1))
+        )
+        ra = np.ravel(ra)
+        dec = np.ravel(dec)
+        data = np.zeros(ra.size, dtype=list(zip(["ra", "dec"], [float] * 2)))
+        data["ra"] += ra
+        data["dec"] += dec
+        s = stackers.HealpixStacker(ra_col="ra", dec_col="dec")
+        _ = s.run(data)
+
     def test_teff_stacker(self):
         rng = np.random.default_rng(seed=6563)
         num_points = 5
