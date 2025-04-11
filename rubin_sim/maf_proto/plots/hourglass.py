@@ -1,6 +1,7 @@
 __all__ = ("PlotHourglass",)
 
 import copy
+import warnings
 
 import matplotlib.pylab as plt
 import numpy as np
@@ -116,64 +117,68 @@ class PlotHourglass(BasePlot):
         perfilter["mjd"] = data_slice[self.mjd_col][good]
         perfilter["filter"] = data_slice[self.filter_col][good]
 
-        # brute force compute midnight times for all days between
-        # start and enc of data_slice
-        times = Time(mjds, format="mjd")
-        # let's just find the midnight before and after each of the
-        # pre_night MJD values
-        m_after = self.observer.midnight(times, "next")
-        m_before = self.observer.midnight(times, "previous")
-        try:
-            midnights = np.unique(np.concatenate([m_before.mjd, m_after.mjd]).filled(np.nan))
-        except AttributeError:
-            midnights = np.unique(np.concatenate([m_before.mjd, m_after.mjd]))
-        # calculating midnight can return nans? That seems bad.
-        midnights = midnights[np.isfinite(midnights)]
-        # chop off any repeats. Need to round because observe.midnight
-        # values are not repeatable
-        m10 = np.round(midnights * 10)
-        _temp, indx = np.unique(m10, return_index=True)
-        midnights = midnights[indx]
-        names = [
-            "mjd",
-            "midnight",
-            "moonPer",
-            "twi6_rise",
-            "twi6_set",
-            "twi12_rise",
-            "twi12_set",
-            "twi18_rise",
-            "twi18_set",
-        ]
-        types = ["float"] * len(names)
-        pernight = np.zeros(len(midnights), dtype=list(zip(names, types)))
-        pernight["midnight"] = midnights
-        pernight["mjd"] = midnights
+        # Silence lots of ERFA warnings and astropy warnings
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
 
-        # now for each perfilter, find the closes midnight
-        indx = np.searchsorted(midnights, perfilter["mjd"])
-        d1 = np.abs(perfilter["mjd"] - midnights[indx - 1])
-        indx[np.where(indx >= midnights.size)] -= 1
-        d2 = np.abs(perfilter["mjd"] - midnights[indx])
+            # brute force compute midnight times for all days between
+            # start and enc of data_slice
+            times = Time(mjds, format="mjd")
+            # let's just find the midnight before and after each of the
+            # pre_night MJD values
+            m_after = self.observer.midnight(times, "next")
+            m_before = self.observer.midnight(times, "previous")
+            try:
+                midnights = np.unique(np.concatenate([m_before.mjd, m_after.mjd]).filled(np.nan))
+            except AttributeError:
+                midnights = np.unique(np.concatenate([m_before.mjd, m_after.mjd]))
+            # calculating midnight can return nans? That seems bad.
+            midnights = midnights[np.isfinite(midnights)]
+            # chop off any repeats. Need to round because observe.midnight
+            # values are not repeatable
+            m10 = np.round(midnights * 10)
+            _temp, indx = np.unique(m10, return_index=True)
+            midnights = midnights[indx]
+            names = [
+                "mjd",
+                "midnight",
+                "moonPer",
+                "twi6_rise",
+                "twi6_set",
+                "twi12_rise",
+                "twi12_set",
+                "twi18_rise",
+                "twi18_set",
+            ]
+            types = ["float"] * len(names)
+            pernight = np.zeros(len(midnights), dtype=list(zip(names, types)))
+            pernight["midnight"] = midnights
+            pernight["mjd"] = midnights
 
-        perfilter["midnight"] = midnights[indx]
-        temp_indx = np.where(d1 < d2)
-        perfilter["midnight"][temp_indx] = midnights[indx - 1][temp_indx]
-        mtime = Time(pernight["midnight"], format="mjd")
+            # now for each perfilter, find the closes midnight
+            indx = np.searchsorted(midnights, perfilter["mjd"])
+            d1 = np.abs(perfilter["mjd"] - midnights[indx - 1])
+            indx[np.where(indx >= midnights.size)] -= 1
+            d2 = np.abs(perfilter["mjd"] - midnights[indx])
 
-        pernight["twi12_rise"] = self.observer.twilight_morning_nautical(mtime, which="next").mjd
-        pernight["twi12_set"] = self.observer.twilight_evening_nautical(mtime, which="previous").mjd
+            perfilter["midnight"] = midnights[indx]
+            temp_indx = np.where(d1 < d2)
+            perfilter["midnight"][temp_indx] = midnights[indx - 1][temp_indx]
+            mtime = Time(pernight["midnight"], format="mjd")
 
-        pernight["twi18_rise"] = self.observer.twilight_morning_astronomical(mtime, which="next").mjd
-        pernight["twi18_set"] = self.observer.twilight_evening_astronomical(mtime, which="previous").mjd
+            pernight["twi12_rise"] = self.observer.twilight_morning_nautical(mtime, which="next").mjd
+            pernight["twi12_set"] = self.observer.twilight_evening_nautical(mtime, which="previous").mjd
 
-        aa = AltAz(location=self.location, obstime=mtime)
-        moon_coords = get_body("moon", mtime).transform_to(aa)
-        sun_coords = get_sun(mtime).transform_to(aa)
-        ang_dist = sun_coords.separation(moon_coords)
-        pernight["moonPer"] = ang_dist.deg / 180 * 100
+            pernight["twi18_rise"] = self.observer.twilight_morning_astronomical(mtime, which="next").mjd
+            pernight["twi18_set"] = self.observer.twilight_evening_astronomical(mtime, which="previous").mjd
 
-        y = (perfilter["mjd"] - perfilter["midnight"]) * 24.0
+            aa = AltAz(location=self.location, obstime=mtime)
+            moon_coords = get_body("moon", mtime).transform_to(aa)
+            sun_coords = get_sun(mtime).transform_to(aa)
+            ang_dist = sun_coords.separation(moon_coords)
+            pernight["moonPer"] = ang_dist.deg / 180 * 100
+
+            y = (perfilter["mjd"] - perfilter["midnight"]) * 24.0
 
         for i in np.arange(0, perfilter.size, 2):
             ax.plot(
