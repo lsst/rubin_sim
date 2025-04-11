@@ -1,6 +1,5 @@
 from .batches import *
 from .db import *
-from .maps import *
 from .metrics import *
 from .plots import *
 from .run_comparison import *
