@@ -1,17 +1,16 @@
-__all__ = ("eb_vhp",)
+__all__ = ("eb_v_hp",)
 
 import os
 
 import healpy as hp
 import numpy as np
 from rubin_scheduler.data import get_data_dir
-from rubin_scheduler.utils import _ra_dec2_hpid
+
+from rubin_sim.maf.utils import radec2pix
 
 
-def eb_vhp(nside, ra=None, dec=None, pixels=None, interp=False, map_path=None):
+def eb_v_hp(nside, ra=None, dec=None, pixels=None, interp=False, map_path=None):
     """Read in a healpix dust map and return values for given RA, Dec values.
-
-    This is primarily a tool for the rubin_sim.maf.DustMap class.
 
     nside : `int`
         Healpixel resolution (2^x).
@@ -40,24 +39,24 @@ def eb_vhp(nside, ra=None, dec=None, pixels=None, interp=False, map_path=None):
         ebv_data_dir = map_path
     else:
         ebv_data_dir = os.path.join(get_data_dir(), "maps", "DustMaps")
-    if not hasattr(eb_vhp, "nside"):
-        eb_vhp.nside = nside
+    if not hasattr(eb_v_hp, "nside"):
+        eb_v_hp.nside = nside
 
-    if (not hasattr(eb_vhp, "dustmap")) | (eb_vhp.nside != nside):
-        eb_vhp.nside = nside
-        filename = "dust_nside_%i.npz" % eb_vhp.nside
-        eb_vhp.dustMap = np.load(os.path.join(ebv_data_dir, filename))["ebvMap"]
+    if (not hasattr(eb_v_hp, "dustmap")) | (eb_v_hp.nside != nside):
+        eb_v_hp.nside = nside
+        filename = "dust_nside_%i.npz" % eb_v_hp.nside
+        eb_v_hp.dustMap = np.load(os.path.join(ebv_data_dir, filename))["ebvMap"]
 
     # If we are interpolating to arbitrary positions
     if interp:
-        result = hp.get_interp_val(eb_vhp.dustMap, np.pi / 2.0 - dec, ra)
+        result = hp.get_interp_val(eb_v_hp.dustMap, np.pi / 2.0 - dec, ra)
     else:
         # If we know the pixel indices we want
         if pixels is not None:
-            result = eb_vhp.dustMap[pixels]
+            result = eb_v_hp.dustMap[pixels]
         # Look up
         else:
-            pixels = _ra_dec2_hpid(eb_vhp.nside, ra, dec)
-            result = eb_vhp.dustMap[pixels]
+            pixels = radec2pix(eb_v_hp.nside, ra, dec)
+            result = eb_v_hp.dustMap[pixels]
 
     return result
