@@ -1,8 +1,26 @@
-__all__ = ("optimal_bins",)
+__all__ = ("optimal_bins", "gen_summary_row", "open_shutter_fraction")
 
+import copy
 import warnings
 
 import numpy as np
+
+
+def open_shutter_fraction(exposure_start_mjd, exposure_times, max_gap=10.0):
+    max_gap = max_gap / 60.0 / 24.0  # convert from min to days
+    times = np.sort(exposure_start_mjd)
+    diff = np.diff(times)
+    good = np.where(diff < max_gap)
+    open_time = np.sum(diff[good]) * 24.0 * 3600.0
+    result = np.sum(exposure_times) / float(open_time)
+    return result
+
+
+def gen_summary_row(info, summary_name, value):
+    summary = copy.copy(info)
+    summary["summary_name"] = summary_name
+    summary["value"] = value
+    return summary
 
 
 def optimal_bins(datain, binmin=None, binmax=None, nbin_max=200, nbin_min=1, verbose=False):

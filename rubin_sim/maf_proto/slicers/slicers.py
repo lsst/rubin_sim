@@ -218,6 +218,12 @@ class Slicer(object):
         if not isinstance(visits_array, np.ndarray):
             raise ValueError("input_visits should be numpy array or pandas DataFrame.")
 
+        # No data in, just toss back
+        if np.size(input_visits) == 0:
+            result = np.empty(self.shape, dtype=float)
+            result.fill(self.missing)
+            return result, info
+
         orig_info = copy.copy(info)
         # Construct the KD Tree for this dataset
         self.setup_slicer(visits_array)
