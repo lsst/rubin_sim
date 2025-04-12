@@ -39,8 +39,8 @@ class PlotMoll(BasePlot):
 
     def _gen_default_labels(self, info):
         """ """
+        result = {}
         if info is not None:
-            result = {}
             if "run_name" in info.keys():
                 result["title"] = info["run_name"]
             else:
@@ -107,6 +107,11 @@ class PlotMoll(BasePlot):
         if fig is None:
             fig = plt.figure()
 
+        # Nothing valid to plot, just return
+        if np.sum(np.isfinite(inarray)) == 0:
+            warnings.warn("No finite values to plot, returning empty figure")
+            return fig
+
         if grat_params == "default":
             grat_params = {"dpar": 30, "dmer": 30}
         # Copy any auto-generated plot kwargs
@@ -144,7 +149,8 @@ class PlotMoll(BasePlot):
                 cb_params = defaults
 
             if cb_params["label"] is None:
-                cb_params["label"] = moll_kwarg_dict["unit"]
+                if "unit" in moll_kwarg_dict.keys():
+                    cb_params["label"] = moll_kwarg_dict["unit"]
 
             cb = plt.colorbar(
                 im,
@@ -431,13 +437,11 @@ class PlotLambert(BasePlot):
 
     def _gen_default_cb(self, info):
 
-        result = {"labelsize": None, "format": "%i"}
+        result = {"labelsize": None, "format": "%i", "label": "#"}
 
         if info is not None:
             if "metric: unit" in info.keys():
                 result["label"] = info["metric: unit"]
-            else:
-                result["label"] = "#"
 
         return result
 
