@@ -76,11 +76,22 @@ class PlotHourglass(BasePlot):
         return filter2color
 
     def __call__(
-        self, data_slice, fig=None, filter2color=None, title=None, xlabel=None, ylabel=None, **kwargs
+        self,
+        data_slice,
+        fig=None,
+        ax=None,
+        filter2color=None,
+        title=None,
+        xlabel=None,
+        ylabel=None,
     ):
 
         if fig is None:
             fig, ax = plt.subplots()
+
+        if np.sum(np.isfinite(data_slice["night"])) == 0:
+            warnings.warn("No valid data to plot, returning empty figure.")
+            return fig
 
         if filter2color is None:
             filter2color = self._filter_to_color()
