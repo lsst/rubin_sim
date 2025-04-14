@@ -123,7 +123,7 @@ def glance(path=None, quick_test=False):
         sl = maf.Slicer(nside=64)
         hp_array, info = sl(sub_data, metric, info=info)
         pm = maf.PlotMoll(info=info)
-        fig = pm(hp_array, norm="log")
+        fig = pm(hp_array, max=140, min=5)
 
     # ----------------
     # Slew stats
@@ -152,6 +152,21 @@ def glance(path=None, quick_test=False):
     osf = maf.open_shutter_fraction(visits_array["observationStartMJD"], visits_array["visitExposureTime"])
     summary_stats.append(maf.gen_summary_row(info, "OSF", osf))
 
+    # Filter changes per night
+    stats = {"mean": np.mean, "median": np.median, "max": np.max, "min": np.min}
+    info = {"run_name": run_name}
+    fpn = df.groupby("night")["filter"].apply(maf.count_value_changes)
+    pl = maf.PlotLine(info=info)
+    fig = pl(fpn.index, fpn.values, xlabel="Night", ylabel="Filter Changes per Night")
+    for stat in stats:
+        summary_stats.append(maf.gen_summary_row(info, stat, stats[stat](fpn)))
+
+    # Open shutter fraction per night
+    info = {"run_name": run_name}
+    osfpn = df.groupby("night").apply(maf.osf_visit_array)
+    pl = maf.PlotLine(info=info)
+    fig = pl(osfpn.index, osfpn.values, xlabel="Night", ylabel="Open Shutter Fraction per Night")
+
     # Effective exposure time per filter
     for filtername in "ugrizy":
         info = {"run_name": run_name}
@@ -173,9 +188,11 @@ def glance(path=None, quick_test=False):
         info["metric: unit"] = "fraction"
         summary_stats.append(maf.gen_summary_row(info, "fraction", count / n_obs))
 
-    # let's make an hourglass per year
+    # Hourglass per year
     info = {"run_name": run_name}
-    hstart = np.arange(10)
+    min_year = np.floor(visits_array["night"].min() / 365.25)
+    max_year = np.ceil(visits_array["night"].max() / 365.25)
+    hstart = np.arange(min_year, max_year)
     hend = hstart + 1
 
     for start, end in zip(hstart, hend):
