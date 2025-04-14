@@ -1,9 +1,19 @@
-__all__ = ("optimal_bins", "gen_summary_row", "open_shutter_fraction")
+__all__ = (
+    "optimal_bins",
+    "gen_summary_row",
+    "open_shutter_fraction",
+    "count_value_changes",
+    "osf_visit_array",
+)
 
 import copy
 import warnings
 
 import numpy as np
+
+
+def count_value_changes(inarr):
+    return np.sum(inarr[1:].values != inarr[:-1].values)
 
 
 def open_shutter_fraction(exposure_start_mjd, exposure_times, max_gap=10.0):
@@ -14,6 +24,11 @@ def open_shutter_fraction(exposure_start_mjd, exposure_times, max_gap=10.0):
     open_time = np.sum(diff[good]) * 24.0 * 3600.0
     result = np.sum(exposure_times) / float(open_time)
     return result
+
+
+def osf_visit_array(in_array):
+    """Wrapper to make it easy to pandas groupby"""
+    return open_shutter_fraction(in_array["observationStartMJD"], in_array["visitExposureTime"])
 
 
 def gen_summary_row(info, summary_name, value):
