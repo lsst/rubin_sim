@@ -804,7 +804,6 @@ class Sed:
                 )
             # rebin the spectra. Fill with NaNs if there's non-overlap regions.
             flux_grid = spectres(wavelen_grid, wavelen, flux, fill=fill, verbose=False)
-
             # Update self values if necessary.
             if update_self:
                 self.wavelen = wavelen_grid
