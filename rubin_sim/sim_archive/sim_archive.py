@@ -13,7 +13,7 @@ __all__ = [
     "compile_sim_archive_metadata_cli",
     "find_latest_prenight_sim_for_nights",
     "fetch_latest_prenight_sim_for_nights",
-    "fetch_obsloctap_visits"
+    "fetch_obsloctap_visits",
 ]
 
 import argparse
@@ -250,7 +250,7 @@ def make_sim_archive_dir(
     return data_path
 
 
-def transfer_archive_dir(archive_dir, archive_base_uri="s3://rubin-scheduler-prenight/opsim/"):
+def transfer_archive_dir(archive_dir, archive_base_uri="s3://rubin:rubin-scheduler-prenight/opsim/"):
     """Transfer the contents of an archive directory to an resource.
 
     Parameters
@@ -260,7 +260,7 @@ def transfer_archive_dir(archive_dir, archive_base_uri="s3://rubin-scheduler-pre
         transferred.
     archive_base_uri : `str`, optional
         The base URI where the archive files will be transferred to.
-        Default is "s3://rubin-scheduler-prenight/opsim/".
+        Default is "s3://rubin:rubin-scheduler-prenight/opsim/".
 
     Returns
     -------
@@ -405,7 +405,9 @@ def read_archived_sim_metadata(
     """
     latest_mjd = int(Time.now().mjd if latest is None else Time(latest).mjd)
     earliest_mjd = int(latest_mjd - (num_nights - 1))
-    LOGGER.debug(f"Looking for simulation metadata with MJD between {earliest_mjd} and {latest_mjd} in {base_uri}.")
+    LOGGER.debug(
+        f"Looking for simulation metadata with MJD between {earliest_mjd} and {latest_mjd} in {base_uri}."
+    )
 
     compilation = {}
     compiled_uris_by_date = {}
@@ -443,7 +445,7 @@ def read_archived_sim_metadata(
                         LOGGER.debug(f"Found {found_resource}")
                         sim_uri = str(found_resource.dirname())
                         if sim_uri in compilation:
-                            LOGGER.debug(f"Not reading {found_resource}, because it is already in the read compliation.")
+                            LOGGER.debug(f"Not reading {found_resource}, already in the read compliation.")
                             these_metadata = compilation[sim_uri]
                         else:
                             LOGGER.debug(f"Reading {found_resource} (absent from compilation).")
@@ -453,7 +455,9 @@ def read_archived_sim_metadata(
                             )
                             LOGGER.debug(f"Read successfully: {found_resource}")
                             if iso_date < max_compiled_date:
-                                LOGGER.error(f"Simulation at {sim_uri} expected but not found in compilation.")
+                                LOGGER.error(
+                                    f"Simulation at {sim_uri} expected but not found in compilation."
+                                )
                         all_metadata[sim_uri] = these_metadata
             else:
                 LOGGER.debug(f"No simulations found with generation date of {iso_date}")
@@ -470,7 +474,9 @@ def read_archived_sim_metadata(
                         print(message)
                         LOGGER.error(message)
             else:
-                LOGGER.debug(f"Date {iso_date} not expected to be in the metadata compilation, not checking for it.")
+                LOGGER.debug(
+                    f"Date {iso_date} not expected to be in the metadata compilation, not checking for it."
+                )
 
     if len(all_metadata) == 0:
         earliest_iso = Time(earliest_mjd, format="mjd").iso[:10]
@@ -525,7 +531,7 @@ def make_sim_archive_cli(*args):
     parser.add_argument(
         "--archive_base_uri",
         type=str,
-        default="s3://rubin-scheduler-prenight/opsim/",
+        default="s3://rubin:rubin-scheduler-prenight/opsim/",
         help="Base URI for the archive",
     )
     parser.add_argument("--tags", type=str, default=[], nargs="*", help="The tags on the simulation.")
@@ -970,7 +976,9 @@ def compile_sim_archive_metadata_cli(*args):
 
     log_file = os.environ.get("SIM_ARCHIVE_LOG_FILE", None)
     if log_file is not None:
-        logging.basicConfig(filename=log_file, format="%(asctime)s: %(message)s", datefmt="%Y-%m-%dT%H:%M:%S%z")
+        logging.basicConfig(
+            filename=log_file, format="%(asctime)s: %(message)s", datefmt="%Y-%m-%dT%H:%M:%S%z"
+        )
     else:
         logging.basicConfig(level=logging.INFO)
 
