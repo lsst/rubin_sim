@@ -15,6 +15,7 @@ import lzma
 import os
 import pickle
 import typing
+import warnings
 from datetime import datetime
 from functools import partial
 from tempfile import TemporaryFile
@@ -45,7 +46,7 @@ try:
 except ModuleNotFoundError:
     get_baseline = partial(warn, "Cannot find default baseline because rubin_sim is not installed.")
 
-DEFAULT_ARCHIVE_URI = "s3://rubin-scheduler-prenight/opsim/"
+DEFAULT_ARCHIVE_URI = "s3://rubin:rubin-scheduler-prenight/opsim/"
 
 
 def _run_sim(
@@ -343,6 +344,31 @@ def prenight_sim_cli(cli_args: list = []) -> None:
     )
     parser.add_argument("--scheduler", type=str, default=None, help="pickle file of the scheduler to run.")
     parser.add_argument("--config_version", type=str, default=None, help="Version of ts_config_ocs used.")
+
+    # Configure logging
+    stream_handler = logging.StreamHandler()
+    stream_handler.setLevel(logging.INFO)
+    log_handlers = [stream_handler]
+
+    log_file = os.environ.get("PRENIGHT_LOG_FILE", None)
+    if log_file is not None:
+        file_handler = logging.FileHandler(log_file, mode="w")
+        file_handler.setLevel(logging.DEBUG)
+        log_handlers.append(file_handler)
+
+    logging.basicConfig(
+        level=logging.DEBUG,
+        format="%(asctime)s: %(message)s",
+        datefmt="%Y-%m-%dT%H:%M:%S%z",
+        handlers=[stream_handler, file_handler],
+    )
+
+    # FIXME
+    warnings.filterwarnings(
+        "ignore",
+        category=UserWarning,
+        message="IntRounded being used with a potentially too-small scale factor.",
+    )
 
     # Only pass a default if we have an opsim
     baseline = get_baseline()
