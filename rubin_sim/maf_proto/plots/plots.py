@@ -9,7 +9,7 @@ import numpy as np
 import rubin_scheduler.utils as utils
 from matplotlib import ticker
 
-from rubin_sim.maf_proto.utils import optimal_bins
+from rubin_sim.maf_proto.utils import optimal_bins, fO_calcs
 
 
 class BasePlot(object):
@@ -552,16 +552,24 @@ class PlotFo(BasePlot):
 
         return result
 
-    def __call__(self, nvisits_hparray, fig=None, ax=None, title=None, xlabel=None, ylabel=None, **kwargs):
+    def __call__(self, nvisits_hparray, fig=None, ax=None, title=None, xlabel=None, ylabel=None, 
+                 n_visits=750, asky=18000, reflinewidth=2, linewidth=3, color='k', 
+                 xmin=0, xmax=1000, **kwargs):
         """
         Parameters
         ----------
         nvisits_hparray : `np.array`
             Healpix array with the number of visits per HEALpix.
+        nvisits : `int`
+            The number of visits to consider as the threshold for FO.
+        asky : `float`
+            Area of sky to use when calculating FO. Default 18000 (sq degrees)
         """
-        order = np.argsort(nvisits_hparray)
+        
         pix_area = hp.nside2pixarea(hp.npix2nside(np.size(nvisits_hparray)), degrees=True)
-        cumulative_area_scaled = np.arange(1, order.size + 1, 1) * pix_area / self.scale
+        nvisits_hparray_finite = nvisits_hparray[np.isfinite(nvisits_hparray)]
+        order = np.argsort(nvisits_hparray_finite)
+        cumulative_area = np.arange(1, order.size + 1, 1) * pix_area
 
         if fig is None:
             fig, ax = plt.subplots()
@@ -572,13 +580,40 @@ class PlotFo(BasePlot):
             if overrides[key] is not None:
                 plot_dict[key] = overrides[key]
 
-        ax.plot(nvisits_hparray[order[::-1]], cumulative_area_scaled, **kwargs)
+        # Median number of visits in the top area
+        fo_dict = fO_calcs(nvisits_hparray, asky=asky, n_visit=n_visits)
+        nvis_median = fo_dict["Median N visits in top area"]
+        f_o_area = fo_dict["Area above %i (sq deg)" % n_visits]
+
+        ax.plot(nvisits_hparray_finite[order[::-1]], cumulative_area / self.scale, linewidth=linewidth,
+                color=color, **kwargs)
 
         ax.set_title(plot_dict["title"])
         ax.set_xlabel(plot_dict["xlabel"])
         ax.set_ylabel(plot_dict["ylabel"])
+        ax.set_xlim([xmin, xmax])
+
+        ax.axvline(x=n_visits, linewidth=reflinewidth, color="b", linestyle=":")
+        ax.axhline(y=asky / self.scale, linewidth=reflinewidth, color="r", linestyle=":")
 
         # Add in the reference lines.
+        ax.axvline(
+            x=nvis_median,
+            linewidth=reflinewidth,
+            color="b",
+            alpha=0.5,
+            linestyle="-",
+            label=f"f$_0$ Med. Nvis. (@ {asky/1000 :.0f}K sq deg) = {nvis_median :.0f} visits",
+        )
+
+        ax.axhline(
+            y=f_o_area / self.scale,
+            linewidth=reflinewidth,
+            color="r",
+            alpha=0.5,
+            linestyle="-",
+            label=f"f$_0$ Area (@ {n_visits :.0f} visits) = {f_o_area/1000 :.01f}K sq deg",
+        )
 
         ax.legend(loc="upper right", fontsize="small", numpoints=1, framealpha=1.0)
 
