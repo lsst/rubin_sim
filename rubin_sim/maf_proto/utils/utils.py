@@ -4,12 +4,37 @@ __all__ = (
     "open_shutter_fraction",
     "count_value_changes",
     "osf_visit_array",
+    "fO_calcs"
 )
 
 import copy
 import warnings
 
 import numpy as np
+import healpy as hp
+
+
+def fO_calcs(nvis_hp, asky=18000.0, n_visit=750):
+    """
+    """
+    nside = hp.npix2nside(nvis_hp.size)
+    scale = hp.nside2pixarea(nside, degrees=True)
+    npix_asky = int(np.ceil(asky / scale))
+
+    nvis_sorted = np.sort(nvis_hp)
+    nvis_sorted = nvis_sorted[np.isfinite(nvis_sorted)]
+    if nvis_sorted.size >= npix_asky:
+        nvis_asky = nvis_sorted[-npix_asky:]
+    else:
+        nvis_asky = 0
+
+    result = {"Median N visits in top area": np.median(nvis_asky)}
+    result["Min N visits in top area"] = np.min(nvis_asky)
+
+    nvis_min = np.where(nvis_sorted >= n_visit)[0]
+    result["Area above %i (sq deg)" % n_visit] = nvis_min.size * scale
+
+    return result
 
 
 def count_value_changes(inarr):
