@@ -1,11 +1,13 @@
 __all__ = (
     "ObservationStartDatetime64Stacker",
+    "ObservationStartTimestampStacker",
     "DayObsStacker",
     "DayObsMJDStacker",
     "DayObsISOStacker",
 )
 
 import numpy as np
+import pandas as pd
 from astropy.time import Time
 
 from .base_stacker import BaseStacker
@@ -32,6 +34,48 @@ class ObservationStartDatetime64Stacker(BaseStacker):
             return sim_data
 
         sim_data["observationStartDatetime64"] = Time(sim_data[self.mjd_col], format="mjd").datetime64
+
+        return sim_data
+
+
+class ObservationStartTimestampStacker(BaseStacker):
+    """Add the observation start time as a pandas.Timestamp."""
+
+    cols_added = ["start_timestamp"]
+
+    def __init__(
+        self,
+        mjd_col="observationStartMJD",
+    ):
+        self.mjd_col = mjd_col
+        self.cols_req = [self.mjd_col]
+        self.units = [None]
+        self.cols_added_dtypes = ["datetime64[ns]"]
+
+    def _run(self, sim_data, cols_present=False):
+        if cols_present:
+            # Column already present in data; assume it is correct and does not
+            # need recalculating.
+            return sim_data
+
+        if len(sim_data[self.mjd_col]) > 0:
+            empty_series = pd.to_datetime(
+                sim_data[self.mjd_col] + 2400000.5, origin="julian", unit="D", utc=True
+            )
+        else:
+            # If we are passed an empty series, be sure to return add an empty
+            # series of the correct type back.
+            # This is handy if the result is being passed to bokeh
+            # for plotting.
+            empty_series = pd.to_datetime(2460000.5, origin="julian", unit="D", utc=True)
+
+        match sim_data[self.mjd_col]:
+            case pd.Series():
+                sim_data["start_timestamp"] = empty_series
+            case np.ndarray():
+                sim_data["start_timestamp"] = empty_series.values
+            case _:
+                sim_data["start_timestamp"] = empty_series.values
 
         return sim_data
 
