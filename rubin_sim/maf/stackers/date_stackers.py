@@ -50,7 +50,7 @@ class ObservationStartTimestampStacker(BaseStacker):
         self.mjd_col = mjd_col
         self.cols_req = [self.mjd_col]
         self.units = [None]
-        self.cols_added_dtypes = ["datetime64[ns]"]
+        self.cols_added_dtypes = ['O']
 
     def _run(self, sim_data, cols_present=False):
         if cols_present:
@@ -79,6 +79,36 @@ class ObservationStartTimestampStacker(BaseStacker):
 
         return sim_data
 
+    def run(self, sim_data, override=False):
+        # Override the run from the base class, not _run,
+        # because the implementation
+        # of _add_stackers_cols in run in the base closs
+        # clobbers the type for the new column,
+        # which we really need.
+
+        visits = sim_data if isinstance(sim_data, pd.DataFrame) else pd.DataFrame(sim_data)
+
+        if 'start_timestamp' in visits.columns and not override:
+            return sim_data
+
+        if len(visits[self.mjd_col]) > 0:
+            visits['start_timestamp'] = pd.to_datetime(
+                visits[self.mjd_col] + 2400000.5, origin="julian", unit="D", utc=True
+            )
+        else:
+            # If we are passed an empty series, be sure to return add an empty
+            # series of the correct type back.
+            # This is handy if the result is being passed to bokeh
+            # for plotting.
+            visits['start_timestamp'] = pd.to_datetime(2460000.5, origin="julian", unit="D", utc=True)
+
+        match sim_data:
+            case pd.DataFrame():
+                return visits
+            case dict():
+                return visits.to_dict()
+            case _:
+                return visits.to_records(index=False)
 
 def _compute_day_obs_mjd(mjd):
     day_obs_mjd = np.floor(mjd - 0.5).astype("int")
