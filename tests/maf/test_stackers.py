@@ -299,6 +299,19 @@ class TestStackerClasses(unittest.TestCase):
         recovered_mjd = Time(value["observationStartDatetime64"], format="datetime64").mjd
         assert np.allclose(recovered_mjd, data["observationStartMJD"])
 
+    def test_observation_start_timestamp_stacker(self):
+        rng = np.random.default_rng(seed=6563)
+        num_points = 5
+        data = np.zeros(
+            num_points,
+            dtype=list(zip(["observationStartMJD"], [float])),
+        )
+        data["observationStartMJD"] = 61000 + 3000 * rng.random(num_points)
+
+        stacker = stackers.ObservationStartTimestampStacker("observationStartMJD")
+        value = stacker.run(data)
+        assert "start_timestamp" in value.columns
+
     def test_day_obs_stackers(self):
         rng = np.random.default_rng(seed=6563)
         num_points = 5
