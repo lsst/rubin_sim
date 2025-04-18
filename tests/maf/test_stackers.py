@@ -4,6 +4,7 @@ import unittest
 import warnings
 
 import numpy as np
+import pandas as pd
 from astropy import units as u
 from astropy.coordinates import SkyCoord
 from astropy.time import Time
@@ -302,15 +303,36 @@ class TestStackerClasses(unittest.TestCase):
     def test_observation_start_timestamp_stacker(self):
         rng = np.random.default_rng(seed=6563)
         num_points = 5
-        data = np.zeros(
-            num_points,
-            dtype=list(zip(["observationStartMJD"], [float])),
-        )
-        data["observationStartMJD"] = 61000 + 3000 * rng.random(num_points)
+
+        data = pd.DataFrame({
+            'id': np.arange(num_points),
+            'observationStartMJD': 61000 + 3000 * rng.random(num_points)
+        })
 
         stacker = stackers.ObservationStartTimestampStacker("observationStartMJD")
         value = stacker.run(data)
-        assert "start_timestamp" in value.columns
+        assert value.start_timestamp.dtype == 'datetime64[ns, UTC]'
+        assert isinstance(value.start_timestamp[0], pd.Timestamp)
+
+        data = pd.DataFrame({
+            'id': np.arange(num_points),
+            'observationStartMJD': 61000 + 3000 * rng.random(num_points)
+        }).to_records(index=False)
+        stacker = stackers.ObservationStartTimestampStacker("observationStartMJD")
+        raw_value = stacker.run(data)
+        value = pd.DataFrame(raw_value)
+        assert value.start_timestamp.dtype == 'datetime64[ns, UTC]'
+        assert isinstance(value.start_timestamp[0], pd.Timestamp)
+
+        data = {
+            'id': np.arange(num_points),
+            'observationStartMJD': 61000 + 3000 * rng.random(num_points)
+        }
+        stacker = stackers.ObservationStartTimestampStacker("observationStartMJD")
+        raw_value = stacker.run(data)
+        value = pd.DataFrame(raw_value)
+        assert value.start_timestamp.dtype == 'datetime64[ns, UTC]'
+        assert isinstance(value.start_timestamp[0], pd.Timestamp)
 
     def test_day_obs_stackers(self):
         rng = np.random.default_rng(seed=6563)
