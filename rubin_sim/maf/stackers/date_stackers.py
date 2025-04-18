@@ -71,11 +71,11 @@ class ObservationStartTimestampStacker(BaseStacker):
 
         match sim_data[self.mjd_col]:
             case pd.Series():
-                sim_data[self.mjd_col] = empty_series
+                sim_data["start_timestamp"] = empty_series
             case np.ndarray():
-                sim_data[self.mjd_col] = empty_series.values
+                sim_data["start_timestamp"] = empty_series.values
             case _:
-                sim_data[self.mjd_col] = empty_series.values
+                sim_data["start_timestamp"] = empty_series.values
 
         return sim_data
 
