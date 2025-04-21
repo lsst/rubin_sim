@@ -304,34 +304,29 @@ class TestStackerClasses(unittest.TestCase):
         rng = np.random.default_rng(seed=6563)
         num_points = 5
 
-        data = pd.DataFrame({
-            'id': np.arange(num_points),
-            'observationStartMJD': 61000 + 3000 * rng.random(num_points)
-        })
+        data = pd.DataFrame(
+            {"id": np.arange(num_points), "observationStartMJD": 61000 + 3000 * rng.random(num_points)}
+        )
 
         stacker = stackers.ObservationStartTimestampStacker("observationStartMJD")
         value = stacker.run(data)
-        assert value.start_timestamp.dtype == 'datetime64[ns, UTC]'
+        assert value.start_timestamp.dtype == "datetime64[ns, UTC]"
         assert isinstance(value.start_timestamp[0], pd.Timestamp)
 
-        data = pd.DataFrame({
-            'id': np.arange(num_points),
-            'observationStartMJD': 61000 + 3000 * rng.random(num_points)
-        }).to_records(index=False)
+        data = pd.DataFrame(
+            {"id": np.arange(num_points), "observationStartMJD": 61000 + 3000 * rng.random(num_points)}
+        ).to_records(index=False)
         stacker = stackers.ObservationStartTimestampStacker("observationStartMJD")
         raw_value = stacker.run(data)
         value = pd.DataFrame(raw_value)
-        assert value.start_timestamp.dtype == 'datetime64[ns, UTC]'
+        assert value.start_timestamp.dtype == "datetime64[ns, UTC]"
         assert isinstance(value.start_timestamp[0], pd.Timestamp)
 
-        data = {
-            'id': np.arange(num_points),
-            'observationStartMJD': 61000 + 3000 * rng.random(num_points)
-        }
+        data = {"id": np.arange(num_points), "observationStartMJD": 61000 + 3000 * rng.random(num_points)}
         stacker = stackers.ObservationStartTimestampStacker("observationStartMJD")
         raw_value = stacker.run(data)
         value = pd.DataFrame(raw_value)
-        assert value.start_timestamp.dtype == 'datetime64[ns, UTC]'
+        assert value.start_timestamp.dtype == "datetime64[ns, UTC]"
         assert isinstance(value.start_timestamp[0], pd.Timestamp)
 
     def test_day_obs_stackers(self):
