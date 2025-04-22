@@ -344,6 +344,7 @@ def prenight_sim_cli(cli_args: list = []) -> None:
     )
     parser.add_argument("--scheduler", type=str, default=None, help="pickle file of the scheduler to run.")
     parser.add_argument("--config_version", type=str, default=None, help="Version of ts_config_ocs used.")
+    parser.add_argument("--telescope", type=str, default=None, help="Telescope scheduled.")
 
     # Configure logging
     stream_handler = logging.StreamHandler()
@@ -388,6 +389,7 @@ def prenight_sim_cli(cli_args: list = []) -> None:
     opsim_db = None if args.opsim in ("", "None") else args.opsim
 
     scheduler_file = args.scheduler
+    opsim_metadata = {"telescope": args.telescope}
     if args.repo is not None:
         if os.path.exists(scheduler_file):
             raise ValueError(f"File {scheduler_file} already exists!")
@@ -395,24 +397,26 @@ def prenight_sim_cli(cli_args: list = []) -> None:
         if args.config_version is not None:
             scheduler: CoreScheduler = get_scheduler_instance_from_path(args.script)
             save_scheduler(scheduler, scheduler_file)
-            opsim_metadata = {
-                "opsim_config_repository": args.repo,
-                "opsim_config_script": args.script,
-                "opsim_config_version": args.config_version,
-            }
+            opsim_metadata.update(
+                {
+                    "opsim_config_repository": args.repo,
+                    "opsim_config_script": args.script,
+                    "opsim_config_version": args.config_version,
+                }
+            )
         elif args.branch is not None:
             scheduler: CoreScheduler = get_scheduler(args.repo, args.script, args.branch)
             save_scheduler(scheduler, scheduler_file)
 
-            opsim_metadata = {
-                "opsim_config_repository": args.repo,
-                "opsim_config_script": args.script,
-                "opsim_config_branch": args.branch,
-            }
+            opsim_metadata.update(
+                {
+                    "opsim_config_repository": args.repo,
+                    "opsim_config_script": args.script,
+                    "opsim_config_branch": args.branch,
+                }
+            )
         else:
             raise ValueError("Either the branch or the version of ts_ocs_config must be specified")
-    else:
-        opsim_metadata = None
 
     run_prenights(
         day_obs_mjd,

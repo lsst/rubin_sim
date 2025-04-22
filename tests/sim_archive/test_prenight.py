@@ -25,4 +25,5 @@ class TestPrenight(unittest.TestCase):
     def test_prenight(self):
         with TemporaryDirectory() as test_archive_dir:
             archive_uri = ResourcePath(test_archive_dir).geturl()  # type: ignore
-            prenight_sim_cli("--archive", archive_uri)
+            prenight_sim_cli(["--archive", archive_uri, "--telescope", "simonyi"])
+            pass
