@@ -29,6 +29,7 @@ conda activate /sdf/data/rubin/shared/scheduler/envs/prenight
 
 set -o xtrace
 
+export TELESCOPE=$1
 export AWS_PROFILE=prenight
 WORK_DIR=$(date '+/sdf/data/rubin/shared/scheduler/prenight/work/run_prenight_sims/%Y-%m-%dT%H%M%S' --utc)
 echo "Working in $WORK_DIR"
