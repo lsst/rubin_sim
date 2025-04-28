@@ -1057,7 +1057,7 @@ def find_latest_prenight_sim_for_nights(
             continue
         if sim["simulated_dates"]["last"] < last_day_obs:
             continue
-        if "telescope" in sim and sim["telescope"] != telescope:
+        if "telescope" in sim and sim["telescope"].lower() != telescope.lower():
             continue
         if not set(tags).issubset(sim["tags"]):
             continue
