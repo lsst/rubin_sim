@@ -28,8 +28,8 @@ def fO_calcs(nvis_hp, asky=18000.0, n_visit=750):
     else:
         nvis_asky = 0
 
-    result = {"Median N visits in top area": np.median(nvis_asky)}
-    result["Min N visits in top area"] = np.min(nvis_asky)
+    result = {"Median N visits in top %ik sq deg" % (asky/1e3): np.median(nvis_asky)}
+    result["Min N visits in top %ik sq deg" % (asky/1e3)] = np.min(nvis_asky)
 
     nvis_min = np.where(nvis_sorted >= n_visit)[0]
     result["Area above %i (sq deg)" % n_visit] = nvis_min.size * scale
