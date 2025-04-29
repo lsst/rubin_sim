@@ -582,7 +582,7 @@ class PlotFo(BasePlot):
 
         # Median number of visits in the top area
         fo_dict = fO_calcs(nvisits_hparray, asky=asky, n_visit=n_visits)
-        nvis_median = fo_dict["Median N visits in top area"]
+        nvis_median = fo_dict["Median N visits in top %ik sq deg" % (asky/1e3)]
         f_o_area = fo_dict["Area above %i (sq deg)" % n_visits]
 
         ax.plot(nvisits_hparray_finite[order[::-1]], cumulative_area / self.scale, linewidth=linewidth,
