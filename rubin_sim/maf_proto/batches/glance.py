@@ -188,7 +188,7 @@ def glance(path=None, quick_test=False):
 
     # Open shutter fraction per night
     info = {"run_name": run_name}
-    osfpn = df.groupby("night").apply(maf.osf_visit_array)
+    osfpn = df.groupby("night").apply(maf.osf_visit_array, include_groups=False)
     pl = maf.PlotLine(info=info)
     fig = pl(osfpn.index, osfpn.values, xlabel="Night", ylabel="Open Shutter Fraction per Night")
 
