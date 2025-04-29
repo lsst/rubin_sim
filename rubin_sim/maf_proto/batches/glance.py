@@ -86,22 +86,19 @@ def glance(path=None, quick_test=False):
     for stat in stats_to_run:
         summary_stats.append(maf.gen_summary_row(info, stat, stats_to_run[stat](counts_hp_array)))
 
-
     # Now make counts for FO, and make FO plot
     info = {"run_name": run_name}
     info["observations_subset"] = "Exptime > 19s"
     subset = visits_array[np.where(visits_array["visitExposureTime"] > 19)]
-    #info["observations_subset"] = "all"
-    #subset = visits_array
     metric = maf.CountMetric()
     sl = maf.Slicer(nside=64)
     counts_hp_array, info = sl(subset, metric, info=info)
     po = maf.PlotFo(info=info)
     fig = po(counts_hp_array)
-
     # FO stats
     fo_stats = maf.fO_calcs(counts_hp_array)
-    # XXX--write these to the summary stats
+    for key in fo_stats:
+        summary_stats.append(maf.gen_summary_row(info, key, fo_stats[key]))
 
     # ----------------
     # Number of observations in alt,az
