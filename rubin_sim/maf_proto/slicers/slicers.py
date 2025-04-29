@@ -1,4 +1,4 @@
-__all__ = ("Slicer",)
+__all__ = ("Slicer", "UserSlicer")
 
 import copy
 import warnings
@@ -21,9 +21,6 @@ class Slicer(object):
         Name of the rotSkyPos column in the input  data.
         Only used if use_camera is True.
         Describes the orientation of the camera orientation on the sky.
-    lat_lon_deg : `bool`, optional
-        Flag indicating whether lat and lon values from input data are
-        in degrees (True) or radians (False).
     missing : `float`, optional
         Bad value flag, relevant for plotting.
     leafsize : `int`, optional
@@ -43,7 +40,6 @@ class Slicer(object):
         nside=128,
         lon_col="fieldRA",
         lat_col="fieldDec",
-        lat_lon_deg=True,
         leafsize=100,
         radius=2.45,
         use_camera=True,
@@ -54,10 +50,8 @@ class Slicer(object):
     ):
 
         self.nside = int(nside)
-        self.pix_area = hp.nside2pixarea(self.nside)
         self.nslice = hp.nside2npix(self.nside)
         self.shape = self.nslice
-        self.lat_lon_deg = lat_lon_deg
 
         self.lon_col = lon_col
         self.lat_col = lat_col
@@ -90,9 +84,9 @@ class Slicer(object):
         return self
 
     def __next__(self):
-        """Returns results of self._slice_sim_data when iterating over slicer.
+        """Returns results of self._slice_data when iterating over slicer.
 
-        Results of self._slice_sim_data should be dictionary of
+        Results of self._slice_data should be dictionary of
         {'idxs': the data indexes relevant for this slice of the slicer,
         'slice_point': the metadata for the slice_point, which always
         includes 'sid' key for ID of slice_point.}
@@ -101,35 +95,31 @@ class Slicer(object):
             raise StopIteration
         islice = self.islice
         self.islice += 1
-        return self._slice_sim_data(islice)
+        return self._slice_data(islice)
 
     def __getitem__(self, islice):
-        return self._slice_sim_data(islice)
+        return self._slice_data(islice)
 
-    def setup_slicer(self, sim_data):
+    def setup_slicer(self, pointings_data):
         """set up KDTree.
 
         Parameters
         -----------
-        sim_data : `numpy.ndarray`
-            The simulated data, including the location of each pointing.
+        pointings_data : `numpy.ndarray`
+            Array with location and camera rotation of each pointing.
         """
         self._set_rad(self.radius)
 
-        if self.lat_lon_deg:
-            self.data_ra = np.radians(sim_data[self.lon_col])
-            self.data_dec = np.radians(sim_data[self.lat_col])
-            self.data_rot = np.radians(sim_data[self.rot_sky_pos_col_name])
-        else:
-            self.data_ra = sim_data[self.lon_col]
-            self.data_dec = sim_data[self.lat_col]
-            self.data_rot = sim_data[self.rot_sky_pos_col_name]
+        self.data_ra_rad = np.radians(pointings_data[self.lon_col])
+        self.data_dec_rad = np.radians(pointings_data[self.lat_col])
+        self.data_rot_rad = np.radians(pointings_data[self.rot_sky_pos_col_name])
+    
         if self.use_camera:
             self._setupLSSTCamera()
 
-        self._build_tree(self.data_ra, self.data_dec, self.leafsize)
+        self._build_tree(self.data_ra_rad, self.data_dec_rad, self.leafsize)
 
-        def _slice_sim_data(islice):
+        def _slice_data(islice):
             """Return indexes for relevant opsim data at slice_point
             (slice_point=lon_col/lat_col value .. usually ra/dec).
             """
@@ -140,7 +130,7 @@ class Slicer(object):
                 self.slice_points["ra"][islice], self.slice_points["dec"][islice]
             )
             # Query against tree.
-            indices = self.opsimtree.query_ball_point((sx, sy, sz), self.rad)
+            indices = self.opsimtree.query_ball_point((sx, sy, sz), self.rad_deg)
 
             if (self.use_camera) & (len(indices) > 0):
                 # Find the indices *of those indices*
@@ -148,9 +138,9 @@ class Slicer(object):
                 camera_idx = self.camera(
                     self.slice_points["ra"][islice],
                     self.slice_points["dec"][islice],
-                    self.data_ra[indices],
-                    self.data_dec[indices],
-                    self.data_rot[indices],
+                    self.data_ra_rad[indices],
+                    self.data_dec_rad[indices],
+                    self.data_rot_rad[indices],
                 )
                 indices = np.array(indices)[camera_idx]
 
@@ -169,23 +159,29 @@ class Slicer(object):
                     slice_point[key] = self.slice_points[key]
             return {"idxs": indices, "slice_point": slice_point}
 
-        setattr(self, "_slice_sim_data", _slice_sim_data)
+        setattr(self, "_slice_data", _slice_data)
 
     def _setupLSSTCamera(self):
         """If we want to include the camera chip gaps, etc."""
         self.camera = utils.LsstCameraFootprint(units="radians", footprint_file=self.camera_footprint_file)
 
-    def _build_tree(self, sim_data_ra, sim_data_dec, leafsize=100):
+    def _build_tree(self, ra_rad, dec_rad, leafsize=100):
         """Build KD tree on sim_dataRA/Dec.
-
-        sim_dataRA, sim_dataDec = RA and Dec values (in radians).
-        leafsize = the number of Ra/Dec pointings in each leaf node.
+        
+        Parameters
+        ----------
+        ra_rad : `numpy.array`
+            RA of points (radians)
+        dec_rad : `numpy.array`
+            Dec of points (radians)
+        leafsize : `int`
+            Number of Ra/Dec pointings in each leaf node.
         """
-        self.opsimtree = utils._build_tree(sim_data_ra, sim_data_dec, leafsize)
+        self.opsimtree = utils._build_tree(ra_rad, dec_rad, leafsize)
 
     def _set_rad(self, radius=1.75):
         """Set radius (in degrees) for kdtree search."""
-        self.rad = utils.xyz_angular_radius(radius)
+        self.rad_deg = utils.xyz_angular_radius(radius)
 
     def add_info(self, info):
         info["slicer: nside"] = self.nside
@@ -291,3 +287,55 @@ class Slicer(object):
             if len(results) == 1:
                 return results[0], final_info[0]
             return results, final_info
+
+
+class UserSlicer(Slicer):
+    """For looping over a user-defined set of points.
+
+    Parameters
+    ----------
+    ra : `np.array`
+        The RA points to loop over (degrees).
+    dec : `np.array`
+        The dec points to loop over (degrees).
+    """
+
+    def __init__(
+        self,
+        ra,
+        dec,
+        lon_col="fieldRA",
+        lat_col="fieldDec",
+        leafsize=100,
+        radius=2.45,
+        use_camera=True,
+        camera_footprint_file=None,
+        rot_sky_pos_col_name="rotSkyPos",
+        missing=np.nan,
+        cache=False,
+    ):
+
+        super().__init__(
+            lon_col=lon_col,
+            lat_col=lat_col,
+            leafsize=leafsize,
+            radius=radius,
+            use_camera=use_camera,
+            camera_footprint_file=camera_footprint_file,
+            rot_sky_pos_col_name=rot_sky_pos_col_name,
+            missing=missing,
+            cache=cache,
+        )
+
+        # Remove the things that were set for a
+        # specific nside
+        del self.nside
+        self.nslice = np.size(ra)
+        self.shape = self.nslice
+
+        # Set up slice_point
+        self.slice_points = {}
+        self.slice_points["nside"] = None
+        self.slice_points["sid"] = np.arange(self.nslice)
+        self.slice_points["ra"] = np.radians(ra)
+        self.slice_points["dec"] = np.radians(dec)
