@@ -1,5 +1,6 @@
-import numpy as np
 import unittest
+
+import numpy as np
 
 import rubin_sim.maf_proto as maf
 

@@ -9,7 +9,7 @@ import numpy as np
 import rubin_scheduler.utils as utils
 from matplotlib import ticker
 
-from rubin_sim.maf_proto.utils import optimal_bins, fO_calcs
+from rubin_sim.maf_proto.utils import fO_calcs, optimal_bins
 
 
 class BasePlot(object):
@@ -552,9 +552,23 @@ class PlotFo(BasePlot):
 
         return result
 
-    def __call__(self, nvisits_hparray, fig=None, ax=None, title=None, xlabel=None, ylabel=None, 
-                 n_visits=750, asky=18000, reflinewidth=2, linewidth=3, color='k', 
-                 xmin=0, xmax=1000, **kwargs):
+    def __call__(
+        self,
+        nvisits_hparray,
+        fig=None,
+        ax=None,
+        title=None,
+        xlabel=None,
+        ylabel=None,
+        n_visits=750,
+        asky=18000,
+        reflinewidth=2,
+        linewidth=3,
+        color="k",
+        xmin=0,
+        xmax=1000,
+        **kwargs,
+    ):
         """
         Parameters
         ----------
@@ -565,7 +579,7 @@ class PlotFo(BasePlot):
         asky : `float`
             Area of sky to use when calculating FO. Default 18000 (sq degrees)
         """
-        
+
         pix_area = hp.nside2pixarea(hp.npix2nside(np.size(nvisits_hparray)), degrees=True)
         nvisits_hparray_finite = nvisits_hparray[np.isfinite(nvisits_hparray)]
         order = np.argsort(nvisits_hparray_finite)
@@ -582,11 +596,16 @@ class PlotFo(BasePlot):
 
         # Median number of visits in the top area
         fo_dict = fO_calcs(nvisits_hparray, asky=asky, n_visit=n_visits)
-        nvis_median = fo_dict["Median N visits in top %ik sq deg" % (asky/1e3)]
+        nvis_median = fo_dict["Median N visits in top %ik sq deg" % (asky / 1e3)]
         f_o_area = fo_dict["Area above %i (sq deg)" % n_visits]
 
-        ax.plot(nvisits_hparray_finite[order[::-1]], cumulative_area / self.scale, linewidth=linewidth,
-                color=color, **kwargs)
+        ax.plot(
+            nvisits_hparray_finite[order[::-1]],
+            cumulative_area / self.scale,
+            linewidth=linewidth,
+            color=color,
+            **kwargs,
+        )
 
         ax.set_title(plot_dict["title"])
         ax.set_xlabel(plot_dict["xlabel"])

@@ -113,7 +113,7 @@ class Slicer(object):
         self.data_ra_rad = np.radians(pointings_data[self.lon_col])
         self.data_dec_rad = np.radians(pointings_data[self.lat_col])
         self.data_rot_rad = np.radians(pointings_data[self.rot_sky_pos_col_name])
-    
+
         if self.use_camera:
             self._setupLSSTCamera()
 
@@ -167,7 +167,7 @@ class Slicer(object):
 
     def _build_tree(self, ra_rad, dec_rad, leafsize=100):
         """Build KD tree on sim_dataRA/Dec.
-        
+
         Parameters
         ----------
         ra_rad : `numpy.array`
