@@ -10,18 +10,46 @@ import pandas as pd
 import rubin_sim.maf_proto as maf
 from rubin_sim.data import get_baseline
 
+DAYS_IN_YEAR = 365.25
 
-def glance(path=None, quick_test=False):
 
-    if path is None:
-        path = get_baseline()
-    run_name = basename(path).replace(".db", "")
-    con = sqlite3.connect(path)
-    # Dataframe is handy for some calcs
-    if quick_test:
-        df = pd.read_sql("select * from observations where night < 61;", con)
+class DoNothing:
+    def __call__(*args, **kwargs):
+        pass
+
+
+def glance(observations=None, run_name=None, quick_test=False, fig_saver=None):
+    """Run some glance metrics
+
+    Parameters
+    ----------
+    data : `str` or `pandas.DataFrame`
+        Path to database file or . If None, grabs the current baseline
+        simulation
+    run_name : `str`
+        run name to use. Default None pulls name from database file.
+    quick_test : `bool`
+        If True, grabs just the first 61 days of observations. Default False.
+    fig_saver : `rubin_sim.maf_proto.db.FigSaver`
+        Class that takes matplotlib.Figure objects and saves them. Default None.
+    """
+    if fig_saver is None:
+        fig_saver = DoNothing()
+
+    if observations is None:
+        observations = get_baseline()
+    if run_name is None:
+        run_name = basename(observations).replace(".db", "")
+
+    if isinstance(observations, str):
+        con = sqlite3.connect(observations)
+        # Dataframe is handy for some calcs
+        if quick_test:
+            df = pd.read_sql("select * from observations where night < 61;", con)
+        else:
+            df = pd.read_sql("select * from observations;", con)
     else:
-        df = pd.read_sql("select * from observations;", con)
+        df = observations
 
     # Add any new columns we need
     df["t_eff_normed"] = maf.t_eff(
@@ -70,6 +98,7 @@ def glance(path=None, quick_test=False):
         for hp_array, metric, info, plot_dict in zip(hp_arrays, metrics, infos, plot_dicts):
             pm = maf.PlotMoll(info=info)
             fig = pm(hp_array, **plot_dict)
+            fig_saver(fig, info=info)
             # XXX--send fig to dir and db at this point if desired
             # Do whatever stats we want on the hp_array
             for stat in stats_to_run:
@@ -77,12 +106,13 @@ def glance(path=None, quick_test=False):
 
     # Number of obs, all filters
     info = {"run_name": run_name}
-    info["observations_subset"] = "All" 
+    info["observations_subset"] = "All"
     metric = maf.CountMetric()
     sl = maf.Slicer(nside=64)
     counts_hp_array, info = sl(visits_array, metric, info=info)
     pm = maf.PlotMoll(info=info)
     fig = pm(counts_hp_array, log=True, norm="log", cb_params={"format": "%i", "n_ticks": 4})
+    fig_saver(fig, info=info)
     for stat in stats_to_run:
         summary_stats.append(maf.gen_summary_row(info, stat, stats_to_run[stat](counts_hp_array)))
 
@@ -95,6 +125,7 @@ def glance(path=None, quick_test=False):
     counts_hp_array, info = sl(subset, metric, info=info)
     po = maf.PlotFo(info=info)
     fig = po(counts_hp_array)
+    fig_saver(fig, info=info)
     # FO stats
     fo_stats = maf.fO_calcs(counts_hp_array)
     for key in fo_stats:
@@ -127,17 +158,18 @@ def glance(path=None, quick_test=False):
         hp_array, info = sl(sub_data, metric, info=info)
         plam = maf.PlotLambert(info=info)
         fig = plam(hp_array)
+        fig_saver(fig, info=info)
 
     # ----------------
     # Roll check
     # ----------------
 
-    year_subs = {"year 1": np.where(visits_array["night"] < 365)[0]}
-    v1 = 365.25 * 2.5
-    v2 = 365.25 * 3.5
+    year_subs = {"year 1": np.where(visits_array["night"] < DAYS_IN_YEAR)[0]}
+    v1 = DAYS_IN_YEAR * 2.5
+    v2 = DAYS_IN_YEAR * 3.5
     year_subs["year 2.5-3.5"] = np.where((v1 < visits_array["night"]) & (visits_array["night"] < v2))[0]
-    v1 = 365.25 * 3.5
-    v2 = 365.25 * 4.5
+    v1 = DAYS_IN_YEAR * 3.5
+    v2 = DAYS_IN_YEAR * 4.5
     year_subs["year 3.5-4.5"] = np.where((v1 < visits_array["night"]) & (visits_array["night"] < v2))[0]
 
     for subset in year_subs:
@@ -149,6 +181,7 @@ def glance(path=None, quick_test=False):
         hp_array, info = sl(sub_data, metric, info=info)
         pm = maf.PlotMoll(info=info)
         fig = pm(hp_array, max=140, min=5)
+        fig_saver(fig, info=info)
 
     # ----------------
     # Slew stats
@@ -156,9 +189,11 @@ def glance(path=None, quick_test=False):
     info = {"run_name": run_name}
     info["metric: unit"] = "Slew Time (sec)"
     info["observations_subset"] = "all"
+    info["metric: name"] = "slew time"
     # Maybe this is just a function and not a class
     ph = maf.PlotHist(info=info)
     fig = ph(visits_array["slewTime"], log=True)
+    fig_saver(fig, info=info)
 
     summary_stats.append(maf.gen_summary_row(info, "max", np.max(visits_array["slewTime"])))
     summary_stats.append(maf.gen_summary_row(info, "min", np.min(visits_array["slewTime"])))
@@ -167,8 +202,10 @@ def glance(path=None, quick_test=False):
 
     info = {"run_name": run_name}
     info["metric: unit"] = "Slew Distance (deg)"
+    info["metric: name"] = "slewDistance"
     ph = maf.PlotHist(info=info)
     fig = ph(visits_array["slewDistance"], log=True)
+    fig_saver(fig, info=info)
 
     # Open Shutter Fraction overall
     info = {"run_name": run_name}
@@ -180,17 +217,23 @@ def glance(path=None, quick_test=False):
     # Filter changes per night
     stats = {"mean": np.mean, "median": np.median, "max": np.max, "min": np.min}
     info = {"run_name": run_name}
+    info["metric: name"] = "filter changes"
+    info["caption"] = "Filter changes per night"
     fpn = df.groupby("night")["filter"].apply(maf.count_value_changes)
     pl = maf.PlotLine(info=info)
     fig = pl(fpn.index, fpn.values, xlabel="Night", ylabel="Filter Changes per Night")
+    fig_saver(fig, info=info)
     for stat in stats:
         summary_stats.append(maf.gen_summary_row(info, stat, stats[stat](fpn)))
 
     # Open shutter fraction per night
     info = {"run_name": run_name}
+    info["metric: name"] = "open shutter fraction"
+    info["caption"] = "Open Shutter Fraction per night"
     osfpn = df.groupby("night").apply(maf.osf_visit_array, include_groups=False)
     pl = maf.PlotLine(info=info)
     fig = pl(osfpn.index, osfpn.values, xlabel="Night", ylabel="Open Shutter Fraction per Night")
+    fig_saver(fig, info=info)
 
     # Effective exposure time per filter
     for filtername in "ugrizy":
@@ -215,15 +258,19 @@ def glance(path=None, quick_test=False):
 
     # Hourglass per year
     info = {"run_name": run_name}
-    min_year = np.floor(visits_array["night"].min() / 365.25)
-    max_year = np.ceil(visits_array["night"].max() / 365.25)
+    min_year = np.floor(visits_array["night"].min() / DAYS_IN_YEAR)
+    max_year = np.ceil(visits_array["night"].max() / DAYS_IN_YEAR)
     hstart = np.arange(min_year, max_year)
     hend = hstart + 1
 
     for start, end in zip(hstart, hend):
-        indx = np.where((visits_array["night"] < end * 365.25) & (visits_array["night"] >= start * 365.25))
+        indx = np.where(
+            (visits_array["night"] < end * DAYS_IN_YEAR) & (visits_array["night"] >= start * DAYS_IN_YEAR)
+        )
         info["observations_subset"] = "year %i to %i" % (start, end)
+        info["metric: name"] = "Hourglass"
         hr = maf.PlotHourglass(info=info)
         fig = hr(visits_array[indx])
+        fig_saver(fig, info=info)
 
     return summary_stats
