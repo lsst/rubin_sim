@@ -4,19 +4,18 @@ __all__ = (
     "open_shutter_fraction",
     "count_value_changes",
     "osf_visit_array",
-    "fO_calcs"
+    "fO_calcs",
 )
 
 import copy
 import warnings
 
-import numpy as np
 import healpy as hp
+import numpy as np
 
 
 def fO_calcs(nvis_hp, asky=18000.0, n_visit=750):
-    """
-    """
+    """ """
     nside = hp.npix2nside(nvis_hp.size)
     scale = hp.nside2pixarea(nside, degrees=True)
     npix_asky = int(np.ceil(asky / scale))
@@ -28,8 +27,8 @@ def fO_calcs(nvis_hp, asky=18000.0, n_visit=750):
     else:
         nvis_asky = 0
 
-    result = {"Median N visits in top %ik sq deg" % (asky/1e3): np.median(nvis_asky)}
-    result["Min N visits in top %ik sq deg" % (asky/1e3)] = np.min(nvis_asky)
+    result = {"Median N visits in top %ik sq deg" % (asky / 1e3): np.median(nvis_asky)}
+    result["Min N visits in top %ik sq deg" % (asky / 1e3)] = np.min(nvis_asky)
 
     nvis_min = np.where(nvis_sorted >= n_visit)[0]
     result["Area above %i (sq deg)" % n_visit] = nvis_min.size * scale
