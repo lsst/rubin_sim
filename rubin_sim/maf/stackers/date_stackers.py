@@ -52,33 +52,6 @@ class ObservationStartTimestampStacker(BaseStacker):
         self.units = [None]
         self.cols_added_dtypes = ["O"]
 
-    def _run(self, sim_data, cols_present=False):
-        if cols_present:
-            # Column already present in data; assume it is correct and does not
-            # need recalculating.
-            return sim_data
-
-        if len(sim_data[self.mjd_col]) > 0:
-            empty_series = pd.to_datetime(
-                sim_data[self.mjd_col] + 2400000.5, origin="julian", unit="D", utc=True
-            )
-        else:
-            # If we are passed an empty series, be sure to return add an empty
-            # series of the correct type back.
-            # This is handy if the result is being passed to bokeh
-            # for plotting.
-            empty_series = pd.to_datetime(2460000.5, origin="julian", unit="D", utc=True)
-
-        match sim_data[self.mjd_col]:
-            case pd.Series():
-                sim_data["start_timestamp"] = empty_series
-            case np.ndarray():
-                sim_data["start_timestamp"] = empty_series.values
-            case _:
-                sim_data["start_timestamp"] = empty_series.values
-
-        return sim_data
-
     def run(self, sim_data, override=False):
         # Override the run from the base class, not _run,
         # because the implementation
