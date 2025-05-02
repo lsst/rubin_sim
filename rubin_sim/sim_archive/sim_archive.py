@@ -6,7 +6,14 @@ __all__ = [
     "check_opsim_archive_resource",
     "read_archived_sim_metadata",
     "make_sim_archive_cli",
+    "compile_sim_metadata",
+    "read_sim_metadata_from_hdf",
+    "verify_compiled_sim_metadata",
     "drive_sim",
+    "compile_sim_archive_metadata_cli",
+    "find_latest_prenight_sim_for_nights",
+    "fetch_latest_prenight_sim_for_nights",
+    "fetch_obsloctap_visits",
 ]
 
 import argparse
@@ -243,7 +250,7 @@ def make_sim_archive_dir(
     return data_path
 
 
-def transfer_archive_dir(archive_dir, archive_base_uri="s3://rubin-scheduler-prenight/opsim/"):
+def transfer_archive_dir(archive_dir, archive_base_uri="s3://rubin:rubin-scheduler-prenight/opsim/"):
     """Transfer the contents of an archive directory to an resource.
 
     Parameters
@@ -253,7 +260,7 @@ def transfer_archive_dir(archive_dir, archive_base_uri="s3://rubin-scheduler-pre
         transferred.
     archive_base_uri : `str`, optional
         The base URI where the archive files will be transferred to.
-        Default is "s3://rubin-scheduler-prenight/opsim/".
+        Default is "s3://rubin:rubin-scheduler-prenight/opsim/".
 
     Returns
     -------
@@ -261,14 +268,17 @@ def transfer_archive_dir(archive_dir, archive_base_uri="s3://rubin-scheduler-pre
         The destination resource.
     """
 
+    LOGGER.debug(f"Beginning copy of {archive_dir} to {archive_base_uri}.")
     metadata_fname = Path(archive_dir).joinpath("sim_metadata.yaml")
     with open(metadata_fname, "r") as metadata_io:
         sim_metadata = yaml.safe_load(metadata_io)
+        LOGGER.debug(f"Completed read of {archive_dir}.")
 
     insert_date = datetime.datetime.utcnow().date().isoformat()
     insert_date_rpath = ResourcePath(archive_base_uri).join(insert_date, forceDirectory=True)
     if not insert_date_rpath.exists():
         insert_date_rpath.mkdir()
+        LOGGER.debug(f"Created {insert_date_rpath}.")
 
     # Number the sims in the insert date dir by
     # looing for all the interger directories, and choosing the next one.
@@ -285,6 +295,7 @@ def transfer_archive_dir(archive_dir, archive_base_uri="s3://rubin-scheduler-pre
     new_id = max(found_ids) + 1 if len(found_ids) > 0 else 1
     resource_rpath = insert_date_rpath.join(f"{new_id}", forceDirectory=True)
     resource_rpath.mkdir()
+    LOGGER.debug(f"Created {resource_rpath}.")
 
     # Include the metadata file itself.
     sim_metadata["files"]["metadata"] = {"name": "sim_metadata.yaml"}
@@ -293,6 +304,7 @@ def transfer_archive_dir(archive_dir, archive_base_uri="s3://rubin-scheduler-pre
         source_fname = Path(archive_dir).joinpath(file_info["name"])
         with open(source_fname, "rb") as source_io:
             content = source_io.read()
+            LOGGER.debug(f"Read {source_fname}.")
 
         destination_rpath = resource_rpath.join(file_info["name"])
         destination_rpath.write(content)
@@ -315,17 +327,24 @@ def check_opsim_archive_resource(archive_uri):
     validity: `dict`
         A dictionary of files checked, and their validity.
     """
+    LOGGER.debug(f"Starting to check file hashes in opsim sim archive {archive_uri}.")
     metadata_path = ResourcePath(archive_uri).join("sim_metadata.yaml")
     with metadata_path.open(mode="r") as metadata_io:
         sim_metadata = yaml.safe_load(metadata_io)
+        LOGGER.debug(f"Read sim metadata from {metadata_path}.)")
 
     results = {}
 
     for file_info in sim_metadata["files"].values():
         resource_path = ResourcePath(archive_uri).join(file_info["name"])
+        LOGGER.info(f"Reading {resource_path}.")
         content = resource_path.read()
 
         results[file_info["name"]] = file_info["md5"] == hashlib.md5(content).hexdigest()
+        if results[file_info["name"]]:
+            LOGGER.debug(f"{resource_path} checked and found to match recorded md5.")
+        else:
+            LOGGER.debug(f"{resource_path} has an md5 that differs from the recorded md5!")
 
     return results
 
@@ -386,11 +405,15 @@ def read_archived_sim_metadata(
     """
     latest_mjd = int(Time.now().mjd if latest is None else Time(latest).mjd)
     earliest_mjd = int(latest_mjd - (num_nights - 1))
+    LOGGER.debug(
+        f"Looking for simulation metadata with MJD between {earliest_mjd} and {latest_mjd} in {base_uri}."
+    )
 
     compilation = {}
     compiled_uris_by_date = {}
     max_compiled_date = "1900-01-01"
     if compilation_resource is not None:
+        LOGGER.debug(f"Reading metadata cache {compilation_resource}.")
         try:
             compilation.update(read_sim_metadata_from_hdf(compilation_resource))
             for uri in compilation:
@@ -399,6 +422,7 @@ def read_archived_sim_metadata(
                     compiled_uris_by_date[iso_date] = []
                 compiled_uris_by_date[iso_date].append(uri)
                 max_compiled_date = max(max_compiled_date, iso_date)
+            LOGGER.debug(f"Maximum simulation execution date in metadata cache: {max_compiled_date}")
         except FileNotFoundError:
             LOGGER.warning(f"No metadata cache {compilation_resource}, not using cache.")
             pass
@@ -418,17 +442,25 @@ def read_archived_sim_metadata(
                 ):
                     for found_file in found_files:
                         found_resource = ResourcePath(base_dir).join(found_file)
+                        LOGGER.debug(f"Found {found_resource}")
                         sim_uri = str(found_resource.dirname())
                         if sim_uri in compilation:
+                            LOGGER.debug(f"Not reading {found_resource}, already in the read compliation.")
                             these_metadata = compilation[sim_uri]
                         else:
+                            LOGGER.debug(f"Reading {found_resource} (absent from compilation).")
                             these_metadata = yaml.safe_load(found_resource.read().decode("utf-8"))
                             these_metadata["label"] = _build_archived_sim_label(
                                 base_uri, found_resource, these_metadata
                             )
+                            LOGGER.debug(f"Read successfully: {found_resource}")
                             if iso_date < max_compiled_date:
-                                print(f"Simulation at {sim_uri} expected but not found in compilation.")
+                                LOGGER.error(
+                                    f"Simulation at {sim_uri} expected but not found in compilation."
+                                )
                         all_metadata[sim_uri] = these_metadata
+            else:
+                LOGGER.debug(f"No simulations found with generation date of {iso_date}")
         else:
             if iso_date in compiled_uris_by_date:
                 for sim_uri in compiled_uris_by_date[iso_date]:
@@ -438,7 +470,18 @@ def read_archived_sim_metadata(
             if iso_date in compiled_uris_by_date:
                 for sim_uri in compiled_uris_by_date[iso_date]:
                     if sim_uri not in all_metadata:
-                        print(f"Simulation at {sim_uri} in compiled metadata but not archive.")
+                        message = f"Simulation at {sim_uri} in compiled metadata but not archive."
+                        print(message)
+                        LOGGER.error(message)
+            else:
+                LOGGER.debug(
+                    f"Date {iso_date} not expected to be in the metadata compilation, not checking for it."
+                )
+
+    if len(all_metadata) == 0:
+        earliest_iso = Time(earliest_mjd, format="mjd").iso[:10]
+        latest_iso = Time(latest_mjd, format="mjd").iso[:10]
+        LOGGER.info(f"No simulations run between {earliest_iso} through {latest_iso} found in {base_uri}")
 
     return all_metadata
 
@@ -488,7 +531,7 @@ def make_sim_archive_cli(*args):
     parser.add_argument(
         "--archive_base_uri",
         type=str,
-        default="s3://rubin-scheduler-prenight/opsim/",
+        default="s3://rubin:rubin-scheduler-prenight/opsim/",
         help="Base URI for the archive",
     )
     parser.add_argument("--tags", type=str, default=[], nargs="*", help="The tags on the simulation.")
@@ -529,8 +572,10 @@ def make_sim_archive_cli(*args):
         label=arg_values.label,
         capture_env=arg_values.current_env,
     )
+    LOGGER.info(f"Created simulation archived directory: {data_path.name}")
 
     sim_archive_uri = transfer_archive_dir(data_path.name, arg_values.archive_base_uri)
+    LOGGER.info(f"Transferred {data_path} to {sim_archive_uri}")
 
     return sim_archive_uri
 
@@ -558,6 +603,7 @@ def compile_sim_metadata(
     compilation_fname : `ResourcePath`
         The resource to which the hdf5 file was written.
     """
+    LOGGER.debug("Starting compile_sim_metadata.")
 
     if append:
         sim_metadata = read_archived_sim_metadata(
@@ -637,6 +683,7 @@ def read_sim_metadata_from_hdf(compilation_resource: str | ResourcePath) -> dict
 
     with compilation_resource.as_local() as local_compilation_resource:
         compilation_fname: str = local_compilation_resource.ospath
+        LOGGER.debug(f"{compilation_resource} copied to {compilation_fname}.")
         sim_df = pd.read_hdf(compilation_fname, "simulations")
         file_df = pd.read_hdf(compilation_fname, "files")
         sim_runner_kwargs_df = pd.read_hdf(compilation_fname, "kwargs")
@@ -868,6 +915,7 @@ def drive_sim(
         in_files["notebook"] = notebook
 
     with TemporaryDirectory() as local_data_dir:
+        LOGGER.debug(f"Using temporary directory {local_data_dir}.")
         # We want to store the state of the scheduler at the start of
         # the sim, so we need to save it now before we run the simulation.
         scheduler_path = Path(local_data_dir).joinpath("scheduler.pickle.xz")
@@ -875,7 +923,9 @@ def drive_sim(
             pickle.dump(scheduler, pio)
             in_files["scheduler"] = scheduler_path.as_posix()
 
+        LOGGER.debug("About to call sim_runner.")
         sim_results = sim_runner(observatory, scheduler, **kwargs)
+        LOGGER.debug("sim_runner complete.")
 
         observations = sim_results[2]
         reward_df = sim_results[3] if scheduler.keep_rewards else None
@@ -923,6 +973,14 @@ def compile_sim_archive_metadata_cli(*args):
         help="Do not rebuild the whole compilation, "
         + "but add new simulations with dates after the last current entry.",
     )
+
+    log_file = os.environ.get("SIM_ARCHIVE_LOG_FILE", None)
+    if log_file is not None:
+        logging.basicConfig(
+            filename=log_file, format="%(asctime)s: %(message)s", datefmt="%Y-%m-%dT%H:%M:%S%z"
+        )
+    else:
+        logging.basicConfig(level=logging.INFO)
 
     arg_values = parser.parse_args() if len(args) == 0 else parser.parse_args(args)
     archive_uri = arg_values.archive_base_uri
@@ -983,6 +1041,7 @@ def find_latest_prenight_sim_for_nights(
     sim_metadata = read_archived_sim_metadata(
         archive_uri, num_nights=max_simulation_age, compilation_resource=compilation_uri
     )
+    LOGGER.debug(f"Total simulations it the last {max_simulation_age} days: {len(sim_metadata)}.")
 
     best_sim = None
     for uri, sim in sim_metadata.items():
@@ -1010,6 +1069,9 @@ def find_latest_prenight_sim_for_nights(
             .join(f"{best_sim['date_index']}", forceDirectory=True)
             .join(best_sim["files"]["observations"]["name"])
         )
+        LOGGER.info(f"Most recent simulation meeting requested criteria is {best_sim['uri']}.")
+    else:
+        LOGGER.debug("No simulations met the requested criteria.")
 
     return best_sim
 
@@ -1022,7 +1084,7 @@ def fetch_latest_prenight_sim_for_nights(
     archive_uri: str = "s3://rubin:rubin-scheduler-prenight/opsim/",
     compilation_uri: str = "s3://rubin:rubin-scheduler-prenight/opsim/compiled_metadata_cache.h5",
     **kwargs,
-) -> pd.DataFrame:
+) -> pd.DataFrame | None:
     """Fetches visit parameters from the latest archived pre-night simulation
     with requested tags for a specified day of observing.
 
@@ -1059,9 +1121,15 @@ def fetch_latest_prenight_sim_for_nights(
     sim_metadata = find_latest_prenight_sim_for_nights(
         first_day_obs, last_day_obs, tags, max_simulation_age, archive_uri, compilation_uri
     )
-    visits = get_sim_data(sim_metadata["opsim_rp"], **kwargs)
+    if sim_metadata is None:
+        LOGGER.info("No simulations meet requested criteria.")
+        result = None
+    else:
+        visits = get_sim_data(sim_metadata["opsim_rp"], **kwargs)
+        LOGGER.debug(f"Loaded {len(visits)} from {sim_metadata['opsim_rp']}")
+        result = pd.DataFrame(visits)
 
-    return pd.DataFrame(visits)
+    return result
 
 
 def fetch_obsloctap_visits(day_obs: str | None = None, nights: int = 2) -> pd.DataFrame:

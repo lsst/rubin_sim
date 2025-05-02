@@ -61,10 +61,12 @@ SCHEDULER_CONFIG_SCRIPT=$(scheduler_config_at_time latiss)
 # so we do not accidentally run one from the adjusted PATH below.
 PRENIGHT_SIM=$(which prenight_sim)
 
+export SIM_ARCHIVE_LOG_FILE=${WORK_DIR}/sim_archive_log.txt
+export PRENIGHT_LOG_FILE=${WORK_DIR}/prenight_log.txt
 export PYTHONPATH=${PACKAGE_DIR}:${PYTHONPATH}
 export PATH=${PACKAGE_DIR}/bin:${PATH}
 printenv > env.out
 date --iso=s
-time ${PRENIGHT_SIM} --scheduler auxtel.pickle.xz --opsim None --repo=${TS_CONFIG_OCS_REPO} --script ${SCHEDULER_CONFIG_SCRIPT} --config_version ${TS_CONFIG_OCS_VERSION}
+time ${PRENIGHT_SIM} --scheduler auxtel.pickle.xz --opsim None --repo=${TS_CONFIG_OCS_REPO} --script ${SCHEDULER_CONFIG_SCRIPT} --config_version ${TS_CONFIG_OCS_VERSION} 2>&1 > ${WORK_DIR}/prenight_sim.out
 date --iso=s
 echo "******* END of run_prenight_sims.sh *********"
