@@ -29,6 +29,7 @@ conda activate /sdf/data/rubin/shared/scheduler/envs/prenight
 
 set -o xtrace
 
+export TELESCOPE=$1
 export AWS_PROFILE=prenight
 WORK_DIR=$(date '+/sdf/data/rubin/shared/scheduler/prenight/work/run_prenight_sims/%Y-%m-%dT%H%M%S' --utc)
 echo "Working in $WORK_DIR"
@@ -55,7 +56,7 @@ TS_FBS_UTILS_TAG=$(curl -s https://api.github.com/repos/lsst-ts/ts_fbs_utils/tag
 pip install --no-deps --target=${PACKAGE_DIR} git+https://github.com/lsst-ts/ts_fbs_utils.git@${TS_FBS_UTILS_TAG}
 
 # Get the scheduler configuration script
-SCHEDULER_CONFIG_SCRIPT=$(scheduler_config_at_time latiss)
+SCHEDULER_CONFIG_SCRIPT=$(scheduler_config_at_time ${TELESCOPE})
 
 # Get the path to prenight_sim as provided by the current environment,
 # so we do not accidentally run one from the adjusted PATH below.
@@ -67,6 +68,6 @@ export PYTHONPATH=${PACKAGE_DIR}:${PYTHONPATH}
 export PATH=${PACKAGE_DIR}/bin:${PATH}
 printenv > env.out
 date --iso=s
-time ${PRENIGHT_SIM} --scheduler auxtel.pickle.xz --opsim None --repo=${TS_CONFIG_OCS_REPO} --script ${SCHEDULER_CONFIG_SCRIPT} --config_version ${TS_CONFIG_OCS_VERSION} 2>&1 > ${WORK_DIR}/prenight_sim.out
+time ${PRENIGHT_SIM} --scheduler ${TELESCOPE}.pickle.xz --opsim None --repo=${TS_CONFIG_OCS_REPO} --script ${SCHEDULER_CONFIG_SCRIPT} --config_version ${TS_CONFIG_OCS_VERSION} --telescope ${TELESCOPE} 2>&1 > ${WORK_DIR}/prenight_sim.out
 date --iso=s
 echo "******* END of run_prenight_sims.sh *********"

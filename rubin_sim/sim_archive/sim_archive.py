@@ -998,6 +998,7 @@ def find_latest_prenight_sim_for_nights(
     first_day_obs: str | None = None,
     last_day_obs: str | None = None,
     tags: tuple[str] = ("ideal", "nominal"),
+    telescope: str = "simonyi",
     max_simulation_age: int = 2,
     archive_uri: str = "s3://rubin:rubin-scheduler-prenight/opsim/",
     compilation_uri: str = "s3://rubin:rubin-scheduler-prenight/opsim/compiled_metadata_cache.h5",
@@ -1015,6 +1016,9 @@ def find_latest_prenight_sim_for_nights(
     tags : `tuple[str]`
         A tuple of tags to filter simulations by.
         Defaults to ``('ideal', 'nominal')``.
+    telescope : `str`
+        The telescope to search for (simonyi or auxtel).
+        Defaults to simonyi.
     max_simulation_age : `int`
         The maximum age of simulations to consider, in days.
         Simulations older than ``max_simulation_age`` will not be considered.
@@ -1053,6 +1057,8 @@ def find_latest_prenight_sim_for_nights(
             continue
         if sim["simulated_dates"]["last"] < last_day_obs:
             continue
+        if "telescope" in sim and sim["telescope"].lower() != telescope.lower():
+            continue
         if not set(tags).issubset(sim["tags"]):
             continue
         if best_sim is not None:
@@ -1080,6 +1086,7 @@ def fetch_latest_prenight_sim_for_nights(
     first_day_obs: str | None = None,
     last_day_obs: str | None = None,
     tags: tuple[str] = ("ideal", "nominal"),
+    telescope: str = "simonyi",
     max_simulation_age: int = 2,
     archive_uri: str = "s3://rubin:rubin-scheduler-prenight/opsim/",
     compilation_uri: str = "s3://rubin:rubin-scheduler-prenight/opsim/compiled_metadata_cache.h5",
@@ -1099,6 +1106,9 @@ def fetch_latest_prenight_sim_for_nights(
     tags : `tuple[str]`
         A tuple of tags to filter simulations by.
         Defaults to ``('ideal', 'nominal')``.
+    telescope : `str`
+        The telescope to get sims for, "simonyi" or "auxtel".
+        Defaults to "simonyi".
     max_simulation_age : `int`
         The maximum age of simulations to consider, in days. Simulations older
         than ``max_simulation_age`` will not be considered. Defaults to 2.
@@ -1119,7 +1129,7 @@ def fetch_latest_prenight_sim_for_nights(
     """
 
     sim_metadata = find_latest_prenight_sim_for_nights(
-        first_day_obs, last_day_obs, tags, max_simulation_age, archive_uri, compilation_uri
+        first_day_obs, last_day_obs, tags, telescope, max_simulation_age, archive_uri, compilation_uri
     )
     if sim_metadata is None:
         LOGGER.info("No simulations meet requested criteria.")
@@ -1132,7 +1142,9 @@ def fetch_latest_prenight_sim_for_nights(
     return result
 
 
-def fetch_obsloctap_visits(day_obs: str | None = None, nights: int = 2) -> pd.DataFrame:
+def fetch_obsloctap_visits(
+    day_obs: str | None = None, nights: int = 2, telescope: str = "simonyi"
+) -> pd.DataFrame:
     """Return visits from latest nominal prenight briefing simulation.
 
     Parameters
@@ -1143,6 +1155,9 @@ def fetch_obsloctap_visits(day_obs: str | None = None, nights: int = 2) -> pd.Da
     nights : `int`
         The number of nights of observations to return.
         Defaults to 2.
+    telescope : `str`
+        The telescope to get visits for: "simonyi" or "auxtel".
+        Defaults to "simonyi".
 
     Returns
     -------
@@ -1182,6 +1197,7 @@ def fetch_obsloctap_visits(day_obs: str | None = None, nights: int = 2) -> pd.Da
         first_day_obs,
         last_day_obs,
         tags=("ideal", "nominal"),
+        telescope=telescope,
         max_simulation_age=max_simulation_age,
         sqlconstraint=sqlconstraint,
         dbcols=dbcols,
