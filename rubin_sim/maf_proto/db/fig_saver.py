@@ -1,15 +1,15 @@
 __all__ = ("FigSaver",)
 
-import copy
 import os
 import sqlite3
 from pathlib import Path
 
 import matplotlib.pylab as plt
-import pandas as pd
+
+from .schemas import empty_info
 
 
-class FigSaver(object):
+class FigSaver:
     """Class to save figures and store info about them in a database.
     Uses info dictionary to construct reasonable filenames.
 
@@ -46,17 +46,14 @@ class FigSaver(object):
         self.png_dpi = png_dpi
         self.bbox_inches = bbox_inches
 
-        # This eventually goes somewhere else so can be documented
-        schema_dict = {
-            "metric: name": "",
-            "metric: col": "",
-            "slicer: nside": 0,
-            "observations_subset": "",
-            "caption": "",
-        }
-        self.schema_row = pd.Series(schema_dict).to_frame().T
-
     def _construct_fileroot(self, info):
+        """Construct a reasonable filename from the info dict
+
+        Parameters
+        ----------
+        info : `dict`
+            Dictionary to use when constructing filename.
+        """
         filename = ""
 
         for key in ["metric: name", "metric: col", "observations_subset"]:
@@ -69,29 +66,49 @@ class FigSaver(object):
         # Maybe a more extensive clean here
         filename = filename.replace("=", "_").replace(" ", "_")
 
+        # Could throw a warning here, or even an error
         if filename == "":
-            filename = "default_filename"
+            raise ValueError("Unable to generate output filename from info dict")
 
-        self.filename = filename
+        return filename
 
-    def __call__(self, fig, info):
+    def __call__(self, fig, info, filename=None):
+        """Save a figure
 
-        row = copy.copy(self.schema_row)
-        for key in info:
-            row[key] = info[key]
+        Parameters
+        ----------
+        fig : `matplotlib.Figure`
+            The figure object to save.
+        info : `dict`
+            Dict with information about the figure.
+            Used to generate filename and fill info in tracking
+            database.
+        filename : `str`
+            Base filename for the output. Default of None will
+            result in auto-generated filename.
+        """
 
-        self._construct_fileroot(info)
+        row = empty_info(as_df_row=True)
+
+        for key in row.columns:
+            if key in info.keys():
+                row[key] = info[key]
+
+        if filename is None:
+            filename = self._construct_fileroot(info)
 
         if self.pdf_dpi is not None:
-            filename = os.path.join(self.outdir, self.filename + ".pdf")
-            fig.savefig(filename, dpi=self.pdf_dpi, bbox_inches=self.bbox_inches)
-            row["filename"] = filename
+            pdf_filename = filename + ".pdf"
+            output_file = os.path.join(self.outdir, pdf_filename)
+            fig.savefig(output_file, dpi=self.pdf_dpi, bbox_inches=self.bbox_inches)
+            row["filename"] = pdf_filename
             row.to_sql("plots", self.conn, index=False, if_exists="append")
 
         if self.png_dpi is not None:
-            filename = os.path.join(self.outdir, "thumb_" + self.filename + ".png")
-            fig.savefig(filename, dpi=self.png_dpi, bbox_inches="tight")
-            row["filename"] = filename
+            png_filename = "thumb_" + filename + ".png"
+            output_filename = os.path.join(self.outdir, png_filename)
+            fig.savefig(output_filename, dpi=self.png_dpi, bbox_inches=self.bbox_inches)
+            row["filename"] = png_filename
             row.to_sql("plots", self.conn, index=False, if_exists="append")
 
         if self.close_figs:
