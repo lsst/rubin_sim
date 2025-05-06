@@ -1,7 +1,6 @@
 import sqlite3
 import unittest
 
-import healpy as hp
 import matplotlib.pylab as plt
 import numpy as np
 import pandas as pd
