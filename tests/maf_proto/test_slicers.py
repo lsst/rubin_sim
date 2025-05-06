@@ -15,11 +15,13 @@ class TestSlicers(unittest.TestCase):
         assert s1.shape > s2.shape
 
     def test_user_slicer(self):
+        """Test we can set different points."""
 
         ra = np.arange(0, 360, 1)
         dec = ra * 0 - 20
 
-        s1 = maf.UserSlicer(ra, dec)
+        s1 = maf.Slicer()
+        s1.setup_slice_points(ra_rad=np.radians(ra), dec_rad=np.radians(dec))
 
         assert s1.shape == ra.size
 
