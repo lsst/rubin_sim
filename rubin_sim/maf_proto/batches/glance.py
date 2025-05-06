@@ -29,9 +29,11 @@ def glance(observations=None, run_name=None, quick_test=False, fig_saver=None):
     run_name : `str`
         run name to use. Default None pulls name from database file.
     quick_test : `bool`
-        If True, grabs just the first 61 days of observations. Default False.
+        If True, grabs just the first 61 days of observations.
+        Default False.
     fig_saver : `rubin_sim.maf_proto.db.FigSaver`
-        Class that takes matplotlib.Figure objects and saves them. Default None.
+        Class that takes matplotlib.Figure objects and saves them.
+        Default None.
     """
     if fig_saver is None:
         fig_saver = DoNothing()
