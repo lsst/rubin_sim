@@ -1,4 +1,4 @@
-__all__ = ("Slicer", "UserSlicer")
+__all__ = ("Slicer",)
 
 import copy
 import warnings
@@ -9,7 +9,9 @@ import rubin_scheduler.utils as utils
 
 
 class Slicer(object):
-    """
+    """Slicer. Defaults to a healpix grid. Use
+    setup_slice_points method to set custom coordinates.
+
 
     Parameters
     ----------
@@ -49,10 +51,6 @@ class Slicer(object):
         cache=False,
     ):
 
-        self.nside = int(nside)
-        self.nslice = hp.nside2npix(self.nside)
-        self.shape = self.nslice
-
         self.lon_col = lon_col
         self.lat_col = lat_col
         self.rot_sky_pos_col_name = rot_sky_pos_col_name
@@ -66,13 +64,33 @@ class Slicer(object):
 
         self.cache = cache
 
+        # Setup with default values.
+        self.setup_slice_points(nside=nside)
+
+    def setup_slice_points(self, nside=None, ra_rad=None, dec_rad=None):
+        """Define the slice points we're using."""
+
+        if (nside is not None) & (ra_rad is not None):
+            raise ValueError("Cannot set both nside and ra.")
+
         # Set up slice_point
         self.slice_points = {}
         self.slice_points["nside"] = nside
-        self.slice_points["sid"] = np.arange(self.nslice)
-        self.slice_points["ra"], self.slice_points["dec"] = utils._hpid2_ra_dec(
-            self.nside, self.slice_points["sid"]
-        )
+        if ra_rad is not None:
+            self.slice_points["ra"] = ra_rad
+            self.nslice = np.size(ra_rad)
+            self.shape = self.nslice
+            self.slice_points["dec"] = dec_rad
+            self.nside = None
+        else:
+            self.nside = int(nside)
+            self.nslice = hp.nside2npix(self.nside)
+            self.shape = self.nslice
+
+            self.slice_points["sid"] = np.arange(self.nslice)
+            self.slice_points["ra"], self.slice_points["dec"] = utils._hpid2_ra_dec(
+                self.nside, self.slice_points["sid"]
+            )
 
     def __len__(self):
         """Return nslice, the number of slice_points in the slicer."""
@@ -108,6 +126,7 @@ class Slicer(object):
         pointings_data : `numpy.ndarray`
             Array with location and camera rotation of each pointing.
         """
+
         self._set_rad(self.radius)
 
         self.data_ra_rad = np.radians(pointings_data[self.lon_col])
@@ -214,6 +233,11 @@ class Slicer(object):
         if not isinstance(visits_array, np.ndarray):
             raise ValueError("input_visits should be numpy array or pandas DataFrame.")
 
+        # If the metric knows where it wants to point,
+        # override whatever was set before
+        if hasattr(metric_s, "ra"):
+            self.setup_slice_points(ra_rad=metric_s.ra, dec_rad=metric_s.dec)
+
         # No data in, just toss back
         if np.size(input_visits) == 0:
             result = np.empty(self.shape, dtype=float)
@@ -287,55 +311,3 @@ class Slicer(object):
             if len(results) == 1:
                 return results[0], final_info[0]
             return results, final_info
-
-
-class UserSlicer(Slicer):
-    """For looping over a user-defined set of points.
-
-    Parameters
-    ----------
-    ra : `np.array`
-        The RA points to loop over (degrees).
-    dec : `np.array`
-        The dec points to loop over (degrees).
-    """
-
-    def __init__(
-        self,
-        ra,
-        dec,
-        lon_col="fieldRA",
-        lat_col="fieldDec",
-        leafsize=100,
-        radius=2.45,
-        use_camera=True,
-        camera_footprint_file=None,
-        rot_sky_pos_col_name="rotSkyPos",
-        missing=np.nan,
-        cache=False,
-    ):
-
-        super().__init__(
-            lon_col=lon_col,
-            lat_col=lat_col,
-            leafsize=leafsize,
-            radius=radius,
-            use_camera=use_camera,
-            camera_footprint_file=camera_footprint_file,
-            rot_sky_pos_col_name=rot_sky_pos_col_name,
-            missing=missing,
-            cache=cache,
-        )
-
-        # Remove the things that were set for a
-        # specific nside
-        del self.nside
-        self.nslice = np.size(ra)
-        self.shape = self.nslice
-
-        # Set up slice_point
-        self.slice_points = {}
-        self.slice_points["nside"] = None
-        self.slice_points["sid"] = np.arange(self.nslice)
-        self.slice_points["ra"] = np.radians(ra)
-        self.slice_points["dec"] = np.radians(dec)
