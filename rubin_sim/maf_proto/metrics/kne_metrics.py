@@ -149,7 +149,15 @@ class KNePopMetric(BaseMetric):
         mjd0=SURVEY_START_MJD,
         output_lc=False,
         badval=np.nan,
+        dust_nside=128,
     ):
+
+        super(KNePopMetric, self).__init__(
+            col=None,
+            unit="Detected, 0 or 1",
+            name=metric_name,
+        )
+
         self.mjd_col = mjd_col
         self.m5_col = m5_col
         self.filter_col = filter_col
@@ -164,11 +172,21 @@ class KNePopMetric(BaseMetric):
         dust_properties = DustValues()
         self.ax1 = dust_properties.ax1
 
-        super(KNePopMetric, self).__init__(
-            col=None,
-            unit="Detected, 0 or 1",
-            name=metric_name,
-        )
+        names = [
+            "multi_detect",
+            "ztfrest_simple",
+            "ztfrest_simple_red",
+            "ztfrest_simple_blue",
+            "multi_color_detect",
+            "red_color_detect",
+            "blue_color_detect",
+        ]
+        types = [float] * len(names)
+        self.shape = None
+        self.dtype = list(zip(names, types))
+        self.empty = np.empty(1, dtype=self.dtype)
+
+        self.dust_nside = dust_nside
 
         # Set up default population. User can call the
         # method if they want to override defaults.
@@ -336,20 +354,23 @@ class KNePopMetric(BaseMetric):
 
         return result
 
-    def run(self, data_slice, slice_point=None):
-        result = {}
-        t = data_slice[self.mjd_col] - self.mjd0 - slice_point["peak_time"]
+    def __call__(self, data_slice, slice_point=None):
+        result = self.empty.copy()
+        indx = slice_point["sid"]
+        t = data_slice[self.mjd_col] - self.mjd0 - self.events["peak_time"][indx]
         mags = np.zeros(t.size, dtype=float)
 
         for filtername in np.unique(data_slice[self.filter_col]):
             infilt = np.where(data_slice[self.filter_col] == filtername)
-            mags[infilt] = self.lightcurves.interp(t[infilt], filtername, lc_indx=slice_point["file_indx"])
+            mags[infilt] = self.lightcurves.interp(
+                t[infilt], filtername, lc_indx=self.events["file_indx"][indx]
+            )
             # Apply dust extinction on the light curve
-            ebv = eb_v_hp(None, ra=self.ra[slice_point["sid"]], dec=self.ra[slice_point["sid"]])
+            ebv = eb_v_hp(self.dust_nside, ra=self.ra[slice_point["sid"]], dec=self.dec[slice_point["sid"]])
             a_x = self.ax1[filtername] * ebv
             mags[infilt] += a_x
 
-            distmod = 5 * np.log10(slice_point["distance"] * 1e6) - 5.0
+            distmod = 5 * np.log10(self.events["distance"][indx] * 1e6) - 5.0
             mags[infilt] += distmod
 
         # Find the detected points
