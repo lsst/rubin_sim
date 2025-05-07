@@ -14,7 +14,7 @@ class TestKne(unittest.TestCase):
 
         baseline_file = get_baseline()
         con = sqlite3.connect(baseline_file)
-        df = pd.read_sql("select * from observations where night < 10;", con)
+        df = pd.read_sql("select * from observations where night < 365;", con)
         visits_array = df.to_records(index=False)
         con.close()
 
@@ -35,6 +35,10 @@ class TestKne(unittest.TestCase):
 
         assert slicer.nside is None
         assert info["slicer: nside"] is None
+
+    def test_kne_files(self):
+        files = maf.get_kne_filename()
+        assert len(files) > 0
 
 
 if __name__ == "__main__":

@@ -34,12 +34,14 @@ class BaseMetric(object):
 
     def add_info(self, info):
         info["metric: name"] = self.__class__.__name__
-        info["metric: col"] = self.col
-        info["metric: unit"] = self.unit
+        if hasattr(self, "col"):
+            info["metric: col"] = self.col
+        if hasattr(self, "unit"):
+            info["metric: unit"] = self.unit
         return info
 
     def __call__(self, visits, slice_point=None):
-        pass
+        raise NotImplementedError("Metric __call__ method not implemented")
 
     def call_cached(self, hashable, visits=None, slice_point=None):
         """hashable should be something like a frozenset of
