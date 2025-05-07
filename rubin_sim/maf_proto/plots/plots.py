@@ -46,7 +46,8 @@ class PlotMoll(BasePlot):
             else:
                 result["title"] = ""
             if "observations_subset" in info.keys():
-                result["title"] += "\n" + info["observations_subset"]
+                if len(info["observations_subset"]) > 0:
+                    result["title"] += "\n" + info["observations_subset"]
 
             if "metric: unit" in info.keys():
                 result["unit"] = info["metric: unit"]
