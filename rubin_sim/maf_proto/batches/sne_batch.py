@@ -4,6 +4,7 @@ import sqlite3
 from os.path import basename
 
 import pandas as pd
+import numpy as np
 
 import rubin_sim.maf_proto as maf
 from rubin_sim.data import get_baseline
@@ -28,10 +29,11 @@ def sne_batch(observations=None, run_name=None, quick_test=False, fig_saver=None
     if isinstance(observations, str):
         con = sqlite3.connect(observations)
         # Dataframe is handy for some calcs
+        and_string = "scheduler_note not like 'DD%'"
         if quick_test:
-            df = pd.read_sql("select * from observations where night < 365;", con)
+            df = pd.read_sql("select * from observations where night < 365 and %s;" % and_string, con)
         else:
-            df = pd.read_sql("select * from observations;", con)
+            df = pd.read_sql("select * from observations where %s;" % and_string, con)
     else:
         df = observations
 
@@ -39,8 +41,11 @@ def sne_batch(observations=None, run_name=None, quick_test=False, fig_saver=None
     visits_array = df.to_records(index=False)
     con.close()
 
+    summary_stats = []
+
     info = maf.empty_info()
     info["run_name"] = run_name
+    info["observations_subset"] = "scheduler_note not like DD"
     sl = maf.Slicer(nside=nside)
     metric = maf.SNNSNMetric()
 
@@ -49,4 +54,12 @@ def sne_batch(observations=None, run_name=None, quick_test=False, fig_saver=None
     pm = maf.PlotMoll(info=info)
 
     fig = pm(sn_array["n_sn"], unit="N SNe to z limit")
+    fig_saver(fig, info=info)
     fig = pm(sn_array["zlim"], unit="z limit")
+    fig_saver(fig, info=info)
+
+    summary_stats.append(maf.gen_summary_row(info, "sum N SNe", np.nansum(sn_array["n_sn"])))
+    summary_stats.append(maf.gen_summary_row(info, "mean z limit", np.nansum(sn_array["zlim"])))
+    summary_stats.append(maf.gen_summary_row(info, "median z limit", np.nanmedian(sn_array["zlim"])))
+
+    return summary_stats
