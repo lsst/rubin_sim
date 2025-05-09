@@ -299,6 +299,7 @@ class Slicer(object):
                         results[j].append(np.atleast_1d(metric.badval))
                     else:
                         results[j].append(np.atleast_1d(self.missing))
+
         concat_results = [np.concatenate(arrays_list) for arrays_list in results]
         results = concat_results
 
