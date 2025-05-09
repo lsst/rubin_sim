@@ -12,6 +12,14 @@ class TestBatches(unittest.TestCase):
         ss = maf.glance(quick_test=True)
         assert np.size(ss) > 0
 
+    def test_sne(self):
+        ss = maf.sne_batch(quick_test=True)
+        assert np.size(ss) > 0
+
+    def test_kne(self):
+        ss = maf.kne_batch(quick_test=True)
+        assert np.size(ss) > 0
+
 
 if __name__ == "__main__":
     unittest.main()
