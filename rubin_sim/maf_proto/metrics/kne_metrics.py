@@ -71,10 +71,6 @@ def get_kne_filename(inj_params_list=None):
             if match:
                 matched_files.append(params[key]["filename"])
                 print(f"Found match for {inj_params}")
-    print(
-        f"Found matches for {len(matched_files)}/{len(inj_params_list)} \
-          sets of parameters"
-    )
 
     return matched_files
 
@@ -142,7 +138,7 @@ class KNePopMetric(BaseMetric):
 
     Parameters
     ----------
-    
+
     """
 
     def __init__(
