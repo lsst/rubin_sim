@@ -5,6 +5,7 @@ __all__ = (
     "CoaddM5Metric",
     "CoaddM5ExtinctionMetric",
     "VectorMetric",
+    "PassMetric"
 )
 
 import warnings
@@ -116,6 +117,18 @@ class CoaddM5ExtinctionMetric(CoaddM5Metric):
 
         result = self.coadd(visits[self.col]) - a_x
         return result
+
+
+class PassMetric(BaseMetric):
+    """Just pass visits through with no computation
+    Probaby won't work if slicer has multiple points
+    """
+    def __init__(self):
+        self.dtype = object
+        self.shape = 1
+
+    def __call__(self, visits, **kwargs):
+        return visits
 
 
 class FancyMetric(MeanMetric):
