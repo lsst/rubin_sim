@@ -42,7 +42,11 @@ def get_scheduler_instance_from_path(config_script_path: str | Path) -> CoreSche
         If the config file is invalid, or has invalid content.
     """
 
-    config_module_name: str = "scheduler_config"
+    # Follow example from official python docs:
+    # https://docs.python.org/3/library/importlib.html#importing-a-source-file-directly
+    # The T&S supplied files have code in a __name__ == 'config' conditional
+    # that we need to be executed, so we *must* name the module "config"
+    config_module_name: str = "config"
     config_module_spec = importlib.util.spec_from_file_location(config_module_name, config_script_path)
     if config_module_spec is None or config_module_spec.loader is None:
         # Make type checking happy
@@ -52,7 +56,11 @@ def get_scheduler_instance_from_path(config_script_path: str | Path) -> CoreSche
     sys.modules[config_module_name] = config_module
     config_module_spec.loader.exec_module(config_module)
 
-    scheduler: CoreScheduler = config_module.get_scheduler()[1]
+    try:
+        scheduler: CoreScheduler = config_module.scheduler
+    except NameError:
+        scheduler: CoreScheduler = config_module.get_scheduler()[1]
+
     return scheduler
 
 
