@@ -3,8 +3,8 @@ __all__ = ("sne_batch",)
 import sqlite3
 from os.path import basename
 
-import pandas as pd
 import numpy as np
+import pandas as pd
 
 import rubin_sim.maf_proto as maf
 from rubin_sim.data import get_baseline
@@ -31,9 +31,11 @@ def sne_batch(observations=None, run_name=None, quick_test=False, fig_saver=None
         # Dataframe is handy for some calcs
         and_string = "scheduler_note not like 'DD%'"
         if quick_test:
-            df = pd.read_sql("select * from observations where night < 365 and %s;" % and_string, con)
+            df = pd.read_sql("select * from observations where night < 61 and %s;" % and_string, con)
+            subset = "night < 61 and scheduler_note not like DD"
         else:
             df = pd.read_sql("select * from observations where %s;" % and_string, con)
+            subset = "scheduler_note not like DD"
     else:
         df = observations
 
@@ -45,7 +47,7 @@ def sne_batch(observations=None, run_name=None, quick_test=False, fig_saver=None
 
     info = maf.empty_info()
     info["run_name"] = run_name
-    info["observations_subset"] = "scheduler_note not like DD"
+    info["observations_subset"] = subset
     sl = maf.Slicer(nside=nside)
     metric = maf.SNNSNMetric()
 

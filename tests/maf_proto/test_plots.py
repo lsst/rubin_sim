@@ -83,6 +83,19 @@ class TestPlots(unittest.TestCase):
         hr = maf.PlotHourglass(info=self.info)
         fig = hr(self.visits_array, fig=fig, ax=ax, xlabel="ack")
 
+    def test_healbin(self):
+        hb = maf.PlotHealbin()
+        vals = np.arange(10)
+        ra = np.arange(10) / 9.0 * 360
+        dec = np.arange(10) / 9.0 * 180 - 90
+        fig = hb(ra, dec, vals)
+
+        # Non-defaults
+        fig, ax = plt.subplots()
+
+        hb = maf.PlotHealbin(info=self.info)
+        fig = hb(ra, dec, vals, fig=fig, nside=64, reduce_func=np.nanmax)
+
 
 if __name__ == "__main__":
     unittest.main()
