@@ -278,6 +278,7 @@ def run_prenights(
             sim_start_mjd,
             label=f"Nominal start and overhead, ideal conditions, run at {exec_time}",
             tags=["ideal", "nominal"],
+            sim_duration=sim_duration,
         )
         completed_run_without_delay = True
 
