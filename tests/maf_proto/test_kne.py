@@ -37,7 +37,7 @@ class TestKne(unittest.TestCase):
         assert info["slicer: nside"] is None
 
     def test_kne_files(self):
-        files = maf.get_kne_filename()
+        files = maf.get_kne_filename(inj_params_list=[{'mej_dyn': 0.005, 'mej_wind': 0.050, 'phi': 30, 'theta': 25.8}])
         assert len(files) > 0
 
 
