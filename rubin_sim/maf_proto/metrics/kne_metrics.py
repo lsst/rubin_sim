@@ -137,6 +137,14 @@ class KnLc:
 
 
 class KNePopMetric(BaseMetric):
+    """Metric for injecting KNe events and
+    testing detection/classification criteria.
+
+    Parameters
+    ----------
+    
+    """
+
     def __init__(
         self,
         metric_name="KNePopMetric",
@@ -148,7 +156,7 @@ class KNePopMetric(BaseMetric):
         file_list=None,
         mjd0=SURVEY_START_MJD,
         output_lc=False,
-        badval=np.nan,
+        badval=0,
         dust_nside=128,
     ):
 

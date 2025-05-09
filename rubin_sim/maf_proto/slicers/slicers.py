@@ -49,6 +49,8 @@ class Slicer(object):
         rot_sky_pos_col_name="rotSkyPos",
         missing=np.nan,
         cache=False,
+        ra=None,
+        dec=None,
     ):
 
         self.lon_col = lon_col
@@ -65,13 +67,17 @@ class Slicer(object):
         self.cache = cache
 
         # Setup with default values.
-        self.setup_slice_points(nside=nside)
+        if ra is not None:
+            ra = np.radians(ra)
+        if dec is not None:
+            dec = np.radians(ra)
+        self.setup_slice_points(nside=nside, ra_rad=ra, dec_rad=dec)
 
     def setup_slice_points(self, nside=None, ra_rad=None, dec_rad=None):
         """Define the slice points we're using."""
 
         if (nside is not None) & (ra_rad is not None):
-            raise ValueError("Cannot set both nside and ra.")
+            raise ValueError("Cannot set both nside and ra. Consider nside=None.")
 
         # Set up slice_point
         self.slice_points = {}
