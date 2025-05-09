@@ -17,7 +17,9 @@ class DoNothing:
         pass
 
 
-def sne_batch(observations=None, run_name=None, quick_test=False, fig_saver=None, nside=16):
+def sne_batch(
+    observations=None, run_name=None, quick_test=False, fig_saver=None, nside=16, quick_night_limit=61
+):
     if fig_saver is None:
         fig_saver = DoNothing()
 
@@ -31,8 +33,10 @@ def sne_batch(observations=None, run_name=None, quick_test=False, fig_saver=None
         # Dataframe is handy for some calcs
         and_string = "scheduler_note not like 'DD%'"
         if quick_test:
-            df = pd.read_sql("select * from observations where night < 61 and %s;" % and_string, con)
-            subset = "night < 61 and scheduler_note not like DD"
+            df = pd.read_sql(
+                "select * from observations where night < %i and %s;" % (quick_night_limit, and_string), con
+            )
+            subset = "night < %i and scheduler_note not like DD"
         else:
             df = pd.read_sql("select * from observations where %s;" % and_string, con)
             subset = "scheduler_note not like DD"
