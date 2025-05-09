@@ -68,9 +68,9 @@ class Slicer(object):
 
         # Setup with default values.
         if ra is not None:
-            ra = np.radians(ra)
+            ra = np.radians(np.atleast_1d(ra))
         if dec is not None:
-            dec = np.radians(ra)
+            dec = np.radians(np.atleast_1d(dec))
         self.setup_slice_points(nside=nside, ra_rad=ra, dec_rad=dec)
 
     def setup_slice_points(self, nside=None, ra_rad=None, dec_rad=None):
@@ -276,29 +276,47 @@ class Slicer(object):
         final_info = []
         # See what dtype the metric will return,
         # make an array to hold it.
-        for metric, single_info in zip(metric_s, info):
-            if hasattr(metric, "shape"):
-                if metric.shape is None:
-                    result = np.empty(self.shape, dtype=metric.dtype)
-                else:
-                    result = np.empty((self.shape, metric.shape), dtype=metric.dtype)
-            else:
-                result = np.empty(self.shape, dtype=float)
-            result.fill(self.missing)
-            results.append(result)
+
+        # Perhaps can skip this, just use lists and concatenate at the end?
+        #for metric, single_info in zip(metric_s, info):
+        #    if hasattr(metric, "shape"):
+        #        if metric.shape is None:
+        #            result = np.empty(self.shape, dtype=metric.dtype)
+        #        else:
+        #            result = np.empty((self.shape, metric.shape), dtype=metric.dtype)
+        #    else:
+        #        result = np.empty(self.shape, dtype=float)
+        #    if result.dtype != object:
+        #        result.fill(self.missing)
+        #    results.append(result)
+
+        results = [[] for metric in metric_s]
 
         for i, slice_i in enumerate(self):
             if len(slice_i["idxs"]) != 0:
                 slicedata = visits_array[slice_i["idxs"]]
                 for j, metric in enumerate(metric_s):
                     if self.cache:
-                        results[j][i] = metric.call_cached(
+                        results[j].append(metric.call_cached(
                             frozenset(slicedata["observationId"].tolist()),
                             slicedata,
                             slice_point=slice_i["slice_point"],
-                        )
+                        ))
                     else:
-                        results[j][i] = metric(slicedata, slice_point=slice_i["slice_point"])
+                        # Should only be PassMetric of dtype == object
+                        #if results[j][i].dtype == object:
+                        #    results[j] = metric(slicedata, slice_point=slice_i["slice_point"])
+                        #else:
+                        #   results[j][i] = metric(slicedata, slice_point=slice_i["slice_point"])
+                        results[j].append(np.atleast_1d(metric(slicedata, slice_point=slice_i["slice_point"])))
+            else:
+                for j, metric in enumerate(metric_s):
+                    if hasattr(metric, "badval"):
+                        results[j].append(np.atleast_1d(metric.badval))
+                    else:
+                        results[j].append(np.atleast_1d(self.missing))
+        concat_results = [np.concatenate(arrays_list) for arrays_list in results]
+        results = concat_results
 
         if orig_info is not None:
             for single_info, metric in zip(info, metric_s):
