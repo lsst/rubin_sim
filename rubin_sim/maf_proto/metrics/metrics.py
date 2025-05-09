@@ -5,7 +5,7 @@ __all__ = (
     "CoaddM5Metric",
     "CoaddM5ExtinctionMetric",
     "VectorMetric",
-    "PassMetric"
+    "PassMetric",
 )
 
 import warnings
@@ -123,6 +123,7 @@ class PassMetric(BaseMetric):
     """Just pass visits through with no computation
     Probaby won't work if slicer has multiple points
     """
+
     def __init__(self):
         self.dtype = object
         self.shape = 1
