@@ -1,4 +1,13 @@
-__all__ = ("BasePlot", "PlotMoll", "PlotHist", "PlotHealHist", "PlotLine", "PlotLambert", "PlotFo")
+__all__ = (
+    "BasePlot",
+    "PlotMoll",
+    "PlotHist",
+    "PlotHealHist",
+    "PlotLine",
+    "PlotLambert",
+    "PlotFo",
+    "PlotHealbin",
+)
 
 import copy
 import warnings
@@ -29,13 +38,53 @@ class BasePlot(object):
         return fig
 
 
+class PlotHealbin(BasePlot):
+    """Make a plot with healbin"""
+
+    def __call__(
+        self,
+        ra,
+        dec,
+        inarray,
+        nside=32,
+        reduce_func=np.mean,
+        fig=None,
+        add_grat=True,
+        grat_params="default",
+        cb_params="default",
+        log=False,
+        **kwargs,
+    ):
+        """
+        Parameters
+        ----------
+        inarray : `nunpy.array`
+            Array of values to be binned in healpixels
+        ra : `numpy.array`
+            RA values to use. Degrees.
+        dec : `numpy.array`
+            Dec values to use. Degrees.
+        nside : `int`
+            HEALpix nside value to use when binning. Default 128.
+        reduce_func : `function`
+            Function passed to healbin. Default np.mean.
+        **kwargs
+            Kwargs sent through to rubin_sim.maf_proto.plots.PlotMoll
+
+        """
+
+        hp_array = utils.healbin(ra, dec, inarray, nside=nside, reduce_func=reduce_func)
+
+        pm = PlotMoll(info=self.info)
+        result = pm(
+            hp_array, fig=fig, add_grat=True, grat_params="default", cb_params="default", log=False, **kwargs
+        )
+
+        return result
+
+
 class PlotMoll(BasePlot):
     """Plot a mollweild projection of a HEALpix array."""
-
-    def __init__(self, info=None):
-
-        self.info = info
-        self.moll_kwarg_dict = self._gen_default_labels(info)
 
     def _gen_default_labels(self, info):
         """ """
@@ -116,7 +165,7 @@ class PlotMoll(BasePlot):
         if grat_params == "default":
             grat_params = {"dpar": 30, "dmer": 30}
         # Copy any auto-generated plot kwargs
-        moll_kwarg_dict = copy.copy(self.moll_kwarg_dict)
+        moll_kwarg_dict = copy.copy(self.generated_plot_dict)
         # Override if those things have been set with kwargs
         for key in kwargs:
             moll_kwarg_dict[key] = kwargs.get(key)
