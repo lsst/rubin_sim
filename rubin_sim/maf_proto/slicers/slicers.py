@@ -272,24 +272,6 @@ class Slicer(object):
                     warnings.warn("Metric does not support cache, turning cache off")
                     self.cache = False
 
-        results = []
-        final_info = []
-        # See what dtype the metric will return,
-        # make an array to hold it.
-
-        # Perhaps can skip this, just use lists and concatenate at the end?
-        #for metric, single_info in zip(metric_s, info):
-        #    if hasattr(metric, "shape"):
-        #        if metric.shape is None:
-        #            result = np.empty(self.shape, dtype=metric.dtype)
-        #        else:
-        #            result = np.empty((self.shape, metric.shape), dtype=metric.dtype)
-        #    else:
-        #        result = np.empty(self.shape, dtype=float)
-        #    if result.dtype != object:
-        #        result.fill(self.missing)
-        #    results.append(result)
-
         results = [[] for metric in metric_s]
 
         for i, slice_i in enumerate(self):
@@ -297,19 +279,21 @@ class Slicer(object):
                 slicedata = visits_array[slice_i["idxs"]]
                 for j, metric in enumerate(metric_s):
                     if self.cache:
-                        results[j].append(metric.call_cached(
-                            frozenset(slicedata["observationId"].tolist()),
-                            slicedata,
-                            slice_point=slice_i["slice_point"],
-                        ))
+                        results[j].append(
+                            metric.call_cached(
+                                frozenset(slicedata["observationId"].tolist()),
+                                slicedata,
+                                slice_point=slice_i["slice_point"],
+                            )
+                        )
                     else:
-                        # Should only be PassMetric of dtype == object
-                        #if results[j][i].dtype == object:
-                        #    results[j] = metric(slicedata, slice_point=slice_i["slice_point"])
-                        #else:
-                        #   results[j][i] = metric(slicedata, slice_point=slice_i["slice_point"])
-                        results[j].append(np.atleast_1d(metric(slicedata, slice_point=slice_i["slice_point"])))
+                        results[j].append(
+                            np.atleast_1d(metric(slicedata, slice_point=slice_i["slice_point"]))
+                        )
             else:
+                # There were no overlapping pointings, put in the
+                # bad value for the metric, if none, fall back to
+                # slicer missing.
                 for j, metric in enumerate(metric_s):
                     if hasattr(metric, "badval"):
                         results[j].append(np.atleast_1d(metric.badval))
@@ -318,6 +302,7 @@ class Slicer(object):
         concat_results = [np.concatenate(arrays_list) for arrays_list in results]
         results = concat_results
 
+        final_info = []
         if orig_info is not None:
             for single_info, metric in zip(info, metric_s):
                 if single_info is not None:
