@@ -20,6 +20,10 @@ class TestBatches(unittest.TestCase):
         ss = maf.kne_batch(quick_test=True)
         assert np.size(ss) > 0
 
+    def test_astrom(self):
+        astrom = maf.astrometry_batch(quick_test=True)
+        assert np.size(astrom) > 0
+
 
 if __name__ == "__main__":
     unittest.main()
