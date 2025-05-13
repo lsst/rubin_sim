@@ -3,7 +3,7 @@ __all__ = ("empty_info",)
 import pandas as pd
 
 
-def empty_info(as_df_row=False):
+def empty_info(as_df_row=False, **kwargs):
     """Return an empty info dictionary with keys already set
 
     Parameters
