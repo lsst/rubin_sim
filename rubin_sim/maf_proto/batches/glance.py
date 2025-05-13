@@ -101,7 +101,6 @@ def glance(observations=None, run_name=None, quick_test=False, fig_saver=None):
             pm = maf.PlotMoll(info=info)
             fig = pm(hp_array, **plot_dict)
             fig_saver(fig, info=info)
-            # XXX--send fig to dir and db at this point if desired
             # Do whatever stats we want on the hp_array
             for stat in stats_to_run:
                 summary_stats.append(maf.gen_summary_row(info, stat, stats_to_run[stat](hp_array)))
