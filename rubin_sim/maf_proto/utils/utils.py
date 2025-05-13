@@ -5,6 +5,7 @@ __all__ = (
     "count_value_changes",
     "osf_visit_array",
     "fO_calcs",
+    "percentile_clipping",
 )
 
 import copy
@@ -12,6 +13,31 @@ import warnings
 
 import healpy as hp
 import numpy as np
+
+
+def percentile_clipping(data, percentile=95.0):
+    """Calculate the minimum and maximum values of a distribution of points,
+    after discarding data more than 'percentile' from the median.
+    This is useful for determining useful data ranges for plots.
+    Note that 'percentile' percent of the data is retained.
+
+    Parameters
+    ----------
+    data : `numpy.ndarray`
+        The data to clip.
+    percentile : `float`
+        Retain values within percentile of the median.
+
+    Returns
+    -------
+    minimum, maximum : `float`, `float`
+        The minimum and maximum values of the clipped data.
+    """
+    lower_percentile = (100 - percentile) / 2.0
+    upper_percentile = 100 - lower_percentile
+    min_value = np.percentile(data, lower_percentile)
+    max_value = np.percentile(data, upper_percentile)
+    return min_value, max_value
 
 
 def fO_calcs(nvis_hp, asky=18000.0, n_visit=750):
