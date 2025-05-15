@@ -22,6 +22,7 @@ if HAVE_LSST_RESOURCES:
         check_opsim_archive_resource,
         compile_sim_metadata,
         fetch_latest_prenight_sim_for_nights,
+        fetch_num_visits_in_latest_prenight_sim_for_night,
         fetch_obsloctap_visits,
         find_latest_prenight_sim_for_nights,
         make_sim_archive_cli,
@@ -161,6 +162,12 @@ class TestSimArchive(unittest.TestCase):
         visits = pd.DataFrame(fetch_obsloctap_visits(day_obs, nights=num_nights))
         assert np.floor(visits["observationStartMJD"].min() - 0.5) == Time(day_obs).mjd
         assert np.floor(visits["observationStartMJD"].max() - 0.5) == Time(day_obs).mjd + num_nights - 1
+
+    @unittest.skipIf(not HAVE_LSST_RESOURCES, "No lsst.resources")
+    def test_fetch_num_visits_in_latest_prenight_sim_for_night(self):
+        day_obs = "2025-05-12"
+        num_visits = fetch_num_visits_in_latest_prenight_sim_for_night(day_obs)
+        assert num_visits == 1141
 
 
 if __name__ == "__main__":

@@ -14,6 +14,7 @@ __all__ = [
     "find_latest_prenight_sim_for_nights",
     "fetch_latest_prenight_sim_for_nights",
     "fetch_obsloctap_visits",
+    "fetch_num_visits_in_latest_prenight_sim_for_night",
 ]
 
 import argparse
@@ -42,6 +43,7 @@ from rubin_scheduler.scheduler import sim_runner
 from rubin_scheduler.scheduler.utils import SchemaConverter
 from rubin_scheduler.site_models.almanac import Almanac
 
+from rubin_sim import maf
 from rubin_sim.maf.utils.opsim_utils import get_sim_data
 
 LOGGER = logging.getLogger(__name__)
@@ -1204,3 +1206,50 @@ def fetch_obsloctap_visits(
     )
 
     return visits
+
+
+def fetch_num_visits_in_latest_prenight_sim_for_night(day_obs: str | int | None = None) -> int:
+    """Count the visits on a night in the latest nominal sim for a night.
+
+    Parameters
+    ----------
+    day_obs : `str` or 'int' or `None`
+        Date (in UTC-12hrs timezone) for which to get the count of visits,
+        in ISO8601 (YYYY-MM-DD as a string) or int dayobs (int(YYYYMMDD))
+        or `None` (day_obs including the evening of yesterday in local time).
+
+    Returns
+    -------
+    num_visits : `int`
+        The number of visits on day_obs.
+    """
+
+    # Maybe we should move schedview.DayObs into rubin_sim so we can use it
+    # here without introducing a schedview dependency.
+    match day_obs:
+        case str():
+            pass
+        case int():
+            day_obs = datetime.datetime.strptime(str(day_obs), "%Y%m%d").date().isoformat()
+        case None:
+            (datetime.date.today() - datetime.timedelta(days=1)).isoformat()
+        case _:
+            raise NotImplementedError(f"Cannot get day_obs from a {type(day_obs)}.")
+
+    assert isinstance(day_obs, str)
+
+    # Go far enough back to get the automatic pre-nights for the night
+    max_simulation_age = int(np.ceil(Time.now().mjd - Time(day_obs).mjd)) + 3
+
+    visits = fetch_latest_prenight_sim_for_nights(
+        first_day_obs=day_obs,
+        last_day_obs=day_obs,
+        max_simulation_age=max_simulation_age,
+        stackers=[maf.DayObsStacker()],
+    )
+    if isinstance(visits, pd.DataFrame):
+        num_visits = len(visits.query(f"dayObs == {day_obs.replace('-','')}"))
+    else:
+        num_visits = 0
+
+    return num_visits
