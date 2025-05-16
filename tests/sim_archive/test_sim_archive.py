@@ -21,9 +21,9 @@ if HAVE_LSST_RESOURCES:
     from rubin_sim.sim_archive.sim_archive import (
         check_opsim_archive_resource,
         compile_sim_metadata,
-        fetch_latest_prenight_sim_for_nights,
-        fetch_num_visits_in_latest_prenight_sim_for_night,
         fetch_obsloctap_visits,
+        fetch_sim_for_nights,
+        fetch_sim_stats_for_night,
         find_latest_prenight_sim_for_nights,
         make_sim_archive_cli,
         make_sim_archive_dir,
@@ -149,10 +149,10 @@ class TestSimArchive(unittest.TestCase):
         assert sim_metadata["simulated_dates"]["first"] <= day_obs <= sim_metadata["simulated_dates"]["last"]
 
     @unittest.skipIf(not HAVE_LSST_RESOURCES, "No lsst.resources")
-    def test_fetch_latest_prenight_sim_for_night(self):
+    def test_fetch_sim_for_nights(self):
         day_obs = "2025-04-25"
         max_simulation_age = int(np.ceil(Time.now().mjd - Time(day_obs).mjd)) + 1
-        visits = fetch_latest_prenight_sim_for_nights(day_obs, max_simulation_age=max_simulation_age)
+        visits = fetch_sim_for_nights(day_obs, which_sim={"max_simulation_age": max_simulation_age})
         assert len(visits) > 0
 
     @unittest.skipIf(not HAVE_LSST_RESOURCES, "No lsst.resources")
@@ -160,13 +160,31 @@ class TestSimArchive(unittest.TestCase):
         day_obs = "2025-04-25"
         num_nights = 2
         visits = pd.DataFrame(fetch_obsloctap_visits(day_obs, nights=num_nights))
+        assert 500 < len(visits) / num_nights < 1500
+
+        assert np.all(np.isfinite(visits["observationStartMJD"]))
         assert np.floor(visits["observationStartMJD"].min() - 0.5) == Time(day_obs).mjd
         assert np.floor(visits["observationStartMJD"].max() - 0.5) == Time(day_obs).mjd + num_nights - 1
 
+        assert np.all(np.isfinite(visits["fieldDec"]))
+        assert visits["fieldDec"].min() >= -90.0
+        assert visits["fieldDec"].max() <= 90.0
+
+        assert np.all(np.isfinite(visits["rotSkyPos"]))
+        assert visits["rotSkyPos"].min() >= -720.0
+        assert visits["rotSkyPos"].max() <= 720.0
+
+        assert np.all(np.isfinite(visits["visitExposureTime"]))
+        assert visits["visitExposureTime"].min() >= -720.0
+        assert visits["visitExposureTime"].max() <= 720.0
+
+        assert "band" in visits.columns
+        assert "target_name" in visits.columns
+
     @unittest.skipIf(not HAVE_LSST_RESOURCES, "No lsst.resources")
-    def test_fetch_num_visits_in_latest_prenight_sim_for_night(self):
+    def test_fetch_sim_stats_for_night(self):
         day_obs = "2025-05-12"
-        num_visits = fetch_num_visits_in_latest_prenight_sim_for_night(day_obs)
+        num_visits = fetch_sim_stats_for_night(day_obs)["nominal_visits"]
         assert num_visits == 1141
 
 
