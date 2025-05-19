@@ -12,8 +12,9 @@ __all__ = [
     "drive_sim",
     "compile_sim_archive_metadata_cli",
     "find_latest_prenight_sim_for_nights",
-    "fetch_latest_prenight_sim_for_nights",
+    "fetch_sim_for_nights",
     "fetch_obsloctap_visits",
+    "fetch_sim_stats_for_night",
 ]
 
 import argparse
@@ -42,6 +43,7 @@ from rubin_scheduler.scheduler import sim_runner
 from rubin_scheduler.scheduler.utils import SchemaConverter
 from rubin_scheduler.site_models.almanac import Almanac
 
+from rubin_sim import maf
 from rubin_sim.maf.utils.opsim_utils import get_sim_data
 
 LOGGER = logging.getLogger(__name__)
@@ -1082,18 +1084,13 @@ def find_latest_prenight_sim_for_nights(
     return best_sim
 
 
-def fetch_latest_prenight_sim_for_nights(
+def fetch_sim_for_nights(
     first_day_obs: str | None = None,
     last_day_obs: str | None = None,
-    tags: tuple[str] = ("ideal", "nominal"),
-    telescope: str = "simonyi",
-    max_simulation_age: int = 2,
-    archive_uri: str = "s3://rubin:rubin-scheduler-prenight/opsim/",
-    compilation_uri: str = "s3://rubin:rubin-scheduler-prenight/opsim/compiled_metadata_cache.h5",
-    **kwargs,
+    which_sim: ResourcePath | str | dict | None = None,
+    get_sim_data_kwargs: dict | None = None,
 ) -> pd.DataFrame | None:
-    """Fetches visit parameters from the latest archived pre-night simulation
-    with requested tags for a specified day of observing.
+    """Fetches visit metadata from an opsim database for specified nights.
 
     Parameters
     ----------
@@ -1103,24 +1100,16 @@ def fetch_latest_prenight_sim_for_nights(
     last_day_obs : `str` or  `None`
         The date of the evening for the last night for which to get
         a simulation. If `None`, then the current date will be used.
-    tags : `tuple[str]`
-        A tuple of tags to filter simulations by.
-        Defaults to ``('ideal', 'nominal')``.
-    telescope : `str`
-        The telescope to get sims for, "simonyi" or "auxtel".
-        Defaults to "simonyi".
-    max_simulation_age : `int`
-        The maximum age of simulations to consider, in days. Simulations older
-        than ``max_simulation_age`` will not be considered. Defaults to 2.
-    archive_uri : `str`
-        The URI of the archive from which to fetch the simulation.
-        Defaults to ``s3://rubin:rubin-scheduler-prenight/opsim/``.
-    compilation_uri : `str`
-        The URI of the compiled metadata HDF5 file for efficient querying.
-        Defaults to ``s3://rubin:rubin-scheduler-prenight/opsim/compiled_metadata_cache.h5``.
-    **kwargs
-        Additional keyword arguments passed to
-        `rubin_sim.maf.get_sim_data`.
+    which_sim : `ResourcePath` or `str` or `dict` on `None`
+        The ``resourcePath`` or URL of the opsim file from which to
+        load visits, or the arguments to
+        ``find_latest_prenight_sim_for_nights``
+        to use to determine which simulation to load. ``None`` uses
+        default arguments to ``find_latest_prenight_sim_for_nights``.
+        Defaults to ``None``.
+    git_sim_data_kwargs : `dict`
+        Additional arguments to ``get_sim_data`` to use to load
+        the visits.
 
     Returns
     -------
@@ -1128,18 +1117,53 @@ def fetch_latest_prenight_sim_for_nights(
         A pandas DataFrame containing visit parameters.
     """
 
-    sim_metadata = find_latest_prenight_sim_for_nights(
-        first_day_obs, last_day_obs, tags, telescope, max_simulation_age, archive_uri, compilation_uri
-    )
-    if sim_metadata is None:
-        LOGGER.info("No simulations meet requested criteria.")
-        result = None
-    else:
-        visits = get_sim_data(sim_metadata["opsim_rp"], **kwargs)
-        LOGGER.debug(f"Loaded {len(visits)} from {sim_metadata['opsim_rp']}")
-        result = pd.DataFrame(visits)
+    if first_day_obs is None:
+        first_day_obs = Time(Time.now().mjd - 0.5, format="mjd").iso[:10]
+    if last_day_obs is None:
+        last_day_obs = first_day_obs
 
-    return result
+    match which_sim:
+        case ResourcePath():
+            opsim_rp = which_sim
+        case str():
+            opsim_rp = ResourcePath(which_sim)
+        case dict():
+            opsim_rp = find_latest_prenight_sim_for_nights(first_day_obs, last_day_obs, **which_sim)[
+                "opsim_rp"
+            ]
+        case None:
+            opsim_rp = find_latest_prenight_sim_for_nights(first_day_obs, last_day_obs)["opsim_rp"]
+        case _:
+            raise NotImplementedError()
+
+    assert isinstance(opsim_rp, ResourcePath)
+
+    if get_sim_data_kwargs is None:
+        get_sim_data_kwargs = {}
+    assert isinstance(get_sim_data_kwargs, dict)
+
+    # Limit visits returned to the nights we requested
+    if "stackers" not in get_sim_data_kwargs:
+        get_sim_data_kwargs["stackers"] = []
+    dayobsiso_requested = maf.DayObsISOStacker in [s.__class__ for s in get_sim_data_kwargs["stackers"]]
+    if not dayobsiso_requested:
+        # We want it to filter out dates that were not requested,
+        # so add it to the stacker even if it was not requested.
+        get_sim_data_kwargs["stackers"].append(maf.DayObsISOStacker())
+
+    visits = get_sim_data(opsim_rp, **get_sim_data_kwargs)
+
+    LOGGER.debug(f"Loaded {len(visits)} from {opsim_rp}")
+    visits_df = pd.DataFrame(visits)
+    visits_df = visits_df.loc[
+        (first_day_obs <= visits_df["day_obs_iso8601"]) & (visits_df["day_obs_iso8601"] <= last_day_obs),
+        :,
+    ]
+    # If it dayobsiso was not requested, do not return it.
+    if not dayobsiso_requested:
+        visits_df.drop(columns="day_obs_iso8601", inplace=True)
+
+    return visits_df
 
 
 def fetch_obsloctap_visits(
@@ -1188,19 +1212,74 @@ def fetch_obsloctap_visits(
     start_mjd = night_bounds.loc[first_night, "sunset"]
     end_mjd = night_bounds.loc[last_night, "sunrise"]
 
-    sqlconstraint = (f"observationStartMJD BETWEEN {start_mjd} AND {end_mjd}",)
-    max_simulation_age = int(np.ceil(Time.now().mjd - reference_time.mjd)) + 1
-
     first_day_obs = Time(start_mjd - 0.5, format="mjd").iso[:10]
     last_day_obs = Time(end_mjd - 0.5, format="mjd").iso[:10]
-    visits = fetch_latest_prenight_sim_for_nights(
-        first_day_obs,
-        last_day_obs,
-        tags=("ideal", "nominal"),
-        telescope=telescope,
-        max_simulation_age=max_simulation_age,
-        sqlconstraint=sqlconstraint,
-        dbcols=dbcols,
+
+    which_sim = {
+        "tags": ("ideal", "nominal"),
+        "telescope": telescope,
+        "max_simulation_age": int(np.ceil(Time.now().mjd - reference_time.mjd)) + 1,
+    }
+    get_sim_data_kwargs = {
+        "sqlconstraint": (f"observationStartMJD BETWEEN {start_mjd} AND {end_mjd}",),
+        "dbcols": dbcols,
+    }
+    visits = fetch_sim_for_nights(
+        first_day_obs, last_day_obs, which_sim=which_sim, get_sim_data_kwargs=get_sim_data_kwargs
     )
 
     return visits
+
+
+def fetch_sim_stats_for_night(day_obs: str | int | None = None) -> dict:
+    """Count the visits on a night in the latest nominal sim for a night.
+
+    Parameters
+    ----------
+    day_obs : `str` or 'int' or `None`
+        Date (in UTC-12hrs timezone) for which to get the count of visits,
+        in ISO8601 (YYYY-MM-DD as a string) or int dayobs (int(YYYYMMDD))
+        or `None` (day_obs including the evening of yesterday in local time).
+
+    Returns
+    -------
+    sim_stats : `dict`
+        A dict with statistics for the night.
+        Presently, it has one key: `nominal_visits`, the number of visits
+        in the latest nominal simulation.
+    """
+
+    # Maybe we should move schedview.DayObs into rubin_sim so we can use it
+    # here without introducing a schedview dependency.
+    match day_obs:
+        case str():
+            pass
+        case int():
+            day_obs = datetime.datetime.strptime(str(day_obs), "%Y%m%d").date().isoformat()
+        case None:
+            (datetime.date.today() - datetime.timedelta(days=1)).isoformat()
+        case _:
+            raise NotImplementedError(f"Cannot get day_obs from a {type(day_obs)}.")
+
+    assert isinstance(day_obs, str)
+
+    # Initialize the dictionary with the night stats
+    night_sim_stats = {}
+
+    # Count the visits in the latest simulated nominal night
+
+    # Go far enough back to get the automatic pre-nights for the night
+    max_simulation_age = int(np.ceil(Time.now().mjd - Time(day_obs).mjd)) + 3
+
+    visits = fetch_sim_for_nights(
+        first_day_obs=day_obs,
+        last_day_obs=day_obs,
+        which_sim={"max_simulation_age": max_simulation_age},
+    )
+    night_sim_stats["nominal_visits"] = len(visits) if isinstance(visits, pd.DataFrame) else 0
+
+    # We can add whatever additional stats we like here. Possibilities include
+    # statistics from multiple simulations, counts for different bands in the
+    # nominal simulation, numbers of DDF/WFD/ToO visits, etc.
+
+    return night_sim_stats
