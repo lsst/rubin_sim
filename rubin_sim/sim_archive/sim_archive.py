@@ -1257,7 +1257,7 @@ def fetch_sim_stats_for_night(day_obs: str | int | None = None) -> dict:
         case int():
             day_obs = datetime.datetime.strptime(str(day_obs), "%Y%m%d").date().isoformat()
         case None:
-            (datetime.date.today() - datetime.timedelta(days=1)).isoformat()
+            day_obs = (datetime.date.today() - datetime.timedelta(days=1)).isoformat()
         case _:
             raise NotImplementedError(f"Cannot get day_obs from a {type(day_obs)}.")
 

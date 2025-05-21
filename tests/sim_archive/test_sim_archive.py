@@ -187,6 +187,9 @@ class TestSimArchive(unittest.TestCase):
         num_visits = fetch_sim_stats_for_night(day_obs)["nominal_visits"]
         assert num_visits == 1141
 
+        # Make sure it runs with a default day_ibl
+        fetch_sim_stats_for_night()
+
 
 if __name__ == "__main__":
     unittest.main()
