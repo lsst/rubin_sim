@@ -107,6 +107,7 @@ class SNNSNMetric(BaseMetric):
         add_dust=False,
         hard_dust_cut=0.25,
         gamma_name="gamma_WFD.hdf5",
+        zbins=[[0, 0.1], [0.1, 0.2], [0.2, 0.5]],
         **kwargs,
     ):
         # n_bef / n_aft = 3/8 for WFD, 4/10 for DDF
@@ -122,6 +123,7 @@ class SNNSNMetric(BaseMetric):
         self.vistime_col = vistime_col
         self.seeing_col = seeing_col
         self.note_col = note_col
+        self.zbins = zbins
 
         self.ploteffi = ploteffi
         self.t0s = "all"
@@ -135,7 +137,10 @@ class SNNSNMetric(BaseMetric):
         self.ax1 = dust_properties.ax1
 
         self.shape = None
-        self.dtype = list(zip(["n_sn", "zlim"], [float, float]))
+
+        bin_names = ["bin%i" % i for i in range(len(self.zbins))]
+        bin_types = [float] * len(self.zbins)
+        self.dtype = list(zip(["n_sn", "zlim"] + bin_names, [float, float] + bin_types))
         self.empty = np.empty(1, dtype=self.dtype)
         self.badval = self.empty.copy()
         self.badval["n_sn"] = np.nan
@@ -288,6 +293,33 @@ class SNNSNMetric(BaseMetric):
             metric="nsn",
         )
 
+        n_sn_bins = []
+        for zbin in self.zbins:
+            high_vals = metric_values.copy()
+            high_vals["zcomp"] = np.max(zbin)
+            up_to_high = self.metric(
+                data_slice,
+                zseason_allz,
+                x1=0.0,
+                color=0.0,
+                zlim=high_vals[["season", "zcomp"]],
+                metric="nsn",
+            )
+
+            vals = metric_values.copy()
+            vals["zcomp"] = np.min(zbin)
+            up_to_low = self.metric(
+                data_slice,
+                zseason_allz,
+                x1=0.0,
+                color=0.0,
+                zlim=vals[["season", "zcomp"]],
+                metric="nsn",
+            )
+
+            # number of SNe in the redshift range we've specified
+            n_sn_bins.append((up_to_high["nsn"] - up_to_low["nsn"]).sum())
+
         # final results
         if nsn_zcomp is None:
             return self.badval
@@ -302,7 +334,11 @@ class SNNSNMetric(BaseMetric):
         if len(selmet) > 0:
             zcomp = selmet["zcomp"].median()
             n_sn = selmet["nsn"].sum()
-            res = np.rec.fromrecords([(n_sn, zcomp)], names=["n_sn", "zlim"])
+            res = self.empty.copy()
+            res["n_sn"] = n_sn
+            res["zlim"] = zcomp
+            for i, n_in_bin in enumerate(n_sn_bins):
+                res["bin%i" % i] = n_in_bin
         else:
             res = self.badval
 
