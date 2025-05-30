@@ -6,6 +6,7 @@ __all__ = (
     "CoaddM5ExtinctionMetric",
     "VectorMetric",
     "PassMetric",
+    "AccumulateCountMetric",
 )
 
 import warnings
@@ -23,7 +24,7 @@ UNIT_LOOKUP_DICT = {"night": "Days", "fiveSigmaDepth": "mag", "airmass": "airmas
 class BaseMetric(object):
     """Example of a simple metric."""
 
-    def __init__(self, col="night", unit=None, name="name"):
+    def __init__(self, col="", unit=None, name="name"):
         self.shape = None
         self.dtype = float
         self.col = col
@@ -154,7 +155,6 @@ class VectorMetric(MeanMetric):
     def __init__(self, times=np.arange(60), col="night", time_col="night", function=np.add):
         self.shape = np.size(times)
         self.dtype = float
-        self.col = col
         self.function = function
         self.time_col = time_col
         self.times = times
@@ -173,4 +173,28 @@ class VectorMetric(MeanMetric):
         indices = np.searchsorted(visit_times, self.times, side="right")
         indices[np.where(indices >= np.size(result))] = np.size(result) - 1
         result = result[indices]
-        return result
+        return [result]
+
+
+class AccumulateCountMetric(BaseMetric):
+    """
+    Calculate the accumulated Count at given time points
+    """
+
+    def __init__(self, time_points, time_col="night", function=np.add, unit="#"):
+        self.function = function
+        super().__init__(unit=unit)
+        self.time_col = time_col
+        self.time_points = time_points
+        self.shape = self.time_points.size
+
+    def __call__(self, data_slice, slice_point=None):
+        data_slice.sort(order=self.time_col)
+        to_count = np.ones(data_slice.size)
+        result = self.function.accumulate(to_count)
+        indices = np.searchsorted(data_slice[self.time_col], self.time_points, side="right")
+        # If we have time points beyond the end, pull it back
+        indices[np.where(indices >= np.size(result))] = np.size(result) - 1
+        result = result[indices]
+        result[np.where(indices == 0)] = 0
+        return [result]
