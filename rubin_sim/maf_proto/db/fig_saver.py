@@ -61,12 +61,18 @@ class FigSaver:
                 filename += info[key] + "_"
 
         if "slicer: nside" in info.keys():
-            filename += "nside%i_" % info["slicer: nside"]
+            filename += "nside%i" % info["slicer: nside"]
 
         # Maybe a more extensive clean here
         swaps = {"=": "_", " ": "_", "<": "lt", ">": "gt"}
         for key in swaps:
             filename = filename.replace(key, swaps[key])
+
+        while "__" in filename:
+            filename = filename.replace("__", "_")
+
+        while filename[-1] == "_":
+            filename = filename[0:-1]
 
         # Could throw a warning here, or even an error
         if filename == "":
