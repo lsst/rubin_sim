@@ -199,7 +199,7 @@ class ProperMotionMetric(BaseMetric):
             units = "Proper Motion Unctertainty (ratio)"
         else:
             units = "Proper Motion Unctertainty (mas/yr)"
-        super(ProperMotionMetric, self).__init__(col=cols, name=metric_name, unit=units, **kwargs)
+        super(ProperMotionMetric, self).__init__(name=metric_name, unit=units, **kwargs)
         # set return type
         self.mjd_col = mjd_col
         self.seeing_col = seeing_col
@@ -337,10 +337,9 @@ class ParallaxCoverageMetric(BaseMetric):
         badval=np.nan,
         **kwargs,
     ):
-        cols = ["ra_pi_amp", "dec_pi_amp", m5_col, mjd_col, filter_col, seeing_col]
         units = "Parallax Coverage (0-1)"
         self.badval = badval
-        super(ParallaxCoverageMetric, self).__init__(cols, name=metric_name, unit=units, **kwargs)
+        super(ParallaxCoverageMetric, self).__init__(name=metric_name, unit=units, **kwargs)
         self.m5_col = m5_col
         self.seeing_col = seeing_col
         self.filter_col = filter_col
@@ -469,16 +468,7 @@ class ParallaxDcrDegenMetric(BaseMetric):
         self.filter_col = filter_col
         self.tol = tol
         units = "Parallax-DCR Correlation"
-        # just put all the columns that all the stackers will need here?
-        cols = [
-            "ra_pi_amp",
-            "dec_pi_amp",
-            "ra_dcr_amp",
-            "dec_dcr_amp",
-            seeing_col,
-            m5_col,
-        ]
-        super(ParallaxDcrDegenMetric, self).__init__(cols, name=metric_name, unit=units, **kwargs)
+        super(ParallaxDcrDegenMetric, self).__init__(name=metric_name, unit=units, **kwargs)
         self.mags = {}
         if sed_template == "flat":
             for f in ["u", "g", "r", "i", "z", "y"]:
