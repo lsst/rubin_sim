@@ -190,7 +190,7 @@ class KNePopMetric(BaseMetric):
         self.dtype = list(zip(names, types))
         self.empty = np.empty(1, dtype=self.dtype)
         self.badval = np.empty(1, dtype=self.dtype)
-        self.badval.fill(np.nan)
+        self.badval.fill(badval)
 
         self.dust_nside = dust_nside
 
