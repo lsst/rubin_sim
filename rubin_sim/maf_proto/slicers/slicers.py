@@ -8,6 +8,23 @@ import numpy as np
 import rubin_scheduler.utils as utils
 
 
+def concat_with_missing(in_list, missing=np.nan):
+    """If we can't concat an array, probably
+    a metric that returns a vector. 
+    """
+    try:
+        result = np.concatenate(in_list)
+    except ValueError:
+        sizes = [np.size(arr) for arr in in_list]
+        u_sizes = np.unique(sizes)
+        result = np.zeros((len(in_list), np.max(u_sizes))) + missing
+        for i, arr in enumerate(in_list):
+            if np.size(arr) > 1:
+                result[i, :] = arr
+
+    return result
+
+
 class Slicer(object):
     """Slicer. Defaults to a healpix grid. Use
     setup_slice_points method to set custom coordinates.
@@ -300,7 +317,7 @@ class Slicer(object):
                     else:
                         results[j].append(np.atleast_1d(self.missing))
 
-        concat_results = [np.concatenate(arrays_list) for arrays_list in results]
+        concat_results = [concat_with_missing(arrays_list, missing=self.missing) for arrays_list in results]
         results = concat_results
 
         final_info = []
