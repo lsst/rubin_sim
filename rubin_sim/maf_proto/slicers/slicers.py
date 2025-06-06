@@ -86,6 +86,9 @@ class Slicer(object):
         # Setup with default values.
         if ra is not None:
             ra = np.radians(np.atleast_1d(ra))
+            if nside is not None:
+                warnings.warn("Both nside and ra kwargs set, using ra setting nside=None.")
+                nside = None
         if dec is not None:
             dec = np.radians(np.atleast_1d(dec))
         self.setup_slice_points(nside=nside, ra_rad=ra, dec_rad=dec)

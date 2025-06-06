@@ -30,7 +30,8 @@ class BaseMetric(object):
         self.col = col
         self.name = name
         if unit is None:
-            self.unit = UNIT_LOOKUP_DICT[self.col]
+            if self.col in UNIT_LOOKUP_DICT.keys():
+                self.unit = UNIT_LOOKUP_DICT[self.col]
         else:
             self.unit = unit
 
@@ -124,11 +125,6 @@ class PassMetric(BaseMetric):
     """Just pass visits through with no computation
     Probaby won't work if slicer has multiple points
     """
-
-    def __init__(self):
-        self.dtype = object
-        self.shape = 1
-
     def __call__(self, visits, **kwargs):
         return visits
 
