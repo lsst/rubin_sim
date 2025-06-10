@@ -18,7 +18,7 @@ from .common import lightcurve_summary
 def ddfBatch(
     run_name="run_name",
     nside=512,
-    radius=2.5,
+    radius=2.1,
     nside_sne=128,
     extra_sql=None,
     extra_info_label=None,
@@ -35,7 +35,7 @@ def ddfBatch(
         The HEALpix nside to run most of the metrics on.
     radius : `float`
         The radius to select around each ddf (degrees).
-        The default value of 2.5 degrees has been chosen to balance
+        The default value of 2.1 degrees has been chosen to balance
         selecting a large enough area to ensure gathering all of the double
         Euclid field or a run with large dithers,
         while not including too much background area (which can
