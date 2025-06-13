@@ -64,17 +64,16 @@ def fO_calcs(nvis_hp, asky=18000.0, n_visit=750):
 
 
 def fO_time_calcs(nvis_hp_time, asky=18000.0, n_visit=750, stat=np.median):
-    """Given n visits in time array, convert to fO vs time.
-    """
+    """Given n visits in time array, convert to fO vs time."""
     n_pix_heal = nvis_hp_time[:, 0].size
     nside = hp.npix2nside(n_pix_heal)
     pix_area = hp.nside2pixarea(nside, degrees=True)
-    n_pix_needed = int(np.ceil(asky/pix_area))
+    n_pix_needed = int(np.ceil(asky / pix_area))
     # sort by value
     data = nvis_hp_time
     data.sort(axis=0)
     # Crop down to the desired sky area
-    data = data[n_pix_heal-n_pix_needed:, :]
+    data = data[n_pix_heal - n_pix_needed :, :]
     result = stat(data, axis=0)
     return result
 
