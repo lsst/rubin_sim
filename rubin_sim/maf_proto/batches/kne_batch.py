@@ -9,8 +9,6 @@ import pandas as pd
 import rubin_sim.maf_proto as maf
 from rubin_sim.data import get_baseline
 
-DAYS_IN_YEAR = 365.25
-
 
 class DoNothing:
     def __call__(*args, **kwargs):
@@ -52,6 +50,8 @@ def kne_batch(observations=None, run_name=None, quick_test=False, fig_saver=None
     metric = maf.KNePopMetric(mjd0=mjd0)
     if quick_test:
         metric.generate_kn_pop(n_events=100)
+    else:
+        metric.generate_kn_pop(n_events=500000)
     sl = maf.Slicer(nside=None, missing=0, ra=np.degrees(metric.ra), dec=np.degrees(metric.dec))
 
     kn_array, info = sl(visits_array, metric, info=info)
