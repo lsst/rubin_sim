@@ -77,7 +77,7 @@ class SNNSNMetric(BaseMetric):
 
     def __init__(
         self,
-        metric_name="SNNSNMetric",
+        name="SNNSNMetric",
         mjd_col="observationStartMJD",
         filter_col="filter",
         m5_col="fiveSigmaDepth",
@@ -111,7 +111,7 @@ class SNNSNMetric(BaseMetric):
         **kwargs,
     ):
         # n_bef / n_aft = 3/8 for WFD, 4/10 for DDF
-
+        self.name = name
         self.mjd_col = mjd_col
         self.m5_col = m5_col
         self.filter_col = filter_col

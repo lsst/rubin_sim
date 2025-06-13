@@ -28,6 +28,10 @@ class TestBatches(unittest.TestCase):
         color_s = maf.color_slope_batch(quick_test=True)
         assert np.size(color_s) > 0
 
+    def test_microlensing(self):
+        summary = maf.microlensing_batch(quick_test=True)
+        assert np.size(summary) > 0
+
 
 if __name__ == "__main__":
     unittest.main()
