@@ -24,6 +24,10 @@ class TestBatches(unittest.TestCase):
         astrom = maf.astrometry_batch(quick_test=True)
         assert np.size(astrom) > 0
 
+    def test_color_slope(self):
+        color_s = maf.color_slope_batch(quick_test=True)
+        assert np.size(color_s) > 0
+
 
 if __name__ == "__main__":
     unittest.main()
