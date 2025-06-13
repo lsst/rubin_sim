@@ -36,7 +36,7 @@ class BaseMetric(object):
             self.unit = unit
 
     def add_info(self, info):
-        info["metric: name"] = self.__class__.__name__
+        info["metric: name"] = self.name
         if hasattr(self, "col"):
             info["metric: col"] = self.col
         if hasattr(self, "unit"):
@@ -125,6 +125,7 @@ class PassMetric(BaseMetric):
     """Just pass visits through with no computation
     Probaby won't work if slicer has multiple points
     """
+
     def __call__(self, visits, **kwargs):
         return visits
 

@@ -40,9 +40,7 @@ class CheckColorSlope(object):
 
         for filtername in u_filters:
             in_filt = np.where(visits[self.filter_col] == filtername)[0]
-            time_gap = (
-                visits[self.mjd_col][in_filt].max() - visits[self.mjd_col][in_filt][np.newaxis].min()
-            )
+            time_gap = visits[self.mjd_col][in_filt].max() - visits[self.mjd_col][in_filt][np.newaxis].min()
             if time_gap >= self.slope_length:
                 has_slope = True
                 break
@@ -51,9 +49,7 @@ class CheckColorSlope(object):
                 if filtername1 != filtername2:
                     in_filt1 = np.where(filters == filtername1)[0]
                     in_filt2 = np.where(filters == filtername2)[0]
-                    time_gaps = (
-                        visits[self.mjd_col][in_filt1] - visits[self.mjd_col][in_filt2][np.newaxis].T
-                    )
+                    time_gaps = visits[self.mjd_col][in_filt1] - visits[self.mjd_col][in_filt2][np.newaxis].T
                     time_gaps = time_gaps[np.where(time_gaps > 0)]
                     if time_gaps.size > 0:
                         if np.min(time_gaps[np.where(time_gaps > 0)]) <= self.color_length:
