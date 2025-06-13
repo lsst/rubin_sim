@@ -10,7 +10,7 @@ import rubin_scheduler.utils as utils
 
 def concat_with_missing(in_list, missing=np.nan):
     """If we can't concat an array, probably
-    a metric that returns a vector. 
+    a metric that returns a vector.
     """
     try:
         result = np.concatenate(in_list)
