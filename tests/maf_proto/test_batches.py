@@ -32,6 +32,10 @@ class TestBatches(unittest.TestCase):
         summary = maf.microlensing_batch(quick_test=True)
         assert np.size(summary) > 0
 
+    def test_xrb(self):
+        summary = maf.xrb_batch(quick_test=True)
+        assert np.size(summary) > 0
+
 
 if __name__ == "__main__":
     unittest.main()
