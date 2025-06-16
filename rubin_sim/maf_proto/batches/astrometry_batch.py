@@ -62,7 +62,7 @@ def astrometry_batch(observations=None, run_name=None, quick_test=False, fig_sav
     for m in metrics:
         info = maf.empty_info()
         info["run_name"] = run_name
-        info["observations_subset"] = "all"
+        info["observations_subset"] = subset
         infos.append(info)
         plot_dicts.append({})
 
