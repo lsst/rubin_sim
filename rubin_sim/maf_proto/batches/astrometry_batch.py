@@ -1,18 +1,8 @@
 __all__ = ("astrometry_batch",)
 
-import sqlite3
-from os.path import basename
-
 import numpy as np
-import pandas as pd
 
 import rubin_sim.maf_proto as maf
-from rubin_sim.data import get_baseline
-
-
-class DoNothing:
-    def __call__(*args, **kwargs):
-        pass
 
 
 def astrometry_batch(observations=None, run_name=None, quick_test=False, fig_saver=None):
@@ -32,23 +22,12 @@ def astrometry_batch(observations=None, run_name=None, quick_test=False, fig_sav
         Class that takes matplotlib.Figure objects and saves them.
         Default None.
     """
-    if fig_saver is None:
-        fig_saver = DoNothing()
-
-    if observations is None:
-        observations = get_baseline()
-    if run_name is None:
-        run_name = basename(observations).replace(".db", "")
-
-    if isinstance(observations, str):
-        con = sqlite3.connect(observations)
-        # Dataframe is handy for some calcs
-        if quick_test:
-            df = pd.read_sql("select * from observations where night < 61;", con)
-        else:
-            df = pd.read_sql("select * from observations;", con)
-    else:
-        df = observations
+    visits_array, df, run_name, subset, fig_saver = maf.batch_preamble(
+        observations=observations,
+        run_name=run_name,
+        quick_test=quick_test,
+        fig_saver=fig_saver,
+    )
 
     # Add any new columns we need
     ra_pi_amp, dec_pi_amp = maf.parallax_amplitude(
@@ -66,7 +45,6 @@ def astrometry_batch(observations=None, run_name=None, quick_test=False, fig_sav
 
     # But mostly want numpy array for speed.
     visits_array = df.to_records(index=False)
-    con.close()
 
     summary_stats = []
 

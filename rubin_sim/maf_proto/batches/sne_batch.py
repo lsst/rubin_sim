@@ -1,51 +1,20 @@
 __all__ = ("sne_batch",)
 
-import sqlite3
-from os.path import basename
-
 import numpy as np
-import pandas as pd
-
 import rubin_sim.maf_proto as maf
-from rubin_sim.data import get_baseline
 
 DAYS_IN_YEAR = 365.25
-
-
-class DoNothing:
-    def __call__(*args, **kwargs):
-        pass
 
 
 def sne_batch(
     observations=None, run_name=None, quick_test=False, fig_saver=None, nside=16, quick_night_limit=61
 ):
-    if fig_saver is None:
-        fig_saver = DoNothing()
-
-    if observations is None:
-        observations = get_baseline()
-    if run_name is None:
-        run_name = basename(observations).replace(".db", "")
-
-    if isinstance(observations, str):
-        con = sqlite3.connect(observations)
-        # Dataframe is handy for some calcs
-        and_string = "scheduler_note not like 'DD%'"
-        if quick_test:
-            df = pd.read_sql(
-                "select * from observations where night < %i and %s;" % (quick_night_limit, and_string), con
-            )
-            subset = "night < %i and scheduler_note not like DD"
-        else:
-            df = pd.read_sql("select * from observations where %s;" % and_string, con)
-            subset = "scheduler_note not like DD"
-    else:
-        df = observations
-
-    # But mostly want numpy array for speed.
-    visits_array = df.to_records(index=False)
-    con.close()
+    visits_array, df, run_name, subset, fig_saver = maf.batch_preamble(
+        observations=observations,
+        run_name=run_name,
+        quick_test=quick_test,
+        fig_saver=fig_saver,
+    )
 
     summary_stats = []
 
