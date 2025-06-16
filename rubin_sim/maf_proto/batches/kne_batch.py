@@ -1,45 +1,20 @@
 __all__ = ("kne_batch",)
 
-import sqlite3
-from os.path import basename
 
 import numpy as np
-import pandas as pd
 
 import rubin_sim.maf_proto as maf
-from rubin_sim.data import get_baseline
-
-
-class DoNothing:
-    def __call__(*args, **kwargs):
-        pass
 
 
 def kne_batch(observations=None, run_name=None, quick_test=False, fig_saver=None):
-    if fig_saver is None:
-        fig_saver = DoNothing()
+    """KNe batch"""
 
-    if observations is None:
-        observations = get_baseline()
-    if run_name is None:
-        run_name = basename(observations).replace(".db", "")
-
-    if isinstance(observations, str):
-        con = sqlite3.connect(observations)
-        # Dataframe is handy for some calcs
-        and_string = "scheduler_note not like 'DD%'"
-        if quick_test:
-            df = pd.read_sql("select * from observations where night < 365 and %s;" % and_string, con)
-            subset = "night < 365"
-        else:
-            df = pd.read_sql("select * from observations where %s;" % and_string, con)
-            subset = ""
-    else:
-        df = observations
-
-    # But mostly want numpy array for speed.
-    visits_array = df.to_records(index=False)
-    con.close()
+    visits_array, df, run_name, subset, fig_saver = maf.batch_preamble(
+        observations=observations,
+        run_name=run_name,
+        quick_test=quick_test,
+        fig_saver=fig_saver,
+    )
 
     summary_stats = []
 
@@ -49,9 +24,9 @@ def kne_batch(observations=None, run_name=None, quick_test=False, fig_saver=None
     mjd0 = np.min(visits_array["observationStartMJD"])
     metric = maf.KNePopMetric(mjd0=mjd0)
     if quick_test:
-        metric.generate_kn_pop(n_events=100)
+        metric.generate_kn_pop(n_events=100, d_min=10, d_max=600)
     else:
-        metric.generate_kn_pop(n_events=500000)
+        metric.generate_kn_pop(n_events=500000, d_min=10, d_max=600)
     sl = maf.Slicer(nside=None, missing=0, ra=np.degrees(metric.ra), dec=np.degrees(metric.dec))
 
     kn_array, info = sl(visits_array, metric, info=info)
