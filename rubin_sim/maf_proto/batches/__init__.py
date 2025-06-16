@@ -6,3 +6,4 @@ from .kne_batch import *
 from .microlensing_batch import *
 from .sne_batch import *
 from .xrb_batch import *
+from .bd_batch import *
