@@ -323,23 +323,6 @@ class MicrolensingMetric(BaseMetric):
         t = visits[self.mjd_col] - self.mjd0
         t = t - t.min()
 
-        # Not sure where all this was used before?
-
-        # Try for if a blending factor slice was added
-        # if "apparent_m_no_blend_u" in slice_point:
-        #     amplitudes = np.zeros(len(t))
-        #     individual_mags = True
-        # else:
-        #     if "blending_factor" in slice_point:
-        #         amplitudes = microlensing_amplification(
-        #             t,
-        #             impact_parameter=self.events["impact_parameter"][indx],
-        #             crossing_time=self.events["corssing_time"][indx],
-        #             peak_time=self.events["peak_time"][indx],
-        #             blending_factor=slice_point["blending_factor"],
-        #         )
-        #         individual_mags = False
-        #     else:
         amplitudes = microlensing_amplification(
             t,
             impact_parameter=self.events["impact_parameter"][indx],
@@ -357,22 +340,6 @@ class MicrolensingMetric(BaseMetric):
 
         for filtername in filters:
             infilt = np.where(visits[self.filter_col] == filtername)[0]
-
-            # if individual_mags is True:
-            #     fs = slice_point["apparent_m_no_blend_{}".format(filtername)]
-            #     fb = slice_point["apparent_m_{}".format(filtername)] - fs
-            #     amplitudes = microlensing_amplification_fsfb(
-            #         t,
-            #         impact_parameter=self.events["impact_parameter"][indx],
-            #         crossing_time=self.events["corssing_time"][indx],
-            #         peak_time=self.events["peak_time"][indx],
-            #         fs=fs,
-            #         fb=fb,
-            #     )
-            #     self.mags[filtername] = slice_point["apparent_m_{}".format(filtername)]
-            #     amplified_mags[infilt] = self.mags[filtername] - 2.5 * np.log10(amplitudes[infilt])
-
-            # else:
             amplified_mags[infilt] = self.mags[filtername] - 2.5 * np.log10(amplitudes[infilt])
 
         # The SNR of each point in the light curve
@@ -444,10 +411,6 @@ class MicrolensingMetric(BaseMetric):
                 n_post.append(len(outfilt))
 
             elif self.metric_calc == "Fisher":
-                # if individual_mags is True:
-                #     fs = slice_point["apparent_m_no_blend_{}".format(filtername)]
-                #     fb = slice_point["apparent_m_{}".format(filtername)] - fs
-                # else:
                 fs = self.mags[filtername]
                 # assuming that in populated areas of the galaxy
                 # the blend fraction is 0.5
@@ -475,15 +438,8 @@ class MicrolensingMetric(BaseMetric):
                 try:
                     cov = np.linalg.inv(fis_mat)
                     sigmat_e_t_e = cov[0, 0] ** 0.5 / self.events["corssing_time"][indx]
-                    # sigmau0_u0 = cov[1, 1] ** 0.5
-                    #             / self.events["impact_parameter"][indx]
-                    # corr_btwn_t_eu0 = cov[0, 1] /
-                    #    (self.events["corssing_time"][indx]
-                    #    * self.events["impact_parameter"][indx])
                 except np.linalg.LinAlgError:
                     sigmat_e_t_e = np.inf
-                    # sigmau0_u0 = np.inf
-                    # corr_btwn_t_eu0 = np.inf
 
         npts = np.sum(n_pre)
         npts_post = np.sum(n_post)
