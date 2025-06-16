@@ -36,6 +36,11 @@ class TestBatches(unittest.TestCase):
         summary = maf.xrb_batch(quick_test=True)
         assert np.size(summary) > 0
 
+    def test_bd(self):
+        summary = maf.bd_batch(quick_test=True)
+        assert np.size(summary) > 0
+
 
 if __name__ == "__main__":
+
     unittest.main()
