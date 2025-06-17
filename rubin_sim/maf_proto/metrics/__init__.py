@@ -6,3 +6,4 @@ from .microlensing_metrics import *
 from .sn_n_sn_metric import *
 from .xrb_metrics import *
 from .brown_dwarf_metric import *
+from .kuiper_metrics import *
