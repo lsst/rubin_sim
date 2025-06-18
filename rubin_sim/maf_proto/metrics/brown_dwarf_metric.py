@@ -4,7 +4,7 @@ import healpy as hp
 import numpy as np
 from scipy import interpolate
 
-from rubin_sim.maf.utils import m52snr, astrom_precision
+from rubin_sim.maf.utils import astrom_precision, m52snr
 
 from .metrics import BaseMetric
 
@@ -132,9 +132,7 @@ class BDParallaxMetric(BaseMetric):
         for filt in self.filters:
             good = np.where(data_slice[self.filter_col] == filt)[0]
             if np.size(good) > 0:
-                snr[:, good] = m52snr(
-                    self.mags[str(filt)][:, np.newaxis], data_slice[self.m5_col][good]
-                )
+                snr[:, good] = m52snr(self.mags[str(filt)][:, np.newaxis], data_slice[self.m5_col][good])
 
         position_errors = astrom_precision(data_slice[self.seeing_col], snr, self.atm_err)
         # uncertainty in the parallax in mas
@@ -154,5 +152,5 @@ def hp_sum_volume(inarray):
     """
     pix_area = hp.nside2pixarea(hp.npix2nside(np.size(inarray)))
     # volume of sphere, times ratio of pixel area divided by area of sphere
-    vols = 1.0 / 3.0 * inarray ** 3 * pix_area
+    vols = 1.0 / 3.0 * inarray**3 * pix_area
     return np.nansum(vols)

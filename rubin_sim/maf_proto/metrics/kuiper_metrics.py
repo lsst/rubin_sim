@@ -10,6 +10,7 @@ class KuiperMetric(BaseMetric):
 
     Value of 0 means perfecty uniform, 1 means delta function
     """
+
     def __init__(self, col="rotTelPos", unit="Kuiper V (0=uniform, 1=delta)", name="name"):
         super().__init__(col=col, unit=unit, name=name)
 

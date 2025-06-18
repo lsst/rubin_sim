@@ -1,6 +1,7 @@
 __all__ = ("sne_batch",)
 
 import numpy as np
+
 import rubin_sim.maf_proto as maf
 
 DAYS_IN_YEAR = 365.25
