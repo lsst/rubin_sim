@@ -40,6 +40,10 @@ class TestBatches(unittest.TestCase):
         summary = maf.bd_batch(quick_test=True)
         assert np.size(summary) > 0
 
+    def test_tde(self):
+        summary = maf.tde_batch(quick_test=True)
+        assert np.size(summary) > 0
+
 
 if __name__ == "__main__":
 
