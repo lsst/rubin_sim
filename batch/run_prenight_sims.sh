@@ -56,7 +56,12 @@ TS_FBS_UTILS_TAG=$(curl -s https://api.github.com/repos/lsst-ts/ts_fbs_utils/tag
 pip install --no-deps --target=${PACKAGE_DIR} git+https://github.com/lsst-ts/ts_fbs_utils.git@${TS_FBS_UTILS_TAG}
 
 # Get the scheduler configuration script
-SCHEDULER_CONFIG_SCRIPT=$(scheduler_config_at_time ${TELESCOPE})
+if [ "${TELESCOPE}" -eq "simonyi" ] ; then
+  # Ignore the EFD, just hardwire the simonyi scheduler config.
+  SCHEDULER_CONFIG_SCRIPT="ts_config_ocs/Scheduler/feature_scheduler/maintel/fbs_config_sv_survey.py"
+else
+  SCHEDULER_CONFIG_SCRIPT=$(scheduler_config_at_time ${TELESCOPE})
+fi
 
 # Get the path to prenight_sim as provided by the current environment,
 # so we do not accidentally run one from the adjusted PATH below.
