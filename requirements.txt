@@ -11,7 +11,7 @@ numexpr
 pandas
 pyarrow
 pytables
-rubin-scheduler >=3.0
+rubin-scheduler >=3.8
 scipy
 setuptools_scm
 setuptools_scm_git_archive
