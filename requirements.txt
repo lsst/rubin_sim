@@ -1,7 +1,6 @@
 astropy-base
 astroplan
 colorcet
-conda
 cycler
 gitpython
 healpy
