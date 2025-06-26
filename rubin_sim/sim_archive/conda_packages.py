@@ -2,9 +2,12 @@ import json
 import os
 import re
 import sys
-from functools import cache, lru_cache
+from functools import lru_cache
 
-__all__ = ["getCondaPackages",]
+__all__ = [
+    "getCondaPackages",
+]
+
 
 @lru_cache(maxsize=1)
 def getCondaPackages() -> dict[str, str]:
