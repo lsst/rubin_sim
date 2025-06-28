@@ -60,7 +60,7 @@ try:
     have_conda = True
 except ModuleNotFoundError:
     have_conda = False
-    LOGGER.warning("No conda module found, no conda envirment data will be saved")
+    LOGGER.warning("No conda module found, no conda environment data will be saved")
 
 
 def make_sim_archive_dir(
@@ -141,13 +141,14 @@ def make_sim_archive_dir(
         print(SchemaConverter().obs2opsim(observations).describe().T.to_csv(sep="\t"), file=stats_io)
 
     if capture_env:
+        # Consider replacing this with conda_packages.getCondaPackages
         # Save the conda environment
         conda_prefix = Path(sys.executable).parent.parent.as_posix()
         if have_conda and is_conda_environment(conda_prefix):
             conda_base_fname = "environment.txt"
             environment_fname = data_path.joinpath(conda_base_fname).as_posix()
 
-            # Python equivilent of
+            # Python equivalent of
             # conda list --export -p $conda_prefix > $environment_fname
             with open(environment_fname, "w") as environment_io:
                 with redirect_stdout(environment_io):

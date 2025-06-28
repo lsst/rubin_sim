@@ -28,7 +28,7 @@ class Test3x2(unittest.TestCase):
         # the output values are valid.
         bundle_list = []
         nside = 64
-        colmap = maf.batches.col_map_dict("fbs")
+        colmap = maf.batches.col_map_dict("fbs_sim")
         nfilters_needed = 6
         lim_ebv = 0.2
         ptsrc_lim_mag_i_band = 25.9

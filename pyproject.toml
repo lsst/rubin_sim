@@ -31,7 +31,7 @@ dependencies = [
     "numpy",
     "pandas",
     "pyarrow",
-    "rubin-scheduler>=3.0",
+    "rubin-scheduler>=3.8",
     "scipy",
     "shapely",
     "skyfield>=1.52",
