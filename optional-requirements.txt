@@ -1,3 +1,4 @@
+conda
 openorb
 openorb-data-de405
 george

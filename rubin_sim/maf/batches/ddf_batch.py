@@ -12,6 +12,7 @@ from rubin_scheduler.utils import (
 
 import rubin_sim.maf as maf
 
+from .col_map_dict import col_map_dict
 from .common import lightcurve_summary
 
 
@@ -23,6 +24,7 @@ def ddfBatch(
     extra_sql=None,
     extra_info_label=None,
     old_coords=False,
+    colmap=col_map_dict(),
 ):
     """
     A set of metrics to evaluate DDF fields.
@@ -107,8 +109,12 @@ def ddfBatch(
     # Now define metrics
 
     # Set up basic all and per filter sql constraints.
+    band_col = colmap["filter"]
     filterlist, colors, orders, sqls, info_labels = maf.filter_list(
-        all=True, extra_sql=extra_sql, extra_info_label=extra_info_label
+        all=True,
+        extra_sql=extra_sql,
+        extra_info_label=extra_info_label,
+        band_col=band_col,
     )
 
     summary_stats = [maf.MeanMetric(), maf.MedianMetric(), maf.SumMetric()]
@@ -167,7 +173,7 @@ def ddfBatch(
         displayDict["subgroup"] = "SL SNe"
         displayDict["caption"] = f"Strongly Lensed SN metric in the {fieldname} DDF."
         displayDict["order"] = order
-        metric = maf.SNSLMetric()
+        metric = maf.SNSLMetric(filter_col=band_col)
         bundle_list.append(
             maf.MetricBundle(
                 metric,
@@ -193,7 +199,7 @@ def ddfBatch(
             np.mean(ddfs[ddf]["ra"]), np.mean(ddfs[ddf]["dec"]), delta, n_kne, seed=1
         )
 
-        metric = maf.KNePopMetric(metric_name="KNePopMetric_%s" % fieldname)
+        metric = maf.KNePopMetric(metric_name="KNePopMetric_%s" % fieldname, filter_col=band_col)
         slicer = maf.generate_kn_pop_slicer(n_events=n_kne, ra=ra, dec=dec)
 
         bundle_list.append(
@@ -214,8 +220,8 @@ def ddfBatch(
         displayDict["caption"] = f"Kuiper metric in the {fieldname} DDF."
 
         sqls_gri = {
-            "gri": "filter='g' or filter='r' or filter='i'",
-            "riz": "filter='r' or filter='i' or filter='z'",
+            "gri": f"{band_col}='g' or {band_col}='r' or {band_col}='i'",
+            "riz": f"{band_col}='r' or {band_col}='i' or {band_col}='z'",
         }
 
         for sql in sqls_gri:
@@ -253,8 +259,8 @@ def ddfBatch(
         displayDict["caption"] = f"Weak lensing metric in the {fieldname} DDF."
 
         sqls_gri = {
-            "gri": "filter='g' or filter='r' or filter='i'",
-            "riz": "filter='r' or filter='i' or filter='z'",
+            "gri": f"{band_col}='g' or {band_col}='r' or {band_col}='i'",
+            "riz": f"{band_col}='r' or {band_col}='i' or {band_col}='z'",
         }
 
         for sql in sqls_gri:
@@ -263,6 +269,7 @@ def ddfBatch(
                 depth_cut=mag_cuts,
                 ebvlim=lim_ebv,
                 min_exp_time=20.0,
+                filter_col=band_col,
                 metric_name="WeakLensingNvisits_" + sql,
             )
             bundle_list.append(
@@ -296,12 +303,15 @@ def ddfBatch(
                 sed_model="Richards06",
                 zmin=zmin,
                 zmax=None,
+                filter_col=band_col,
             )
+            stacker_list = [maf.SaturationStacker(filter_col=band_col)]
             bundle_list.append(
                 maf.MetricBundle(
                     metric,
                     ddf_slicers[ddf],
                     sqls[f],
+                    stacker_list=stacker_list,
                     info_label=" ".join([fieldname, info_labels[f]]),
                     plot_dict=plotDict,
                     plot_funcs=plotFuncs,
@@ -316,7 +326,7 @@ def ddfBatch(
         nquist_threshold = 2.2
         lag = 100
         summaryMetrics = [maf.MeanMetric(), maf.MedianMetric(), maf.RmsMetric()]
-        m = maf.AgnTimeLagMetric(threshold=nquist_threshold, lag=lag)
+        m = maf.AgnTimeLagMetric(threshold=nquist_threshold, lag=lag, filter_col=band_col)
         for f in filterlist:
             displayDict["order"] = orders[f]
             displayDict["caption"] = (
@@ -343,7 +353,7 @@ def ddfBatch(
         nquist_threshold = 2.2
         lag = 5
         summaryMetrics = [maf.MeanMetric(), maf.MedianMetric(), maf.RmsMetric()]
-        m = maf.AgnTimeLagMetric(threshold=nquist_threshold, lag=lag)
+        m = maf.AgnTimeLagMetric(threshold=nquist_threshold, lag=lag, filter_col=band_col)
         for f in filterlist:
             displayDict["order"] = orders[f]
             displayDict["caption"] = (
@@ -375,6 +385,7 @@ def ddfBatch(
             metric = maf.SFUncertMetric(
                 mag=agn_mags[f],
                 bins=np.logspace(0, np.log10(3650), 21),
+                filter_col=band_col,
             )
             bundle_list.append(
                 maf.MetricBundle(
@@ -395,7 +406,7 @@ def ddfBatch(
             displayDict["subgroup"] = "Coadd M5"
             displayDict["order"] = orders[f]
             displayDict["caption"] = f"Coadded m5 in {f} band in the {fieldname} DDF."
-            metric = maf.Coaddm5Metric(metric_name=f"{fieldname} CoaddM5")
+            metric = maf.Coaddm5Metric(metric_name=f"{fieldname} CoaddM5", filter_col=band_col)
             bundle_list.append(
                 maf.MetricBundle(
                     metric,
@@ -534,6 +545,7 @@ def ddfBatch(
             )
             plotDict = {"bins": magbins, "xlabel": "Coadded Depth Per Night"}
             displayDict["caption"] = f"Histogram of the coadded depth in {f} in each night per DDF."
+            displayDict["order"] = orders[f]
             plotFunc = maf.SummaryHistogram()
             bundle = maf.MetricBundle(
                 metric,
@@ -551,6 +563,7 @@ def ddfBatch(
             pass
         else:
             displayDict["caption"] = f"Number of visits per night for {fieldname}."
+            displayDict["order"] = orders[f]
             metric = maf.CountMetric("observationStartMJD", metric_name=f"{fieldname} Nvisits Per Night")
             slicer = maf.OneDSlicer(slice_col_name="night", bin_size=1, badval=0)
             plot_dict = {"filled_data": True}
@@ -576,6 +589,7 @@ def ddfBatch(
         else:
             for f in "ugrizy":
                 displayDict["caption"] = f"Coadded depth per night for {fieldname} in band {f}."
+                displayDict["order"] = orders[f]
                 metric = maf.Coaddm5Metric(metric_name=f"{fieldname} CoaddedM5 Per Night")
                 slicer = maf.OneDSlicer(slice_col_name="night", bin_size=1, badval=min_coadds[f])
                 plot_dict = {"filled_data": True}

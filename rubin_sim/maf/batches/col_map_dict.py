@@ -6,7 +6,44 @@ def col_map_dict(dict_name=None):
         dict_name = "FBS"
     dict_name = dict_name.lower()
 
-    if dict_name == "fbs" or dict_name == "opsimfbs":
+    if dict_name == "fbs":
+        col_map = {}
+        col_map["ra"] = "fieldRA"
+        col_map["dec"] = "fieldDec"
+        col_map["raDecDeg"] = True
+        col_map["mjd"] = "observationStartMJD"
+        col_map["exptime"] = "visitExposureTime"
+        col_map["visittime"] = "visitTime"
+        col_map["alt"] = "altitude"
+        col_map["az"] = "azimuth"
+        col_map["lst"] = "observationStartLST"
+        col_map["filter"] = "band"
+        col_map["band"] = "band"
+        col_map["fiveSigmaDepth"] = "fiveSigmaDepth"
+        col_map["night"] = "night"
+        col_map["slewtime"] = "slewTime"
+        col_map["slewdist"] = "slewDistance"
+        col_map["seeingEff"] = "seeingFwhmEff"
+        col_map["seeingGeom"] = "seeingFwhmGeom"
+        col_map["skyBrightness"] = "skyBrightness"
+        col_map["moonDistance"] = "moonDistance"
+        col_map["slewactivities"] = {}
+        col_map["metadataList"] = [
+            "airmass",
+            "normairmass",
+            "seeingEff",
+            "skyBrightness",
+            "fiveSigmaDepth",
+            "HA",
+            "moonDistance",
+            "solarElong",
+            "saturation_mag",
+        ]
+        col_map["metadataAngleList"] = ["rotSkyPos"]
+        col_map["scheduler_note"] = "scheduler_note"
+        col_map["scheduler_note_root"] = "scheduler_note_root"
+
+    elif dict_name == "fbs_sim" or dict_name == "opsimfbs":
         col_map = {}
         col_map["ra"] = "fieldRA"
         col_map["dec"] = "fieldDec"
