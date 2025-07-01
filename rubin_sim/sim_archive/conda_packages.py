@@ -5,12 +5,12 @@ import sys
 from functools import lru_cache
 
 __all__ = [
-    "getCondaPackages",
+    "get_conda_packages",
 ]
 
 
 @lru_cache(maxsize=1)
-def getCondaPackages() -> dict[str, str]:
+def get_conda_packages() -> dict[str, str]:
     """Get products and their versions from the conda environment.
 
     Returns
