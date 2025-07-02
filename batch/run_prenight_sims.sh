@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 #SBATCH --account=rubin:developers      # Account name
 #SBATCH --job-name=auxtel_prenight_daily   # Job name
-#SBATCH --output=/sdf/data/rubin/shared/scheduler/prenight/sbatch/run_prenight_sims.out # Output file (stdout)
-#SBATCH --error=/sdf/data/rubin/shared/scheduler/prenight/sbatch/run_prenight_sims.err  # Error file (stderr)
+#SBATCH --output=/sdf/data/rubin/shared/scheduler/prenight/sbatch/run_prenight_sims_%A_%a.out # Output file (stdout)
+#SBATCH --error=/sdf/data/rubin/shared/scheduler/prenight/sbatch/run_prenight_sims_%A_%a.err  # Error file (stderr)
 #SBATCH --partition=milano              # Partition (queue) names
 #SBATCH --nodes=1                       # Number of nodes
 #SBATCH --ntasks=1                      # Number of tasks run in parallel
