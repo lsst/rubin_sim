@@ -65,6 +65,8 @@ class FOPlot(BasePlotter):
 
         if fig is None:
             fig, ax = plt.subplots(figsize=plot_dict["figsize"])
+        else:
+            ax = fig.gca()
 
         # Expect metric_value to be something like number of visits
         cumulative_area = np.arange(1, metric_value.compressed().size + 1)[::-1] * plot_dict["scale"]

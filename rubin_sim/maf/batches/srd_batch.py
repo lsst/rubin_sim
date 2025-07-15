@@ -58,6 +58,7 @@ def fOBatch(
     """
     if colmap is None:
         colmap = col_map_dict()
+    band_col = colmap["filter"]
 
     bundleList = []
 
@@ -67,7 +68,7 @@ def fOBatch(
     if (extra_sql is not None) and (len(extra_sql) > 0):
         sql = extra_sql
         if extra_info is None:
-            info_label = extra_sql.replace("filter =", "").replace("filter=", "")
+            info_label = extra_sql.replace(f"{band_col} =", "").replace(f"{band_col}=", "")
             info_label = info_label.replace('"', "").replace("'", "")
     if extra_info is not None:
         info_label = extra_info
@@ -192,6 +193,8 @@ def astrometryBatch(
     """
     if colmap is None:
         colmap = col_map_dict()
+    band_col = colmap["filter"]
+
     bundleList = []
 
     sql = ""
@@ -200,7 +203,7 @@ def astrometryBatch(
     if (extra_sql is not None) and (len(extra_sql) > 0):
         sql = extra_sql
         if extra_info is None:
-            info_label = extra_sql.replace("filter =", "").replace("filter=", "")
+            info_label = extra_sql.replace(f"{band_col} =", "").replace(f"{band_col}=", "")
             info_label = info_label.replace('"', "").replace("'", "")
     if extra_info is not None:
         info_label = extra_info
@@ -219,7 +222,7 @@ def astrometryBatch(
         ra_col=raCol, dec_col=decCol, date_col=colmap["mjd"], degrees=degrees
     )
     dcrStacker = stackers.DcrStacker(
-        filter_col=colmap["filter"],
+        filter_col=band_col,
         alt_col=colmap["alt"],
         degrees=degrees,
         ra_col=raCol,
@@ -263,7 +266,7 @@ def astrometryBatch(
             metric_name="Parallax Uncert @ %.1f" % (rmag),
             rmag=rmag,
             seeing_col=colmap["seeingGeom"],
-            filter_col=colmap["filter"],
+            filter_col=band_col,
             m5_col=colmap["fiveSigmaDepth"],
             normalize=False,
         )
@@ -288,7 +291,7 @@ def astrometryBatch(
             metric_name="Normalized Parallax Uncert @ %.1f" % (rmag),
             rmag=rmag,
             seeing_col=colmap["seeingGeom"],
-            filter_col=colmap["filter"],
+            filter_col=band_col,
             m5_col=colmap["fiveSigmaDepth"],
             normalize=True,
         )
@@ -311,7 +314,7 @@ def astrometryBatch(
             rmag=rmag,
             m5_col=colmap["fiveSigmaDepth"],
             mjd_col=colmap["mjd"],
-            filter_col=colmap["filter"],
+            filter_col=band_col,
             seeing_col=colmap["seeingGeom"],
         )
         bundle = mb.MetricBundle(
@@ -333,7 +336,7 @@ def astrometryBatch(
             metric_name="Parallax-DCR degeneracy @ %.1f" % (rmag),
             rmag=rmag,
             seeing_col=colmap["seeingEff"],
-            filter_col=colmap["filter"],
+            filter_col=band_col,
             m5_col=colmap["fiveSigmaDepth"],
         )
         caption = "Correlation between parallax offset magnitude and hour angle for a r=%.1f star." % (rmag)
@@ -367,7 +370,7 @@ def astrometryBatch(
         metric_name="Parallax Uncert @ %.1f" % (ymag),
         rmag=ymag,
         seeing_col=colmap["seeingGeom"],
-        filter_col=colmap["filter"],
+        filter_col=band_col,
         m5_col=colmap["fiveSigmaDepth"],
         normalize=False,
     )
@@ -388,7 +391,7 @@ def astrometryBatch(
         metric_name="Normalized Parallax Uncert @ %.1f" % (ymag),
         rmag=ymag,
         seeing_col=colmap["seeingGeom"],
-        filter_col=colmap["filter"],
+        filter_col=band_col,
         m5_col=colmap["fiveSigmaDepth"],
         normalize=True,
     )
@@ -431,7 +434,7 @@ def astrometryBatch(
             rmag=rmag,
             m5_col=colmap["fiveSigmaDepth"],
             mjd_col=colmap["mjd"],
-            filter_col=colmap["filter"],
+            filter_col=band_col,
             seeing_col=colmap["seeingGeom"],
             normalize=False,
         )
@@ -454,7 +457,7 @@ def astrometryBatch(
             rmag=rmag,
             m5_col=colmap["fiveSigmaDepth"],
             mjd_col=colmap["mjd"],
-            filter_col=colmap["filter"],
+            filter_col=band_col,
             seeing_col=colmap["seeingGeom"],
             normalize=True,
         )
@@ -505,6 +508,7 @@ def rapidRevisitBatch(
     """
     if colmap is None:
         colmap = col_map_dict()
+    band_col = colmap["filter"]
     bundleList = []
 
     sql = ""
@@ -513,7 +517,7 @@ def rapidRevisitBatch(
     if (extra_sql is not None) and (len(extra_sql) > 0):
         sql = extra_sql
         if extra_info is None:
-            info_label = extra_sql.replace("filter =", "").replace("filter=", "")
+            info_label = extra_sql.replace(f"{band_col} =", "").replace(f"{band_col}=", "")
             info_label = info_label.replace('"', "").replace("'", "")
     if extra_info is not None:
         info_label = extra_info
