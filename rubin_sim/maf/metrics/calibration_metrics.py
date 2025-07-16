@@ -209,6 +209,7 @@ class ProperMotionMetric(BaseMetric):
         self.mjd_col = mjd_col
         self.seeing_col = seeing_col
         self.m5_col = m5_col
+        self.filter_col = filter_col
         filters = ["u", "g", "r", "i", "z", "y"]
         self.mags = {}
         if sed_template == "flat":
@@ -238,11 +239,11 @@ class ProperMotionMetric(BaseMetric):
             self.comment += "Values closer to 1 indicate more optimal scheduling."
 
     def run(self, data_slice, slice_point=None):
-        filters = np.unique(data_slice["filter"])
+        filters = np.unique(data_slice[self.filter_col])
         filters = [str(f) for f in filters]
         precis = np.zeros(data_slice.size, dtype="float")
         for f in filters:
-            observations = np.where(data_slice["filter"] == f)
+            observations = np.where(data_slice[self.filter_col] == f)
             if np.size(observations[0]) < 2:
                 precis[observations] = self.badval
             else:
