@@ -250,6 +250,7 @@ def make_lsst_obs():
         obs_info=args.obs_info,
         verbose=args.verbose,
     )
+    import pdb ; pdb.set_trace()
     try:
         filterlist = np.unique(pointing_data["filter"])
     except:
