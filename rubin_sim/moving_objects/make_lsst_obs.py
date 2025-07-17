@@ -250,7 +250,10 @@ def make_lsst_obs():
         obs_info=args.obs_info,
         verbose=args.verbose,
     )
-    filterlist = np.unique(pointing_data["filter"])
+    try:
+        filterlist = np.unique(pointing_data["filter"])
+    except:
+        import pdb ; pdb.set_trace()
     d_obs.read_filters(filterlist=filterlist)
     # Calculate all colors ahead of time.
     sednames = np.unique(orbits.orbits["sed_filename"])
