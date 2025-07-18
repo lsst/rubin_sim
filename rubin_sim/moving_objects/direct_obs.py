@@ -124,7 +124,7 @@ class DirectObs(BaseObs):
         rough_tol=10.0,
         verbose=False,
         night_col="night",
-        filter_col="filter",
+        filter_col="band",
         m5_col="fiveSigmaDepth",
         obs_id_col="observationId",
         pre_comp_tol=2.08,

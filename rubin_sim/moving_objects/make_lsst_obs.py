@@ -226,6 +226,11 @@ def make_lsst_obs():
         dbcols=None,
     )
 
+    # Check if we have "filter" or "band"
+    filter_col = "filter"
+    if filter_col not in pointing_data.dtype.names:
+        filter_col = "band"
+
     d_obs = mo.DirectObs(
         footprint=args.footprint,
         r_fov=args.r_fov,
@@ -249,8 +254,11 @@ def make_lsst_obs():
         rough_tol=args.rough_tol,
         obs_info=args.obs_info,
         verbose=args.verbose,
+        filter_col=filter_col,
     )
-    filterlist = np.unique(pointing_data["filter"])
+
+    filterlist = np.unique(pointing_data[filter_col])
+
     d_obs.read_filters(filterlist=filterlist)
     # Calculate all colors ahead of time.
     sednames = np.unique(orbits.orbits["sed_filename"])
