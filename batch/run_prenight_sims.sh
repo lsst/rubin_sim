@@ -26,6 +26,7 @@ date --iso=s
 
 source /sdf/group/rubin/sw/w_latest/loadLSST.sh
 conda activate /sdf/data/rubin/shared/scheduler/envs/prenight
+source ${HOME}/.auth_bashrc
 
 set -o xtrace
 
@@ -35,6 +36,7 @@ WORK_DIR=$(date '+/sdf/data/rubin/shared/scheduler/prenight/work/run_prenight_si
 echo "Working in $WORK_DIR"
 mkdir ${WORK_DIR}
 cd ${WORK_DIR}
+
 
 # Get ts_ocs_config
 TS_CONFIG_OCS_REPO="https://github.com/lsst-ts/ts_config_ocs"
@@ -71,8 +73,22 @@ export SIM_ARCHIVE_LOG_FILE=${WORK_DIR}/sim_archive_log.txt
 export PRENIGHT_LOG_FILE=${WORK_DIR}/prenight_log.txt
 export PYTHONPATH=${PACKAGE_DIR}:${PYTHONPATH}
 export PATH=${PACKAGE_DIR}/bin:${PATH}
+
+echo "************** BEGIN DEBUG *********************"
+export PYTHONPATH=/sdf/data/rubin/user/neilsen/devel/rubin_scheduler:${PYTHONPATH}
+export PYTHONPATH=/sdf/data/rubin/user/neilsen/devel/rubin_sim:${PYTHONPATH}
+export PYTHONPATH=/sdf/data/rubin/user/neilsen/devel/schedview:${PYTHONPATH}
+export PATH=${PATH}:/sdf/data/rubin/user/neilsen/home/dot_conda/envs/ehn312/bin/
+echo "*************** END DEBUG **********************"
+
 printenv > env.out
+
+echo "Querying the consdb for previously completed visits"
 date --iso=s
-time ${PRENIGHT_SIM} --scheduler ${TELESCOPE}.pickle.xz --opsim None --repo=${TS_CONFIG_OCS_REPO} --script ${SCHEDULER_CONFIG_SCRIPT} --config_version ${TS_CONFIG_OCS_VERSION} --telescope ${TELESCOPE} 2>&1 > ${WORK_DIR}/prenight_sim.out
+get_sv_visits previous_visits.db
+
+echo "Running the simulation"
+date --iso=s
+time ${PRENIGHT_SIM} --scheduler ${TELESCOPE}.pickle.xz --visits previous_visits.db  --repo=${TS_CONFIG_OCS_REPO} --script ${SCHEDULER_CONFIG_SCRIPT} --config_version ${TS_CONFIG_OCS_VERSION} --telescope ${TELESCOPE} 2>&1 > ${WORK_DIR}/prenight_sim.out
 date --iso=s
 echo "******* END of run_prenight_sims.sh *********"

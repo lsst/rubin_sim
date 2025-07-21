@@ -10,6 +10,7 @@ import argparse
 import bz2
 import gzip
 import importlib.util
+import logging
 import lzma
 import pickle
 import sys
@@ -18,9 +19,11 @@ import typing
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
+import numpy as np
 from git import Repo
 from rubin_scheduler.scheduler.example import example_scheduler
 from rubin_scheduler.scheduler.schedulers.core_scheduler import CoreScheduler
+from rubin_scheduler.scheduler.utils import SchemaConverter
 
 
 def get_scheduler_instance_from_path(config_script_path: str | Path) -> CoreScheduler:
@@ -100,11 +103,12 @@ def get_scheduler_instance_from_repo(
 
 
 def get_scheduler(
-    config_repo: str | None,
-    config_script: str | None,
+    config_repo: str | None = None,
+    config_script: str | None = None,
     config_branch: str = "main",
+    visits_db: str | None = None,
 ) -> CoreScheduler:
-    """Generate a CoreScheduler according to a configuration in git.
+    """Generate a CoreScheduler according to a configuration.
 
     Parameters
     ----------
@@ -114,6 +118,8 @@ def get_scheduler(
         The configuration script path (relative to the repository root).
     config_branch : `str`, optional
         The branch of the repository to use, by default "main"
+    visits_db : `str` or `None`
+        Database from which to load pre-existing visits
 
     Returns
     -------
@@ -128,12 +134,17 @@ def get_scheduler(
     if config_repo is not None and len(config_repo) > 0:
         if config_script is None:
             raise ValueError("If the config repo is set, the script must be as well.")
+        logging.info(
+            f"Instantiating scheduler form {config_script} on the {config_branch} branch of {config_repo}"
+        )
         scheduler = get_scheduler_instance_from_repo(
             config_repo=config_repo, config_script=config_script, config_branch=config_branch
         )
     elif config_script is not None:
+        logging.info(f"Reading scheduler from {config_script}")
         scheduler = get_scheduler_instance_from_path(config_script)
     else:
+        logging.info("Creating example scheduler")
         example_scheduler_result = example_scheduler()
         if isinstance(example_scheduler_result, CoreScheduler):
             scheduler = example_scheduler_result
@@ -141,6 +152,13 @@ def get_scheduler(
             # It might return a observatory, scheduler, observations tuple
             # instead.
             scheduler = example_scheduler_result[1]
+
+    if isinstance(visits_db, str) and len(visits_db) > 0:
+        logging.info(f"Adding visits from {visits_db}.")
+        obs: np.recarray = SchemaConverter().opsim2obs(visits_db)
+        if len(obs) > 0:
+            scheduler.add_observations_array(obs)
+        logging.info("Finished adding visits")
 
     return scheduler
 
@@ -181,6 +199,9 @@ def add_make_scheduler_snapshot_args(parser: argparse.ArgumentParser) -> None:
     parser.add_argument(
         "--branch", type=str, default="main", help="The branch of the repo from which to get the script"
     )
+    parser.add_argument(
+        "--visits", type=str, default="", help="Opsim database from which to load previous visits."
+    )
 
 
 def make_scheduler_snapshot_cli(cli_args: list = []) -> None:
@@ -188,7 +209,14 @@ def make_scheduler_snapshot_cli(cli_args: list = []) -> None:
     add_make_scheduler_snapshot_args(parser)
     args: argparse.Namespace = parser.parse_args() if len(cli_args) == 0 else parser.parse_args(cli_args)
 
-    scheduler: CoreScheduler = get_scheduler(args.repo, args.config, args.branch)
+    logging.basicConfig(
+        level=logging.DEBUG,
+        format="%(asctime)s:%(name)s:%(levelname)s:%(message)s",
+        datefmt="%Y-%m-%dT%H:%M:%S",
+    )
+
+    scheduler: CoreScheduler = get_scheduler(args.repo, args.script, args.branch, args.visits)
+
     save_scheduler(scheduler, args.scheduler_fname)
 
 
