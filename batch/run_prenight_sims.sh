@@ -56,7 +56,7 @@ TS_FBS_UTILS_TAG=$(curl -s https://api.github.com/repos/lsst-ts/ts_fbs_utils/tag
 pip install --no-deps --target=${PACKAGE_DIR} git+https://github.com/lsst-ts/ts_fbs_utils.git@${TS_FBS_UTILS_TAG}
 
 # Get the scheduler configuration script
-if [ "${TELESCOPE}" -eq "simonyi" ] ; then
+if [[ "${TELESCOPE}" = "simonyi" ]] ; then
   # Ignore the EFD, just hardwire the simonyi scheduler config.
   SCHEDULER_CONFIG_SCRIPT="ts_config_ocs/Scheduler/feature_scheduler/maintel/fbs_config_sv_survey.py"
 else
