@@ -489,7 +489,7 @@ def read_archived_sim_metadata(
     return all_metadata
 
 
-def make_sim_archive_cli(*args):
+def make_sim_archive_cli(*args) -> str:
     parser = argparse.ArgumentParser(description="Add files to sim archive")
     parser.add_argument(
         "label",
@@ -538,6 +538,7 @@ def make_sim_archive_cli(*args):
         help="Base URI for the archive",
     )
     parser.add_argument("--tags", type=str, default=[], nargs="*", help="The tags on the simulation.")
+    parser.add_argument("--telescope", type=str, default="simonyi", help="The telescope simulated.")
     arg_values = parser.parse_args() if len(args) == 0 else parser.parse_args(args)
 
     observations = SchemaConverter().opsim2obs(arg_values.opsim)
@@ -574,6 +575,7 @@ def make_sim_archive_cli(*args):
         tags=arg_values.tags,
         label=arg_values.label,
         capture_env=arg_values.current_env,
+        opsim_metadata={"telescope": arg_values.telescope},
     )
     LOGGER.info(f"Created simulation archived directory: {data_path.name}")
 
@@ -846,7 +848,7 @@ def drive_sim(
     notebook=None,
     opsim_metadata=None,
     **kwargs,
-):
+) -> tuple:
     """Run a simulation and archive the results.
 
     Parameters
