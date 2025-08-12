@@ -3,6 +3,7 @@ __all__ = [
     "save_scheduler",
     "add_make_scheduler_snapshot_args",
     "make_scheduler_snapshot_cli",
+    "get_scheduler_from_config",
     "get_scheduler_instance_from_repo",
 ]
 
@@ -26,16 +27,18 @@ from rubin_scheduler.scheduler.schedulers.core_scheduler import CoreScheduler
 from rubin_scheduler.scheduler.utils import SchemaConverter
 
 
-def get_scheduler_instance_from_path(config_script_path: str | Path) -> CoreScheduler:
+def get_scheduler_from_config(config_script_path: str | Path) -> typing.Tuple[int, CoreScheduler]:
     """Generate a CoreScheduler according to a configuration in a file.
 
     Parameters
     ----------
     config_script_path : `str`
-        The configuration script path (relative to the repository root).
+        The configuration script path
 
     Returns
     -------
+    nside : `int`
+        The nside.
     scheduler : `CoreScheduler`
         An instance of the Rubin Observatory FBS.
 
@@ -61,10 +64,13 @@ def get_scheduler_instance_from_path(config_script_path: str | Path) -> CoreSche
 
     try:
         scheduler: CoreScheduler = config_module.scheduler
+        nside: int = scheduler.nside
     except NameError:
-        scheduler: CoreScheduler = config_module.get_scheduler()[1]
+        nside, scheduler = config_module.get_scheduler()
+        assert isinstance(nside, int)
+        assert isinstance(scheduler, CoreScheduler)
 
-    return scheduler
+    return nside, scheduler
 
 
 def get_scheduler_instance_from_repo(
@@ -97,7 +103,7 @@ def get_scheduler_instance_from_repo(
     with TemporaryDirectory() as local_config_repo_parent:
         repo: Repo = Repo.clone_from(config_repo, local_config_repo_parent, branch=config_branch)
         full_config_script_path: Path = Path(repo.working_dir).joinpath(config_script)
-        scheduler = get_scheduler_instance_from_path(full_config_script_path)
+        scheduler = get_scheduler_from_config(full_config_script_path)[1]
 
     return scheduler
 
@@ -142,7 +148,7 @@ def get_scheduler(
         )
     elif config_script is not None:
         logging.info(f"Reading scheduler from {config_script}")
-        scheduler = get_scheduler_instance_from_path(config_script)
+        scheduler = get_scheduler_from_config(config_script)[1]
     else:
         logging.info("Creating example scheduler")
         example_scheduler_result = example_scheduler()
