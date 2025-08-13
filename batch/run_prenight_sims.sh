@@ -119,7 +119,6 @@ run_sv_sim scheduler.p observatory.p "" ${DAYOBS} 3 "${OPSIMRUN}" \
   --delay 0 --anom_overhead_scale 0 \
   --tags ideal nominal srsvtest
 
-exit
 
 for DELAY in 10 60 ; do
   echo "Running SV simulation delayed ${DELAY}"
@@ -140,6 +139,6 @@ for ANOM_SEED in 101 102 ; do
   date --iso=s
   run_sv_sim scheduler.p observatory.p "" ${DAYOBS} 3 "${OPSIMRUN}" \
     --keep_rewards --label "${LABEL}" --archive ${ARCHIVE} --capture_env \
-    --delay 0 --anom_overhead_scale ${ANOM_SCALE} --anom_overhead_seed ${ANOM_SEED} \\
+    --delay 0 --anom_overhead_scale ${ANOM_SCALE} --anom_overhead_seed ${ANOM_SEED} \
     --tags ideal anomalous_overhead srsvtest
 done
