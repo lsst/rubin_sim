@@ -225,7 +225,11 @@ def run_prenights(
     opsim_metadata: `dict`
         Extra metadata for the archive
     """
-
+    warnings.warn(
+        "Use sims_sv_survey tools instead of rubin_sim to run prenight simulations!",
+        DeprecationWarning,
+        stacklevel=2,
+    )
     exec_time: str = _iso8601_now()
     scheduler_io: io.BufferedRandom = _create_scheduler_io(day_obs_mjd, scheduler_fname=scheduler_file)
 
