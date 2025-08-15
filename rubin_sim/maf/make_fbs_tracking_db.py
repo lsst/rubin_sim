@@ -44,12 +44,12 @@ def make_fbs_tracking_db():
             family = vals[-2]
             db_name = vals[-1]
             run_name = db_name.replace(".db", "")
-            run_version = run_name.split("_10yrs")[0][-4:]
-            run_group = " ".join([run_version, family])
+            run_version = run_name.split("_10yrs")[0].split("_v")[-1]
+            run_group = family
 
             # Try to build a comment on the run based on the run_name
-            run_comment = run_name.replace("_10yrs", "")[0:-4]
-            run_comment = run_comment.replace("_", "")
+            run_comment = run_version + " "
+            run_comment += db_name.split("_v")[0].replace("_", " ")
 
             print(run_name, db_file)
             conn = sqlite3.connect(db_file)
