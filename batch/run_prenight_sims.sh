@@ -117,7 +117,7 @@ date --iso=s
 run_sv_sim scheduler.p observatory.p "" ${DAYOBS} 3 "${OPSIMRUN}" \
   --keep_rewards --no-downtime --label "${LABEL}" --archive ${ARCHIVE} --capture_env \
   --delay 0 --anom_overhead_scale 0 \
-  --tags ideal nominal srsvtest
+  --tags ideal nominal
 
 
 for DELAY in 10 60 ; do
@@ -128,7 +128,7 @@ for DELAY in 10 60 ; do
   run_sv_sim scheduler.p observatory.p "" ${DAYOBS} 3 "${OPSIMRUN}" \
     --keep_rewards --no-downtime --label "${LABEL}" --archive ${ARCHIVE} --capture_env \
     --delay ${DELAY} --anom_overhead_scale 0 \
-    --tags ideal delay_${DELAY} srsvtest
+    --tags ideal delay_${DELAY}
 done
 
 ANOM_SCALE="0.1"
@@ -140,5 +140,5 @@ for ANOM_SEED in 101 102 ; do
   run_sv_sim scheduler.p observatory.p "" ${DAYOBS} 3 "${OPSIMRUN}" \
     --keep_rewards --no-downtime --label "${LABEL}" --archive ${ARCHIVE} --capture_env \
     --delay 0 --anom_overhead_scale ${ANOM_SCALE} --anom_overhead_seed ${ANOM_SEED} \
-    --tags ideal anomalous_overhead srsvtest
+    --tags ideal anomalous_overhead
 done
