@@ -45,6 +45,11 @@ Automated runs of prenight simulations
 ======================================
 
 Batch jobs are submitted automatically each morning following the `sbatch` commands shown above.
+The `crontab` entries are::
+
+    15 6 * * * /opt/slurm/slurm-curr/bin/sbatch /sdf/data/rubin/shared/scheduler/packages/rubin_sim/batch/run_prenight_sims.sh auxtel 2>&1 >> /sdf/data/rubin/shared/scheduler/prenight/daily/daily_auxtel_cron.out
+    30 6 * * * /opt/slurm/slurm-curr/bin/sbatch /sdf/data/rubin/shared/scheduler/packages/rubin_sim/batch/run_prenight_sims.sh simonyi 2>&1 >> /sdf/data/rubin/shared/scheduler/prenight/daily/daily_simonyi_cron.out
+
 
 Custom runs of prenight simulations
 ===================================
