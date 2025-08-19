@@ -34,6 +34,21 @@ At the USDF, there is an installation of `rubin_sim` at `/sdf/data/rubin/shared/
     /opt/slurm/slurm-curr/bin/sbatch /sdf/data/rubin/shared/scheduler/packages/rubin_sim/batch/run_prenight_sims.sh simonyi
     /opt/slurm/slurm-curr/bin/sbatch /sdf/data/rubin/shared/scheduler/packages/rubin_sim/batch/run_prenight_sims.sh auxtel
 
+These batch jobs will record their output in:
+
+* `/sdf/data/rubin/shared/scheduler/prenight/sbatch/run_prenight_sims_%A_%a.out` and
+* `/sdf/data/rubin/shared/scheduler/prenight/sbatch/run_prenight_sims_%A_%a.err`
+
+The working files can be found in `/sdf/data/rubin/shared/scheduler/prenight/work/run_prenight_sims/%Y-%m-%dT%H%M%`.
+
+Automated runs of prenight simulations
+======================================
+
+Batch jobs are submitted automatically each morning following the `sbatch` commands shown above.
+
+Custom runs of prenight simulations
+===================================
+
 Much of the `run_prenight_sims.sh` script is dedicated to figuring out what environment to use and configuring it.
 If these defaults are not desired, a user can configure an environment to their liking, and run the simulation with the following steps.
 This environment must have the following installed:
