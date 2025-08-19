@@ -23,4 +23,6 @@ User Guide
 
     Simulation archive <archive>
 
+    Prenight simulations <prenight>
+
     Skybrightness <skybrightness>
