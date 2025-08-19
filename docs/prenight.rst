@@ -85,6 +85,7 @@ Finally, run the sim (and add it to the archive)::
         ${NUM_NIGHTS} \
         ${OPSIMRUN} \
         --keep-rewards \
+        --no-downtime \
         --label ${LABEL} \
         --archive ${ARCHIVE} \
         --capture-env \
