@@ -37,6 +37,7 @@ At the USDF, there is an installation of `rubin_sim` at `/sdf/data/rubin/shared/
 Much of the `run_prenight_sims.sh` script is dedicated to figuring out what environment to use and configuring it.
 If these defaults are not desired, a user can configure an environment to their liking, and run the simulation with the following steps.
 This environment must have the following installed:
+
 * `rubin_scheduler` (`github.com/lsst/rubin_sim`)
 * `schedview`  (`github.com/lsst/schedview`)
 * `ts_fbs_utils` (`github.com/lsst-ts/ts_fbs_utils.git`)
