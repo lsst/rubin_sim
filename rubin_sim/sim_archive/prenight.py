@@ -29,17 +29,11 @@ from matplotlib.pylab import Generator
 from rubin_scheduler.scheduler.example import example_scheduler
 from rubin_scheduler.scheduler.model_observatory import ModelObservatory
 from rubin_scheduler.scheduler.schedulers.core_scheduler import CoreScheduler
-from rubin_scheduler.scheduler.utils import SchemaConverter
 from rubin_scheduler.site_models import Almanac
 
 from rubin_sim.sim_archive.sim_archive import drive_sim
 
-from .make_snapshot import (
-    add_make_scheduler_snapshot_args,
-    get_scheduler,
-    get_scheduler_instance_from_path,
-    save_scheduler,
-)
+from .make_snapshot import add_make_scheduler_snapshot_args, get_scheduler, save_scheduler
 
 try:
     from rubin_sim.data import get_baseline  # type: ignore
@@ -104,7 +98,6 @@ def _create_scheduler_io(
     day_obs_mjd: float,
     scheduler_fname: Optional[str] = None,
     scheduler_instance: Optional[CoreScheduler] = None,
-    opsim_db: str | None = None,
 ) -> io.BufferedRandom:
     if scheduler_instance is not None:
         scheduler = scheduler_instance
@@ -129,13 +122,6 @@ def _create_scheduler_io(
             scheduler = pickle.load(sched_io)
 
     scheduler.keep_rewards = True
-
-    if opsim_db is not None:
-        last_preexisting_obs_mjd = day_obs_mjd + 0.5
-        obs = SchemaConverter().opsim2obs(opsim_db)
-        obs = obs[obs["mjd"] < last_preexisting_obs_mjd]
-        if len(obs) > 0:
-            scheduler.add_observations_array(obs)
 
     scheduler_io = TemporaryFile()
     pickle.dump(scheduler, scheduler_io)
@@ -213,7 +199,6 @@ def run_prenights(
     day_obs_mjd: float,
     archive_uri: str,
     scheduler_file: Optional[str] = None,
-    opsim_db: Optional[str] = None,
     minutes_delays: tuple[float, ...] = (0, 1, 10, 60, 240),
     anomalous_overhead_seeds: tuple[int, ...] = (101, 102, 103, 104, 105),
     sim_nights: int = 3,
@@ -231,10 +216,6 @@ def run_prenights(
         File from which to load the scheduler. None defaults to the example
         scheduler in rubin_sim, if it is installed.
         The default is None.
-    opsim_db : `str`, optional
-        The file name of the visit database for visits preceeding the
-        simulation.
-        The default is None.
     minutes_delays : `tuple` of `float`
         Delayed starts to be simulated.
     anomalous_overhead_seeds: `tuple` of `int`
@@ -244,11 +225,13 @@ def run_prenights(
     opsim_metadata: `dict`
         Extra metadata for the archive
     """
-
-    exec_time: str = _iso8601_now()
-    scheduler_io: io.BufferedRandom = _create_scheduler_io(
-        day_obs_mjd, scheduler_fname=scheduler_file, opsim_db=opsim_db
+    warnings.warn(
+        "Use sims_sv_survey tools instead of rubin_sim to run prenight simulations!",
+        DeprecationWarning,
+        stacklevel=2,
     )
+    exec_time: str = _iso8601_now()
+    scheduler_io: io.BufferedRandom = _create_scheduler_io(day_obs_mjd, scheduler_fname=scheduler_file)
 
     # Assign args common to all sims for this execution.
     run_sim = partial(
@@ -372,22 +355,12 @@ def prenight_sim_cli(cli_args: list = []) -> None:
         message="IntRounded being used with a potentially too-small scale factor.",
     )
 
-    # Only pass a default if we have an opsim
-    baseline = get_baseline()
-    if baseline is not None:
-        parser.add_argument(
-            "--opsim", default=baseline, type=str, help="Opsim database from which to load previous visits."
-        )
-    else:
-        parser.add_argument("--opsim", type=str, help="Opsim database from which to load previous visits.")
-
     add_make_scheduler_snapshot_args(parser)
 
     args = parser.parse_args() if len(cli_args) == 0 else parser.parse_args(cli_args)
 
     day_obs_mjd = _parse_dayobs_to_mjd(args.dayobs)
     archive_uri = args.archive
-    opsim_db = None if args.opsim in ("", "None") else args.opsim
 
     scheduler_file = args.scheduler
     opsim_metadata = {"telescope": args.telescope}
@@ -396,7 +369,7 @@ def prenight_sim_cli(cli_args: list = []) -> None:
             raise ValueError(f"File {scheduler_file} already exists!")
 
         if args.config_version is not None:
-            scheduler: CoreScheduler = get_scheduler_instance_from_path(args.script)
+            scheduler: CoreScheduler = get_scheduler(config_script=args.script, visits_db=args.visits)
             save_scheduler(scheduler, scheduler_file)
             opsim_metadata.update(
                 {
@@ -406,7 +379,9 @@ def prenight_sim_cli(cli_args: list = []) -> None:
                 }
             )
         elif args.branch is not None:
-            scheduler: CoreScheduler = get_scheduler(args.repo, args.script, args.branch)
+            scheduler: CoreScheduler = get_scheduler(
+                args.repo, args.script, args.branch, visits_db=args.visits
+            )
             save_scheduler(scheduler, scheduler_file)
 
             opsim_metadata.update(
@@ -423,7 +398,6 @@ def prenight_sim_cli(cli_args: list = []) -> None:
         day_obs_mjd,
         archive_uri,
         scheduler_file,
-        opsim_db,
         minutes_delays=(0, 1, 10, 60),
         anomalous_overhead_seeds=(101, 102),
         opsim_metadata=opsim_metadata,
