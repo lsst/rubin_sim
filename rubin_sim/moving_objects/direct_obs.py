@@ -162,7 +162,7 @@ class DirectObs(BaseObs):
         self.prelim_eph_mode = prelim_eph_mode
 
     def run(self, orbits, obs_data, object_positions=None, object_mjds=None):
-        """Find and write the observations of each object to disk.
+        """Find any observations of each object.
 
         For each object, a rough grid of ephemeris points are either
         generated on the fly or read from a pre-calculated grid;
@@ -216,6 +216,7 @@ class DirectObs(BaseObs):
             "obj_id",
             self.obs_id_col,
             "sedname",
+            "H",
             "time",
             "ra",
             "dec",
@@ -267,6 +268,7 @@ class DirectObs(BaseObs):
         for i, sso in enumerate(orbits):
             objid = sso.orbits["obj_id"].iloc[0]
             sedname = sso.orbits["sed_filename"].iloc[0]
+            hmag = sso.orbits["H"].iloc[0]
             # Generate ephemerides on the rough grid.
             if self.verbose:
                 logging.debug(
@@ -342,6 +344,7 @@ class DirectObs(BaseObs):
                 object_observations["obj_id"] = objid
                 object_observations[self.obs_id_col] = obs_data[rough_idx_obs][idx_obs][self.obs_id_col]
                 object_observations["sedname"] = sedname
+                object_observations["H"] = hmag
 
                 for key in ephs.dtype.names:
                     object_observations[key] = ephs[key][idx_obs].copy()
