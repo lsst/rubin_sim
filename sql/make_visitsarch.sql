@@ -3,7 +3,7 @@ CREATE SCHEMA visitsarch;
 SET SEARCH_PATH TO visitsarch;
 
 CREATE TABLE visitseq (
-    visitseq_uuid   UUID PRIMARY KEY,   -- RFC 4122 Universally Unique IDentifier
+    visitseq_uuid   UUID PRIMARY KEY DEFAULT gen_random_uuid(),   -- RFC 4122 Universally Unique IDentifier
     visitseq_sha256 BYTEA NOT NULL,     -- hash of the visit table
     label           TEXT NOT NULL,      -- label for plots and table
     visiseq_url     TEXT,               -- If null, the actual visits are not available
