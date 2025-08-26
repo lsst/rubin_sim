@@ -30,7 +30,6 @@ source /cvmfs/sw.lsst.eu/almalinux-x86_64/lsst_distrib/${LATEST_TAGGED_STACK}/lo
 
 set -o xtrace
 
-export TELESCOPE=$1
 export AWS_PROFILE=prenight
 WORK_DIR=$(date '+/sdf/data/rubin/shared/scheduler/prenight/work/run_prenight_sims/%Y-%m-%dT%H%M%S' --utc)
 echo "Working in $WORK_DIR"
@@ -82,12 +81,7 @@ curl --location --output ts_config_ocs.zip ${TS_CONFIG_OCS_REPO}/archive/${TS_CO
 unzip ts_config_ocs.zip
 mv $(find . -maxdepth 1 -type d -name ts_config_ocs\*) ts_config_ocs
 
-if [[ "${TELESCOPE}" = "simonyi" ]] ; then
-  # Ignore the EFD, just hardwire the simonyi scheduler config.
-  SCHEDULER_CONFIG_SCRIPT="ts_config_ocs/Scheduler/feature_scheduler/maintel/fbs_config_sv_survey.py"
-else
-  SCHEDULER_CONFIG_SCRIPT=$(scheduler_config_at_time ${TELESCOPE})
-fi
+SCHEDULER_CONFIG_SCRIPT="ts_config_ocs/Scheduler/feature_scheduler/maintel/fbs_config_sv_survey.py"
 
 export SIM_ARCHIVE_LOG_FILE=${WORK_DIR}/sim_archive_log.txt
 export PRENIGHT_LOG_FILE=${WORK_DIR}/prenight_log.txt
