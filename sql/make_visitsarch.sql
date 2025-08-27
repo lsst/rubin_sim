@@ -85,7 +85,7 @@ CREATE VIEW simulations_extra AS
         s.parent_visitseq_uuid,
         s.parent_last_day_obs,
         COALESCE (
-            JSONB_AGG(t.tag) FILTER (WHERE t.tag IS NOT NULL),
+            JSONB_AGG(DISTINCT t.tag) FILTER (WHERE t.tag IS NOT NULL),
             '[]'::JSONB
         ) AS tags,
         COALESCE (
