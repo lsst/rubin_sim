@@ -17,22 +17,22 @@ For more fine-grained control, the simulations and be run and added to the archi
 Running a standard set of pre-night simulations
 ===============================================
 
-The standard set of pre-night simulatios can be run by calling the `batch/ren_prenight_sims.sh` shell script.
-It takes one argument: the telescope for which the simulation is to be geneated (`simonyi` or `auxtel`).
+The standard set of pre-night simulatios can be run by calling the `batch/run_prenight_sims.sh` shell (for SV) or `batch/run_auxtel_prenight_sims.sh` (for auxtel) scripts.
 
 If `RUBIN_SIM_DIR` is the `rubin_sim` root director, it can be called thus::
 
-    ${RUBIN_SIM_DIR}/batch/run_prenight_sims.sh simonyi
+    ${RUBIN_SIM_DIR}/batch/run_prenight_sims.sh
 
 or thus::
 
-    ${RUBIN_SIM_DIR}/batch/run_prenight_sims.sh auxtel
+    ${RUBIN_SIM_DIR}/batch/run_auxtel_prenight_sims.sh auxtel
 
 or they can be submitted as a batch job to slurm.
-At the USDF, there is an installation of `rubin_sim` at `/sdf/data/rubin/shared/scheduler/packages/rubin_sim` such that the command becomes::
+At the USDF, there is an installation of `rubin_sim` at `/sdf/data/rubin/shared/scheduler/packages/rubin_sim` such that the commands become::
 
-    /opt/slurm/slurm-curr/bin/sbatch /sdf/data/rubin/shared/scheduler/packages/rubin_sim/batch/run_prenight_sims.sh simonyi
-    /opt/slurm/slurm-curr/bin/sbatch /sdf/data/rubin/shared/scheduler/packages/rubin_sim/batch/run_prenight_sims.sh auxtel
+    /sdf/data/rubin/shared/scheduler/packages/rubin_sim/batch/run_auxtel_prenight_sims.sh
+    sdf/data/rubin/shared/scheduler/packages/rubin_sim/batch/run_prenight_sims.sh
+
 
 These batch jobs will record their output in:
 
@@ -47,8 +47,8 @@ Automated runs of prenight simulations
 Batch jobs are submitted automatically each morning following the `sbatch` commands shown above.
 The `crontab` entries are::
 
-    15 6 * * * /opt/slurm/slurm-curr/bin/sbatch /sdf/data/rubin/shared/scheduler/packages/rubin_sim/batch/run_prenight_sims.sh auxtel 2>&1 >> /sdf/data/rubin/shared/scheduler/prenight/daily/daily_auxtel_cron.out
-    30 6 * * * /opt/slurm/slurm-curr/bin/sbatch /sdf/data/rubin/shared/scheduler/packages/rubin_sim/batch/run_prenight_sims.sh simonyi 2>&1 >> /sdf/data/rubin/shared/scheduler/prenight/daily/daily_simonyi_cron.out
+    15 6 * * * /opt/slurm/slurm-curr/bin/sbatch /sdf/data/rubin/shared/scheduler/packages/rubin_sim/batch/run_auxtel_prenight_sims.sh 2>&1 >> /sdf/data/rubin/shared/scheduler/prenight/daily/daily_auxtel_cron.out
+    30 6 * * * /opt/slurm/slurm-curr/bin/sbatch /sdf/data/rubin/shared/scheduler/packages/rubin_sim/batch/run_prenight_sims.sh 2>&1 >> /sdf/data/rubin/shared/scheduler/prenight/daily/daily_simonyi_cron.out
 
 
 Custom runs of prenight simulations
