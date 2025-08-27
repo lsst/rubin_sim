@@ -53,7 +53,7 @@ CREATE INDEX tag_idx ON tags(tag);
 
 CREATE TABLE comments (
     visitseq_uuid   UUID,                                   -- RFC 4122 Universally Unique IDentifier
-    comment_time    TIMESTAMP WITH TIME ZONE,               -- The date and time at which the comment was added
+    comment_time    TIMESTAMP WITH TIME ZONE DEFAULT NOW() ,  -- The date and time at which the comment was added
     author          TEXT,                                   -- The user who added the comment
     comment         TEXT NOT NULL                           -- The comment
 );
