@@ -33,7 +33,7 @@ CREATE TABLE mixedvisitseq (
     first_late_day_obs  DATE,                               -- the first day obs drawn from the late parent
     early_parent_uuid   UUID,                               -- the UUID of the early parent
     late_parent_uuid    UUID,                               -- the UUID of the late parent
-     PRIMARY KEY (visitseq_uuid)
+    PRIMARY KEY (visitseq_uuid)
 ) INHERITS (visitseq);
 
 -- All of the tables that follow include a visitseq_uuid that refereneces
