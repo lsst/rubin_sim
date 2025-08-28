@@ -6,7 +6,7 @@ CREATE TABLE visitseq (
     visitseq_uuid   UUID PRIMARY KEY DEFAULT gen_random_uuid(),   -- RFC 4122 Universally Unique IDentifier
     visitseq_sha256 BYTEA NOT NULL,     -- hash of the visit table
     visitseq_label  TEXT NOT NULL,      -- label for plots and table
-    visitseq_url     TEXT,               -- If null, the actual visits are not available
+    visitseq_url    TEXT,               -- If null, the actual visits are not available
     telescope       TEXT NOT NULL,      -- (probably) "simonyi" or "auxtel"
     first_day_obs   DATE,               -- local calendar date of evening of first night in the set
     last_day_obs    DATE,                -- local calendar date of the eveninig of the last night in the set
