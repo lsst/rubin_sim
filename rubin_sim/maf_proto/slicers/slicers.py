@@ -128,9 +128,9 @@ class Slicer(object):
         return self
 
     def __next__(self):
-        """Returns results of self._slice_data when iterating over slicer.
+        """Returns results of self.slice_data when iterating over slicer.
 
-        Results of self._slice_data should be dictionary of
+        Results of self.slice_data should be dictionary of
         {'idxs': the data indexes relevant for this slice of the slicer,
         'slice_point': the metadata for the slice_point, which always
         includes 'sid' key for ID of slice_point.}
@@ -139,10 +139,10 @@ class Slicer(object):
             raise StopIteration
         islice = self.islice
         self.islice += 1
-        return self._slice_data(islice)
+        return self.slice_data(islice)
 
     def __getitem__(self, islice):
-        return self._slice_data(islice)
+        return self.slice_data(islice)
 
     def setup_slicer(self, pointings_data):
         """set up KDTree.
@@ -164,47 +164,45 @@ class Slicer(object):
 
         self._build_tree(self.data_ra_rad, self.data_dec_rad, self.leafsize)
 
-        def _slice_data(islice):
-            """Return indexes for relevant opsim data at slice_point
-            (slice_point=lon_col/lat_col value .. usually ra/dec).
-            """
+    def slice_data(self, islice):
+        """Return indexes for relevant opsim data at slice_point
+        (slice_point=lon_col/lat_col value .. usually ra/dec).
+        """
 
-            # Build dict for slice_point info
-            slice_point = {"sid": islice}
-            sx, sy, sz = utils._xyz_from_ra_dec(
-                self.slice_points["ra"][islice], self.slice_points["dec"][islice]
+        # Build dict for slice_point info
+        slice_point = {"sid": islice}
+        sx, sy, sz = utils._xyz_from_ra_dec(
+            self.slice_points["ra"][islice], self.slice_points["dec"][islice]
+        )
+        # Query against tree.
+        indices = self.opsimtree.query_ball_point((sx, sy, sz), self.rad_deg)
+
+        if (self.use_camera) & (len(indices) > 0):
+            # Find the indices *of those indices*
+            # which fall in the camera footprint
+            camera_idx = self.camera(
+                self.slice_points["ra"][islice],
+                self.slice_points["dec"][islice],
+                self.data_ra_rad[indices],
+                self.data_dec_rad[indices],
+                self.data_rot_rad[indices],
             )
-            # Query against tree.
-            indices = self.opsimtree.query_ball_point((sx, sy, sz), self.rad_deg)
+            indices = np.array(indices)[camera_idx]
 
-            if (self.use_camera) & (len(indices) > 0):
-                # Find the indices *of those indices*
-                # which fall in the camera footprint
-                camera_idx = self.camera(
-                    self.slice_points["ra"][islice],
-                    self.slice_points["dec"][islice],
-                    self.data_ra_rad[indices],
-                    self.data_dec_rad[indices],
-                    self.data_rot_rad[indices],
-                )
-                indices = np.array(indices)[camera_idx]
-
-            # Loop through all the slice_point keys.
-            # If the first dimension of slice_point[key] has the same shape
-            # as the slicer, assume it is information per slice_point.
-            # Otherwise, pass the whole slice_point[key] information.
-            for key in self.slice_points:
-                if len(np.shape(self.slice_points[key])) == 0:
-                    keyShape = 0
-                else:
-                    keyShape = np.shape(self.slice_points[key])[0]
-                if keyShape == self.nslice:
-                    slice_point[key] = self.slice_points[key][islice]
-                else:
-                    slice_point[key] = self.slice_points[key]
-            return {"idxs": indices, "slice_point": slice_point}
-
-        setattr(self, "_slice_data", _slice_data)
+        # Loop through all the slice_point keys.
+        # If the first dimension of slice_point[key] has the same shape
+        # as the slicer, assume it is information per slice_point.
+        # Otherwise, pass the whole slice_point[key] information.
+        for key in self.slice_points:
+            if len(np.shape(self.slice_points[key])) == 0:
+                keyShape = 0
+            else:
+                keyShape = np.shape(self.slice_points[key])[0]
+            if keyShape == self.nslice:
+                slice_point[key] = self.slice_points[key][islice]
+            else:
+                slice_point[key] = self.slice_points[key]
+        return {"idxs": indices, "slice_point": slice_point}
 
     def _setupLSSTCamera(self):
         """If we want to include the camera chip gaps, etc."""
@@ -233,7 +231,7 @@ class Slicer(object):
 
         return info
 
-    def __call__(self, input_visits, metric_s, info=None):
+    def __call__(self, input_visits, metric_s, info=None, skip_setup=False, indx=None):
         """
 
         Parameters
@@ -249,6 +247,8 @@ class Slicer(object):
         info : `dict`
             Dict or list of dicts for holding information
             about the analysis process.
+        skip_setup : `bool`
+            Assume self.setup_slicer has already been called
         """
 
         if hasattr(input_visits, "to_records"):
@@ -272,7 +272,8 @@ class Slicer(object):
 
         orig_info = copy.copy(info)
         # Construct the KD Tree for this dataset
-        self.setup_slicer(visits_array)
+        if not skip_setup:
+            self.setup_slicer(visits_array)
 
         # Check metric_s and info are same length
         if info is not None:
@@ -294,31 +295,50 @@ class Slicer(object):
 
         results = [[] for metric in metric_s]
 
-        for i, slice_i in enumerate(self):
-            if len(slice_i["idxs"]) != 0:
-                slicedata = visits_array[slice_i["idxs"]]
-                for j, metric in enumerate(metric_s):
-                    if self.cache:
-                        results[j].append(
-                            metric.call_cached(
-                                frozenset(slicedata["observationId"].tolist()),
-                                slicedata,
-                                slice_point=slice_i["slice_point"],
-                            )
-                        )
-                    else:
+        # Running over a subset of slicepoints
+        # This is mostly to make it easy to run in parallel
+        # and then gather the results back into a full array
+        if indx is not None:
+            for i in indx:
+                slice_i = self.slice_data(i)
+                if len(slice_i["idxs"]) != 0:
+                    slicedata = visits_array[slice_i["idxs"]]
+                    for j, metric in enumerate(metric_s):
                         results[j].append(
                             np.atleast_1d(metric(slicedata, slice_point=slice_i["slice_point"]))
                         )
-            else:
-                # There were no overlapping pointings, put in the
-                # bad value for the metric, if none, fall back to
-                # slicer missing.
-                for j, metric in enumerate(metric_s):
-                    if hasattr(metric, "badval"):
-                        results[j].append(np.atleast_1d(metric.badval))
-                    else:
-                        results[j].append(np.atleast_1d(self.missing))
+                else:
+                    for j, metric in enumerate(metric_s):
+                        if hasattr(metric, "badval"):
+                            results[j].append(np.atleast_1d(metric.badval))
+                        else:
+                            results[j].append(np.atleast_1d(self.missing))
+        else:
+            for i, slice_i in enumerate(self):
+                if len(slice_i["idxs"]) != 0:
+                    slicedata = visits_array[slice_i["idxs"]]
+                    for j, metric in enumerate(metric_s):
+                        if self.cache:
+                            results[j].append(
+                                metric.call_cached(
+                                    frozenset(slicedata["observationId"].tolist()),
+                                    slicedata,
+                                    slice_point=slice_i["slice_point"],
+                                )
+                            )
+                        else:
+                            results[j].append(
+                                np.atleast_1d(metric(slicedata, slice_point=slice_i["slice_point"]))
+                            )
+                else:
+                    # There were no overlapping pointings, put in the
+                    # bad value for the metric, if none, fall back to
+                    # slicer missing.
+                    for j, metric in enumerate(metric_s):
+                        if hasattr(metric, "badval"):
+                            results[j].append(np.atleast_1d(metric.badval))
+                        else:
+                            results[j].append(np.atleast_1d(self.missing))
 
         concat_results = [concat_with_missing(arrays_list, missing=self.missing) for arrays_list in results]
         results = concat_results
