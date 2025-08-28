@@ -52,15 +52,11 @@ export PATH=${PACKAGE_DIR}/bin:${PATH}
 TS_FBS_UTILS_REFERENCE=$(curl -s https://api.github.com/repos/lsst-ts/ts_fbs_utils/tags | jq -r '.[].name' | egrep '^v[0-9]+.[0-9]+.[0-9]+$' | sort -V | tail -1)
 RUBIN_SIM_REFERENCE="tickets/SP-2447"
 SCHEDVIEW_REFERENCE="tickets/SP-2447"
-SIMS_SV_SURVEY_REFERENCE="tickets/SP-2447b"
-RUBIN_NIGHTS_REFERENCE="b82cafd8"
 
 pip install --no-deps --target=${PACKAGE_DIR} \
   git+https://github.com/lsst/rubin_sim.git@${RUBIN_SIM_REFERENCE} \
   git+https://github.com/lsst/schedview.git@${SCHEDVIEW_REFERENCE} \
   git+https://github.com/lsst-ts/ts_fbs_utils.git@${TS_FBS_UTILS_REFERENCE} \
-  git+https://github.com/lsst-sims/sims_sv_survey.git@${SIMS_SV_SURVEY_REFERENCE} \
-  git+https://github.com/lsst-sims/rubin_nights.git@${RUBIN_NIGHTS_REFERENCE} \
   lsst-resources
 
 # Get the scheduler version from the EFD and install it.
@@ -81,58 +77,17 @@ curl --location --output ts_config_ocs.zip ${TS_CONFIG_OCS_REPO}/archive/${TS_CO
 unzip ts_config_ocs.zip
 mv $(find . -maxdepth 1 -type d -name ts_config_ocs\*) ts_config_ocs
 
-SCHEDULER_CONFIG_SCRIPT="ts_config_ocs/Scheduler/feature_scheduler/maintel/fbs_config_sv_survey.py"
+# Get the scheduler configuration script
+SCHEDULER_CONFIG_SCRIPT=$(scheduler_config_at_time auxtel)
+
+# Get the path to prenight_sim as provided by the current environment,
+# so we do not accidentally run one from the adjusted PATH below.
+PRENIGHT_SIM=$(which prenight_sim)
 
 export SIM_ARCHIVE_LOG_FILE=${WORK_DIR}/sim_archive_log.txt
 export PRENIGHT_LOG_FILE=${WORK_DIR}/prenight_log.txt
-export DAYOBS="$(date -u +'%Y%m%d')"
-export ARCHIVE="s3://rubin:rubin-scheduler-prenight/opsim/"
 
-echo "Fetching completed visits"
 date --iso=s
-fetch_sv_visits ${DAYOBS} completed_visits.db ~/.usdf_access_token
-
-echo "Creating scheduler pickle"
+time ${PRENIGHT_SIM} --scheduler auxtel.pickle.xz --repo=${TS_CONFIG_OCS_REPO} --script ${SCHEDULER_CONFIG_SCRIPT} --config_version ${TS_CONFIG_OCS_REFERENCE} --telescope auxtel 2>&1 > ${WORK_DIR}/prenight_sim.out
 date --iso=s
-make_sv_scheduler scheduler.p --opsim completed_visits.db --config-script ${SCHEDULER_CONFIG_SCRIPT}
-
-echo "Creating model observatory"
-date --iso=s
-make_model_observatory observatory.p
-
-echo "Creating band scheduler"
-date --iso=s
-make_band_scheduler band_scheduler.p
-
-echo "Running nominal SV simulation"
-OPSIMRUN="prenight_nominal_$(date --iso=s)"
-LABEL="Nominal start and overhead, ideal conditions, run at $(date --iso=s)"
-date --iso=s
-run_sv_sim scheduler.p observatory.p "" ${DAYOBS} 3 "${OPSIMRUN}" \
-  --keep_rewards --no-downtime --label "${LABEL}" --archive ${ARCHIVE} --capture_env \
-  --delay 0 --anom_overhead_scale 0 \
-  --tags ideal nominal
-
-
-for DELAY in 10 60 ; do
-  echo "Running SV simulation delayed ${DELAY}"
-  OPSIMRUN="prenight_delay${DELAY}_$(date --iso=s)"
-  LABEL="Start time delayed by ${DELAY} minutes, nominal slew and visit overhead, ideal conditions, run at $(date --iso=s)"
-  date --iso=s
-  run_sv_sim scheduler.p observatory.p "" ${DAYOBS} 3 "${OPSIMRUN}" \
-    --keep_rewards --no-downtime --label "${LABEL}" --archive ${ARCHIVE} --capture_env \
-    --delay ${DELAY} --anom_overhead_scale 0 \
-    --tags ideal delay_${DELAY}
-done
-
-ANOM_SCALE="0.1"
-for ANOM_SEED in 101 102 ; do
-  echo "Running SV simulation with anomalous overhead seed ${ANOM_SEED}"
-  OPSIMRUN="prenight_anom${ANOM_SEED}_$(date --iso=s)"
-  LABEL="Anomalous overhead (${ANOM_SEED}, ${ANOM_SCALE}), nominal start, ideal conditions, run at $(date --iso=s)"
-  date --iso=s
-  run_sv_sim scheduler.p observatory.p "" ${DAYOBS} 3 "${OPSIMRUN}" \
-    --keep_rewards --no-downtime --label "${LABEL}" --archive ${ARCHIVE} --capture_env \
-    --delay 0 --anom_overhead_scale ${ANOM_SCALE} --anom_overhead_seed ${ANOM_SEED} \
-    --tags ideal anomalous_overhead
-done
+echo "******* END of run_prenight_sims.sh *********"
