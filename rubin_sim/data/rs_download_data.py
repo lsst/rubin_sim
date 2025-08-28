@@ -59,7 +59,7 @@ def data_dict() -> dict:
         "orbits_precompute": "orbits_precompute_2023_05_23.tgz",
         "sim_baseline": "sim_baseline_2025_03_03.tgz",
         "skybrightness": "skybrightness_2023_09_11.tgz",
-        "throughputs": "throughputs_2023_09_22.tgz",
+        "throughputs": "throughputs_2025_08_25.tgz",
         "tests": "tests_2024_04_23.tgz",
     }
     return file_dict
