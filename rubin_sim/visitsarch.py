@@ -93,36 +93,32 @@ class VisitSequenceArchive:
     ) -> str:
         sha256 = compute_visits_sha256(visits)
 
-        db_table = self.metadata_db_schema + "." + table
-        query_dest_part = "INSERT INTO " + db_table + "(visitseq_sha256, visitseq_label, telescope"
-        query_values_part = f"VALUES (decode('{sha256}', 'hex'), '{label}', '{telescope}'"
+        column_names = ["visitseq_sha256", "visitseq_label", "telescope"]
+        values = [f"decode('{sha256}', 'hex')", "'" + label + "'", "'" + telescope + "'"]
 
         if url is not None:
-            query_dest_part += ", visitseq_url"
-            query_values_part += f", '{url}'"
+            column_names.append("visitseq_url")
+            values.append("'" + url + "'")
 
         if first_day_obs is not None:
-            query_dest_part += ", first_day_obs"
-            query_values_part += ", " + _dayobs_to_str(first_day_obs)
-
-        if first_day_obs is not None:
-            query_dest_part += ", first_day_obs"
-            query_values_part += f", '{_dayobs_to_str(first_day_obs)}'"
+            column_names.append("first_day_obs")
+            values.append(_dayobs_to_str(first_day_obs))
 
         if last_day_obs is not None:
-            query_dest_part += ", last_day_obs"
-            query_values_part += f", '{_dayobs_to_str(last_day_obs)}'"
+            column_names.append("first_day_obs")
+            values.append(_dayobs_to_str(last_day_obs))
 
         if creation_time is not None:
             assert not creation_time.masked
             assert creation_time.isscalar
-            query_dest_part += ", creation_time"
-            query_values_part += ", '" + creation_time.utc[0].strftime("%Y-%m-%dT%H:%M:%SZ") + "'"
+            column_names.append("creation_time")
+            values.append("'" + creation_time.utc[0].strftime("%Y-%m-%dT%H:%M:%SZ") + "'")
 
-        query_dest_part += ") "
-        query_values_part += ") "
-        query = query_dest_part + query_values_part + "RETURNING visitseq_uuid"
-
+        query = f"""
+            INSERT INTO {self.metadata_db_schema}.{table} ({", ".join(column_names)})
+            VALUES ({", ".join(values)})
+            RETURNING visitseq_uuid;
+        """
         result = self.direct_metadata_query(query, commit=True)[0][0]
 
         return result

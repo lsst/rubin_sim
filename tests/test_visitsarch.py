@@ -38,20 +38,20 @@ class TestVisitSetArchive(unittest.TestCase):
 
         # Remember how many simulations there were before we add one
         original_num_sequences = visit_seq_archive.direct_metadata_query(
-            f"SELECT COUNT(*) FROM {TEST_METADATA_SCHEMA}.simulations;"
+            f"SELECT COUNT(*) FROM {TEST_METADATA_SCHEMA}.visitseq;"
         )[0][0]
 
         visits = TEST_VISITS
         label = f"Test on {Time.now().iso}"
-        vseq_uuid = visit_seq_archive.record_visitseq_metadata(visits, label, table="simulations")
+        vseq_uuid = visit_seq_archive.record_visitseq_metadata(visits, label, table="visitseq")
 
         matching_seqs = visit_seq_archive.direct_metadata_query(
-            f"SELECT * FROM {TEST_METADATA_SCHEMA}.simulations WHERE visitseq_uuid='{vseq_uuid}';"
+            f"SELECT * FROM {TEST_METADATA_SCHEMA}.visitseq WHERE visitseq_uuid='{vseq_uuid}';"
         )
         assert len(matching_seqs) == 1
 
         # Verify that we added only one
         new_num_sequences = visit_seq_archive.direct_metadata_query(
-            f"SELECT COUNT(*) FROM {TEST_METADATA_SCHEMA}.simulations;"
+            f"SELECT COUNT(*) FROM {TEST_METADATA_SCHEMA}.visitseq;"
         )[0][0]
         assert new_num_sequences == (original_num_sequences + 1)
