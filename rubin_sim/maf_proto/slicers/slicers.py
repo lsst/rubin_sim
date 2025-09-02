@@ -226,9 +226,12 @@ class Slicer(object):
         """Set radius (in degrees) for kdtree search."""
         self.rad_deg = utils.xyz_angular_radius(radius)
 
-    def add_info(self, info):
+    def add_info(self, metric, info):
+        """Update info dict with how slicer and metric were run.
+        """
         info["slicer: nside"] = self.nside
-
+        if hasattr(metric, "add_info"):
+            info = metric.add_info(info)
         return info
 
     def __call__(self, input_visits, metric_s, info=None, skip_setup=False, indx=None):
@@ -347,9 +350,7 @@ class Slicer(object):
         if orig_info is not None:
             for single_info, metric in zip(info, metric_s):
                 if single_info is not None:
-                    single_info = self.add_info(single_info)
-                    if hasattr(metric, "add_info"):
-                        single_info = metric.add_info(single_info)
+                    single_info = self.add_info(metric, single_info)
                 final_info.append(single_info)
 
         # Unwrap if single metric sent in
