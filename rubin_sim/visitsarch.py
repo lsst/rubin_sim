@@ -7,7 +7,6 @@ import numpy as np
 import pandas as pd
 import psycopg2
 import psycopg2.pool
-import pytz
 from astropy.time import Time
 from lsst.resources import ResourcePath, ResourcePathExpression
 
@@ -51,6 +50,36 @@ class VisitSequenceArchive:
         metadata_connection_kwargs = {k: metadata_db[k] for k in metadata_db if k != "schema"}
         self.pg_pool = psycopg2.pool.SimpleConnectionPool(1, 5, **metadata_connection_kwargs)
 
+    def direct_metadata_query(self, query: str, commit: bool = False) -> tuple:
+        """Run a simple query on the visit sequence database.
+
+        Parameters
+        ----------
+        query : `str`
+            The query to RuntimeError
+        commit : `bool`
+            Commit the query (e.g. for an INSERT)
+
+        Returns
+        -------
+        result : `tuple`
+            The result of the query
+        """
+
+        conn = None
+        try:
+            conn = self.pg_pool.getconn()
+            cursor = conn.cursor()
+            cursor.execute(query)
+            result = cursor.fetchall()
+            if commit:
+                cursor.execute("COMMIT;")
+        finally:
+            if conn:
+                self.pg_pool.putconn(conn)
+
+        return result
+
     def record_visitseq_metadata(
         self,
         visits: pd.DataFrame,
@@ -85,18 +114,15 @@ class VisitSequenceArchive:
             query_values_part += f", '{_dayobs_to_str(last_day_obs)}'"
 
         if creation_time is not None:
+            assert not creation_time.masked
+            assert creation_time.isscalar
             query_dest_part += ", creation_time"
-            query_values_part += ", '" + creation_time.to_datetime(timezone=pytz.UTC).isoformat() + "'"
+            query_values_part += ", '" + creation_time.utc[0].strftime("%Y-%m-%dT%H:%M:%SZ") + "'"
 
         query_dest_part += ") "
         query_values_part += ") "
         query = query_dest_part + query_values_part + "RETURNING visitseq_uuid"
 
-        conn = self.pg_pool.getconn()
-        try:
-            cursor = conn.cursor()
-            cursor.execute(query)
-            result = cursor.fetchall()
-        finally:
-            self.pg_pool.putconn(conn)
-        return result[0][0]
+        result = self.direct_metadata_query(query, commit=True)[0][0]
+
+        return result
