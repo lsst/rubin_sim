@@ -55,3 +55,79 @@ class TestVisitSetArchive(unittest.TestCase):
             f"SELECT COUNT(*) FROM {TEST_METADATA_SCHEMA}.visitseq;"
         )[0][0]
         assert new_num_sequences == (original_num_sequences + 1)
+
+    def test_record_simulation_metadata_simple(self) -> None:
+        visit_seq_archive = visitsarch.VisitSequenceArchive(metadata_db=TEST_METADATA_DATABASE)
+
+        # Remember how many simulations there were before we add one
+        original_num_sequences = visit_seq_archive.direct_metadata_query(
+            f"SELECT COUNT(*) FROM {TEST_METADATA_SCHEMA}.simulations;"
+        )[0][0]
+
+        visits = TEST_VISITS
+        label = f"Test on {Time.now().iso}"
+        vseq_uuid = visit_seq_archive.record_simulation_metadata(visits, label)
+
+        matching_seqs = visit_seq_archive.direct_metadata_query(
+            f"SELECT * FROM {TEST_METADATA_SCHEMA}.simulations WHERE visitseq_uuid='{vseq_uuid}';"
+        )
+        assert len(matching_seqs) == 1
+
+        # Verify that we added only one
+        new_num_sequences = visit_seq_archive.direct_metadata_query(
+            f"SELECT COUNT(*) FROM {TEST_METADATA_SCHEMA}.simulations;"
+        )[0][0]
+        assert new_num_sequences == (original_num_sequences + 1)
+
+    def test_record_simulation_metadata_long(self) -> None:
+        visit_seq_archive = visitsarch.VisitSequenceArchive(metadata_db=TEST_METADATA_DATABASE)
+
+        # Remember how many simulations there were before we add one
+        original_num_sequences = visit_seq_archive.direct_metadata_query(
+            f"SELECT COUNT(*) FROM {TEST_METADATA_SCHEMA}.simulations;"
+        )[0][0]
+
+        visits = TEST_VISITS
+        label = f"Test on {Time.now().iso}"
+        first_day_obs = "2025-01-01"
+        sim_runner_kwargs = {"foo": 5, "bar": [1, 2, 3]}
+
+        vseq_uuid = visit_seq_archive.record_simulation_metadata(
+            visits, label, first_day_obs=first_day_obs, sim_runner_kwargs=sim_runner_kwargs
+        )
+
+        matching_seqs = visit_seq_archive.direct_metadata_query(
+            f"SELECT * FROM {TEST_METADATA_SCHEMA}.simulations WHERE visitseq_uuid='{vseq_uuid}';"
+        )
+        assert len(matching_seqs) == 1
+
+        # Verify that we added only one
+        new_num_sequences = visit_seq_archive.direct_metadata_query(
+            f"SELECT COUNT(*) FROM {TEST_METADATA_SCHEMA}.simulations;"
+        )[0][0]
+        assert new_num_sequences == (original_num_sequences + 1)
+
+    def test_record_completed_metadata(self) -> None:
+        visit_seq_archive = visitsarch.VisitSequenceArchive(metadata_db=TEST_METADATA_DATABASE)
+
+        # Remember how many simulations there were before we add one
+        original_num_sequences = visit_seq_archive.direct_metadata_query(
+            f"SELECT COUNT(*) FROM {TEST_METADATA_SCHEMA}.completed;"
+        )[0][0]
+
+        visits = TEST_VISITS
+        label = f"Test on {Time.now().iso}"
+        vseq_uuid = visit_seq_archive.record_completed_metadata(
+            visits, label, query="SELECT * FROM foo WHERE bar='baz';"
+        )
+
+        matching_seqs = visit_seq_archive.direct_metadata_query(
+            f"SELECT * FROM {TEST_METADATA_SCHEMA}.completed WHERE visitseq_uuid='{vseq_uuid}';"
+        )
+        assert len(matching_seqs) == 1
+
+        # Verify that we added only one
+        new_num_sequences = visit_seq_archive.direct_metadata_query(
+            f"SELECT COUNT(*) FROM {TEST_METADATA_SCHEMA}.completed;"
+        )[0][0]
+        assert new_num_sequences == (original_num_sequences + 1)
