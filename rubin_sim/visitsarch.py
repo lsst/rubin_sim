@@ -302,3 +302,28 @@ class VisitSequenceArchive:
                 commit=True,
                 return_result=False,
             )
+
+    def comment(self, visitseq_uuid: UUID, comment: str, author: str | None) -> None:
+        comment_time = Time.now().utc[0].strftime("%Y-%m-%dT%H:%M:%SZ")
+        composed_query = ""
+        if author is None:
+            composed_query = psycopg2.sql.SQL(
+                "INSERT INTO "
+                + self.metadata_db_schema
+                + ".comments (visitseq_uuid, comment_time, comment)"
+                + " VALUES({}, {}, {})"
+            ).format(psycopg2.sql.Literal(visitseq_uuid), comment_time, psycopg2.sql.Literal(comment))
+        else:
+            composed_query = psycopg2.sql.SQL(
+                "INSERT INTO "
+                + self.metadata_db_schema
+                + ".comments (visitseq_uuid, comment_time, author, comment)"
+                + " VALUES({}, {}, {}, {})"
+            ).format(
+                psycopg2.sql.Literal(visitseq_uuid),
+                comment_time,
+                psycopg2.sql.Literal(author),
+                psycopg2.sql.Literal(comment),
+            )
+
+        self.direct_metadata_query(composed_query, commit=True, return_result=False)
