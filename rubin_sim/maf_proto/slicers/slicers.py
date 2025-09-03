@@ -171,9 +171,7 @@ class Slicer(object):
 
         # Build dict for slice_point info
         slice_point = {"sid": islice}
-        sx, sy, sz = utils._xyz_from_ra_dec(
-            self.slice_points["ra"][islice], self.slice_points["dec"][islice]
-        )
+        sx, sy, sz = utils._xyz_from_ra_dec(self.slice_points["ra"][islice], self.slice_points["dec"][islice])
         # Query against tree.
         indices = self.opsimtree.query_ball_point((sx, sy, sz), self.rad_deg)
 
@@ -227,8 +225,7 @@ class Slicer(object):
         self.rad_deg = utils.xyz_angular_radius(radius)
 
     def add_info(self, metric, info):
-        """Update info dict with how slicer and metric were run.
-        """
+        """Update info dict with how slicer and metric were run."""
         info["slicer: nside"] = self.nside
         if hasattr(metric, "add_info"):
             info = metric.add_info(info)
