@@ -1,6 +1,7 @@
 import unittest
 from io import StringIO
 from tempfile import TemporaryDirectory
+from uuid import UUID
 
 import pandas as pd
 from astropy.time import Time
@@ -44,6 +45,7 @@ class TestVisitSetArchive(unittest.TestCase):
         visits = TEST_VISITS
         label = f"Test on {Time.now().iso}"
         vseq_uuid = visit_seq_archive.record_visitseq_metadata(visits, label, table="visitseq")
+        assert isinstance(vseq_uuid, UUID)
 
         matching_seqs = visit_seq_archive.direct_metadata_query(
             f"SELECT * FROM {TEST_METADATA_SCHEMA}.visitseq WHERE visitseq_uuid='{vseq_uuid}';"
@@ -67,6 +69,7 @@ class TestVisitSetArchive(unittest.TestCase):
         visits = TEST_VISITS
         label = f"Test on {Time.now().iso}"
         vseq_uuid = visit_seq_archive.record_simulation_metadata(visits, label)
+        assert isinstance(vseq_uuid, UUID)
 
         matching_seqs = visit_seq_archive.direct_metadata_query(
             f"SELECT * FROM {TEST_METADATA_SCHEMA}.simulations WHERE visitseq_uuid='{vseq_uuid}';"
@@ -95,6 +98,7 @@ class TestVisitSetArchive(unittest.TestCase):
         vseq_uuid = visit_seq_archive.record_simulation_metadata(
             visits, label, first_day_obs=first_day_obs, sim_runner_kwargs=sim_runner_kwargs
         )
+        assert isinstance(vseq_uuid, UUID)
 
         matching_seqs = visit_seq_archive.direct_metadata_query(
             f"SELECT * FROM {TEST_METADATA_SCHEMA}.simulations WHERE visitseq_uuid='{vseq_uuid}';"
@@ -120,9 +124,10 @@ class TestVisitSetArchive(unittest.TestCase):
         vseq_uuid = visit_seq_archive.record_completed_metadata(
             visits, label, query="SELECT * FROM foo WHERE bar='baz';"
         )
+        assert isinstance(vseq_uuid, UUID)
 
         matching_seqs = visit_seq_archive.direct_metadata_query(
-            f"SELECT * FROM {TEST_METADATA_SCHEMA}.completed WHERE visitseq_uuid='{vseq_uuid}';"
+            f"SELECT * FROM {TEST_METADATA_SCHEMA}.completed WHERE visitseq_uuid='{vseq_uuid.hex}';"
         )
         assert len(matching_seqs) == 1
 
@@ -131,3 +136,29 @@ class TestVisitSetArchive(unittest.TestCase):
             f"SELECT COUNT(*) FROM {TEST_METADATA_SCHEMA}.completed;"
         )[0][0]
         assert new_num_sequences == (original_num_sequences + 1)
+
+    def test_tagging(self) -> None:
+        visit_seq_archive = visitsarch.VisitSequenceArchive(metadata_db=TEST_METADATA_DATABASE)
+
+        visits = TEST_VISITS
+        label = f"Test on {Time.now().iso}"
+        vseq_uuid = visit_seq_archive.record_visitseq_metadata(visits, label, table="visitseq")
+
+        result = visit_seq_archive.is_tagged(vseq_uuid, "test1")
+        assert not result
+
+        visit_seq_archive.tag(vseq_uuid, "test1")
+        result = visit_seq_archive.is_tagged(vseq_uuid, "test1")
+        assert result
+
+        visit_seq_archive.tag(vseq_uuid, "test2", "test3")
+        result = visit_seq_archive.is_tagged(vseq_uuid, "test2")
+        result = visit_seq_archive.is_tagged(vseq_uuid, "test3")
+        assert result
+
+        visit_seq_archive.untag(vseq_uuid, "test2")
+        assert not visit_seq_archive.is_tagged(vseq_uuid, "test2")
+        assert visit_seq_archive.is_tagged(vseq_uuid, "test3")
+
+        visit_seq_archive.untag(vseq_uuid, "test3")
+        visit_seq_archive.untag(vseq_uuid, "test1")
