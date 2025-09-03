@@ -1,6 +1,6 @@
 import hashlib
 import json
-from datetime import date
+from datetime import date, datetime
 from types import MappingProxyType
 from typing import Mapping
 from uuid import UUID
@@ -10,9 +10,9 @@ import pandas as pd
 import psycopg2
 import psycopg2.extras
 import psycopg2.pool
-import psycopg2.sql
 from astropy.time import Time
 from lsst.resources import ResourcePath, ResourcePathExpression
+from psycopg2 import sql
 
 USDF_METADATA_DATABASE = MappingProxyType(
     {"database": "opsim_log", "host": "134.79.23.205", "schema": "vsarchive"}
@@ -24,23 +24,29 @@ TEST_METADATA_DATABASE = MappingProxyType(
 
 JSON_DUMP_LIMIT = 4096
 
-
-def _dayobs_to_str(dayobs: str | date | int) -> str:
-    if isinstance(dayobs, int):
-        year = dayobs // 10000
-        month = (dayobs // 100) % 100
-        day = dayobs & 100
-        dayobs = date(year, month, day)
-
-    result = str(dayobs)
-    return result
+psycopg2.extras.register_uuid()
 
 
-def compute_visits_sha256(visits: pd.DataFrame) -> str:
+def _dayobs_to_date(dayobs: str | date | int) -> date:
+    match dayobs:
+        case int():
+            year = dayobs // 10000
+            month = (dayobs // 100) % 100
+            day = dayobs & 100
+            dayobs = date(year, month, day)
+        case str():
+            dayobs = datetime.fromisoformat(dayobs).date()
+        case _:
+            assert isinstance(dayobs, date)
+
+    return dayobs
+
+
+def compute_visits_sha256(visits: pd.DataFrame) -> bytes:
     recs = visits.to_records()
     visitseq_hash = hashlib.sha256(str(recs.dtype).encode())
     visitseq_hash.update(np.ascontiguousarray(recs).data.tobytes())
-    visitseq_sha256 = visitseq_hash.hexdigest()
+    visitseq_sha256 = bytes.fromhex(visitseq_hash.hexdigest())
     return visitseq_sha256
 
 
@@ -56,13 +62,21 @@ class VisitSequenceArchive:
         metadata_connection_kwargs = {k: metadata_db[k] for k in metadata_db if k != "schema"}
         self.pg_pool = psycopg2.pool.SimpleConnectionPool(1, 5, **metadata_connection_kwargs)
 
-    def direct_metadata_query(self, query: str, commit: bool = False, return_result: bool = True) -> tuple:
+    def direct_metadata_query(
+        self,
+        query: str | sql.SQL | sql.Composed,
+        data: dict,
+        commit: bool = False,
+        return_result: bool = True,
+    ) -> tuple:
         """Run a simple query on the visit sequence database.
 
         Parameters
         ----------
-        query : `str`
-            The query to RuntimeError
+        query : `str` or `sql.SQL`
+            The query to send
+        data : `dict`
+            Data to include in the query
         commit : `bool`
             Commit the query (e.g. for an INSERT), defaults to False
         return_result : `bool`
@@ -78,7 +92,7 @@ class VisitSequenceArchive:
         try:
             conn = self.pg_pool.getconn()
             cursor = conn.cursor()
-            cursor.execute(query)
+            cursor.execute(query, data)
             result = cursor.fetchall() if return_result else (None,)
             if commit:
                 cursor.execute("COMMIT;")
@@ -101,35 +115,49 @@ class VisitSequenceArchive:
     ) -> UUID:
         sha256 = compute_visits_sha256(visits)
 
-        column_names = ["visitseq_sha256", "visitseq_label", "telescope"]
-        values = [f"decode('{sha256}', 'hex')", "'" + label + "'", "'" + telescope + "'"]
+        columns = [
+            sql.Identifier("visitseq_sha256"),
+            sql.Identifier("visitseq_label"),
+            sql.Identifier("telescope"),
+        ]
+        data_placeholders = [
+            sql.Placeholder("visitseq_sha256"),
+            sql.Placeholder("visitseq_label"),
+            sql.Placeholder("telescope"),
+        ]
+        data = {"visitseq_sha256": sha256, "visitseq_label": label, "telescope": telescope}
 
         if url is not None:
-            column_names.append("visitseq_url")
-            values.append("'" + url + "'")
+            columns.append(sql.Identifier("visitseq_url"))
+            data_placeholders.append(sql.Placeholder("visitseq_url"))
+            data["visitseq_url"] = url
 
         if first_day_obs is not None:
-            column_names.append("first_day_obs")
-            values.append("'" + _dayobs_to_str(first_day_obs) + "'")
+            columns.append(sql.Identifier("first_day_obs"))
+            data_placeholders.append(sql.Placeholder("first_day_obs"))
+            data["first_day_obs"] = _dayobs_to_date(first_day_obs)
 
         if last_day_obs is not None:
-            column_names.append("first_day_obs")
-            values.append("'" + _dayobs_to_str(last_day_obs) + "'")
+            columns.append(sql.Identifier("first_day_obs"))
+            data_placeholders.append(sql.Placeholder("last_day_obs"))
+            data["last_day_obs"] = _dayobs_to_date(last_day_obs)
 
         if creation_time is not None:
             assert not creation_time.masked
             assert creation_time.isscalar
-            column_names.append("creation_time")
-            values.append("'" + creation_time.utc[0].strftime("%Y-%m-%dT%H:%M:%SZ") + "'")
+            creation_datetime = creation_time.utc[0].datetime
+            columns.append(sql.Identifier("creation_time"))
+            data_placeholders.append(sql.Placeholder("creation_time"))
+            data["creation_time"] = creation_datetime
 
-        query = f"""
-            INSERT INTO {self.metadata_db_schema}.{table} ({", ".join(column_names)})
-            VALUES ({", ".join(values)})
-            RETURNING visitseq_uuid;
-        """
-        result_str = self.direct_metadata_query(query, commit=True)[0][0]
-        result = UUID(result_str)
+        query = sql.SQL("INSERT INTO {}.{} ({}) VALUES ({}) RETURNING visitseq_uuid").format(
+            sql.Identifier(self.metadata_db_schema),
+            sql.Identifier(table),
+            sql.SQL(", ").join(columns),
+            sql.SQL(", ").join(data_placeholders),
+        )
 
+        result = self.direct_metadata_query(query, data, commit=True)[0][0]
         return result
 
     def record_simulation_metadata(
@@ -143,7 +171,7 @@ class VisitSequenceArchive:
         creation_time: Time | None = None,
         scheduler_version: str | None = None,
         config_url: str | None = None,
-        conda_env_sha256: str | None = None,
+        conda_env_sha256: bytes | None = None,
         parent_visitseq_uuid: UUID | None = None,
         sim_runner_kwargs: dict | None = None,
         parent_last_dayobs: str | date | int | None = None,
@@ -161,18 +189,27 @@ class VisitSequenceArchive:
             creation_time=creation_time,
         )
 
-        updates = []
+        def make_set_clause(column: str) -> sql.Composed:
+            set_clause = sql.SQL("{} = {}").format(sql.Identifier(column), sql.Placeholder(column))
+            return set_clause
+
+        set_clauses = []
+        data = {}
         if scheduler_version is not None:
-            updates.append(f"scheduler_version='{scheduler_version}'")
+            set_clauses.append(make_set_clause("scheduler_version"))
+            data["scheduler_version"] = scheduler_version
 
         if config_url is not None:
-            updates.append(f"config_url='{config_url}'")
+            set_clauses.append(make_set_clause("config_url"))
+            data["config_url"] = config_url
 
         if conda_env_sha256 is not None:
-            updates.append(f"conda_env_sha256='{conda_env_sha256}'")
+            set_clauses.append(make_set_clause("conda_env_sha256"))
+            data["conda_env_sha256"] = conda_env_sha256
 
         if parent_visitseq_uuid is not None:
-            updates.append(f"parent_visitset_uuid='{parent_visitseq_uuid.hex}'")
+            set_clauses.append(make_set_clause("parent_visitseq_uuid"))
+            data["parent_visitseq_uuid"] = str(parent_visitseq_uuid)
 
         if sim_runner_kwargs is not None:
             sim_runner_munged_kwargs = {}
@@ -195,25 +232,28 @@ class VisitSequenceArchive:
                     else sim_runner_kwargs[key]
                 )
 
-            updates.append(f"sim_runner_kwargs={psycopg2.extras.Json(sim_runner_munged_kwargs)}")
+            set_clauses.append(make_set_clause("sim_runner_kwargs"))
+            data["sim_runner_kwargs"] = psycopg2.extras.Json(sim_runner_munged_kwargs)
 
         if parent_last_dayobs is not None:
-            updates.append(f"parent_last_dayobs='{_dayobs_to_str(parent_last_dayobs)}'")
+            set_clauses.append(make_set_clause("parent_last_dayobs"))
+            data["parent_last_dayobs"] = parent_last_dayobs
 
-        num_columns_to_update = len(updates)
+        num_columns_to_update = len(set_clauses)
 
         if num_columns_to_update > 0:
-            query = (
-                f"UPDATE {self.metadata_db_schema}.simulations SET "
-                + ", ".join(updates)
-                + f" WHERE visitseq_uuid='{visitseq_uuid.hex}' RETURNING *;"
+            query = sql.SQL("UPDATE {}.simulations SET {} WHERE visitseq_uuid={} RETURNING *;").format(
+                sql.Identifier(self.metadata_db_schema),
+                sql.SQL(", ").join(set_clauses),
+                sql.Placeholder("visitseq_uuid"),
             )
+            data["visitseq_uuid"] = visitseq_uuid
 
             conn = None
             try:
                 conn = self.pg_pool.getconn()
                 cursor = conn.cursor()
-                cursor.execute(query)
+                cursor.execute(query, data)
                 result = cursor.fetchall()
 
                 # Be extra cautious, and check that everything looks
@@ -251,17 +291,20 @@ class VisitSequenceArchive:
         )
 
         if query is not None:
-            composed_query = psycopg2.sql.SQL(
-                "UPDATE "
-                + self.metadata_db_schema
-                + ".completed SET query={} WHERE visitseq_uuid={} RETURNING *"
-            ).format(psycopg2.sql.Literal(query), psycopg2.sql.Literal(visitseq_uuid.hex))
+            composed_query = sql.SQL(
+                "UPDATE {}.completed SET query={} WHERE visitseq_uuid={} RETURNING *"
+            ).format(
+                sql.Identifier(self.metadata_db_schema),
+                sql.Placeholder("query"),
+                sql.Placeholder("visitseq_uuid"),
+            )
+            data = {"query": query, "visitseq_uuid": visitseq_uuid}
 
             conn = None
             try:
                 conn = self.pg_pool.getconn()
                 cursor = conn.cursor()
-                cursor.execute(composed_query)
+                cursor.execute(composed_query, data)
                 result = cursor.fetchall()
 
                 # Be extra cautious, and check that everything looks
@@ -275,55 +318,56 @@ class VisitSequenceArchive:
         return visitseq_uuid
 
     def is_tagged(self, visitseq_uuid: UUID, tag: str) -> bool:
-        is_tagged = (
-            self.direct_metadata_query(
-                f"SELECT COUNT(*)>=1 FROM {self.metadata_db_schema}.tags"
-                + f" WHERE visitseq_uuid='{visitseq_uuid.hex}' AND tag='{tag}';"
-            )[0][0]
-            > 0
+        query = sql.SQL("SELECT COUNT(*)>=1 FROM {}.tags WHERE visitseq_uuid={} AND TAG={}").format(
+            sql.Identifier(self.metadata_db_schema), sql.Placeholder("visitseq_uuid"), sql.Placeholder("tag")
         )
+        data = {"visitseq_uuid": visitseq_uuid, "tag": tag}
+        is_tagged = self.direct_metadata_query(query, data)[0][0] > 0
         return is_tagged
 
     def tag(self, visitseq_uuid: UUID, *tags: str) -> None:
+        query = sql.SQL("INSERT INTO {}.tags (visitseq_uuid, tag) VALUES ({}, {})").format(
+            sql.Identifier(self.metadata_db_schema), sql.Placeholder("visitseq_uuid"), sql.Placeholder("tag")
+        )
+        data = {"visitseq_uuid": visitseq_uuid}
         for tag in tags:
             if not self.is_tagged(visitseq_uuid, tag):
-                self.direct_metadata_query(
-                    f"INSERT INTO {self.metadata_db_schema}.tags (visitseq_uuid, tag)"
-                    + f" VALUES ('{visitseq_uuid.hex}', '{tag}')",
-                    commit=True,
-                    return_result=False,
-                )
+                data["tag"] = tag
+                self.direct_metadata_query(query, data, commit=True, return_result=False)
 
     def untag(self, visitseq_uuid: UUID, tag: str) -> None:
         if self.is_tagged(visitseq_uuid, tag):
-            self.direct_metadata_query(
-                f"DELETE FROM {self.metadata_db_schema}.tags WHERE visitseq_uuid='{visitseq_uuid.hex}'"
-                + f" AND tag='{tag}';",
-                commit=True,
-                return_result=False,
+            query = sql.SQL("DELETE FROM {}.tags WHERE visitseq_uuid={} AND tag={}").format(
+                sql.Identifier(self.metadata_db_schema),
+                sql.Placeholder("visitseq_uuid"),
+                sql.Placeholder("tag"),
             )
+            data = {"visitseq_uuid": visitseq_uuid, "tag": tag}
+            self.direct_metadata_query(query, data, commit=True, return_result=False)
 
     def comment(self, visitseq_uuid: UUID, comment: str, author: str | None) -> None:
-        comment_time = Time.now().utc[0].strftime("%Y-%m-%dT%H:%M:%SZ")
-        composed_query = ""
+        comment_time = Time.now().utc[0].datetime
+        query = ""
+        data = {"visitseq_uuid": visitseq_uuid, "comment_time": comment_time, "comment": comment}
         if author is None:
-            composed_query = psycopg2.sql.SQL(
-                "INSERT INTO "
-                + self.metadata_db_schema
-                + ".comments (visitseq_uuid, comment_time, comment)"
-                + " VALUES({}, {}, {})"
-            ).format(psycopg2.sql.Literal(visitseq_uuid), comment_time, psycopg2.sql.Literal(comment))
-        else:
-            composed_query = psycopg2.sql.SQL(
-                "INSERT INTO "
-                + self.metadata_db_schema
-                + ".comments (visitseq_uuid, comment_time, author, comment)"
-                + " VALUES({}, {}, {}, {})"
+            query = sql.SQL(
+                "INSERT INTO {}.comments (visitseq_uuid, comment_time, comment) VALUES ({}, {}, {})"
             ).format(
-                psycopg2.sql.Literal(visitseq_uuid),
-                comment_time,
-                psycopg2.sql.Literal(author),
-                psycopg2.sql.Literal(comment),
+                sql.Identifier(self.metadata_db_schema),
+                sql.Placeholder("visitseq_uuid"),
+                sql.Placeholder("comment_time"),
+                sql.Placeholder("comment"),
             )
+        else:
+            query = sql.SQL(
+                "INSERT INTO {}.comments (visitseq_uuid, comment_time, author, comment) VALUES ({}, {}, {})"
+            ).format(
+                sql.Identifier(self.metadata_db_schema),
+                sql.Placeholder("visitseq_uuid"),
+                sql.Placeholder("comment_time"),
+                sql.Placeholder("author"),
+                sql.Placeholder("comment"),
+            )
+            data["author"] = author
 
-        self.direct_metadata_query(composed_query, commit=True, return_result=False)
+        self.direct_metadata_query(query, data, commit=True, return_result=False)
