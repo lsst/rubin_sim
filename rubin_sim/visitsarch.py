@@ -3,6 +3,7 @@ import json
 from datetime import date
 from types import MappingProxyType
 from typing import Mapping
+from uuid import UUID
 
 import numpy as np
 import pandas as pd
@@ -55,7 +56,7 @@ class VisitSequenceArchive:
         metadata_connection_kwargs = {k: metadata_db[k] for k in metadata_db if k != "schema"}
         self.pg_pool = psycopg2.pool.SimpleConnectionPool(1, 5, **metadata_connection_kwargs)
 
-    def direct_metadata_query(self, query: str, commit: bool = False) -> tuple:
+    def direct_metadata_query(self, query: str, commit: bool = False, return_result: bool = True) -> tuple:
         """Run a simple query on the visit sequence database.
 
         Parameters
@@ -63,7 +64,9 @@ class VisitSequenceArchive:
         query : `str`
             The query to RuntimeError
         commit : `bool`
-            Commit the query (e.g. for an INSERT)
+            Commit the query (e.g. for an INSERT), defaults to False
+        return_result : `bool`
+            Return the result, defaults to True
 
         Returns
         -------
@@ -76,7 +79,7 @@ class VisitSequenceArchive:
             conn = self.pg_pool.getconn()
             cursor = conn.cursor()
             cursor.execute(query)
-            result = cursor.fetchall()
+            result = cursor.fetchall() if return_result else (None,)
             if commit:
                 cursor.execute("COMMIT;")
         finally:
@@ -95,7 +98,7 @@ class VisitSequenceArchive:
         first_day_obs: date | int | str | None = None,
         last_day_obs: date | int | str | None = None,
         creation_time: Time | None = None,
-    ) -> str:
+    ) -> UUID:
         sha256 = compute_visits_sha256(visits)
 
         column_names = ["visitseq_sha256", "visitseq_label", "telescope"]
@@ -124,7 +127,8 @@ class VisitSequenceArchive:
             VALUES ({", ".join(values)})
             RETURNING visitseq_uuid;
         """
-        result = self.direct_metadata_query(query, commit=True)[0][0]
+        result_str = self.direct_metadata_query(query, commit=True)[0][0]
+        result = UUID(result_str)
 
         return result
 
@@ -140,10 +144,10 @@ class VisitSequenceArchive:
         scheduler_version: str | None = None,
         config_url: str | None = None,
         conda_env_sha256: str | None = None,
-        parent_visitseq_uuid: str | None = None,
+        parent_visitseq_uuid: UUID | None = None,
         sim_runner_kwargs: dict | None = None,
         parent_last_dayobs: str | date | int | None = None,
-    ) -> str:
+    ) -> UUID:
         # I would have preferred to use kwargs here, but was not
         # able to get type checking happy with it.
         visitseq_uuid = self.record_visitseq_metadata(
@@ -168,7 +172,7 @@ class VisitSequenceArchive:
             updates.append(f"conda_env_sha256='{conda_env_sha256}'")
 
         if parent_visitseq_uuid is not None:
-            updates.append(f"parent_visitset_uuid='{parent_visitseq_uuid}'")
+            updates.append(f"parent_visitset_uuid='{parent_visitseq_uuid.hex}'")
 
         if sim_runner_kwargs is not None:
             sim_runner_munged_kwargs = {}
@@ -202,7 +206,7 @@ class VisitSequenceArchive:
             query = (
                 f"UPDATE {self.metadata_db_schema}.simulations SET "
                 + ", ".join(updates)
-                + f" WHERE visitseq_uuid='{visitseq_uuid}' RETURNING *;"
+                + f" WHERE visitseq_uuid='{visitseq_uuid.hex}' RETURNING *;"
             )
 
             conn = None
@@ -232,7 +236,7 @@ class VisitSequenceArchive:
         last_day_obs: date | int | str | None = None,
         creation_time: Time | None = None,
         query: str | None = None,
-    ) -> str:
+    ) -> UUID:
         # I would have preferred to use kwargs here, but was not
         # able to get type checking happy with it.
         visitseq_uuid = self.record_visitseq_metadata(
@@ -251,7 +255,7 @@ class VisitSequenceArchive:
                 "UPDATE "
                 + self.metadata_db_schema
                 + ".completed SET query={} WHERE visitseq_uuid={} RETURNING *"
-            ).format(psycopg2.sql.Literal(query), psycopg2.sql.Literal(visitseq_uuid))
+            ).format(psycopg2.sql.Literal(query), psycopg2.sql.Literal(visitseq_uuid.hex))
 
             conn = None
             try:
@@ -269,3 +273,32 @@ class VisitSequenceArchive:
                     self.pg_pool.putconn(conn)
 
         return visitseq_uuid
+
+    def is_tagged(self, visitseq_uuid: UUID, tag: str) -> bool:
+        is_tagged = (
+            self.direct_metadata_query(
+                f"SELECT COUNT(*)>=1 FROM {self.metadata_db_schema}.tags"
+                + f" WHERE visitseq_uuid='{visitseq_uuid.hex}' AND tag='{tag}';"
+            )[0][0]
+            > 0
+        )
+        return is_tagged
+
+    def tag(self, visitseq_uuid: UUID, *tags: str) -> None:
+        for tag in tags:
+            if not self.is_tagged(visitseq_uuid, tag):
+                self.direct_metadata_query(
+                    f"INSERT INTO {self.metadata_db_schema}.tags (visitseq_uuid, tag)"
+                    + f" VALUES ('{visitseq_uuid.hex}', '{tag}')",
+                    commit=True,
+                    return_result=False,
+                )
+
+    def untag(self, visitseq_uuid: UUID, tag: str) -> None:
+        if self.is_tagged(visitseq_uuid, tag):
+            self.direct_metadata_query(
+                f"DELETE FROM {self.metadata_db_schema}.tags WHERE visitseq_uuid='{visitseq_uuid.hex}'"
+                + f" AND tag='{tag}';",
+                commit=True,
+                return_result=False,
+            )
