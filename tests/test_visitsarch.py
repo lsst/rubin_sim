@@ -161,3 +161,32 @@ class TestVisitSetArchive(unittest.TestCase):
 
         visit_seq_archive.untag(vseq_uuid, "test3")
         visit_seq_archive.untag(vseq_uuid, "test1")
+
+    def test_comments(self) -> None:
+        visit_seq_archive = visitsarch.VisitSequenceArchive(metadata_db=TEST_METADATA_DATABASE)
+
+        visits = TEST_VISITS
+        label = f"Test on {Time.now().iso}"
+        vseq_uuid = visit_seq_archive.record_visitseq_metadata(visits, label, table="visitseq")
+
+        # There should be no comments on our newly created visitseq
+        # to start with. What happens when we ask for comments?
+        initial_comments = visit_seq_archive.get_comments(vseq_uuid)
+        assert len(initial_comments) == 0
+
+        # Test without an author
+        comment1 = "This is a first comment."
+        visit_seq_archive.comment(vseq_uuid, comment1)
+        comments_after_one = visit_seq_archive.get_comments(vseq_uuid)
+        assert len(comments_after_one) == 1
+        assert comment1 in comments_after_one.comment.values
+
+        # Test with an author
+        comment2 = "This is a test comment"
+        author = "Unit Tester"
+        visit_seq_archive.comment(vseq_uuid, comment2, author=author)
+        comments_after_two = visit_seq_archive.get_comments(vseq_uuid)
+        assert len(comments_after_two) == 2
+        assert comment1 in comments_after_two.comment.values
+        assert comment2 in comments_after_two.comment.values
+        assert author in comments_after_two.author.values
