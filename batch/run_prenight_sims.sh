@@ -50,7 +50,7 @@ export PATH=${PACKAGE_DIR}/bin:${PATH}
 # Cannot get ts_fbs_utils from the EFD, so just guess the highest semantic version tag in the repo.
 # A "reference" can be a tag, hash, or branch.
 TS_FBS_UTILS_REFERENCE=$(curl -s https://api.github.com/repos/lsst-ts/ts_fbs_utils/tags | jq -r '.[].name' | egrep '^v[0-9]+.[0-9]+.[0-9]+$' | sort -V | tail -1)
-RUBIN_SIM_REFERENCE="v2.2.5.dev1"
+RUBIN_SIM_REFERENCE="v2.2.5.dev2"
 SCHEDVIEW_REFERENCE="v0.19.0.dev1"
 SIMS_SV_SURVEY_REFERENCE="v0.1.0"
 RUBIN_NIGHTS_REFERENCE="v0.3.0"
