@@ -391,3 +391,78 @@ class VisitSequenceArchive:
         comments["comment"] = comments["comment"].astype("string")
 
         return comments
+
+    def register_file(
+        self,
+        visitseq_uuid: UUID,
+        file_type: str,
+        file_sha256: bytes,
+        location: str | ResourcePath,
+        update: bool = False,
+    ) -> None:
+        file_url: str = ""
+        match location:
+            case ResourcePath():
+                file_url = location.geturl()
+            case str():
+                file_url = location
+            case _:
+                raise ValueError("Unrecognised location type")
+
+        # Check whether the file is already registered
+        already_exists = False
+        try:
+            self.get_file_url(visitseq_uuid, file_type)
+            already_exists = True
+        except ValueError:
+            already_exists = False
+
+        if already_exists:
+            if not update:
+                raise ValueError("A file of type {file_type} is already registered for {visitseq_uuid}")
+
+            query = sql.SQL(
+                "UPDATE {}.files SET file_sha256={}, file_url={} WHERE visitseq_uuid={} AND file_type={}"
+            ).format(
+                sql.Identifier(self.metadata_db_schema),
+                sql.Placeholder("file_sha256"),
+                sql.Placeholder("file_url"),
+                sql.Placeholder("visitseq_uuid"),
+                sql.Placeholder("file_type"),
+            )
+        else:
+            query = sql.SQL(
+                "INSERT INTO {}.files (visitseq_uuid, file_type, file_sha256, file_url)"
+                + " VALUES ({}, {}, {}, {})"
+            ).format(
+                sql.Identifier(self.metadata_db_schema),
+                sql.Placeholder("visitseq_uuid"),
+                sql.Placeholder("file_type"),
+                sql.Placeholder("file_sha256"),
+                sql.Placeholder("file_url"),
+            )
+
+        data = {
+            "visitseq_uuid": visitseq_uuid,
+            "file_type": file_type,
+            "file_sha256": file_sha256,
+            "file_url": file_url,
+        }
+
+        self.direct_metadata_query(query, data, commit=True, return_result=False)
+
+    def get_file_url(self, visitseq_uuid: UUID, file_type: str) -> str:
+        query = sql.SQL("SELECT file_url FROM {}.files WHERE visitseq_uuid={} AND file_type={}").format(
+            sql.Identifier(self.metadata_db_schema),
+            sql.Placeholder("visitseq_uuid"),
+            sql.Placeholder("file_type"),
+        )
+        data = {"visitseq_uuid": visitseq_uuid, "file_type": file_type}
+        result = self.direct_metadata_query(query, data, return_result=True)
+        if len(result) < 1:
+            raise ValueError(f"No URLs found for {file_type} for visitseq {visitseq_uuid}")
+        if len(result) > 1:
+            raise ValueError(f"Too many URLs found for {file_type} for visitseq {visitseq_uuid}!")
+
+        url = result[0][0]
+        return url
