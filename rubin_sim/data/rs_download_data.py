@@ -54,7 +54,7 @@ def data_dict() -> dict:
     file_dict = {
         "maf": "maf_2024_06_13.tgz",
         "maps": "maps_2022_2_28.tgz",
-        "movingObjects": "movingObjects_oct_2021.tgz",
+        "movingObjects": "movingObjects_2025_07_15.tgz",
         "orbits": "orbits_2022_3_1.tgz",
         "orbits_precompute": "orbits_precompute_2023_05_23.tgz",
         "sim_baseline": "sim_baseline_2025_09_02.tgz",
