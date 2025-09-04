@@ -345,8 +345,8 @@ class VisitSequenceArchive:
             data = {"visitseq_uuid": visitseq_uuid, "tag": tag}
             self.direct_metadata_query(query, data, commit=True, return_result=False)
 
-    def comment(self, visitseq_uuid: UUID, comment: str, author: str | None) -> None:
-        comment_time = Time.now().utc[0].datetime
+    def comment(self, visitseq_uuid: UUID, comment: str, author: str | None = None) -> None:
+        comment_time = Time.now().utc.datetime
         query = ""
         data = {"visitseq_uuid": visitseq_uuid, "comment_time": comment_time, "comment": comment}
         if author is None:
@@ -360,7 +360,8 @@ class VisitSequenceArchive:
             )
         else:
             query = sql.SQL(
-                "INSERT INTO {}.comments (visitseq_uuid, comment_time, author, comment) VALUES ({}, {}, {})"
+                "INSERT INTO {}.comments (visitseq_uuid, comment_time, author, comment)"
+                + " VALUES ({}, {}, {}, {})"
             ).format(
                 sql.Identifier(self.metadata_db_schema),
                 sql.Placeholder("visitseq_uuid"),
@@ -371,3 +372,22 @@ class VisitSequenceArchive:
             data["author"] = author
 
         self.direct_metadata_query(query, data, commit=True, return_result=False)
+
+    def get_comments(self, visitseq_uuid: UUID) -> pd.DataFrame:
+        psycopg2_query = sql.SQL("SELECT * FROM {}.comments WHERE visitseq_uuid = %s").format(
+            sql.Identifier(self.metadata_db_schema)
+        )
+
+        conn = None
+        try:
+            conn = self.pg_pool.getconn()
+            text_query = psycopg2_query.as_string(conn)
+            comments = pd.read_sql(text_query, conn, params=[visitseq_uuid])
+        finally:
+            if conn:
+                self.pg_pool.putconn(conn)
+
+        # sqlalchemy seems to mess up the dtypes. Fix them.
+        comments["comment"] = comments["comment"].astype("string")
+
+        return comments
