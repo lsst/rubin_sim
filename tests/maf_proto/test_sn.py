@@ -21,8 +21,14 @@ class TestSN(unittest.TestCase):
 
         # Run on a very low res slicer
         metric = maf.SNNSNMetric()
-        slicer = maf.Slicer(nside=8)
+        slicer = maf.Slicer(nside=4)
 
+        hp_array = slicer(visits_array, metric)
+
+        assert np.nanmax(hp_array["n_sn"]) > 0
+        assert np.nanmax(hp_array["zlim"]) > 0
+
+        metric = maf.SNNSNMetric(add_dust=True)
         hp_array = slicer(visits_array, metric)
 
         assert np.nanmax(hp_array["n_sn"]) > 0
