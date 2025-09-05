@@ -49,8 +49,6 @@ class SNNSNMetric(BaseMetric):
         min redshift for the study (default: 0.0)
     zmax : `float`, opt
         max redshift for the study (default: 1.2)
-    verbose : `bool`, opt
-        verbose mode (default: False)
     n_bef : `int`, opt
         number of LC points LC before T0 (default:5)
     n_aft : `int`, opt
@@ -94,8 +92,6 @@ class SNNSNMetric(BaseMetric):
         zmax=0.5,
         z_step=0.03,
         daymax_step=3.0,
-        verbose=False,
-        ploteffi=False,
         n_bef=3,
         n_aft=8,
         snr_min=1.0,
@@ -125,7 +121,6 @@ class SNNSNMetric(BaseMetric):
         self.note_col = note_col
         self.zbins = zbins
 
-        self.ploteffi = ploteffi
         self.t0s = "all"
         self.zlim_coeff = zlim_coeff
         self.bands = bands
@@ -201,9 +196,6 @@ class SNNSNMetric(BaseMetric):
             min_rf_phase=self.min_rf_phase_qual,
             max_rf_phase=self.max_rf_phase_qual,
         )
-
-        # verbose mode - useful for debug and code performance estimation
-        self.verbose = verbose
 
         # supernovae parameters for fisher estimation
         self.params = ["x0", "x1", "daymax", "color"]
@@ -325,9 +317,6 @@ class SNNSNMetric(BaseMetric):
             return self.badval
         metric_values = metric_values.merge(nsn_zcomp, left_on=["season"], right_on=["season"])
 
-        if self.verbose:
-            print("metric_values", metric_values[["season", "zcomp", "nsn"]])
-
         idx = metric_values["zcomp"] > 0.0
         selmet = metric_values[idx]
 
@@ -373,9 +362,6 @@ class SNNSNMetric(BaseMetric):
         dfa = pd.DataFrame(dfa[dfa["season"].isin(seasons)])
 
         season_info = self.get_season_info(dfa, zseason)
-
-        if self.verbose:
-            print("season_info", season_info)
 
         if season_info.empty:
             return [], pd.DataFrame()
@@ -482,19 +468,6 @@ class SNNSNMetric(BaseMetric):
         sn_effis["effi"].values[zero] = 0
         sn_effis["effi_err"].values[zero] = 0
 
-        if self.verbose:
-            for season in sn_effis["season"].unique():
-                idx = sn_effis["season"] == season
-                print("effis", sn_effis[idx])
-
-        if self.ploteffi:
-            from sn_metrics.sn_plot_live import plotNSN_effi
-
-            for season in sn_effis["season"].unique():
-                idx = sn_effis["season"] == season
-                print("effis", sn_effis[idx])
-                plotNSN_effi(sn_effis[idx], "effi", "effi_err", "Observing Efficiencies", ls="-")
-
         return sn_effis
 
     def step_nsn(self, sn_effis, dur_z):
@@ -555,50 +528,6 @@ class SNNSNMetric(BaseMetric):
         idx = df["season_length"] >= min_duration
 
         return df[idx]
-
-    def duration_z(self, grp, min_duration=60.0):
-        """
-        Method to estimate the season length vs redshift
-        This is necessary to take into account boundary effects
-        when estimating the number of SN that can be detected
-
-        daymin, daymax = min and max MJD of a season
-        T0_min(z) =  daymin-(1+z)*min_rf_phase_qual
-        T0_max(z) =  daymax-(1+z)*max_rf_phase_qual
-        season_length(z) = T0_max(z)-T0_min(z)
-
-        Parameters
-        --------------
-        grp : `pd.DataFrame` group
-          data to process: season infos
-        min_duration : `float`, opt
-          min season length for a season to be processed (deafult: 60 days)
-
-        Returns
-        ----------
-        `pd.DataFrame` with season_length, z, T0_min and T0_max cols
-
-        """
-        # IS THIS CALLED FROM ANYWHERE?
-        daymin = grp["MJD_min"].values
-        daymax = grp["MJD_max"].values
-        dur_z = pd.DataFrame(self.zrange, columns=["z"])
-        dur_z["T0_min"] = daymin - (1.0 + dur_z["z"]) * self.min_rf_phase_qual
-        dur_z["T0_max"] = daymax - (1.0 + dur_z["z"]) * self.max_rf_phase_qual
-        dur_z["season_length"] = dur_z["T0_max"] - dur_z["T0_min"]
-        # dur_z['season_length_orig'] = daymax-daymin
-        # dur_z['season_length_orig'] = [daymax-daymin]*len(self.zrange)
-        nsn = self.nsn_from_rate(dur_z)
-        if self.verbose:
-            print("dur_z", dur_z)
-            print("nsn expected", nsn)
-        dur_z = dur_z.merge(nsn, left_on=["z"], right_on=["z"])
-
-        idx = dur_z["season_length"] > min_duration
-        sel = dur_z[idx]
-        if len(sel) < 2:
-            return pd.DataFrame()
-        return dur_z
 
     def calc_daymax(self, grp, daymax_step):
         """
@@ -689,9 +618,6 @@ class SNNSNMetric(BaseMetric):
         ----------
         `pd.DataFrame` of sn efficiencies vs z
         """
-
-        if self.verbose:
-            print("effi for", lc.name)
 
         lcarr = lc.to_records(index=False)
 
@@ -854,15 +780,6 @@ class SNNSNMetric(BaseMetric):
 
         """
 
-        if self.verbose:
-            print(
-                "selection params",
-                self.n_phase_min,
-                self.n_phase_max,
-                self.n_bef,
-                self.n_aft,
-            )
-            print(dfo)
         df = pd.DataFrame(dfo)
         df["select"] = df["n_phmin"] >= self.n_phase_min
         df["select"] &= df["n_phmax"] >= self.n_phase_max
@@ -884,11 +801,6 @@ class SNNSNMetric(BaseMetric):
         all_sn["select"] &= all_sn["Cov_colorcolor"] <= self.sigma_c**2
         idx = all_sn["select"] == 1
 
-        if self.verbose:
-            if len(good_sn) > 0:
-                print("good SN", len(good_sn), good_sn[["daymax", "Cov_colorcolor"]])
-            else:
-                print("no good SN")
         return pd.DataFrame({"ntot": [len(all_sn)], "nsel": [len(all_sn[idx])]})
 
     def metric(self, data_slice, zseason, x1=-2.0, color=0.2, zlim=-1, metric="zlim"):
@@ -962,22 +874,6 @@ class SNNSNMetric(BaseMetric):
 
         # generate LC here
         lc = self.step_lc(obs, gen_par, x1=x1, color=color)
-
-        if self.verbose:
-            print("daymax values", lc["daymax"].unique(), len(lc["daymax"].unique()))
-            print(
-                lc[
-                    [
-                        "daymax",
-                        "z",
-                        "flux",
-                        "fluxerr_photo",
-                        "flux_e_sec",
-                        "flux_5",
-                        self.m5_col,
-                    ]
-                ]
-            )
 
         if len(lc) == 0:
             return None
@@ -1203,10 +1099,6 @@ class SNNSNMetric(BaseMetric):
             nsn.loc[:, "nsn_expected"] = 0
         else:
             nsn = self.nsn_from_rate(grp)
-
-        if self.verbose:
-            print("dur_z", grp)
-            print("nsn expected", nsn)
 
         dur_z = pd.DataFrame(grp)
         dur_z = dur_z.merge(nsn, left_on=["z"], right_on=["z"])
