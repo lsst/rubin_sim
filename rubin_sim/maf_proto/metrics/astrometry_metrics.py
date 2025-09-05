@@ -193,7 +193,6 @@ class ProperMotionMetric(BaseMetric):
         badval=np.nan,
         **kwargs,
     ):
-        cols = [m5_col, mjd_col, filter_col, seeing_col]
         self.badval = badval
         if normalize:
             units = "Proper Motion Unctertainty (ratio)"

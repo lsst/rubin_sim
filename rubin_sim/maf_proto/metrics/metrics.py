@@ -7,6 +7,7 @@ __all__ = (
     "VectorMetric",
     "PassMetric",
     "AccumulateCountMetric",
+    "FancyMetric",
 )
 
 import warnings
@@ -138,6 +139,9 @@ class FancyMetric(MeanMetric):
         self.dtype = list(zip(["mean", "std"], [float, float]))
         self.col = col
         self.empty = np.empty(1, dtype=self.dtype)
+        self.badval = np.zeros(1, dtype=self.dtype)
+        for key in self.empty.dtype.names:
+            self.badval[key] = np.nan
 
     def __call__(self, visits, slice_point=None):
         result = self.empty.copy()
