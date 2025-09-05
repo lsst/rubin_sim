@@ -15,8 +15,8 @@ class TestSimple(unittest.TestCase):
         # Read in some observations, compute a quick map
         baseline_file = get_baseline()
         con = sqlite3.connect(baseline_file)
-        df = pd.read_sql("select * from observations where night < 10;", con)
-        cls.visits_array = df.to_records(index=False)
+        cls.df = pd.read_sql("select * from observations where night < 10;", con)
+        cls.visits_array = cls.df.to_records(index=False)
         con.close()
 
     def test_coadd(self):
@@ -36,6 +36,35 @@ class TestSimple(unittest.TestCase):
 
         assert np.all(coadd_hp[good] > coadd_hp_extinct[good])
 
+    def test_fancy(self):
+        nside = 4
+        sl = maf.Slicer(nside=nside)
+        metric = maf.FancyMetric()
+        fancy = sl(self.visits_array, metric)
+
+        assert len(fancy["mean"]) > 0
+        assert len(fancy["std"]) > 0
+
+    def test_vector(self):
+        nside = 4
+        n_times = 60
+        sl = maf.Slicer(nside=nside)
+        times = np.arange(n_times)
+        metric = maf.VectorMetric(times=times)
+        result = sl(self.visits_array, metric)
+
+        assert result.shape[1] == n_times
+
+    def test_accu(self):
+        nside = 4
+        n_times = 60
+        sl = maf.Slicer(nside=nside)
+        times = np.arange(n_times)
+        metric = maf.AccumulateCountMetric(times)
+        result = sl(self.visits_array, metric)
+
+        assert result.shape[1] == n_times
+
     def test_kuiper(self):
         nside = 16
         sl = maf.Slicer(nside=nside)
@@ -46,6 +75,53 @@ class TestSimple(unittest.TestCase):
 
         assert np.all(hp_array[good] >= 0)
         assert np.nanmax(hp_array[good]) > 0
+
+    def test_microlensing(self):
+
+        mjd0 = self.visits_array["observationStartMJD"].min()
+
+        metric_calcs = ["detect", "Npts", "Fisher"]
+        n_events = 20
+        for metric_calc in metric_calcs:
+            metric = maf.MicrolensingMetric(mjd0=mjd0, metric_calc=metric_calc)
+
+            metric.generate_microlensing_events(n_events=n_events, min_crossing_time=5, max_crossing_time=10)
+            sl = maf.Slicer(nside=None, missing=0, ra=np.degrees(metric.ra), dec=np.degrees(metric.dec))
+            mic_array = sl(self.visits_array, metric)
+
+            assert len(mic_array) == n_events
+
+    def test_bd(self):
+
+        # Add any new columns we need
+        ra_pi_amp, dec_pi_amp = maf.parallax_amplitude(
+            self.df["fieldRA"].values,
+            self.df["fieldDec"].values,
+            self.df["observationStartMJD"].values,
+            degrees=True,
+        )
+        self.df["ra_pi_amp"] = ra_pi_amp
+        self.df["dec_pi_amp"] = dec_pi_amp
+
+        ra_dcr_amp, dec_dcr_amp = maf.dcr_amplitude(
+            90.0 - self.df["altitude"].values,
+            self.df["paraAngle"].values,
+            self.df["filter"].values,
+            degrees=True,
+        )
+        self.df["ra_dcr_amp"] = ra_dcr_amp
+        self.df["dec_dcr_amp"] = dec_dcr_amp
+
+        # But mostly want numpy array for speed.
+        visits_array = self.df.to_records(index=False)
+
+        metric = maf.BDParallaxMetric()
+        nside = 4
+        sl = maf.Slicer(nside=nside)
+
+        result = sl(visits_array, metric)
+
+        assert np.max(result) > 0
 
 
 if __name__ == "__main__":
