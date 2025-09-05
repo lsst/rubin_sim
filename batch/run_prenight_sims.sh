@@ -50,7 +50,7 @@ export PATH=${PACKAGE_DIR}/bin:${PATH}
 # Cannot get ts_fbs_utils from the EFD, so just guess the highest semantic version tag in the repo.
 # A "reference" can be a tag, hash, or branch.
 TS_FBS_UTILS_REFERENCE=$(curl -s https://api.github.com/repos/lsst-ts/ts_fbs_utils/tags | jq -r '.[].name' | egrep '^v[0-9]+.[0-9]+.[0-9]+$' | sort -V | tail -1)
-RUBIN_SIM_REFERENCE="v2.2.5.dev3"
+RUBIN_SIM_REFERENCE="v2.2.5.dev4"
 SCHEDVIEW_REFERENCE="v0.19.0.dev1"
 SIMS_SV_SURVEY_REFERENCE="v0.1.0.dev1"
 RUBIN_NIGHTS_REFERENCE="v0.3.0"
@@ -109,7 +109,7 @@ OPSIMRUN="prenight_nominal_$(date --iso=s)"
 LABEL="Nominal start and overhead, ideal conditions, run at $(date --iso=s)"
 date --iso=s
 run_sv_sim scheduler.p observatory.p "" ${DAYOBS} 3 "${OPSIMRUN}" \
-  --keep_rewards --no-downtime --label "${LABEL}" --archive ${ARCHIVE} --capture_env \
+  --no-downtime --label "${LABEL}" --archive ${ARCHIVE} --capture_env \
   --delay 0 --anom_overhead_scale 0 \
   --tags ideal nominal
 
@@ -120,7 +120,7 @@ for DELAY in 10 60 ; do
   LABEL="Start time delayed by ${DELAY} minutes, nominal slew and visit overhead, ideal conditions, run at $(date --iso=s)"
   date --iso=s
   run_sv_sim scheduler.p observatory.p "" ${DAYOBS} 3 "${OPSIMRUN}" \
-    --keep_rewards --no-downtime --label "${LABEL}" --archive ${ARCHIVE} --capture_env \
+    --no-downtime --label "${LABEL}" --archive ${ARCHIVE} --capture_env \
     --delay ${DELAY} --anom_overhead_scale 0 \
     --tags ideal delay_${DELAY}
 done
@@ -132,7 +132,7 @@ for ANOM_SEED in 101 102 ; do
   LABEL="Anomalous overhead (${ANOM_SEED}, ${ANOM_SCALE}), nominal start, ideal conditions, run at $(date --iso=s)"
   date --iso=s
   run_sv_sim scheduler.p observatory.p "" ${DAYOBS} 3 "${OPSIMRUN}" \
-    --keep_rewards --no-downtime --label "${LABEL}" --archive ${ARCHIVE} --capture_env \
+    --no-downtime --label "${LABEL}" --archive ${ARCHIVE} --capture_env \
     --delay 0 --anom_overhead_scale ${ANOM_SCALE} --anom_overhead_seed ${ANOM_SEED} \
     --tags ideal anomalous_overhead
 done
