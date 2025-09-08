@@ -109,12 +109,12 @@ OPSIMRUN="prenight_nominal_$(date --iso=s)"
 LABEL="Nominal start and overhead, ideal conditions, run at $(date --iso=s)"
 date --iso=s
 run_sv_sim scheduler.p observatory.p "" ${DAYOBS} 3 "${OPSIMRUN}" \
-  --keep_rewards --no-downtime --label "${LABEL}" --archive ${ARCHIVE} --capture_env \
+  --keep_rewards --label "${LABEL}" --archive ${ARCHIVE} --capture_env \
   --delay 0 --anom_overhead_scale 0 \
   --tags ideal nominal
 
 
-for DELAY in 10 60 ; do
+for DELAY in 60 120 ; do
   echo "Running SV simulation delayed ${DELAY}"
   OPSIMRUN="prenight_delay${DELAY}_$(date --iso=s)"
   LABEL="Start time delayed by ${DELAY} minutes, nominal slew and visit overhead, ideal conditions, run at $(date --iso=s)"
