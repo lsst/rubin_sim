@@ -254,6 +254,7 @@ class MetricBundle:
             info_label = metadata
         if info_label is None:
             self.info_label = self.constraint.replace("=", "").replace("filter", "").replace("'", "")
+            self.info_label = self.info_label.replace("band", "")
             self.info_label = self.info_label.replace('"', "").replace("  ", " ")
             self.info_label = self.info_label.strip(" ")
         else:
@@ -278,7 +279,7 @@ class MetricBundle:
 
     def _find_req_cols(self):
         """Find the columns needed by the metrics, slicers, and stackers.
-        If there are any additional stackers required, instatiate them
+        If there are any additional stackers required, instantiate them
         and add them to the self.stackers list.
         (default stackers have to be instantiated to determine
         what additional columns are needed from database).
