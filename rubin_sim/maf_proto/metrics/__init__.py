@@ -1,6 +1,7 @@
 from .astrometry_metrics import *
 from .brown_dwarf_metric import *
 from .color_slope_metric import *
+from .incremental_template_metric import *
 from .kne_metrics import *
 from .kuiper_metrics import *
 from .metrics import *
