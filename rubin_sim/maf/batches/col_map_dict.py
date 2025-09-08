@@ -43,6 +43,42 @@ def col_map_dict(dict_name=None):
         col_map["scheduler_note"] = "scheduler_note"
         col_map["scheduler_note_root"] = "scheduler_note_root"
 
+    elif dict_name == "consdb":
+        col_map = {}
+        col_map["ra"] = "s_ra"
+        col_map["dec"] = "s_dec"
+        col_map["raDecDeg"] = True
+        col_map["mjd"] = "obs_start_mjd"
+        col_map["exptime"] = "exp_time"
+        col_map["visittime"] = "dark_time"
+        col_map["alt"] = "altitude"
+        col_map["az"] = "azimuth"
+        col_map["filter"] = "band"
+        col_map["band"] = "band"
+        col_map["fiveSigmaDepth"] = "stats_mag_lim_median"
+        col_map["night"] = "day_obs"
+        col_map["slewtime"] = "slew_time"
+        col_map["slewdist"] = "slew_distance"
+        col_map["seeingEff"] = "fwhm_eff"
+        col_map["seeingGeom"] = "fwhm_geom"
+        col_map["skyBrightness"] = "sky_bg_median_mag"
+        col_map["moonDistance"] = "moon_distance"
+        col_map["slewactivities"] = {}
+        col_map["metadataList"] = [
+            "airmass",
+            "normairmass",
+            "fwhm_eff",
+            "sky_bg_median_mag",
+            "stats_mag_lim_median",
+            "HA",
+            "moon_distance",
+            "solarElong",
+            "saturation_mag",
+        ]
+        col_map["metadataAngleList"] = ["sky_rotation"]
+        col_map["scheduler_note"] = "scheduler_note"
+        col_map["scheduler_note_root"] = "scheduler_note_root"
+
     elif dict_name == "fbs_sim" or dict_name == "opsimfbs":
         col_map = {}
         col_map["ra"] = "fieldRA"
