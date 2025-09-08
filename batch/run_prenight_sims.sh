@@ -8,7 +8,7 @@
 #SBATCH --ntasks=1                      # Number of tasks run in parallel
 #SBATCH --cpus-per-task=1               # Number of CPUs per task
 #SBATCH --mem=8G                       # Requested memory
-#SBATCH --time=1:00:00                 # Wall time (hh:mm:ss)
+#SBATCH --time=1:30:00                 # Wall time (hh:mm:ss)
 
 echo "******** START of run_prenight_sims.sh **********"
 
@@ -109,7 +109,7 @@ OPSIMRUN="prenight_nominal_$(date --iso=s)"
 LABEL="Nominal start and overhead, ideal conditions, run at $(date --iso=s)"
 date --iso=s
 run_sv_sim scheduler.p observatory.p "" ${DAYOBS} 3 "${OPSIMRUN}" \
-  --no-downtime --label "${LABEL}" --archive ${ARCHIVE} --capture_env \
+  --keep_rewards --no-downtime --label "${LABEL}" --archive ${ARCHIVE} --capture_env \
   --delay 0 --anom_overhead_scale 0 \
   --tags ideal nominal
 
@@ -120,7 +120,7 @@ for DELAY in 10 60 ; do
   LABEL="Start time delayed by ${DELAY} minutes, nominal slew and visit overhead, ideal conditions, run at $(date --iso=s)"
   date --iso=s
   run_sv_sim scheduler.p observatory.p "" ${DAYOBS} 3 "${OPSIMRUN}" \
-    --no-downtime --label "${LABEL}" --archive ${ARCHIVE} --capture_env \
+    --label "${LABEL}" --archive ${ARCHIVE} --capture_env \
     --delay ${DELAY} --anom_overhead_scale 0 \
     --tags ideal delay_${DELAY}
 done
@@ -132,7 +132,7 @@ for ANOM_SEED in 101 102 ; do
   LABEL="Anomalous overhead (${ANOM_SEED}, ${ANOM_SCALE}), nominal start, ideal conditions, run at $(date --iso=s)"
   date --iso=s
   run_sv_sim scheduler.p observatory.p "" ${DAYOBS} 3 "${OPSIMRUN}" \
-    --no-downtime --label "${LABEL}" --archive ${ARCHIVE} --capture_env \
+    --label "${LABEL}" --archive ${ARCHIVE} --capture_env \
     --delay 0 --anom_overhead_scale ${ANOM_SCALE} --anom_overhead_seed ${ANOM_SEED} \
     --tags ideal anomalous_overhead
 done
