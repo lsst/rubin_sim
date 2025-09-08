@@ -1,10 +1,13 @@
+import hashlib
+import os
 import unittest
 from io import StringIO
-from tempfile import TemporaryDirectory
-from uuid import UUID
+from tempfile import NamedTemporaryFile, TemporaryDirectory
+from uuid import UUID, uuid1
 
 import pandas as pd
 from astropy.time import Time
+from lsst.resources import ResourcePath
 from psycopg2 import sql
 
 from rubin_sim import visitsarch
@@ -190,3 +193,13 @@ class TestVisitSetArchive(unittest.TestCase):
         assert comment1 in comments_after_two.comment.values
         assert comment2 in comments_after_two.comment.values
         assert author in comments_after_two.author.values
+
+    def test_register_and_get_file_url(self):
+        visit_seq_archive = visitsarch.VisitSequenceArchive(metadata_db=TEST_METADATA_DATABASE)
+        with NamedTemporaryFile() as temp_file:
+            file_content = os.urandom(100)
+            file_sha256 = bytes.fromhex(hashlib.sha256(file_content).hexdigest())
+            file_rp = ResourcePath(temp_file.name)
+            file_url = file_rp.geturl()
+            test_uuid = uuid1()
+            visit_seq_archive.register_file(test_uuid, "test", file_sha256, file_url)
