@@ -32,7 +32,7 @@ def _dayobs_to_date(dayobs: str | date | int) -> date:
         case int():
             year = dayobs // 10000
             month = (dayobs // 100) % 100
-            day = dayobs & 100
+            day = dayobs % 100
             dayobs = date(year, month, day)
         case str():
             dayobs = datetime.fromisoformat(dayobs).date()
@@ -159,6 +159,30 @@ class VisitSequenceArchive:
 
         result = self.direct_metadata_query(query, data, commit=True)[0][0]
         return result
+
+    def get_visitseq_metadata(
+        self,
+        visitseq_uuid: UUID,
+        table: str = "visitseq",
+    ) -> pd.Series:
+        if table not in {"visitseq", "mixedvisitseq", "completed", "simulations"}:
+            raise ValueError()
+
+        psycopg2_query = sql.SQL("SELECT * FROM {}.{} WHERE visitseq_uuid=%s").format(
+            sql.Identifier(self.metadata_db_schema),
+            sql.Identifier(table),
+        )
+
+        conn = None
+        try:
+            conn = self.pg_pool.getconn()
+            text_query = psycopg2_query.as_string(conn)
+            visitseq = pd.read_sql(text_query, conn, params=[visitseq_uuid]).iloc[0, :]
+        finally:
+            if conn:
+                self.pg_pool.putconn(conn)
+
+        return visitseq
 
     def record_simulation_metadata(
         self,
@@ -314,6 +338,73 @@ class VisitSequenceArchive:
             finally:
                 if conn:
                     self.pg_pool.putconn(conn)
+
+        return visitseq_uuid
+
+    def record_mixed_metadata(
+        self,
+        visits: pd.DataFrame,
+        label: str,
+        last_early_day_obs: date | int | str,
+        first_late_day_obs: date | int | str,
+        early_parent_uuid: UUID,
+        late_parent_uuid: UUID,
+        telescope: str = "simonyi",
+        url: str | None = None,
+        first_day_obs: date | int | str | None = None,
+        last_day_obs: date | int | str | None = None,
+        creation_time: Time | None = None,
+    ) -> UUID:
+        visitseq_uuid = self.record_visitseq_metadata(
+            visits,
+            label,
+            telescope=telescope,
+            table="mixedvisitseq",
+            url=url,
+            first_day_obs=first_day_obs,
+            last_day_obs=last_day_obs,
+            creation_time=creation_time,
+        )
+
+        update_query = sql.SQL(
+            """UPDATE {}.mixedvisitseq
+                   SET last_early_day_obs={},
+                       first_late_day_obs={},
+                       early_parent_uuid={},
+                       late_parent_uuid={}\
+                   WHERE visitseq_uuid={} RETURNING *
+                """
+        ).format(
+            sql.Identifier(self.metadata_db_schema),
+            sql.Placeholder("last_early_day_obs"),
+            sql.Placeholder("first_late_day_obs"),
+            sql.Placeholder("early_parent_uuid"),
+            sql.Placeholder("late_parent_uuid"),
+            sql.Placeholder("visitseq_uuid"),
+        )
+
+        data = {
+            "last_early_day_obs": _dayobs_to_date(last_early_day_obs),
+            "first_late_day_obs": _dayobs_to_date(first_late_day_obs),
+            "early_parent_uuid": early_parent_uuid,
+            "late_parent_uuid": late_parent_uuid,
+            "visitseq_uuid": visitseq_uuid,
+        }
+
+        conn = None
+        try:
+            conn = self.pg_pool.getconn()
+            cursor = conn.cursor()
+            cursor.execute(update_query, data)
+            result = cursor.fetchall()
+
+            # Be extra cautious, and check that everything looks
+            # reasonable before commiting the update.
+            assert len(result) == 1
+            cursor.execute("COMMIT;")
+        finally:
+            if conn:
+                self.pg_pool.putconn(conn)
 
         return visitseq_uuid
 
