@@ -2,7 +2,7 @@ import hashlib
 import json
 from datetime import date, datetime
 from types import MappingProxyType
-from typing import Mapping
+from typing import Mapping, Tuple
 from uuid import UUID
 
 import numpy as np
@@ -603,3 +603,41 @@ class VisitSequenceArchive:
 
         file_sha256 = result[0][0].tobytes()
         return file_sha256
+
+    def record_nightly_stats(
+        self,
+        visitseq_uuid: UUID,
+        visits: pd.DataFrame,
+        columns: Tuple[str] = ("s_ra", "s_dec", "sky_rotation"),
+    ) -> pd.DataFrame:
+        stats_df = (
+            visits.groupby("day_obs")[list(columns)]
+            .describe(percentiles=[0.05, 0.25, 0.5, 0.75, 0.95])
+            .stack(level=0)
+            .reset_index()
+            .rename(
+                columns={
+                    "level_1": "value_name",
+                    "5%": "p05",
+                    "25%": "q1",
+                    "50%": "median",
+                    "75%": "q3",
+                    "95%": "p95",
+                }
+            )
+        )
+        stats_df["visitseq_uuid"] = visitseq_uuid
+        stats_df["accumulated"] = False
+
+        conn = None
+        try:
+            conn = self.pg_pool.getconn()
+            num_rows_added = stats_df.to_sql(
+                "nightly_stats", conn, self.metadata_db_schema, if_exists="append"
+            )
+            assert num_rows_added == len(stats_df)
+        finally:
+            if conn:
+                self.pg_pool.putconn(conn)
+
+        return stats_df
