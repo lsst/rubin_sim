@@ -466,3 +466,19 @@ class VisitSequenceArchive:
 
         url = result[0][0]
         return url
+
+    def get_file_sha256(self, visitseq_uuid: UUID, file_type: str) -> str:
+        query = sql.SQL("SELECT file_sha256 FROM {}.files WHERE visitseq_uuid={} AND file_type={}").format(
+            sql.Identifier(self.metadata_db_schema),
+            sql.Placeholder("visitseq_uuid"),
+            sql.Placeholder("file_type"),
+        )
+        data = {"visitseq_uuid": visitseq_uuid, "file_type": file_type}
+        result = self.direct_metadata_query(query, data, return_result=True)
+        if len(result) < 1:
+            raise ValueError(f"No URLs found for {file_type} for visitseq {visitseq_uuid}")
+        if len(result) > 1:
+            raise ValueError(f"Too many URLs found for {file_type} for visitseq {visitseq_uuid}!")
+
+        file_sha256 = result[0][0].tobytes()
+        return file_sha256
