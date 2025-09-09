@@ -6,6 +6,7 @@ from io import StringIO
 from tempfile import NamedTemporaryFile, TemporaryDirectory
 from uuid import UUID, uuid1
 
+import numpy as np
 import pandas as pd
 from astropy.time import Time
 from lsst.resources import ResourcePath
@@ -19,7 +20,7 @@ TEST_METADATA_DATABASE = {"database": "opsim_log", "host": "134.79.23.205", "sch
 TEST_VISITS = pd.read_csv(
     StringIO(
         """
-observationStartMJD	fieldRA	            fieldDec	        band	rotSkyPos           visitExposureTime
+obs_start_mjd   	s_ra	            s_dec    	        band	sky_rotation        exp_time
 64632.27136770076	51.536171530913606	-12.851173055354066	r	    122.60634698116121	29.2
 64632.27181591137	52.370714702087625	-9.768648967698063	r	    124.35795331534635	29.2
 64632.272264776075	55.09449662658469	-9.088025784959735	r	    130.6392705609067	29.2
@@ -295,3 +296,14 @@ class TestVisitSetArchive(unittest.TestCase):
             returned_url = visit_seq_archive.get_file_url(test_uuid, "test")
 
         assert assert_raises_context.exception.args[0].startswith("No URLs found for test for visitseq")
+
+    def test_record_nightly_stats(self) -> None:
+        visits = TEST_VISITS.copy()
+        visits["day_obs"] = pd.Series(
+            Time(np.floor(visits.obs_start_mjd - 0.5), format="mjd").to_datetime()
+        ).dt.date
+
+        visit_seq_archive = visitsarch.VisitSequenceArchive(metadata_db=TEST_METADATA_DATABASE)
+        test_uuid = uuid1()
+        stats_df = visit_seq_archive.record_nightly_stats(test_uuid, visits)
+        assert len(stats_df) > 0
