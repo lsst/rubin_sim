@@ -184,6 +184,28 @@ class VisitSequenceArchive:
 
         return visitseq
 
+    def set_visitseq_url(self, table: str, visitseq_uuid: UUID, visitseq_url: str) -> None:
+        query = sql.SQL("UPDATE {}.{} SET visitseq_url={} WHERE visitseq_uuid={} RETURNING *;").format(
+            sql.Identifier(self.metadata_db_schema),
+            sql.Identifier(table),
+            sql.Placeholder("visitseq_url"),
+            sql.Placeholder("visitseq_uuid"),
+        )
+        data = {"visitseq_url": visitseq_url, "visitseq_uuid": visitseq_uuid}
+        self.direct_metadata_query(query, data, return_result=False, commit=True)
+
+    def get_visitseq_url(self, visitseq_uuid: UUID) -> str:
+        query = sql.SQL("SELECT visitseq_url FROM {}.visitseq WHERE visitseq_uuid={}").format(
+            sql.Identifier(self.metadata_db_schema),
+            sql.Placeholder("visitseq_uuid"),
+        )
+        data = {"visitseq_uuid": visitseq_uuid}
+        response = self.direct_metadata_query(query, data)
+        if len(response) < 1:
+            raise ValueError(f"No URL for {visitseq_uuid} found")
+        assert len(response) == 1, f"Datatabase has too many visit sequinces with UUID={visitseq_uuid}"
+        return response[0][0]
+
     def record_simulation_metadata(
         self,
         visits: pd.DataFrame,
@@ -491,6 +513,9 @@ class VisitSequenceArchive:
         location: str | ResourcePath,
         update: bool = False,
     ) -> None:
+        if file_type in {"visits", "opsim"}:
+            raise ValueError("Use set_visitseq_url to register sets of visits themselves")
+
         file_url: str = ""
         match location:
             case ResourcePath():
@@ -543,6 +568,11 @@ class VisitSequenceArchive:
         self.direct_metadata_query(query, data, commit=True, return_result=False)
 
     def get_file_url(self, visitseq_uuid: UUID, file_type: str) -> str:
+        if file_type in {"visits", "opsim"}:
+            # It's as easy to just do it as it is to raise
+            # an exception
+            return self.get_visitseq_url(visitseq_uuid)
+
         query = sql.SQL("SELECT file_url FROM {}.files WHERE visitseq_uuid={} AND file_type={}").format(
             sql.Identifier(self.metadata_db_schema),
             sql.Placeholder("visitseq_uuid"),

@@ -79,6 +79,25 @@ class TestVisitSetArchive(unittest.TestCase):
         new_num_sequences = self.num_rows_in_table(visit_seq_archive, "visitseq")
         assert new_num_sequences == (original_num_sequences + 1)
 
+    def test_get_set_visitseq_url(self) -> None:
+        visit_seq_archive = visitsarch.VisitSequenceArchive(metadata_db=TEST_METADATA_DATABASE)
+
+        with NamedTemporaryFile() as temp_file:
+            test_url = ResourcePath(temp_file.name).geturl()
+
+        visits = TEST_VISITS
+        label = f"Test on {Time.now().iso}"
+        vseq_uuid = visit_seq_archive.record_visitseq_metadata(visits, label, table="visitseq", url=test_url)
+        return_url = visit_seq_archive.get_visitseq_url(vseq_uuid)
+        assert return_url == test_url
+
+        with NamedTemporaryFile() as temp_file:
+            new_test_url = ResourcePath(temp_file.name).geturl()
+        visit_seq_archive.set_visitseq_url("visitseq", vseq_uuid, new_test_url)
+        return_url = visit_seq_archive.get_visitseq_url(vseq_uuid)
+        assert return_url != test_url
+        assert return_url == new_test_url
+
     def test_record_simulation_metadata_simple(self) -> None:
         visit_seq_archive = visitsarch.VisitSequenceArchive(metadata_db=TEST_METADATA_DATABASE)
 
