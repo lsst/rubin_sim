@@ -194,12 +194,58 @@ class TestVisitSetArchive(unittest.TestCase):
         assert comment2 in comments_after_two.comment.values
         assert author in comments_after_two.author.values
 
-    def test_register_and_get_file_url(self):
+    def test_register_and_get_file_url(self) -> None:
         visit_seq_archive = visitsarch.VisitSequenceArchive(metadata_db=TEST_METADATA_DATABASE)
+
+        # Simple test: register a file, and see if we can get the URL back.
         with NamedTemporaryFile() as temp_file:
             file_content = os.urandom(100)
             file_sha256 = bytes.fromhex(hashlib.sha256(file_content).hexdigest())
             file_rp = ResourcePath(temp_file.name)
             file_url = file_rp.geturl()
+            file_type = "test"
             test_uuid = uuid1()
-            visit_seq_archive.register_file(test_uuid, "test", file_sha256, file_url)
+            visit_seq_archive.register_file(test_uuid, file_type, file_sha256, file_url)
+            returned_url = visit_seq_archive.get_file_url(test_uuid, file_type)
+            assert returned_url == file_url
+
+            returned_sha256 = visit_seq_archive.get_file_sha256(test_uuid, file_type)
+            assert returned_sha256 == file_sha256
+        # Make sure we cannot register a file (same UUID and type) twice
+        # accidentally.
+        with NamedTemporaryFile() as temp_file:
+            new_file_content = os.urandom(100)
+            new_file_sha256 = bytes.fromhex(hashlib.sha256(new_file_content).hexdigest())
+            new_file_rp = ResourcePath(temp_file.name)
+            new_file_url = new_file_rp.geturl()
+            file_type = "test"
+            with self.assertRaises(ValueError):
+                visit_seq_archive.register_file(test_uuid, file_type, new_file_sha256, new_file_url)
+
+            returned_url = visit_seq_archive.get_file_url(test_uuid, file_type)
+            assert returned_url != new_file_url
+            assert returned_url == file_url
+
+            # Now, insist we want to replace the old value.
+            visit_seq_archive.register_file(test_uuid, file_type, new_file_sha256, new_file_url, update=True)
+            returned_url = visit_seq_archive.get_file_url(test_uuid, file_type)
+            assert returned_url == new_file_url
+            assert returned_url != file_url
+
+        # Verify that passing the ResourcePath instead of a URL works
+        with NamedTemporaryFile() as temp_file:
+            file_content = os.urandom(100)
+            file_sha256 = bytes.fromhex(hashlib.sha256(file_content).hexdigest())
+            file_rp = ResourcePath(temp_file.name)
+            file_type = "test"
+            test_uuid = uuid1()
+            visit_seq_archive.register_file(test_uuid, file_type, file_sha256, file_rp)
+            returned_url = visit_seq_archive.get_file_url(test_uuid, file_type)
+            assert returned_url == file_rp.geturl()
+
+        # Test behavior when there are no matching files
+        test_uuid = uuid1()
+        with self.assertRaises(ValueError) as assert_raises_context:
+            returned_url = visit_seq_archive.get_file_url(test_uuid, "test")
+
+        assert assert_raises_context.exception.args[0].startswith("No URLs found for test for visitseq")
