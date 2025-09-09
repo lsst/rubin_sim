@@ -1,5 +1,6 @@
 import hashlib
 import json
+import subprocess
 from datetime import date, datetime
 from types import MappingProxyType
 from typing import Mapping, Tuple
@@ -640,3 +641,24 @@ class VisitSequenceArchive:
             assert num_rows_added == len(stats_df)
 
         return stats_df
+
+    def compute_conda_env(self) -> tuple:
+        conda_list_result = subprocess.run(
+            ["conda", "list", "--json"], capture_output=True, text=True, check=True
+        )
+        conda_env_json = conda_list_result.stdout
+        conda_env_hash = bytes.fromhex(hashlib.sha256(conda_env_json.encode()).hexdigest())
+        return conda_env_hash, conda_env_json
+
+    def record_conda_env(self) -> bytes:
+        assert False, "Need to check if the env already is in the table"
+        query = sql.SQL("INSERT INTO {}.conda_env (conda_env_hash, conda_env) VALUES ({}, {})").format(
+            sql.Identifier(self.metadata_db_schema),
+            sql.Placeholder("conda_env_hash"),
+            sql.Placeholder("conda_env"),
+        )
+
+        conda_env_hash, conda_env_json = self.compute_conda_env()
+        data = {"conda_env_hash": conda_env_hash, "conda_env": conda_env_json}
+        self.direct_metadata_query(query, data, commit=True, return_result=False)
+        return conda_env_hash
