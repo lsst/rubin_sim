@@ -307,3 +307,8 @@ class TestVisitSetArchive(unittest.TestCase):
         test_uuid = uuid1()
         stats_df = visit_seq_archive.record_nightly_stats(test_uuid, visits)
         assert len(stats_df) > 0
+
+    def test_record_conda_env(self) -> None:
+        visit_seq_archive = visitsarch.VisitSequenceArchive(metadata_db=TEST_METADATA_DATABASE)
+        conda_env_hash = visit_seq_archive.record_conda_env()
+        assert conda_env_hash is not None
