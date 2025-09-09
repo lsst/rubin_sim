@@ -10,6 +10,7 @@ import pandas as pd
 import psycopg2
 import psycopg2.extras
 import psycopg2.pool
+import sqlalchemy
 from astropy.time import Time
 from lsst.resources import ResourcePath, ResourcePathExpression
 from psycopg2 import sql
@@ -629,15 +630,13 @@ class VisitSequenceArchive:
         stats_df["visitseq_uuid"] = visitseq_uuid
         stats_df["accumulated"] = False
 
-        conn = None
-        try:
-            conn = self.pg_pool.getconn()
+        # pandas to_sql fails with the native psycopg2, only
+        # works with sqlalchemy
+        engine = sqlalchemy.create_engine("postgresql+psycopg2://", creator=self.pg_pool.getconn)
+        with engine.connect() as conn:
             num_rows_added = stats_df.to_sql(
-                "nightly_stats", conn, self.metadata_db_schema, if_exists="append"
+                "nightly_stats", conn, self.metadata_db_schema, if_exists="append", index=False
             )
             assert num_rows_added == len(stats_df)
-        finally:
-            if conn:
-                self.pg_pool.putconn(conn)
 
         return stats_df
