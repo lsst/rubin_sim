@@ -1,3 +1,4 @@
+import datetime
 import hashlib
 import os
 import unittest
@@ -119,6 +120,14 @@ class TestVisitSetArchive(unittest.TestCase):
         new_num_sequences = self.num_rows_in_table(visit_seq_archive, "simulations")
         assert new_num_sequences == (original_num_sequences + 1)
 
+    def test_get_visitseq_metadata(self) -> None:
+        visit_seq_archive = visitsarch.VisitSequenceArchive(metadata_db=TEST_METADATA_DATABASE)
+        visits = TEST_VISITS
+        label = f"Test on {Time.now().iso}"
+        vseq_uuid = visit_seq_archive.record_visitseq_metadata(visits, label, table="visitseq")
+        visit_seq = visit_seq_archive.get_visitseq_metadata(vseq_uuid)
+        assert visit_seq["visitseq_label"] == label
+
     def test_record_completed_metadata(self) -> None:
         visit_seq_archive = visitsarch.VisitSequenceArchive(metadata_db=TEST_METADATA_DATABASE)
 
@@ -138,6 +147,24 @@ class TestVisitSetArchive(unittest.TestCase):
         # Verify that we added only one
         new_num_sequences = self.num_rows_in_table(visit_seq_archive, "completed")
         assert new_num_sequences == (original_num_sequences + 1)
+
+    def test_record_mixed_metadata(self) -> None:
+        visit_seq_archive = visitsarch.VisitSequenceArchive(metadata_db=TEST_METADATA_DATABASE)
+
+        visits = TEST_VISITS
+        label = f"Test on {Time.now().iso}"
+        last_early_day_obs = 20251201
+        first_late_day_obs = 20251202
+        early_parent_uuid = uuid1()
+        late_parent_uuid = uuid1()
+        vseq_uuid = visit_seq_archive.record_mixed_metadata(
+            visits, label, last_early_day_obs, first_late_day_obs, early_parent_uuid, late_parent_uuid
+        )
+        visit_seq = visit_seq_archive.get_visitseq_metadata(vseq_uuid, "mixedvisitseq")
+        assert visit_seq["last_early_day_obs"] == datetime.date(2025, 12, 1)
+        assert visit_seq["first_late_day_obs"] == datetime.date(2025, 12, 2)
+        assert visit_seq["early_parent_uuid"] == early_parent_uuid
+        assert visit_seq["late_parent_uuid"] == late_parent_uuid
 
     def test_tagging(self) -> None:
         visit_seq_archive = visitsarch.VisitSequenceArchive(metadata_db=TEST_METADATA_DATABASE)
