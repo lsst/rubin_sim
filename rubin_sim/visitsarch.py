@@ -1,8 +1,10 @@
 import hashlib
 import json
+import logging
 import subprocess
 import warnings
 from datetime import date, datetime
+from pathlib import Path
 from types import MappingProxyType
 from typing import Mapping, Tuple
 from uuid import UUID
@@ -26,6 +28,8 @@ TEST_METADATA_DATABASE = MappingProxyType(
 )
 
 JSON_DUMP_LIMIT = 4096
+
+LOGGER = logging.getLogger(__name__)
 
 psycopg2.extras.register_uuid()
 
@@ -676,3 +680,38 @@ class VisitSequenceArchive:
         data = {"conda_env_hash": conda_env_hash, "conda_env": conda_env_json}
         self.direct_metadata_query(query, data, commit=True, return_result=False)
         return conda_env_hash
+
+    def construct_base_resource_path(
+        self, telescope: str, creation_time: Time, visitseq_uuid: UUID
+    ) -> ResourcePath:
+        # Record in path according to datetime timezone (UTC-12)
+        visitseq_base_rp = (
+            self.archive_base.join(telescope)
+            .join(Time(creation_time.mjd - 0.5, format="mjd").datetime.date().isoformat())
+            .join(str(visitseq_uuid), forceDirectory=True)
+        )
+        return visitseq_base_rp
+
+    def send_data_to_archive(self, visitseq_uuid: UUID, content: bytes, file_name: str) -> ResourcePath:
+        visitseq_metadata = self.get_visitseq_metadata(visitseq_uuid)
+        visitseq_uuid = visitseq_metadata["visitseq_uuid"]
+        telescope = visitseq_metadata["telescope"]
+        creation_time = Time(visitseq_metadata["creation_time"])
+        visitseq_base_rp = self.construct_base_resource_path(telescope, creation_time, visitseq_uuid)
+
+        # Make sure the base for the visit sequence exists
+        if not visitseq_base_rp.exists():
+            visitseq_base_rp.mkdir()
+            LOGGER.debug(f"Created {visitseq_base_rp}.")
+
+        destination_rp = visitseq_base_rp.join(file_name)
+        destination_rp.write(content)
+        return destination_rp
+
+    def send_file_to_archive(self, visitseq_uuid: UUID, origin: str | Path) -> ResourcePath:
+        file_path = origin if isinstance(origin, Path) else Path(origin)
+        with open(file_path, "rb") as origin_io:
+            content = origin_io.read()
+
+        destination_rp = self.send_data_to_archive(visitseq_uuid, content, file_path.name)
+        return destination_rp
