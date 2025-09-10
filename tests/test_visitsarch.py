@@ -330,3 +330,22 @@ class TestVisitSequenceArchive(unittest.TestCase):
 
         found_content = ResourcePath(uri=found_location).read()
         assert found_content == content
+
+    def test_archive_visits(self) -> None:
+        # Saving with the file type of visits takes a different
+        # path through the code, so test it separately.
+        test_file_type = "visits"
+        visits = TEST_VISITS
+        label = f"Test on {Time.now().iso}"
+        vseq_uuid = self.vsarch.record_visitseq_metadata(visits, label, table="visitseq")
+
+        with NamedTemporaryFile() as temp_file:
+            visits.to_hdf(temp_file.name, key="visits")
+            file_name = temp_file.name
+            sent_location = self.vsarch.archive_file(vseq_uuid, file_name, test_file_type)
+
+        found_location = self.vsarch.get_file_url(vseq_uuid, test_file_type)
+        assert found_location == sent_location.geturl()
+
+        visits_found_location = self.vsarch.get_visitseq_url(vseq_uuid)
+        assert visits_found_location == sent_location.geturl()
