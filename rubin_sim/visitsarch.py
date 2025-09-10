@@ -59,6 +59,33 @@ def compute_visits_sha256(visits: pd.DataFrame) -> bytes:
 
 
 class VisitSequenceArchive:
+    """Interface to archive of sequences of visits.
+
+    Parameters
+    ----------
+    metadata_db: `Mapping`
+        A dictionary or other mapping defining the connection
+        parameters for connecting to the postgresql database
+        that holds the sequence metadata, except for an additional
+        ``schema`` key, which holds the schema within the database
+        to use. Except for ``schema``, keys are passed as keyword
+        arguments to `psycopg2.pool.SimppleConnectionPool`.
+    archive_url: `ResourcePathExpression`
+        The base location for the files to be stored in the archive,
+        passed to `lsst.resources.ResourcePath`.
+
+    Notes
+    -----
+    The visit sequence archive consists of two primary architectural
+    components: an archive in which files associated with a sequence
+    of visits are stored (including, optionally, the table of visits
+    themselves); and postegresql database with tables with metadata
+    about the sequneces of visits, including the
+    provenance of the visits, the locations of the files associated
+    with each sequence of visits, comments and tags associated with
+    each sequence of visits, and basic statistics of the visits.
+    """
+
     def __init__(
         self,
         metadata_db: Mapping = TEST_METADATA_DATABASE,
