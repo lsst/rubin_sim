@@ -1,6 +1,7 @@
 import hashlib
 import json
 import subprocess
+import warnings
 from datetime import date, datetime
 from types import MappingProxyType
 from typing import Mapping, Tuple
@@ -650,15 +651,28 @@ class VisitSequenceArchive:
         conda_env_hash = bytes.fromhex(hashlib.sha256(conda_env_json.encode()).hexdigest())
         return conda_env_hash, conda_env_json
 
+    def conda_env_is_saved(self, conda_env_hash: bytes) -> bool:
+        query = sql.SQL("SELECT EXISTS(SELECT true from {}.conda_env WHERE conda_env_hash={})").format(
+            sql.Identifier(self.metadata_db_schema), sql.Placeholder("conda_env_hash")
+        )
+        data = {"conda_env_hash": conda_env_hash}
+        result = self.direct_metadata_query(query, data, commit=False, return_result=True)
+        env_exists = result[0][0]
+        assert isinstance(env_exists, bool)
+        return env_exists
+
     def record_conda_env(self) -> bytes:
-        assert False, "Need to check if the env already is in the table"
+        conda_env_hash, conda_env_json = self.compute_conda_env()
+
+        if self.conda_env_is_saved(conda_env_hash):
+            warnings.warn("Conda env with hash already exists, not saving again.")
+            return conda_env_hash
+
         query = sql.SQL("INSERT INTO {}.conda_env (conda_env_hash, conda_env) VALUES ({}, {})").format(
             sql.Identifier(self.metadata_db_schema),
             sql.Placeholder("conda_env_hash"),
             sql.Placeholder("conda_env"),
         )
-
-        conda_env_hash, conda_env_json = self.compute_conda_env()
         data = {"conda_env_hash": conda_env_hash, "conda_env": conda_env_json}
         self.direct_metadata_query(query, data, commit=True, return_result=False)
         return conda_env_hash

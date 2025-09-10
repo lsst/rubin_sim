@@ -311,4 +311,5 @@ class TestVisitSetArchive(unittest.TestCase):
     def test_record_conda_env(self) -> None:
         visit_seq_archive = visitsarch.VisitSequenceArchive(metadata_db=TEST_METADATA_DATABASE)
         conda_env_hash = visit_seq_archive.record_conda_env()
+        assert visit_seq_archive.conda_env_is_saved(conda_env_hash)
         assert conda_env_hash is not None
