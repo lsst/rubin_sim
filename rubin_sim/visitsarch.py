@@ -184,10 +184,14 @@ class VisitSequenceArchive:
         try:
             conn = self.pg_pool.getconn()
             text_query = psycopg2_query.as_string(conn)
-            visitseq = pd.read_sql(text_query, conn, params=[visitseq_uuid]).iloc[0, :]
         finally:
             if conn:
                 self.pg_pool.putconn(conn)
+
+        # pandas works better if the connection is made by sqlalchemy
+        engine = sqlalchemy.create_engine("postgresql+psycopg2://", creator=self.pg_pool.getconn)
+        with engine.connect() as sa_conn:
+            visitseq = pd.read_sql(text_query, sa_conn, params=(visitseq_uuid,)).iloc[0, :]
 
         return visitseq
 
@@ -502,10 +506,14 @@ class VisitSequenceArchive:
         try:
             conn = self.pg_pool.getconn()
             text_query = psycopg2_query.as_string(conn)
-            comments = pd.read_sql(text_query, conn, params=[visitseq_uuid])
         finally:
             if conn:
                 self.pg_pool.putconn(conn)
+
+        # pandas works better if the connection is made by sqlalchemy
+        engine = sqlalchemy.create_engine("postgresql+psycopg2://", creator=self.pg_pool.getconn)
+        with engine.connect() as sa_conn:
+            comments = pd.read_sql(text_query, sa_conn, params=(visitseq_uuid,))
 
         # sqlalchemy seems to mess up the dtypes. Fix them.
         comments["comment"] = comments["comment"].astype("string")
@@ -520,7 +528,7 @@ class VisitSequenceArchive:
         location: str | ResourcePath,
         update: bool = False,
     ) -> None:
-        if file_type in {"visits", "opsim"}:
+        if file_type == "visits":
             raise ValueError("Use set_visitseq_url to register sets of visits themselves")
 
         file_url: str = ""
@@ -575,7 +583,7 @@ class VisitSequenceArchive:
         self.direct_metadata_query(query, data, commit=True, return_result=False)
 
     def get_file_url(self, visitseq_uuid: UUID, file_type: str) -> str:
-        if file_type in {"visits", "opsim"}:
+        if file_type == "visits":
             # It's as easy to just do it as it is to raise
             # an exception
             return self.get_visitseq_url(visitseq_uuid)
@@ -641,7 +649,7 @@ class VisitSequenceArchive:
         engine = sqlalchemy.create_engine("postgresql+psycopg2://", creator=self.pg_pool.getconn)
         with engine.connect() as conn:
             num_rows_added = stats_df.to_sql(
-                "nightly_stats", conn, self.metadata_db_schema, if_exists="append", index=False
+                "nightly_stats", conn, schema=self.metadata_db_schema, if_exists="append", index=False
             )
             assert num_rows_added == len(stats_df)
 
@@ -692,7 +700,7 @@ class VisitSequenceArchive:
         )
         return visitseq_base_rp
 
-    def send_data_to_archive(self, visitseq_uuid: UUID, content: bytes, file_name: str) -> ResourcePath:
+    def _write_data_to_archive(self, visitseq_uuid: UUID, content: bytes, file_name: str) -> ResourcePath:
         visitseq_metadata = self.get_visitseq_metadata(visitseq_uuid)
         visitseq_uuid = visitseq_metadata["visitseq_uuid"]
         telescope = visitseq_metadata["telescope"]
@@ -705,13 +713,47 @@ class VisitSequenceArchive:
             LOGGER.debug(f"Created {visitseq_base_rp}.")
 
         destination_rp = visitseq_base_rp.join(file_name)
+        LOGGER.debug(f"Writing {destination_rp}.")
         destination_rp.write(content)
+        LOGGER.debug(f"Wrote {destination_rp}.")
         return destination_rp
 
-    def send_file_to_archive(self, visitseq_uuid: UUID, origin: str | Path) -> ResourcePath:
+    def _write_file_to_archive(self, visitseq_uuid: UUID, origin: str | Path) -> Tuple[ResourcePath, bytes]:
         file_path = origin if isinstance(origin, Path) else Path(origin)
         with open(file_path, "rb") as origin_io:
             content = origin_io.read()
 
-        destination_rp = self.send_data_to_archive(visitseq_uuid, content, file_path.name)
-        return destination_rp
+        content_sha256 = bytes.fromhex(hashlib.sha256(content).hexdigest())
+        destination_rp = self._write_data_to_archive(visitseq_uuid, content, file_path.name)
+        return destination_rp, content_sha256
+
+    def _find_visitseq_table(self, visitseq_uuid: UUID) -> str:
+        # Figure out which child table the visitseq_uuid is in by
+        # querying each in turn.
+
+        for table in ("mixedvisitseq", "completed", "simulations", "visitseq"):
+            query = sql.SQL("SELECT COUNT(*) FROM {}.{} WHERE visitseq_uuid={};").format(
+                sql.Identifier(self.metadata_db_schema),
+                sql.Identifier(table),
+                sql.Placeholder("visitseq_uuid"),
+            )
+            data = {"visitseq_uuid": visitseq_uuid}
+            result = self.direct_metadata_query(query, data)
+            assert isinstance(result[0][0], int)
+            num_rows: int = result[0][0]
+            if num_rows > 0:
+                return table
+
+        raise ValueError("Visit sequence not found.")
+
+    def archive_file(
+        self, visitseq_uuid: UUID, origin: str | Path, file_type: str, update: bool = False
+    ) -> ResourcePath:
+        location, file_sha256 = self._write_file_to_archive(visitseq_uuid, origin)
+        if file_type == "visits":
+            visitseq_type = self._find_visitseq_table(visitseq_uuid)
+            self.set_visitseq_url(visitseq_type, visitseq_uuid, location.geturl())
+        else:
+            self.register_file(visitseq_uuid, file_type, file_sha256, location, update=update)
+
+        return location

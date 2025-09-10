@@ -35,7 +35,7 @@ obs_start_mjd   	s_ra	            s_dec    	        band	sky_rotation        exp
 class TestVisitSequenceArchive(unittest.TestCase):
     def setUp(self) -> None:
         self.temp_dir = TemporaryDirectory()
-        self.test_archive = "file://" + self.temp_dir.name + "/"
+        self.test_archive = "file://" + self.temp_dir.name + "/archive/"
         self.vsarch = visitsarch.VisitSequenceArchive(
             metadata_db=TEST_METADATA_DATABASE, archive_url=self.test_archive
         )
@@ -296,8 +296,37 @@ class TestVisitSequenceArchive(unittest.TestCase):
         assert self.vsarch.conda_env_is_saved(conda_env_hash)
         assert conda_env_hash is not None
 
-    def test_send_data_to_archive(self) -> None:
-        visitseq_uuid = UUID("8a65bb0e-dee1-498a-aeee-5d6db2a9d3b1")
-        content = bytes([10, 20, 30])
-        file_name = "foo"
-        self.vsarch.send_data_to_archive(visitseq_uuid, content, file_name)
+    def test_write_file_to_archive(self) -> None:
+        visits = TEST_VISITS
+        label = f"Test on {Time.now().iso}"
+        vseq_uuid = self.vsarch.record_visitseq_metadata(visits, label, table="visitseq")
+
+        with NamedTemporaryFile() as temp_file:
+            content = os.urandom(100)
+            file_name = temp_file.name
+            temp_file.write(content)
+            temp_file.flush()
+            archived_rp, _ = self.vsarch._write_file_to_archive(vseq_uuid, file_name)
+
+        assert archived_rp.geturl().startswith(self.test_archive)
+        reread_content = archived_rp.read()
+        assert reread_content == content
+
+    def test_archive_file(self) -> None:
+        test_file_type = "testbytes"
+        visits = TEST_VISITS
+        label = f"Test on {Time.now().iso}"
+        vseq_uuid = self.vsarch.record_visitseq_metadata(visits, label, table="visitseq")
+        content = os.urandom(100)
+
+        with NamedTemporaryFile() as temp_file:
+            file_name = temp_file.name
+            temp_file.write(content)
+            temp_file.flush()
+            sent_location = self.vsarch.archive_file(vseq_uuid, file_name, test_file_type)
+
+        found_location = self.vsarch.get_file_url(vseq_uuid, test_file_type)
+        assert found_location == sent_location.geturl()
+
+        found_content = ResourcePath(uri=found_location).read()
+        assert found_content == content
