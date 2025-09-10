@@ -148,6 +148,48 @@ class VisitSequenceArchive:
         last_day_obs: date | int | str | None = None,
         creation_time: Time | None = None,
     ) -> UUID:
+        """Record metadata for a new visit sequence.
+
+        Parameters
+        ----------
+        visits : `pd.DataFrame`
+            A DataFrame of visits, with column names following those
+            in consdb.
+        label : `str`
+            A label for the sequence.
+        telescope : `str`
+            The telescope used, either "simonyi" or "auxtel".
+            Defaults to "simonyi".
+        table : `str`
+            The table in the metadata archive database in which
+            to insert the entry: one of ``simulations``,
+            ``completed``, ``mixedvisitseq``, or ``visitseq``.
+        url : `str`, optional
+            A URL for the file from thich the table of visits can
+            be download.
+        first_day_obs : `date` or `int` or `str`, optional
+            The first night of observations, defined according
+            to SMTN-032 (UTC-12hrs).
+        last_day_obs : `date` or `int` or `str`, optional
+            The last day of observations, defined according
+            to SMTN-032 (UTC-12hrs).
+        creation_time : `Time`, optional
+            The time the sequence was created, defaults no now.
+
+        Returns
+        -------
+        visitseq_uuid : `UUID`
+            The UUID of the new visit sequence.
+
+        Notes
+        -----
+        This method is not normally used externally, but may be
+        occasionally needed to add non-standard sequences of visits.
+        Standard simulations and completed sets of visits should be
+        registered with the ``record_simulation_metadata` and
+        `record_completed_metadata` methods instead.
+        """
+
         sha256 = compute_visits_sha256(visits)
 
         columns = [
@@ -200,6 +242,29 @@ class VisitSequenceArchive:
         visitseq_uuid: UUID,
         table: str = "visitseq",
     ) -> pd.Series:
+        """Retrieve metadata for a visit sequence.
+
+        Parameters
+        ----------
+        visitseq_uuid : `UUID`
+            The UUID of the visit sequence to retrieve metadata for.
+        table : `str`, optional
+            The table in the metadata archive database in which to search.
+            Must be one of "visitseq", "mixedvisitseq", "completed", or
+            "simulations".
+            Defaults to "visitseq".
+
+        Returns
+        -------
+        visitseq : `pd.Series`
+            A Pandas Series containing the metadata for the visit sequence.
+
+        Raises
+        ------
+        ValueError
+            If the table is not one of "visitseq", "mixedvisitseq",
+            "completed", or "simulations".
+        """
         if table not in {"visitseq", "mixedvisitseq", "completed", "simulations"}:
             raise ValueError()
 
