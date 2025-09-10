@@ -9,6 +9,7 @@ from types import MappingProxyType
 from typing import Mapping, Tuple
 from uuid import UUID
 
+import click
 import numpy as np
 import pandas as pd
 import psycopg2
@@ -757,3 +758,23 @@ class VisitSequenceArchive:
             self.register_file(visitseq_uuid, file_type, file_sha256, location, update=update)
 
         return location
+
+
+@click.group()
+def visitseq() -> None:
+    """visitseq command line interface."""
+    pass
+
+
+@visitseq.command()
+@click.argument("archive")
+@click.argument("uuid", type=click.UUID)
+@click.argument("comment")
+def comment(uuid: UUID, comment: str, archive: str) -> None:
+    test_database = {"database": "opsim_log", "host": "134.79.23.205", "schema": "ehntest"}
+    vsarch = VisitSequenceArchive(test_database, archive)
+    vsarch.comment(uuid, comment)
+
+
+if __name__ == "__main__":
+    visitseq()
