@@ -32,7 +32,7 @@ obs_start_mjd   	s_ra	            s_dec    	        band	sky_rotation        exp
 )
 
 
-class TestVisitSetArchive(unittest.TestCase):
+class TestVisitSequenceArchive(unittest.TestCase):
     def setUp(self) -> None:
         self.temp_dir = TemporaryDirectory()
         self.test_archive = "file://" + self.temp_dir.name + "/"
@@ -313,3 +313,10 @@ class TestVisitSetArchive(unittest.TestCase):
         conda_env_hash = visit_seq_archive.record_conda_env()
         assert visit_seq_archive.conda_env_is_saved(conda_env_hash)
         assert conda_env_hash is not None
+
+    def test_send_data_to_archive(self) -> None:
+        visit_seq_archive = visitsarch.VisitSequenceArchive(metadata_db=TEST_METADATA_DATABASE)
+        visitseq_uuid = UUID("8a65bb0e-dee1-498a-aeee-5d6db2a9d3b1")
+        content = bytes([10, 20, 30])
+        file_name = "foo"
+        visit_seq_archive.send_data_to_archive(visitseq_uuid, content, file_name)
