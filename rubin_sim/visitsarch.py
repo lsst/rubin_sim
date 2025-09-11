@@ -289,6 +289,25 @@ class VisitSequenceArchive:
         return visitseq
 
     def set_visitseq_url(self, table: str, visitseq_uuid: UUID, visitseq_url: str) -> None:
+        """Update the URL for the visits file for a visit sequence.
+
+        Parameters
+        ----------
+        table : `str`
+            The table in the metadata archive database to update with the url.
+            Must be one of "visitseq", "mixedvisitseq", "completed", or
+            "simulations".
+        visitseq_uuid : `UUID`
+            The UUID of the visit sequence to update.
+        visitseq_url : `str`
+            The new URL for the visit sequence.
+
+        Raises
+        ------
+        `ValueError`
+            If the table is not one of "visitseq", "mixedvisitseq",
+            "completed", or "simulations".
+        """
         query = sql.SQL("UPDATE {}.{} SET visitseq_url={} WHERE visitseq_uuid={} RETURNING *;").format(
             sql.Identifier(self.metadata_db_schema),
             sql.Identifier(table),
@@ -299,6 +318,23 @@ class VisitSequenceArchive:
         self.direct_metadata_query(query, data, return_result=False, commit=True)
 
     def get_visitseq_url(self, visitseq_uuid: UUID) -> str:
+        """Retrieve the URL for the file with the visits in a visit sequence.
+
+        Parameters
+        ----------
+        visitseq_uuid : `UUID`
+            The UUID of the visit sequence to search for.
+
+        Returns
+        -------
+        url : `str`
+            The URL for the visit sequence.
+
+        Raises
+        ------
+        `ValueError`
+            If no URL is found for the visit sequence.
+        """
         query = sql.SQL("SELECT visitseq_url FROM {}.visitseq WHERE visitseq_uuid={}").format(
             sql.Identifier(self.metadata_db_schema),
             sql.Placeholder("visitseq_uuid"),
@@ -326,6 +362,51 @@ class VisitSequenceArchive:
         sim_runner_kwargs: dict | None = None,
         parent_last_dayobs: str | date | int | None = None,
     ) -> UUID:
+        """Record metadata for a new simulation sequence.
+
+        Parameters
+        ----------
+        visits : pd.DataFrame
+            A DataFrame of visits, with column names following those
+            in consdb.
+        label : str
+            A label for the sequence.
+        telescope : `str`
+            The telescope used, either "simonyi" or "auxtel".
+            Defaults to "simonyi".
+        url : `str`, optional
+            A URL for the file from thich the table of visits can
+            be download.
+        first_day_obs : `date` or `int` or `str`, optional
+            The first night of observations, defined according
+            to SMTN-032 (UTC-12hrs).
+        last_day_obs : `date` or `int` or `str`, optional
+            The last day of observations, defined according
+            to SMTN-032 (UTC-12hrs).
+        creation_time : `Time`, optional
+            The time the sequence was created, defaults to now.
+        scheduler_version : `str`, optional
+            Version of ``rubin_scheduler`` used to run the simulation,
+            by default None.
+        config_url : `str`, optional
+            URL for the config script, perhaps on github,
+            by default `None`.
+        conda_env_sha256 : `bytes`, optional
+            SHA256 hash of output of ``conda list --json``, by default None.
+        parent_visitseq_uuid : `UUID`, optional
+            UUID of visitseq loaded into scheduler before running,
+            by default `None`.
+        sim_runner_kwargs : `dict`, optional
+            Arguments to ``sim_runner`` as a `dict`, by default `None`.
+        parent_last_dayobs : `str`, optional
+            day_obs of last visit loaded into scheduler before running,
+            by default `None`.
+
+        Returns
+        -------
+        visitseq_uuid : UUID
+            The UUID of the new visit sequence.
+        """
         # I would have preferred to use kwargs here, but was not
         # able to get type checking happy with it.
         visitseq_uuid = self.record_visitseq_metadata(
@@ -427,6 +508,40 @@ class VisitSequenceArchive:
         creation_time: Time | None = None,
         query: str | None = None,
     ) -> UUID:
+        """Record metadata for a sequence of visits queried from
+        the consdb.
+
+        Parameters
+        ----------
+        visits : `pd.DataFrame`
+            A DataFrame of visits, with column names following those
+            in consdb.
+        label : `str`
+            A label for the sequence.
+        telescope : `str`
+            The telescope used, either "simonyi" or "auxtel".
+            Defaults to "simonyi".
+        url : `str`, optional
+            A URL for the file from thich the table of visits can
+            be download.
+        first_day_obs : `date` or `int` or `str`, optional
+            The first night of observations, defined according
+            to SMTN-032 (UTC-12hrs).
+        last_day_obs : `date` or `int` or `str`, optional
+            The last day of observations, defined according
+            to SMTN-032 (UTC-12hrs).
+        creation_time : `Time`, optional
+            The time the sequence was created, defaults no now.
+        query : `str`, optional
+            The query to the consdb used to get the completed
+            visits, by default None.
+
+        Returns
+        -------
+        visitseq_uuid : `UUID`
+            The UUID of the new visit sequence.
+        """
+
         # I would have preferred to use kwargs here, but was not
         # able to get type checking happy with it.
         visitseq_uuid = self.record_visitseq_metadata(
@@ -481,6 +596,40 @@ class VisitSequenceArchive:
         last_day_obs: date | int | str | None = None,
         creation_time: Time | None = None,
     ) -> UUID:
+        """Record metadata for a new mixed visit sequence.
+
+        Parameters
+        ----------
+        visits : `pd.DataFrame`
+            A DataFrame of visits, with column names following those
+            in consdb.
+        label : `str`
+            A label for the sequence.
+        last_early_day_obs : `date` or `int` or `str`
+            The last day obs of the early parent.
+        first_late_day_obs : `date` or `int` or `str`
+            The first day obs of the late parent.
+        early_parent_uuid : `UUID`
+            The UUID of the early parent.
+        late_parent_uuid : `UUID`
+            The UUID of the late parent.
+        telescope : `str`, optional
+            The telescope used, either "simonyi" or "auxtel".
+            Defaults to "simonyi".
+        first_day_obs : `date` or `int` or `str` or `None`, optional
+            The first night of observations, defined according
+            to SMTN-032 (UTC-12hrs).
+        last_day_obs : `date` or `int` or `str` or `None`, optional
+            The last day of observations, defined according
+            to SMTN-032 (UTC-12hrs).
+        creation_time : `Time` or `None`, optional
+            The time the sequence was created, defaults to now.
+
+        Returns
+        -------
+        visitseq_uuid : `UUID`
+            The UUID of the new visit sequence.
+        """
         visitseq_uuid = self.record_visitseq_metadata(
             visits,
             label,
@@ -535,6 +684,21 @@ class VisitSequenceArchive:
         return visitseq_uuid
 
     def is_tagged(self, visitseq_uuid: UUID, tag: str) -> bool:
+        """Return whether a visit sequence is tagged with a given tag.
+
+        Parameters
+        ----------
+        visitseq_uuid : `UUID`
+            The UUID of the visit sequence.
+        tag : `str`
+            The tag to check for.
+
+        Returns
+        -------
+        is_tagged : `bool`
+            True if the visit sequence is tagged with the given tag,
+            False otherwise.
+        """
         query = sql.SQL("SELECT COUNT(*)>=1 FROM {}.tags WHERE visitseq_uuid={} AND TAG={}").format(
             sql.Identifier(self.metadata_db_schema), sql.Placeholder("visitseq_uuid"), sql.Placeholder("tag")
         )
@@ -543,6 +707,15 @@ class VisitSequenceArchive:
         return is_tagged
 
     def tag(self, visitseq_uuid: UUID, *tags: str) -> None:
+        """Tag a visit sequence with one or more tags.
+
+        Parameters
+        ----------
+        visitseq_uuid : `UUID`
+            The UUID of the visit sequence.
+        *tags : `str`
+            One or more tags to add to the visit sequence.
+        """
         query = sql.SQL("INSERT INTO {}.tags (visitseq_uuid, tag) VALUES ({}, {})").format(
             sql.Identifier(self.metadata_db_schema), sql.Placeholder("visitseq_uuid"), sql.Placeholder("tag")
         )
@@ -553,16 +726,45 @@ class VisitSequenceArchive:
                 self.direct_metadata_query(query, data, commit=True, return_result=False)
 
     def untag(self, visitseq_uuid: UUID, tag: str) -> None:
-        if self.is_tagged(visitseq_uuid, tag):
-            query = sql.SQL("DELETE FROM {}.tags WHERE visitseq_uuid={} AND tag={}").format(
-                sql.Identifier(self.metadata_db_schema),
-                sql.Placeholder("visitseq_uuid"),
-                sql.Placeholder("tag"),
-            )
-            data = {"visitseq_uuid": visitseq_uuid, "tag": tag}
-            self.direct_metadata_query(query, data, commit=True, return_result=False)
+        """Untag a visit sequence with a given tag.
+
+        Parameters
+        ----------
+        visitseq_uuid : `UUID`
+            The UUID of the visit sequence.
+        tag : `str`
+            The tag to remove.
+
+        Raises
+        ------
+        `ValueError`
+            If the visit sequence is not tagged with the given tag.
+        """
+        if not self.is_tagged(visitseq_uuid, tag):
+            raise ValueError(f"Visit sequence {visitseq_uuid} is not tagged with {tag}")
+
+        query = sql.SQL("DELETE FROM {}.tags WHERE visitseq_uuid={} AND tag={}").format(
+            sql.Identifier(self.metadata_db_schema),
+            sql.Placeholder("visitseq_uuid"),
+            sql.Placeholder("tag"),
+        )
+        data = {"visitseq_uuid": visitseq_uuid, "tag": tag}
+        self.direct_metadata_query(query, data, commit=True, return_result=False)
 
     def comment(self, visitseq_uuid: UUID, comment: str, author: str | None = None) -> None:
+        """Attach a comment to a visit sequence in the
+        metadata database..
+
+        Parameters
+        ----------
+        visitseq_uuid : `UUID`
+            The UUID of the visit sequence to comment on.
+        comment : `str`
+            The comment to attach.
+        author : `str`, optional
+            The author of the comment.
+            Defaults to `None`.
+        """
         comment_time = Time.now().utc.datetime
         query = ""
         data = {"visitseq_uuid": visitseq_uuid, "comment_time": comment_time, "comment": comment}
@@ -591,6 +793,32 @@ class VisitSequenceArchive:
         self.direct_metadata_query(query, data, commit=True, return_result=False)
 
     def get_comments(self, visitseq_uuid: UUID) -> pd.DataFrame:
+        """Retrieve all comments attached to a specific visit sequence.
+
+        Parameters
+        ----------
+        visitseq_uuid : `UUID`
+            The UUID of the visit sequence whose comments should be fetched.
+
+        Returns
+        -------
+        comments: `pd.DataFrame`
+            A DataFrame containing the comments for the requested visit
+            sequence. The DataFrame has the following columns:
+
+            ``"visitseq_uuid"``
+                The ID of the visit sequence.
+            ``"comment_time"``
+                Timestamp of the comment.
+            ``"author"``
+                Name of the user who added the comment; may be ``None``.
+            ``"comment"``
+                The comment text.
+
+            If the visit sequence has no comments, an empty DataFrame with the
+            above column names is returned.
+
+        """
         psycopg2_query = sql.SQL("SELECT * FROM {}.comments WHERE visitseq_uuid = %s").format(
             sql.Identifier(self.metadata_db_schema)
         )
@@ -621,6 +849,36 @@ class VisitSequenceArchive:
         location: str | ResourcePath,
         update: bool = False,
     ) -> None:
+        """Register a file in the visit sequence metadata database.
+
+        Parameters
+        ----------
+        visitseq_uuid : `UUID`
+            The UUID of the visit sequence with which the file should be
+            associated.
+        file_type : `str`
+            The handle for the file type.
+            The ``"visits"`` file type is not allowed
+            because visit tables are recorded using `set_visitseq_url`.
+        file_sha256 : `bytes`
+            The hash of the file contents.
+        location : `str` or `lsst.resources.ResourcePath`
+            The location of the file to be registered.
+        update : `bool`, optional
+            If ``True`` and a record for the same ``visitseq_uuid`` and
+            ``file_type`` already exists, the existing row will be updated with
+            the new SHA‑256 hash and URL.  If ``False`` and a record already
+            exists a ``ValueError`` is raised.
+
+        Raises
+        ------
+        `ValueError`
+            If ``file_type`` is ``"visits"`` (use `set_visitseq_url` instead),
+            or if ``update`` is ``False`` and a record already exists for the
+            given ``visitseq_uuid`` and ``file_type``.
+        `TypeError`
+            If ``location`` is neither a string nor a `ResourcePath`.
+        """
         if file_type == "visits":
             raise ValueError("Use set_visitseq_url to register sets of visits themselves")
 
@@ -676,6 +934,22 @@ class VisitSequenceArchive:
         self.direct_metadata_query(query, data, commit=True, return_result=False)
 
     def get_file_url(self, visitseq_uuid: UUID, file_type: str) -> str:
+        """Return the URL for a registered file of a given type and
+        visit sequence UUID.
+
+        Parameters
+        ----------
+        visitseq_uuid : `UUID`
+            The UUID of the visit sequence with which the desired
+            file is associated.
+        file_type : `str`
+            Handle for the file type.
+
+        Returns
+        -------
+        url : `str`
+            The URL pointing to the requested file.
+        """
         if file_type == "visits":
             # It's as easy to just do it as it is to raise
             # an exception
@@ -696,7 +970,24 @@ class VisitSequenceArchive:
         url = result[0][0]
         return url
 
-    def get_file_sha256(self, visitseq_uuid: UUID, file_type: str) -> str:
+    def get_file_sha256(self, visitseq_uuid: UUID, file_type: str) -> bytes:
+        """Retrieve the SHA‑256 digest of a registered file.
+
+        Parameters
+        ----------
+        visitseq_uuid : `UUID`
+            The UUID of the visit sequence the file is associated with.
+        file_type : `str`
+            Handle for the file type.
+
+        Returns
+        -------
+        file_sha256 : `bytes`
+            The raw SHA‑256 digest of the file contents.  The value
+            is returned as a 32‑byte object (the output of
+            ``hashlib.sha256``).
+        """
+
         query = sql.SQL("SELECT file_sha256 FROM {}.files WHERE visitseq_uuid={} AND file_type={}").format(
             sql.Identifier(self.metadata_db_schema),
             sql.Placeholder("visitseq_uuid"),
@@ -718,6 +1009,50 @@ class VisitSequenceArchive:
         visits: pd.DataFrame,
         columns: Tuple[str] = ("s_ra", "s_dec", "sky_rotation"),
     ) -> pd.DataFrame:
+        """Compute and store statistics by night for a visit sequence.
+
+        Parameters
+        ----------
+        visitseq_uuid : `UUID`
+            The UUID of the visit sequence whose statistics are being
+            recorded.
+        visits : `pd.DataFrame`
+            The full table of visits.  The DataFrame must contain at
+            least the columns listed in ``columns`` and a ``day_obs``
+            column used to group the statistics by night.
+        columns : `tuple` of `str`, optional
+            Names of the columns to aggregate.  By default the
+            celestial coordinates (`s_ra`, `s_dec`) and the sky
+            rotation angle (`sky_rotation`) are used.
+
+        Returns
+        -------
+        stats_df : `pd.DataFrame`
+            A DataFrame containing the nightly statistics that were
+            written to the database.  The columns are:
+
+            ``"day_obs"``
+                The observation day.
+            ``"value_name"``
+                The column name from ``columns``
+                that the statistic refers to.
+            ``"p05"``
+                5th percentile.
+            ``"q1"``
+                25th percentile (first quartile).
+            ``"median"``
+                50th percentile (median).
+            ``"q3"``
+                75th percentile (third quartile).
+            ``"p95"``
+                95th percentile.
+            ``"visitseq_uuid"``
+                The UUID of the sequence.
+            ``"accumulated"``
+                Always ``False`` for data written by
+                this method.
+        """
+
         stats_df = (
             visits.groupby("day_obs")[list(columns)]
             .describe(percentiles=[0.05, 0.25, 0.5, 0.75, 0.95])
@@ -749,6 +1084,17 @@ class VisitSequenceArchive:
         return stats_df
 
     def compute_conda_env(self) -> tuple:
+        """Find the current conda environment and its SHA‑256 hash.
+
+        Returns
+        -------
+        tuple
+            A two‑element tuple ``(conda_env_hash, conda_env_json)`` where
+            ``conda_env_hash`` is a `bytes` instance containing the
+            SHA‑256 digest, and ``conda_env_json`` is a `str` holding
+            the JSON output of ``conda list --json``.
+        """
+
         conda_list_result = subprocess.run(
             ["conda", "list", "--json"], capture_output=True, text=True, check=True
         )
