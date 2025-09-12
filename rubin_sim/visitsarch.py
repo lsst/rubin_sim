@@ -1082,25 +1082,6 @@ class VisitSequenceArchive:
             )
             assert num_rows_added == len(stats_df)
 
-    def compute_conda_env(self) -> tuple:
-        """Find the current conda environment and its SHA‑256 hash.
-
-        Returns
-        -------
-        tuple
-            A two‑element tuple ``(conda_env_hash, conda_env_json)`` where
-            ``conda_env_hash`` is a `bytes` instance containing the
-            SHA‑256 digest, and ``conda_env_json`` is a `str` holding
-            the JSON output of ``conda list --json``.
-        """
-
-        conda_list_result = subprocess.run(
-            ["conda", "list", "--json"], capture_output=True, text=True, check=True
-        )
-        conda_env_json = conda_list_result.stdout
-        conda_env_hash = bytes.fromhex(hashlib.sha256(conda_env_json.encode()).hexdigest())
-        return conda_env_hash, conda_env_json
-
     def conda_env_is_saved(self, conda_env_hash: bytes) -> bool:
         """Check whether a conda environment with the given hash is already
         stored in the database.
@@ -1127,24 +1108,18 @@ class VisitSequenceArchive:
         assert isinstance(env_exists, bool)
         return env_exists
 
-    def record_conda_env(self) -> bytes:
+    def record_conda_env(self, conda_env_hash: bytes, conda_env_json: str) -> bytes:
         """Record the current Conda environment in the database.
 
-        Returns
-        -------
+        Parameters
+        ----------
         conda_env_hash : `bytes`
             The SHA‑256 digest of the Conda environment JSON
             representation.
-
-        Notes
-        -----
-        * The method does **not** return the JSON representation; if
-          that is required the caller can obtain it via
-          `compute_conda_env`.
-        * No arguments are taken; the method operates on the active
-          Conda environment at runtime.
+        conda_env_json : `str`
+            The json representing the conda environment.
         """
-        conda_env_hash, conda_env_json = self.compute_conda_env()
+        conda_env_hash, conda_env_json = compute_conda_env()
 
         if self.conda_env_is_saved(conda_env_hash):
             warnings.warn("Conda env with hash already exists, not saving again.")
@@ -1229,6 +1204,11 @@ class VisitSequenceArchive:
         return location
 
 
+#
+# Computation
+#
+
+
 def compute_nightly_stats(
     visits: pd.DataFrame, columns: Tuple[str] = ("s_ra", "s_dec", "sky_rotation")
 ) -> pd.DataFrame:
@@ -1252,66 +1232,30 @@ def compute_nightly_stats(
     return stats_df
 
 
+def compute_conda_env() -> tuple:
+    """Find the current conda environment and its SHA‑256 hash.
+
+    Returns
+    -------
+    tuple
+        A two‑element tuple ``(conda_env_hash, conda_env_json)`` where
+        ``conda_env_hash`` is a `bytes` instance containing the
+        SHA‑256 digest, and ``conda_env_json`` is a `str` holding
+        the JSON output of ``conda list --json``.
+    """
+
+    conda_list_result = subprocess.run(
+        ["conda", "list", "--json"], capture_output=True, text=True, check=True
+    )
+    conda_env_json = conda_list_result.stdout
+    conda_env_hash = bytes.fromhex(hashlib.sha256(conda_env_json.encode()).hexdigest())
+    return conda_env_hash, conda_env_json
+
+
 @click.group()
 def visitseq() -> None:
     """visitseq command line interface."""
     pass
-
-
-def record_nightly_stats(
-    visitseq_uuid: UUID,
-    visits: pd.DataFrame,
-    vsarchive: VisitSequenceArchive,
-    columns: Tuple[str] = ("s_ra", "s_dec", "sky_rotation"),
-) -> pd.DataFrame:
-    """Compute and store statistics by night for a visit sequence.
-
-    Parameters
-    ----------
-    visitseq_uuid : `UUID`
-        The UUID of the visit sequence whose statistics are being
-        recorded.
-    visits : `pd.DataFrame`
-        The full table of visits.  The DataFrame must contain at
-        least the columns listed in ``columns`` and a ``day_obs``
-        column used to group the statistics by night.
-    vsarchive : `VisitSequenceArchive`
-        The metadata database in which to save the statistics.
-    columns : `tuple` of `str`, optional
-        Names of the columns to aggregate.  By default the
-        celestial coordinates (`s_ra`, `s_dec`) and the sky
-        rotation angle (`sky_rotation`) are used.
-
-    Returns
-    -------
-    stats_df : `pd.DataFrame`
-        A DataFrame containing the nightly statistics that were
-        written to the database.  The columns are:
-
-        ``"day_obs"``
-            The observation day.
-        ``"value_name"``
-            The column name from ``columns``
-            that the statistic refers to.
-        ``"p05"``
-            5th percentile.
-        ``"q1"``
-            25th percentile (first quartile).
-        ``"median"``
-            50th percentile (median).
-        ``"q3"``
-            75th percentile (third quartile).
-        ``"p95"``
-            95th percentile.
-        ``"visitseq_uuid"``
-            The UUID of the sequence.
-        ``"accumulated"``
-            Always ``False`` for data written by
-            this method.
-    """
-    stats_df = compute_nightly_stats(visits, columns)
-    vsarchive.insert_nightly_stats(visitseq_uuid, stats_df)
-    return stats_df
 
 
 @visitseq.command()
