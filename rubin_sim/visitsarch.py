@@ -54,8 +54,9 @@ def compute_visits_sha256(visits: pd.DataFrame) -> bytes:
     return visitseq_sha256
 
 
-class VisitSequenceArchive:
-    """Interface to archive of sequences of visits.
+class VisitSequenceArchiveMetadata:
+    """Interface to metadata database that tracks sequences
+    of visits.
 
     Parameters
     ----------
@@ -66,9 +67,6 @@ class VisitSequenceArchive:
         arguments to `psycopg2.pool.SimppleConnectionPool`.
     metadata_db_schema: `str`
         The schema in the database holding the metadata.
-    archive_url: `ResourcePathExpression`
-        The base location for the files to be stored in the archive,
-        passed to `lsst.resources.ResourcePath`.
 
     Notes
     -----
@@ -80,13 +78,13 @@ class VisitSequenceArchive:
     provenance of the visits, the locations of the files associated
     with each sequence of visits, comments and tags associated with
     each sequence of visits, and basic statistics of the visits.
+    This class is an interface to the postgresql metadata database.
     """
 
     def __init__(
         self,
         metadata_db_kwargs: Mapping | None = None,
         metadata_db_schema: str = "ehntest",
-        archive: ResourcePathExpression | ResourcePath | None = None,
     ):
         if not isinstance(metadata_db_kwargs, dict):
             metadata_db_kwargs = {} if metadata_db_kwargs is None else dict(metadata_db_kwargs)
@@ -101,13 +99,6 @@ class VisitSequenceArchive:
         self.pg_pool = psycopg2.pool.SimpleConnectionPool(1, 5, **metadata_db_kwargs)
 
         self.metadata_db_schema: str = metadata_db_schema
-
-        if isinstance(archive, ResourcePath):
-            self.archive_base = archive
-        elif isinstance(archive, ResourcePathExpression):
-            self.archive_base = ResourcePath(archive)
-        else:
-            self.archive_base = ResourcePath(ARCHIVE_URL)
 
     def query(
         self,
@@ -1134,35 +1125,6 @@ class VisitSequenceArchive:
         self.query(query, data, commit=True, return_result=False)
         return conda_env_hash
 
-    def _write_data_to_archive(self, visitseq_uuid: UUID, content: bytes, file_name: str) -> ResourcePath:
-        visitseq_metadata = self.get_visitseq_metadata(visitseq_uuid)
-        visitseq_uuid = visitseq_metadata["visitseq_uuid"]
-        telescope = visitseq_metadata["telescope"]
-        creation_time = Time(visitseq_metadata["creation_time"])
-        visitseq_base_rp = construct_base_resource_path(
-            self.archive_base, telescope, creation_time, visitseq_uuid
-        )
-
-        # Make sure the base for the visit sequence exists
-        if not visitseq_base_rp.exists():
-            visitseq_base_rp.mkdir()
-            LOGGER.debug(f"Created {visitseq_base_rp}.")
-
-        destination_rp = visitseq_base_rp.join(file_name)
-        LOGGER.debug(f"Writing {destination_rp}.")
-        destination_rp.write(content)
-        LOGGER.debug(f"Wrote {destination_rp}.")
-        return destination_rp
-
-    def _write_file_to_archive(self, visitseq_uuid: UUID, origin: str | Path) -> Tuple[ResourcePath, bytes]:
-        file_path = origin if isinstance(origin, Path) else Path(origin)
-        with open(file_path, "rb") as origin_io:
-            content = origin_io.read()
-
-        content_sha256 = bytes.fromhex(hashlib.sha256(content).hexdigest())
-        destination_rp = self._write_data_to_archive(visitseq_uuid, content, file_path.name)
-        return destination_rp, content_sha256
-
     def _find_visitseq_table(self, visitseq_uuid: UUID) -> str:
         # Figure out which child table the visitseq_uuid is in by
         # querying each in turn.
@@ -1181,18 +1143,6 @@ class VisitSequenceArchive:
                 return table
 
         raise ValueError("Visit sequence not found.")
-
-    def archive_file(
-        self, visitseq_uuid: UUID, origin: str | Path, file_type: str, update: bool = False
-    ) -> ResourcePath:
-        location, file_sha256 = self._write_file_to_archive(visitseq_uuid, origin)
-        if file_type == "visits":
-            visitseq_type = self._find_visitseq_table(visitseq_uuid)
-            self.set_visitseq_url(visitseq_type, visitseq_uuid, location.geturl())
-        else:
-            self.register_file(visitseq_uuid, file_type, file_sha256, location, update=update)
-
-        return location
 
 
 #
@@ -1280,6 +1230,95 @@ def construct_base_resource_path(
     return visitseq_base_rp
 
 
+#
+# Interaction with the file store
+#
+
+
+def _write_data_to_archive(content: bytes, visitseq_base_rp: ResourcePath, file_name: str) -> ResourcePath:
+    # Make sure the base for the visit sequence exists
+    if not visitseq_base_rp.exists():
+        visitseq_base_rp.mkdir()
+        LOGGER.debug(f"Created {visitseq_base_rp}.")
+
+    destination_rp = visitseq_base_rp.join(file_name)
+    LOGGER.debug(f"Writing {destination_rp}.")
+    destination_rp.write(content)
+    LOGGER.debug(f"Wrote {destination_rp}.")
+    return destination_rp
+
+
+def _write_file_to_archive(
+    origin: str | Path,
+    visitseq_base_rp: ResourcePath,
+) -> Tuple[ResourcePath, bytes]:
+    file_path = origin if isinstance(origin, Path) else Path(origin)
+    with open(file_path, "rb") as origin_io:
+        content = origin_io.read()
+
+    content_sha256 = bytes.fromhex(hashlib.sha256(content).hexdigest())
+    destination_rp = _write_data_to_archive(content, visitseq_base_rp, file_path.name)
+    return destination_rp, content_sha256
+
+
+def archive_file(
+    visitseq_uuid: UUID,
+    origin: str | Path,
+    file_type: str,
+    archive_base: ResourcePath,
+    vsarch_md: VisitSequenceArchiveMetadata,
+    update: bool = False,
+) -> ResourcePath:
+    """Archive a file associated with a visit sequence and
+    register its location in the metadata database.
+
+    Parameters
+    ----------
+    visitseq_uuid : `UUID`
+        The unique identifier of the visit sequence that the file
+        should be linked to.
+    origin : `str` or `pathlib.Path`
+        Path to the local file to be archived.
+    file_type : `str`
+        Identifier for the type of file being archived.
+    archive_base : `lsst.resources.ResourcePath`
+        Base location of the archive.
+    vsarch_md : `VisitSequenceArchiveMetadata`
+        Instance of `VisitSequenceArchiveMetadata` used to
+        query the sequence metadata and register the file.
+    update : `bool`, optional
+        If ``True`` and a record for the same ``visitseq_uuid`` and
+        ``file_type`` already exists, the existing row will be
+        updated with the new SHA‑256 hash and URL.  If ``False`` a
+        `ValueError` will be raised on duplicate.
+
+    Returns
+    -------
+    file_rp : `lsst.resources.ResourcePath`
+        The `ResourcePath` pointing to the archived file
+        on the file store.
+    """
+    visitseq_metadata = vsarch_md.get_visitseq_metadata(visitseq_uuid)
+    visitseq_uuid = visitseq_metadata["visitseq_uuid"]
+    telescope = visitseq_metadata["telescope"]
+    creation_time = Time(visitseq_metadata["creation_time"])
+    visitseq_base_rp = construct_base_resource_path(archive_base, telescope, creation_time, visitseq_uuid)
+
+    location, file_sha256 = _write_file_to_archive(origin, visitseq_base_rp)
+    if file_type == "visits":
+        visitseq_type = vsarch_md._find_visitseq_table(visitseq_uuid)
+        vsarch_md.set_visitseq_url(visitseq_type, visitseq_uuid, location.geturl())
+    else:
+        vsarch_md.register_file(visitseq_uuid, file_type, file_sha256, location, update=update)
+
+    return location
+
+
+#
+# API
+#
+
+
 @click.group()
 def visitseq() -> None:
     """visitseq command line interface."""
@@ -1292,7 +1331,7 @@ def visitseq() -> None:
 @click.argument("comment")
 def comment(uuid: UUID, comment: str, archive: str) -> None:
     test_database = {"database": "opsim_log", "host": "134.79.23.205", "schema": "ehntest"}
-    vsarch = VisitSequenceArchive(test_database, archive)
+    vsarch = VisitSequenceArchiveMetadata(test_database, archive)
     vsarch.comment(uuid, comment)
 
 

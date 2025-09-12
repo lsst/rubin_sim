@@ -35,17 +35,17 @@ obs_start_mjd   	s_ra	            s_dec    	        band	sky_rotation        exp
 class TestVisitSequenceArchive(unittest.TestCase):
     def setUp(self) -> None:
         self.temp_dir = TemporaryDirectory()
-        self.test_archive = "file://" + self.temp_dir.name + "/archive/"
-        self.vsarch = visitsarch.VisitSequenceArchive(
+        self.test_archive_url = "file://" + self.temp_dir.name + "/archive/"
+        self.test_archive = ResourcePath(self.test_archive_url)
+        self.vsarch = visitsarch.VisitSequenceArchiveMetadata(
             metadata_db_kwargs=TEST_METADATA_DB_KWARGS,
             metadata_db_schema=TEST_METADATA_DB_SCHEMA,
-            archive=self.test_archive,
         )
 
     def tearDown(self) -> None:
         self.temp_dir.cleanup()
 
-    def num_rows_in_table(self, archive: visitsarch.VisitSequenceArchive, table: str) -> int:
+    def num_rows_in_table(self, archive: visitsarch.VisitSequenceArchiveMetadata, table: str) -> int:
         result = archive.query(
             sql.SQL("SELECT COUNT(*) FROM {}.{};").format(
                 sql.Identifier(TEST_METADATA_DB_SCHEMA), sql.Identifier(table)
@@ -57,7 +57,7 @@ class TestVisitSequenceArchive(unittest.TestCase):
         return num_rows
 
     def num_rows_for_visitseq(
-        self, archive: visitsarch.VisitSequenceArchive, table: str, visitseq_uuid: UUID
+        self, archive: visitsarch.VisitSequenceArchiveMetadata, table: str, visitseq_uuid: UUID
     ) -> int:
         data = {"visitseq_uuid": visitseq_uuid}
         result = archive.query(
@@ -305,22 +305,6 @@ class TestVisitSequenceArchive(unittest.TestCase):
         assert self.vsarch.conda_env_is_saved(conda_env_hash)
         assert conda_env_hash is not None
 
-    def test_write_file_to_archive(self) -> None:
-        visits = TEST_VISITS
-        label = f"Test on {Time.now().iso}"
-        vseq_uuid = self.vsarch.record_visitseq_metadata(visits, label, table="visitseq")
-
-        with NamedTemporaryFile() as temp_file:
-            content = os.urandom(100)
-            file_name = temp_file.name
-            temp_file.write(content)
-            temp_file.flush()
-            archived_rp, _ = self.vsarch._write_file_to_archive(vseq_uuid, file_name)
-
-        assert archived_rp.geturl().startswith(self.test_archive)
-        reread_content = archived_rp.read()
-        assert reread_content == content
-
     def test_archive_file(self) -> None:
         test_file_type = "testbytes"
         visits = TEST_VISITS
@@ -332,7 +316,9 @@ class TestVisitSequenceArchive(unittest.TestCase):
             file_name = temp_file.name
             temp_file.write(content)
             temp_file.flush()
-            sent_location = self.vsarch.archive_file(vseq_uuid, file_name, test_file_type)
+            sent_location = visitsarch.archive_file(
+                vseq_uuid, file_name, test_file_type, self.test_archive, self.vsarch
+            )
 
         found_location = self.vsarch.get_file_url(vseq_uuid, test_file_type)
         assert found_location == sent_location.geturl()
@@ -351,7 +337,9 @@ class TestVisitSequenceArchive(unittest.TestCase):
         with NamedTemporaryFile() as temp_file:
             visits.to_hdf(temp_file.name, key="visits")
             file_name = temp_file.name
-            sent_location = self.vsarch.archive_file(vseq_uuid, file_name, test_file_type)
+            sent_location = visitsarch.archive_file(
+                vseq_uuid, file_name, test_file_type, self.test_archive, self.vsarch
+            )
 
         found_location = self.vsarch.get_file_url(vseq_uuid, test_file_type)
         assert found_location == sent_location.geturl()
