@@ -1122,6 +1122,22 @@ class VisitSequenceArchive:
         return conda_env_hash, conda_env_json
 
     def conda_env_is_saved(self, conda_env_hash: bytes) -> bool:
+        """Check whether a conda environment with the given hash is already
+        stored in the database.
+
+        Parameters
+        ----------
+        conda_env_hash : `bytes`
+            The SHA‑256 digest of the conda environment JSON representation.
+            This value is expected to be the same output returned by
+            `compute_conda_env`.
+
+        Returns
+        -------
+        env_exists : `bool`
+            ``True`` if a row with the supplied hash exists in the
+            ``conda_env`` table; ``False`` otherwise.
+        """
         query = sql.SQL("SELECT EXISTS(SELECT true from {}.conda_env WHERE conda_env_hash={})").format(
             sql.Identifier(self.metadata_db_schema), sql.Placeholder("conda_env_hash")
         )
@@ -1132,6 +1148,22 @@ class VisitSequenceArchive:
         return env_exists
 
     def record_conda_env(self) -> bytes:
+        """Record the current Conda environment in the database.
+
+        Returns
+        -------
+        conda_env_hash : `bytes`
+            The SHA‑256 digest of the Conda environment JSON
+            representation.
+
+        Notes
+        -----
+        * The method does **not** return the JSON representation; if
+          that is required the caller can obtain it via
+          `compute_conda_env`.
+        * No arguments are taken; the method operates on the active
+          Conda environment at runtime.
+        """
         conda_env_hash, conda_env_json = self.compute_conda_env()
 
         if self.conda_env_is_saved(conda_env_hash):
