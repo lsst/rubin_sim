@@ -123,17 +123,36 @@ class VisitSequenceArchive:
             The result of the query
         """
 
-        conn = None
+        connection = None
         try:
-            conn = self.pg_pool.getconn()
-            cursor = conn.cursor()
-            cursor.execute(query, data)
-            result = cursor.fetchall() if return_result else (None,)
+            # Get a connection from the pool
+            connection = self.pg_pool.getconn()
+            with connection.cursor() as cursor:
+                cursor.execute(query, data)
+                result = cursor.fetchall() if return_result else (None,)
             if commit:
-                cursor.execute("COMMIT;")
+                connection.commit()
+            else:
+                # If a commit was not requested, make sure
+                # there were no alterations to the database
+                # in this transaction.
+                connection.rollback()
+        except Exception as e:
+            # If something went wrong, restore the
+            # connection to a stable state before
+            # returning it to the pool.
+            if connection:
+                try:
+                    connection.rollback()
+                except Exception:
+                    pass
+            LOGGER.exception("Failed to execute query: %s", e)
+            raise
         finally:
-            if conn:
-                self.pg_pool.putconn(conn)
+            # Make sure we always return the connection to
+            # the pool.
+            if connection:
+                self.pg_pool.putconn(connection)
 
         return result
 
