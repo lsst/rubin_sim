@@ -22,7 +22,7 @@ from psycopg2 import sql
 
 VSARCHIVE_PGDATABASE = "opsim_log"
 VSARCHIVE_PGHOST = "134.79.23.205"
-ARCHIVE_URL: ResourcePathExpression = "test_archive"
+ARCHIVE_URL = "test_archive"
 
 JSON_DUMP_LIMIT = 4096
 
@@ -515,6 +515,31 @@ class VisitSequenceArchiveMetadata:
                     self.pg_pool.putconn(conn)
 
         return visitseq_uuid
+
+    def update_visitseq_metadata(self, visitseq_uuid: UUID, field: str, value: object) -> None:
+        """Update a single metadata field for a visit sequence.
+        Automatically finds the table in which to make the update.
+
+        Parameters
+        ----------
+        visitseq_uuid : `UUID`
+            The unique identifier of the visit sequence to update.
+        field : `str`
+            The name of the column in the metadata table to modify.
+        value : `object`
+            The new value to assign to ``field``.  The type must be
+            compatible with the column's database type.
+        """
+        table = self._find_visitseq_table(visitseq_uuid)
+        query = sql.SQL("UPDATE {}.{} SET {}={} WHERE visitseq_uuid={};").format(
+            sql.Identifier(self.metadata_db_schema),
+            sql.Identifier(table),
+            sql.Identifier(field),
+            sql.Placeholder("value"),
+            sql.Placeholder("visitseq_uuid"),
+        )
+        data = {"value": value, "visitseq_uuid": visitseq_uuid}
+        self.query(query, data, return_result=False, commit=True)
 
     def record_completed_metadata(
         self,
@@ -1258,7 +1283,7 @@ def _write_file_to_archive(
     return destination_rp, content_sha256
 
 
-def archive_file(
+def add_file(
     visitseq_uuid: UUID,
     origin: str | Path,
     file_type: str,
@@ -1380,32 +1405,104 @@ def get_visitseq_metadata(vsarch: VisitSequenceArchiveMetadata, uuid: UUID, tabl
 @visitsarch.command()
 @click.argument("uuid", type=click.UUID)
 @click.argument("url", type=click.STRING)
-@click.option(
-    "--table",
-    default="visitseq",
-    show_default=True,
-    help="Table containing the visit sequence (e.g. visitseq, simulations, completed, mixedvisitseq)",
-)
 @click.pass_obj
-def set_visitseq_url(vsarch: VisitSequenceArchiveMetadata, uuid: UUID, url: str, table: str) -> None:
+def set_visitseq_url(vsarch: VisitSequenceArchiveMetadata, uuid: UUID, url: str) -> None:
     """Update the URL for a visit sequence file.
 
     The URL is stored in the specified table for the given visit sequence UUID.
     """
-    vsarch.set_visitseq_url(table, uuid, url)
+    vsarch.set_visitseq_url(uuid, url)
 
 
 @visitsarch.command()
 @click.argument("uuid", type=click.UUID)
 @click.pass_obj
 def get_visitseq_url(vsarch: VisitSequenceArchiveMetadata, uuid: UUID) -> None:
-    """
-    Retrieve and print the URL for the visits file of a visit sequence.
+    """Print the URL for the visits file of a visit sequence.
 
     The URL is stored in the appropriate child table of the metadata database.
     """
     url = vsarch.get_visitseq_url(uuid)
     click.echo(url)
+
+
+@visitsarch.command()
+@click.argument("visits_file", type=click.Path(exists=True))
+@click.option("--label", required=True, help="Label for the simulation.")
+@click.option("--telescope", default="simonyi", help="Telescope name.")
+@click.option("--url", default=None, help="URL for the visits file.")
+@click.option("--first-day-obs", default=None, help="First day_obs (YYYY‑MM‑DD, int, or string).")
+@click.option("--last-day-obs", default=None, help="Last day_obs (YYYY‑MM‑DD, int, or string).")
+@click.option("--creation-time", default=None, help="ISO time string for creation (optional).")
+@click.option("--scheduler-version", default=None, help="Scheduler version.")
+@click.option("--config-url", default=None, help="URL to config.")
+@click.option(
+    "--save-conda-env",
+    is_flag=True,
+    help="Compute the current Conda environment SHA‑256 and use it.",
+)
+@click.option("--parent-visitseq-uuid", default=None, help="Parent visitseq UUID.")
+@click.option("--sim-runner-kwargs", default=None, help="JSON string of sim_runner kwargs.")
+@click.option("--parent-last-dayobs", default=None, help="Last dayobs loaded into scheduler.")
+@click.option(
+    "--archive-base",
+    default=ARCHIVE_URL,  # <-- use the global default
+    show_default=True,
+    help="Base directory for the archive (e.g. file://data/archive).",
+)
+@click.pass_obj
+def record_simulation(
+    vsarch: VisitSequenceArchiveMetadata,
+    visits_file: str,
+    label: str,
+    telescope: str,
+    first_day_obs: str | None = None,
+    last_day_obs: str | None = None,
+    creation_time: str | None = None,
+    scheduler_version: str | None = None,
+    config_url: str | None = None,
+    save_conda_env: bool = False,
+    parent_visitseq_uuid: str | None = None,
+    sim_runner_kwargs: str | None = None,
+    parent_last_dayobs: str | None = None,
+    archive_base: ResourcePathExpression | None = None,
+) -> None:
+    """Add a simulation to the archive, recording its metadata."""
+    if archive_base is None:
+        archive_base = ARCHIVE_URL
+    assert isinstance(archive_base, ResourcePathExpression)
+    archive_base_rp = ResourcePath(archive_base)
+
+    visits_df = pd.read_hdf(visits_file, key="visits")
+
+    # Convert optional fields
+    sent_creation_time = Time(creation_time) if creation_time else None
+    se_kwargs = json.loads(sim_runner_kwargs) if sim_runner_kwargs else None
+
+    # Conda env handling
+    conda_env_hash = None
+    if save_conda_env:
+        conda_env_hash, _ = compute_conda_env()
+
+    pv_uuid = UUID(parent_visitseq_uuid) if parent_visitseq_uuid else None
+
+    # Record the metadata
+    visitseq_uuid = vsarch.record_simulation_metadata(
+        visits=visits_df,
+        label=label,
+        telescope=telescope,
+        first_day_obs=first_day_obs,
+        last_day_obs=last_day_obs,
+        creation_time=sent_creation_time,
+        scheduler_version=scheduler_version,
+        config_url=config_url,
+        conda_env_sha256=conda_env_hash,
+        parent_visitseq_uuid=pv_uuid,
+        sim_runner_kwargs=se_kwargs,
+        parent_last_dayobs=parent_last_dayobs,
+    )
+
+    add_file(visitseq_uuid, visits_file, "visits", archive_base_rp, vsarch)
 
 
 @visitsarch.command()
@@ -1421,6 +1518,40 @@ def comment(
     vsarch: VisitSequenceArchiveMetadata, uuid: UUID, comment: str, author: str | None = None
 ) -> None:
     vsarch.comment(uuid, comment, author)
+
+
+@visitsarch.command()
+@click.argument("uuid", type=click.UUID)
+@click.argument("origin", type=click.Path(exists=True))
+@click.argument("file_type", type=click.STRING)
+@click.option(
+    "--archive-base",
+    default=ARCHIVE_URL,  # <-- use the global default
+    show_default=True,
+    help="Base directory for the archive (e.g. file://data/archive).",
+)
+@click.option(
+    "--update",
+    is_flag=True,
+    help="If set, overwrite an existing record for the same visitseq_uuid and file_type.",
+)
+@click.pass_obj
+def archive_file(
+    vsarch: VisitSequenceArchiveMetadata,
+    uuid: UUID,
+    origin: str,
+    file_type: str,
+    archive_base: str,
+    update: bool,
+) -> None:
+    """Archive a file and register its location in the metadata database."""
+    # Convert the base path string into a ResourcePath
+    archive_base_rp = ResourcePath(archive_base)
+
+    # The real implementation lives in the ``archive_file`` helper.
+    archived_location = add_file(uuid, origin, file_type, archive_base_rp, vsarch, update=update)
+
+    click.echo(f"Archived to {archived_location.geturl()}")
 
 
 if __name__ == "__main__":
