@@ -88,6 +88,18 @@ class TestVisitSequenceArchive(unittest.TestCase):
         new_num_sequences = self.num_rows_in_table(self.vsarch, "visitseq")
         assert new_num_sequences == (original_num_sequences + 1)
 
+    def test_update_visitseq_metadata(self) -> None:
+        visits = TEST_VISITS
+        label = f"Test on {Time.now().iso}"
+        vseq_uuid = self.vsarch.record_visitseq_metadata(visits, label, table="visitseq")
+        assert isinstance(vseq_uuid, UUID)
+
+        initial_visitseq_metadata = self.vsarch.get_visitseq_metadata(vseq_uuid)
+        assert initial_visitseq_metadata.first_day_obs is None
+        self.vsarch.update_visitseq_metadata(vseq_uuid, "first_day_obs", "2020-01-01")
+        visitseq_metadata_1 = self.vsarch.get_visitseq_metadata(vseq_uuid)
+        assert visitseq_metadata_1.first_day_obs == datetime.date(2020, 1, 1)
+
     def test_get_set_visitseq_url(self) -> None:
         with NamedTemporaryFile() as temp_file:
             test_url = ResourcePath(temp_file.name).geturl()
@@ -316,7 +328,7 @@ class TestVisitSequenceArchive(unittest.TestCase):
             file_name = temp_file.name
             temp_file.write(content)
             temp_file.flush()
-            sent_location = visitsarch.archive_file(
+            sent_location = visitsarch.add_file(
                 vseq_uuid, file_name, test_file_type, self.test_archive, self.vsarch
             )
 
@@ -337,7 +349,7 @@ class TestVisitSequenceArchive(unittest.TestCase):
         with NamedTemporaryFile() as temp_file:
             visits.to_hdf(temp_file.name, key="visits")
             file_name = temp_file.name
-            sent_location = visitsarch.archive_file(
+            sent_location = visitsarch.add_file(
                 vseq_uuid, file_name, test_file_type, self.test_archive, self.vsarch
             )
 
