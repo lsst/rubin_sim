@@ -1100,8 +1100,51 @@ class VisitSequenceArchive:
                 }
             )
         )
-        stats_df["visitseq_uuid"] = visitseq_uuid
+
         stats_df["accumulated"] = False
+
+        self.insert_nightly_stats(visitseq_uuid, stats_df)
+
+        return stats_df
+
+    def insert_nightly_stats(self, visitseq_uuid: UUID, nightly_stats: pd.DataFrame) -> None:
+        """Instert by-night statistics into associoted with
+        a visit sequence into the visit sequence metadata database.
+
+        Parameters
+        ----------
+        visitseq_uuid : `UUID`
+            The UUID of the visit sequence whose statistics are being
+            recorded.
+        stats_df : `pd.DataFrame`
+            A DataFrame containing the nightly statistics that were
+            written to the database.  The columns are:
+
+            ``"day_obs"``
+                The observation day.
+            ``"value_name"``
+                The value for which statistics were computed.
+            ``"p05"``
+                5th percentile.
+            ``"q1"``
+                25th percentile (first quartile).
+            ``"median"``
+                50th percentile (median).
+            ``"q3"``
+                75th percentile (third quartile).
+            ``"p95"``
+                95th percentile.
+            ``"visitseq_uuid"``
+                The UUID of the sequence.
+            ``"accumulated"``
+                Always ``False`` for data written by
+                this method.
+        """
+        # We are adding a column, but do not want
+        # to change the original df, so
+        # create a copy.
+        stats_df = nightly_stats.copy()
+        stats_df["visitseq_uuid"] = visitseq_uuid
 
         # pandas to_sql fails with the native psycopg2, only
         # works with sqlalchemy
@@ -1111,8 +1154,6 @@ class VisitSequenceArchive:
                 "nightly_stats", conn, schema=self.metadata_db_schema, if_exists="append", index=False
             )
             assert num_rows_added == len(stats_df)
-
-        return stats_df
 
     def compute_conda_env(self) -> tuple:
         """Find the current conda environment and its SHA‑256 hash.
