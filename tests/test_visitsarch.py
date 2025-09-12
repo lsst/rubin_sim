@@ -6,6 +6,8 @@ from io import StringIO
 from tempfile import NamedTemporaryFile, TemporaryDirectory
 from uuid import UUID, uuid1
 
+import click
+import click.testing
 import numpy as np
 import pandas as pd
 from astropy.time import Time
@@ -358,3 +360,51 @@ class TestVisitSequenceArchive(unittest.TestCase):
 
         visits_found_location = self.vsarch.get_visitseq_url(vseq_uuid)
         assert visits_found_location == sent_location.geturl()
+
+    def run_click_command(self, command: list[str]) -> str:
+        # Wrapper around click's testing tools that sets up
+        # the environment to point at the tests and runs
+        # a command in that environment.
+
+        env = {
+            "VSARCHIVE_PGDATABASE": TEST_METADATA_DB_KWARGS["database"],
+            "VSARCHIVE_PGHOST": TEST_METADATA_DB_KWARGS["host"],
+            "VSARCHIVE_PGSCHEMA": TEST_METADATA_DB_SCHEMA,
+        }
+
+        runner = click.testing.CliRunner()
+        result = runner.invoke(visitsarch.visitsarch, command, env=env)
+
+        # Verify the command ran successfully.
+        self.assertEqual(result.exit_code, 0, msg=result.output)
+        return result.output
+
+    def test_cli_record_visitseq_metadata(self) -> None:
+        # Create a temporary HDF5 file with a ``visits`` key.
+        with NamedTemporaryFile(suffix=".h5") as temp_file:
+            url = ResourcePath(temp_file.name).geturl()
+            TEST_VISITS.to_hdf(temp_file.name, key="visits", mode="w")
+
+            # Build the command line arguments.
+            table_name = "visitseq"
+            label = f"CLI test {Time.now().iso}"
+            cmd = [
+                "record-visitseq-metadata",
+                table_name,
+                temp_file.name,
+                label,
+                "--telescope",
+                "simonyi",
+                "--url",
+                url,
+            ]
+
+            output = self.run_click_command(cmd)
+
+            # Extract the UUID that was printed.
+            output_uuid = output.strip()
+            visitseq_uuid = UUID(output_uuid)
+
+            # Verify that the stored label matches what we supplied.
+            stored_metadata = self.vsarch.get_visitseq_metadata(visitseq_uuid, table=table_name)
+            self.assertEqual(stored_metadata["visitseq_label"], label)

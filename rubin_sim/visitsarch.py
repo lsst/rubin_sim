@@ -17,7 +17,7 @@ import psycopg2.extras
 import psycopg2.pool
 import sqlalchemy
 from astropy.time import Time
-from lsst.resources import ResourcePath, ResourcePathExpression
+from lsst.resources import ResourcePath
 from psycopg2 import sql
 
 VSARCHIVE_PGDATABASE = "opsim_log"
@@ -244,7 +244,14 @@ class VisitSequenceArchiveMetadata:
         if creation_time is not None:
             assert not creation_time.masked
             assert creation_time.isscalar
-            creation_datetime = creation_time.utc[0].datetime
+            try:
+                creation_datetime = creation_time.utc[0].datetime
+            except AttributeError:
+                # astropy Times, even those for which .isscalar
+                # is true, can sometimes need to be indexed
+                # by 0 to get a true scalar, and sometimes
+                # cannot be.
+                creation_datetime = creation_time.utc.datetime
             columns.append(sql.Identifier("creation_time"))
             data_placeholders.append(sql.Placeholder("creation_time"))
             data["creation_time"] = creation_datetime
@@ -1382,6 +1389,66 @@ def visitsarch(
 
 
 @visitsarch.command()
+@click.argument("table", type=str)
+@click.argument("visits_file", type=click.Path(exists=True))
+@click.argument("label")
+@click.option(
+    "--telescope",
+    default="simonyi",
+    show_default=True,
+    help="Telescope identifier (e.g. simonyi or auxtel)",
+)
+@click.option("--url", default=None, help="Optional URL for the visits file")
+@click.option("--first_day_obs", default=None, help="First night of observations (YYYY-MM-DD or int)")
+@click.option("--last_day_obs", default=None, help="Last night of observations (YYYY-MM-DD or int)")
+@click.option(
+    "--creation_time",
+    default=None,
+    help="Creation time of the visit sequence in ISO format (e.g. 2025-01-01T00:00:00)",
+)
+@click.pass_obj
+def record_visitseq_metadata(
+    vsarch: VisitSequenceArchiveMetadata,
+    table: str,
+    visits_file: str,
+    label: str,
+    telescope: str,
+    url: str | None,
+    first_day_obs: str | int | None,
+    last_day_obs: str | int | None,
+    creation_time: str | None,
+) -> None:
+    """Record metadata for a new visit sequence from an HDF5 visits file.
+
+    The first positional argument is the database table to insert into
+    (e.g. ``visitseq``, ``simulations``, ``completed``, or
+    ``mixedvisitseq``).  The second argument is the path to an
+    HDF5 file that contains a dataset named ``visits`` which will be
+    loaded into a :class:`pandas.DataFrame` and written to the
+    specified table.
+    """
+    # Load the visits table from HDF5 (key = 'visits')
+    visits_df = pd.read_hdf(visits_file, key="visits")
+    assert isinstance(visits_df, pd.DataFrame)
+
+    # Convert the optional creation time string to an astropy Time object
+    creation_ap_time = Time(creation_time) if creation_time is not None else Time.now()
+
+    # Record the visit sequence metadata
+    visitseq_uuid = vsarch.record_visitseq_metadata(
+        visits_df,
+        label,
+        telescope=telescope,
+        table=table,
+        url=url,
+        first_day_obs=first_day_obs,
+        last_day_obs=last_day_obs,
+        creation_time=creation_ap_time,
+    )
+    print(visitseq_uuid)
+
+
+@visitsarch.command()
 @click.argument("uuid", type=click.UUID)
 @click.option(
     "--table",
@@ -1424,85 +1491,6 @@ def get_visitseq_url(vsarch: VisitSequenceArchiveMetadata, uuid: UUID) -> None:
     """
     url = vsarch.get_visitseq_url(uuid)
     click.echo(url)
-
-
-@visitsarch.command()
-@click.argument("visits_file", type=click.Path(exists=True))
-@click.option("--label", required=True, help="Label for the simulation.")
-@click.option("--telescope", default="simonyi", help="Telescope name.")
-@click.option("--url", default=None, help="URL for the visits file.")
-@click.option("--first-day-obs", default=None, help="First day_obs (YYYY‑MM‑DD, int, or string).")
-@click.option("--last-day-obs", default=None, help="Last day_obs (YYYY‑MM‑DD, int, or string).")
-@click.option("--creation-time", default=None, help="ISO time string for creation (optional).")
-@click.option("--scheduler-version", default=None, help="Scheduler version.")
-@click.option("--config-url", default=None, help="URL to config.")
-@click.option(
-    "--save-conda-env",
-    is_flag=True,
-    help="Compute the current Conda environment SHA‑256 and use it.",
-)
-@click.option("--parent-visitseq-uuid", default=None, help="Parent visitseq UUID.")
-@click.option("--sim-runner-kwargs", default=None, help="JSON string of sim_runner kwargs.")
-@click.option("--parent-last-dayobs", default=None, help="Last dayobs loaded into scheduler.")
-@click.option(
-    "--archive-base",
-    default=ARCHIVE_URL,  # <-- use the global default
-    show_default=True,
-    help="Base directory for the archive (e.g. file://data/archive).",
-)
-@click.pass_obj
-def record_simulation(
-    vsarch: VisitSequenceArchiveMetadata,
-    visits_file: str,
-    label: str,
-    telescope: str,
-    first_day_obs: str | None = None,
-    last_day_obs: str | None = None,
-    creation_time: str | None = None,
-    scheduler_version: str | None = None,
-    config_url: str | None = None,
-    save_conda_env: bool = False,
-    parent_visitseq_uuid: str | None = None,
-    sim_runner_kwargs: str | None = None,
-    parent_last_dayobs: str | None = None,
-    archive_base: ResourcePathExpression | None = None,
-) -> None:
-    """Add a simulation to the archive, recording its metadata."""
-    if archive_base is None:
-        archive_base = ARCHIVE_URL
-    assert isinstance(archive_base, ResourcePathExpression)
-    archive_base_rp = ResourcePath(archive_base)
-
-    visits_df = pd.read_hdf(visits_file, key="visits")
-
-    # Convert optional fields
-    sent_creation_time = Time(creation_time) if creation_time else None
-    se_kwargs = json.loads(sim_runner_kwargs) if sim_runner_kwargs else None
-
-    # Conda env handling
-    conda_env_hash = None
-    if save_conda_env:
-        conda_env_hash, _ = compute_conda_env()
-
-    pv_uuid = UUID(parent_visitseq_uuid) if parent_visitseq_uuid else None
-
-    # Record the metadata
-    visitseq_uuid = vsarch.record_simulation_metadata(
-        visits=visits_df,
-        label=label,
-        telescope=telescope,
-        first_day_obs=first_day_obs,
-        last_day_obs=last_day_obs,
-        creation_time=sent_creation_time,
-        scheduler_version=scheduler_version,
-        config_url=config_url,
-        conda_env_sha256=conda_env_hash,
-        parent_visitseq_uuid=pv_uuid,
-        sim_runner_kwargs=se_kwargs,
-        parent_last_dayobs=parent_last_dayobs,
-    )
-
-    add_file(visitseq_uuid, visits_file, "visits", archive_base_rp, vsarch)
 
 
 @visitsarch.command()
