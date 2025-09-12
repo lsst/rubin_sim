@@ -100,7 +100,7 @@ class TestVisitSequenceArchive(unittest.TestCase):
 
         with NamedTemporaryFile() as temp_file:
             new_test_url = ResourcePath(temp_file.name).geturl()
-        self.vsarch.set_visitseq_url("visitseq", vseq_uuid, new_test_url)
+        self.vsarch.set_visitseq_url(vseq_uuid, new_test_url)
         return_url = self.vsarch.get_visitseq_url(vseq_uuid)
         assert return_url != test_url
         assert return_url == new_test_url

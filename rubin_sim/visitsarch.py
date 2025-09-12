@@ -310,15 +310,11 @@ class VisitSequenceArchiveMetadata:
 
         return visitseq
 
-    def set_visitseq_url(self, table: str, visitseq_uuid: UUID, visitseq_url: str) -> None:
+    def set_visitseq_url(self, visitseq_uuid: UUID, visitseq_url: str) -> None:
         """Update the URL for the visits file for a visit sequence.
 
         Parameters
         ----------
-        table : `str`
-            The table in the metadata archive database to update with the url.
-            Must be one of "visitseq", "mixedvisitseq", "completed", or
-            "simulations".
         visitseq_uuid : `UUID`
             The UUID of the visit sequence to update.
         visitseq_url : `str`
@@ -330,6 +326,7 @@ class VisitSequenceArchiveMetadata:
             If the table is not one of "visitseq", "mixedvisitseq",
             "completed", or "simulations".
         """
+        table = self._find_visitseq_table(visitseq_uuid)
         query = sql.SQL("UPDATE {}.{} SET visitseq_url={} WHERE visitseq_uuid={} RETURNING *;").format(
             sql.Identifier(self.metadata_db_schema),
             sql.Identifier(table),
@@ -1306,8 +1303,7 @@ def archive_file(
 
     location, file_sha256 = _write_file_to_archive(origin, visitseq_base_rp)
     if file_type == "visits":
-        visitseq_type = vsarch_md._find_visitseq_table(visitseq_uuid)
-        vsarch_md.set_visitseq_url(visitseq_type, visitseq_uuid, location.geturl())
+        vsarch_md.set_visitseq_url(visitseq_uuid, location.geturl())
     else:
         vsarch_md.register_file(visitseq_uuid, file_type, file_sha256, location, update=update)
 
@@ -1320,20 +1316,112 @@ def archive_file(
 
 
 @click.group()
-def visitseq() -> None:
+@click.option(
+    "--database",
+    default=os.getenv("VSARCHIVE_PGDATABASE", VSARCHIVE_PGDATABASE),
+    help="PostgreSQL database name of the metadata database",
+)
+@click.option(
+    "--host",
+    default=os.getenv("VSARCHIVE_PGHOST", VSARCHIVE_PGHOST),
+    help="PostgreSQL host address of the metadata database",
+)
+@click.option(
+    "--user",
+    default=None,
+    help="PostgreSQL user name to use to connect to the metadata database",
+)
+@click.option(
+    "--schema",
+    default=os.getenv("VSARCHIVE_PGSCHEMA", "ehntest"),
+    help="Schema of the metadata database containing the visit‑sequence tables",
+)
+@click.pass_context
+def visitsarch(
+    click_context: click.Context,
+    database: str,
+    host: str,
+    user: str | None,
+    schema: str,
+) -> None:
     """visitseq command line interface."""
-    pass
+
+    # Create an instance of the interface to
+    # the metadata database that can be used
+    # by all commands.
+    metadata_db_kwargs = {"database": database, "host": host}
+    if user:
+        metadata_db_kwargs["user"] = user
+
+    click_context.obj = VisitSequenceArchiveMetadata(metadata_db_kwargs, schema)
 
 
-@visitseq.command()
-@click.argument("archive")
+@visitsarch.command()
+@click.argument("uuid", type=click.UUID)
+@click.option(
+    "--table",
+    default="visitseq",
+    show_default=True,
+    help="Table to query (e.g. visitseq, simulations, completed, mixedvisitseq)",
+)
+@click.pass_obj
+def get_visitseq_metadata(vsarch: VisitSequenceArchiveMetadata, uuid: UUID, table: str) -> None:
+    """Retrieve and display metadata for a visit sequence.
+
+    The result is printed as a tab‑separated table for easy reading
+    or machine‑parsing.
+    """
+    sequence_metadata = vsarch.get_visitseq_metadata(uuid, table=table)
+
+    # Print the DataFrame as a tab‑separated table (no row index)
+    print(sequence_metadata.to_frame().T.to_csv(sep="\t", index=False).rstrip("\n"))
+
+
+@visitsarch.command()
+@click.argument("uuid", type=click.UUID)
+@click.argument("url", type=click.STRING)
+@click.option(
+    "--table",
+    default="visitseq",
+    show_default=True,
+    help="Table containing the visit sequence (e.g. visitseq, simulations, completed, mixedvisitseq)",
+)
+@click.pass_obj
+def set_visitseq_url(vsarch: VisitSequenceArchiveMetadata, uuid: UUID, url: str, table: str) -> None:
+    """Update the URL for a visit sequence file.
+
+    The URL is stored in the specified table for the given visit sequence UUID.
+    """
+    vsarch.set_visitseq_url(table, uuid, url)
+
+
+@visitsarch.command()
+@click.argument("uuid", type=click.UUID)
+@click.pass_obj
+def get_visitseq_url(vsarch: VisitSequenceArchiveMetadata, uuid: UUID) -> None:
+    """
+    Retrieve and print the URL for the visits file of a visit sequence.
+
+    The URL is stored in the appropriate child table of the metadata database.
+    """
+    url = vsarch.get_visitseq_url(uuid)
+    click.echo(url)
+
+
+@visitsarch.command()
 @click.argument("uuid", type=click.UUID)
 @click.argument("comment")
-def comment(uuid: UUID, comment: str, archive: str) -> None:
-    test_database = {"database": "opsim_log", "host": "134.79.23.205", "schema": "ehntest"}
-    vsarch = VisitSequenceArchiveMetadata(test_database, archive)
-    vsarch.comment(uuid, comment)
+@click.option(
+    "--author",
+    default=None,
+    help="The author of the comment",
+)
+@click.pass_obj
+def comment(
+    vsarch: VisitSequenceArchiveMetadata, uuid: UUID, comment: str, author: str | None = None
+) -> None:
+    vsarch.comment(uuid, comment, author)
 
 
 if __name__ == "__main__":
-    visitseq()
+    visitsarch()
