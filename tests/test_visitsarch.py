@@ -14,8 +14,8 @@ from psycopg2 import sql
 
 from rubin_sim import visitsarch
 
-TEST_METADATA_SCHEMA = sql.Identifier("ehntest")
-TEST_METADATA_DATABASE = {"database": "opsim_log", "host": "134.79.23.205", "schema": "ehntest"}
+TEST_METADATA_DB_SCHEMA = "ehntest"
+TEST_METADATA_DB_KWARGS = {"database": "opsim_log", "host": "134.79.23.205"}
 
 TEST_VISITS = pd.read_csv(
     StringIO(
@@ -37,15 +37,20 @@ class TestVisitSequenceArchive(unittest.TestCase):
         self.temp_dir = TemporaryDirectory()
         self.test_archive = "file://" + self.temp_dir.name + "/archive/"
         self.vsarch = visitsarch.VisitSequenceArchive(
-            metadata_db=TEST_METADATA_DATABASE, archive_url=self.test_archive
+            metadata_db_kwargs=TEST_METADATA_DB_KWARGS,
+            metadata_db_schema=TEST_METADATA_DB_SCHEMA,
+            archive=self.test_archive,
         )
 
     def tearDown(self) -> None:
         self.temp_dir.cleanup()
 
     def num_rows_in_table(self, archive: visitsarch.VisitSequenceArchive, table: str) -> int:
-        result = archive.direct_metadata_query(
-            sql.SQL("SELECT COUNT(*) FROM {}.{};").format(TEST_METADATA_SCHEMA, sql.Identifier(table)), {}
+        result = archive.query(
+            sql.SQL("SELECT COUNT(*) FROM {}.{};").format(
+                sql.Identifier(TEST_METADATA_DB_SCHEMA), sql.Identifier(table)
+            ),
+            {},
         )
         assert isinstance(result[0][0], int)
         num_rows: int = result[0][0]
@@ -55,9 +60,11 @@ class TestVisitSequenceArchive(unittest.TestCase):
         self, archive: visitsarch.VisitSequenceArchive, table: str, visitseq_uuid: UUID
     ) -> int:
         data = {"visitseq_uuid": visitseq_uuid}
-        result = archive.direct_metadata_query(
+        result = archive.query(
             sql.SQL("SELECT COUNT(*) FROM {}.{} WHERE visitseq_uuid={};").format(
-                TEST_METADATA_SCHEMA, sql.Identifier(table), sql.Placeholder("visitseq_uuid")
+                sql.Identifier(TEST_METADATA_DB_SCHEMA),
+                sql.Identifier(table),
+                sql.Placeholder("visitseq_uuid"),
             ),
             data,
         )
