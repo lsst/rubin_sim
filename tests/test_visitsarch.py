@@ -288,18 +288,20 @@ class TestVisitSequenceArchive(unittest.TestCase):
 
         assert assert_raises_context.exception.args[0].startswith("No URLs found for test for visitseq")
 
-    def test_record_nightly_stats(self) -> None:
+    def test_nightly_stats(self) -> None:
         visits = TEST_VISITS.copy()
         visits["day_obs"] = pd.Series(
             Time(np.floor(visits.obs_start_mjd - 0.5), format="mjd").to_datetime()
         ).dt.date
 
         test_uuid = uuid1()
-        stats_df = visitsarch.record_nightly_stats(test_uuid, visits, self.vsarch)
+        stats_df = visitsarch.compute_nightly_stats(visits)
+        self.vsarch.insert_nightly_stats(test_uuid, stats_df)
         assert len(stats_df) > 0
 
     def test_record_conda_env(self) -> None:
-        conda_env_hash = self.vsarch.record_conda_env()
+        conda_env_hash, conda_env_json = visitsarch.compute_conda_env()
+        self.vsarch.record_conda_env(conda_env_hash, conda_env_json)
         assert self.vsarch.conda_env_is_saved(conda_env_hash)
         assert conda_env_hash is not None
 
