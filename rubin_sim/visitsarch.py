@@ -1034,60 +1034,6 @@ class VisitSequenceArchive:
         file_sha256 = result[0][0].tobytes()
         return file_sha256
 
-    def record_nightly_stats(
-        self,
-        visitseq_uuid: UUID,
-        visits: pd.DataFrame,
-        columns: Tuple[str] = ("s_ra", "s_dec", "sky_rotation"),
-    ) -> pd.DataFrame:
-        """Compute and store statistics by night for a visit sequence.
-
-        Parameters
-        ----------
-        visitseq_uuid : `UUID`
-            The UUID of the visit sequence whose statistics are being
-            recorded.
-        visits : `pd.DataFrame`
-            The full table of visits.  The DataFrame must contain at
-            least the columns listed in ``columns`` and a ``day_obs``
-            column used to group the statistics by night.
-        columns : `tuple` of `str`, optional
-            Names of the columns to aggregate.  By default the
-            celestial coordinates (`s_ra`, `s_dec`) and the sky
-            rotation angle (`sky_rotation`) are used.
-
-        Returns
-        -------
-        stats_df : `pd.DataFrame`
-            A DataFrame containing the nightly statistics that were
-            written to the database.  The columns are:
-
-            ``"day_obs"``
-                The observation day.
-            ``"value_name"``
-                The column name from ``columns``
-                that the statistic refers to.
-            ``"p05"``
-                5th percentile.
-            ``"q1"``
-                25th percentile (first quartile).
-            ``"median"``
-                50th percentile (median).
-            ``"q3"``
-                75th percentile (third quartile).
-            ``"p95"``
-                95th percentile.
-            ``"visitseq_uuid"``
-                The UUID of the sequence.
-            ``"accumulated"``
-                Always ``False`` for data written by
-                this method.
-        """
-        stats_df = compute_nightly_stats(visits, columns)
-        self.insert_nightly_stats(visitseq_uuid, stats_df)
-
-        return stats_df
-
     def insert_nightly_stats(self, visitseq_uuid: UUID, nightly_stats: pd.DataFrame) -> None:
         """Instert by-night statistics into associoted with
         a visit sequence into the visit sequence metadata database.
@@ -1310,6 +1256,62 @@ def compute_nightly_stats(
 def visitseq() -> None:
     """visitseq command line interface."""
     pass
+
+
+def record_nightly_stats(
+    visitseq_uuid: UUID,
+    visits: pd.DataFrame,
+    vsarchive: VisitSequenceArchive,
+    columns: Tuple[str] = ("s_ra", "s_dec", "sky_rotation"),
+) -> pd.DataFrame:
+    """Compute and store statistics by night for a visit sequence.
+
+    Parameters
+    ----------
+    visitseq_uuid : `UUID`
+        The UUID of the visit sequence whose statistics are being
+        recorded.
+    visits : `pd.DataFrame`
+        The full table of visits.  The DataFrame must contain at
+        least the columns listed in ``columns`` and a ``day_obs``
+        column used to group the statistics by night.
+    vsarchive : `VisitSequenceArchive`
+        The metadata database in which to save the statistics.
+    columns : `tuple` of `str`, optional
+        Names of the columns to aggregate.  By default the
+        celestial coordinates (`s_ra`, `s_dec`) and the sky
+        rotation angle (`sky_rotation`) are used.
+
+    Returns
+    -------
+    stats_df : `pd.DataFrame`
+        A DataFrame containing the nightly statistics that were
+        written to the database.  The columns are:
+
+        ``"day_obs"``
+            The observation day.
+        ``"value_name"``
+            The column name from ``columns``
+            that the statistic refers to.
+        ``"p05"``
+            5th percentile.
+        ``"q1"``
+            25th percentile (first quartile).
+        ``"median"``
+            50th percentile (median).
+        ``"q3"``
+            75th percentile (third quartile).
+        ``"p95"``
+            95th percentile.
+        ``"visitseq_uuid"``
+            The UUID of the sequence.
+        ``"accumulated"``
+            Always ``False`` for data written by
+            this method.
+    """
+    stats_df = compute_nightly_stats(visits, columns)
+    vsarchive.insert_nightly_stats(visitseq_uuid, stats_df)
+    return stats_df
 
 
 @visitseq.command()

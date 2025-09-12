@@ -295,7 +295,7 @@ class TestVisitSequenceArchive(unittest.TestCase):
         ).dt.date
 
         test_uuid = uuid1()
-        stats_df = self.vsarch.record_nightly_stats(test_uuid, visits)
+        stats_df = visitsarch.record_nightly_stats(test_uuid, visits, self.vsarch)
         assert len(stats_df) > 0
 
     def test_record_conda_env(self) -> None:
