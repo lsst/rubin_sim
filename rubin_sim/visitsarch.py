@@ -1,11 +1,11 @@
 import hashlib
 import json
 import logging
+import os
 import subprocess
 import warnings
 from datetime import date, datetime
 from pathlib import Path
-from types import MappingProxyType
 from typing import Mapping, Tuple
 from uuid import UUID
 
@@ -20,13 +20,9 @@ from astropy.time import Time
 from lsst.resources import ResourcePath, ResourcePathExpression
 from psycopg2 import sql
 
-USDF_METADATA_DATABASE = MappingProxyType(
-    {"database": "opsim_log", "host": "134.79.23.205", "schema": "vsarchive"}
-)
-
-TEST_METADATA_DATABASE = MappingProxyType(
-    {"database": "opsim_log", "host": "134.79.23.205", "schema": "vsarchtest"}
-)
+VSARCHIVE_PGDATABASE = "opsim_log"
+VSARCHIVE_PGHOST = "134.79.23.205"
+ARCHIVE_URL: ResourcePathExpression = "test_archive"
 
 JSON_DUMP_LIMIT = 4096
 
@@ -63,13 +59,13 @@ class VisitSequenceArchive:
 
     Parameters
     ----------
-    metadata_db: `Mapping`
+    metadata_db_kwargs: `Mapping`
         A dictionary or other mapping defining the connection
         parameters for connecting to the postgresql database
-        that holds the sequence metadata, except for an additional
-        ``schema`` key, which holds the schema within the database
-        to use. Except for ``schema``, keys are passed as keyword
+        that holds the sequence metadata. Keys are passed as keyword
         arguments to `psycopg2.pool.SimppleConnectionPool`.
+    metadata_db_schema: `str`
+        The schema in the database holding the metadata.
     archive_url: `ResourcePathExpression`
         The base location for the files to be stored in the archive,
         passed to `lsst.resources.ResourcePath`.
@@ -88,16 +84,32 @@ class VisitSequenceArchive:
 
     def __init__(
         self,
-        metadata_db: Mapping = TEST_METADATA_DATABASE,
-        archive_url: ResourcePathExpression = "test_archive",
+        metadata_db_kwargs: Mapping | None = None,
+        metadata_db_schema: str = "ehntest",
+        archive: ResourcePathExpression | ResourcePath | None = None,
     ):
-        self.metadata_db: Mapping = metadata_db
-        self.archive_base: ResourcePath = ResourcePath(archive_url)
-        self.metadata_db_schema: str = metadata_db["schema"]
-        metadata_connection_kwargs = {k: metadata_db[k] for k in metadata_db if k != "schema"}
-        self.pg_pool = psycopg2.pool.SimpleConnectionPool(1, 5, **metadata_connection_kwargs)
+        if not isinstance(metadata_db_kwargs, dict):
+            metadata_db_kwargs = {} if metadata_db_kwargs is None else dict(metadata_db_kwargs)
+        assert isinstance(metadata_db_kwargs, dict)
 
-    def direct_metadata_query(
+        if "database" not in metadata_db_kwargs:
+            metadata_db_kwargs["database"] = os.environ.get("VSARCHIVE_PGDATABASE", VSARCHIVE_PGDATABASE)
+
+        if "host" not in metadata_db_kwargs:
+            metadata_db_kwargs["host"] = os.environ.get("VSARCHIVE_PGHOST", VSARCHIVE_PGHOST)
+
+        self.pg_pool = psycopg2.pool.SimpleConnectionPool(1, 5, **metadata_db_kwargs)
+
+        self.metadata_db_schema: str = metadata_db_schema
+
+        if isinstance(archive, ResourcePath):
+            self.archive_base = archive
+        elif isinstance(archive, ResourcePathExpression):
+            self.archive_base = ResourcePath(archive)
+        else:
+            self.archive_base = ResourcePath(ARCHIVE_URL)
+
+    def query(
         self,
         query: str | sql.SQL | sql.Composed,
         data: dict,
@@ -253,7 +265,7 @@ class VisitSequenceArchive:
             sql.SQL(", ").join(data_placeholders),
         )
 
-        result = self.direct_metadata_query(query, data, commit=True)[0][0]
+        result = self.query(query, data, commit=True)[0][0]
         return result
 
     def get_visitseq_metadata(
@@ -334,7 +346,7 @@ class VisitSequenceArchive:
             sql.Placeholder("visitseq_uuid"),
         )
         data = {"visitseq_url": visitseq_url, "visitseq_uuid": visitseq_uuid}
-        self.direct_metadata_query(query, data, return_result=False, commit=True)
+        self.query(query, data, return_result=False, commit=True)
 
     def get_visitseq_url(self, visitseq_uuid: UUID) -> str:
         """Retrieve the URL for the file with the visits in a visit sequence.
@@ -359,7 +371,7 @@ class VisitSequenceArchive:
             sql.Placeholder("visitseq_uuid"),
         )
         data = {"visitseq_uuid": visitseq_uuid}
-        response = self.direct_metadata_query(query, data)
+        response = self.query(query, data)
         if len(response) < 1:
             raise ValueError(f"No URL for {visitseq_uuid} found")
         assert len(response) == 1, f"Datatabase has too many visit sequinces with UUID={visitseq_uuid}"
@@ -722,7 +734,7 @@ class VisitSequenceArchive:
             sql.Identifier(self.metadata_db_schema), sql.Placeholder("visitseq_uuid"), sql.Placeholder("tag")
         )
         data = {"visitseq_uuid": visitseq_uuid, "tag": tag}
-        is_tagged = self.direct_metadata_query(query, data)[0][0] > 0
+        is_tagged = self.query(query, data)[0][0] > 0
         return is_tagged
 
     def tag(self, visitseq_uuid: UUID, *tags: str) -> None:
@@ -742,7 +754,7 @@ class VisitSequenceArchive:
         for tag in tags:
             if not self.is_tagged(visitseq_uuid, tag):
                 data["tag"] = tag
-                self.direct_metadata_query(query, data, commit=True, return_result=False)
+                self.query(query, data, commit=True, return_result=False)
 
     def untag(self, visitseq_uuid: UUID, tag: str) -> None:
         """Untag a visit sequence with a given tag.
@@ -768,7 +780,7 @@ class VisitSequenceArchive:
             sql.Placeholder("tag"),
         )
         data = {"visitseq_uuid": visitseq_uuid, "tag": tag}
-        self.direct_metadata_query(query, data, commit=True, return_result=False)
+        self.query(query, data, commit=True, return_result=False)
 
     def comment(self, visitseq_uuid: UUID, comment: str, author: str | None = None) -> None:
         """Attach a comment to a visit sequence in the
@@ -809,7 +821,7 @@ class VisitSequenceArchive:
             )
             data["author"] = author
 
-        self.direct_metadata_query(query, data, commit=True, return_result=False)
+        self.query(query, data, commit=True, return_result=False)
 
     def get_comments(self, visitseq_uuid: UUID) -> pd.DataFrame:
         """Retrieve all comments attached to a specific visit sequence.
@@ -950,7 +962,7 @@ class VisitSequenceArchive:
             "file_url": file_url,
         }
 
-        self.direct_metadata_query(query, data, commit=True, return_result=False)
+        self.query(query, data, commit=True, return_result=False)
 
     def get_file_url(self, visitseq_uuid: UUID, file_type: str) -> str:
         """Return the URL for a registered file of a given type and
@@ -980,7 +992,7 @@ class VisitSequenceArchive:
             sql.Placeholder("file_type"),
         )
         data = {"visitseq_uuid": visitseq_uuid, "file_type": file_type}
-        result = self.direct_metadata_query(query, data, return_result=True)
+        result = self.query(query, data, return_result=True)
         if len(result) < 1:
             raise ValueError(f"No URLs found for {file_type} for visitseq {visitseq_uuid}")
         if len(result) > 1:
@@ -1013,7 +1025,7 @@ class VisitSequenceArchive:
             sql.Placeholder("file_type"),
         )
         data = {"visitseq_uuid": visitseq_uuid, "file_type": file_type}
-        result = self.direct_metadata_query(query, data, return_result=True)
+        result = self.query(query, data, return_result=True)
         if len(result) < 1:
             raise ValueError(f"No URLs found for {file_type} for visitseq {visitseq_uuid}")
         if len(result) > 1:
@@ -1142,7 +1154,7 @@ class VisitSequenceArchive:
             sql.Identifier(self.metadata_db_schema), sql.Placeholder("conda_env_hash")
         )
         data = {"conda_env_hash": conda_env_hash}
-        result = self.direct_metadata_query(query, data, commit=False, return_result=True)
+        result = self.query(query, data, commit=False, return_result=True)
         env_exists = result[0][0]
         assert isinstance(env_exists, bool)
         return env_exists
@@ -1176,7 +1188,7 @@ class VisitSequenceArchive:
             sql.Placeholder("conda_env"),
         )
         data = {"conda_env_hash": conda_env_hash, "conda_env": conda_env_json}
-        self.direct_metadata_query(query, data, commit=True, return_result=False)
+        self.query(query, data, commit=True, return_result=False)
         return conda_env_hash
 
     def construct_base_resource_path(
@@ -1228,7 +1240,7 @@ class VisitSequenceArchive:
                 sql.Placeholder("visitseq_uuid"),
             )
             data = {"visitseq_uuid": visitseq_uuid}
-            result = self.direct_metadata_query(query, data)
+            result = self.query(query, data)
             assert isinstance(result[0][0], int)
             num_rows: int = result[0][0]
             if num_rows > 0:
