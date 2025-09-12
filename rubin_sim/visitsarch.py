@@ -1134,23 +1134,14 @@ class VisitSequenceArchive:
         self.query(query, data, commit=True, return_result=False)
         return conda_env_hash
 
-    def construct_base_resource_path(
-        self, telescope: str, creation_time: Time, visitseq_uuid: UUID
-    ) -> ResourcePath:
-        # Record in path according to datetime timezone (UTC-12)
-        visitseq_base_rp = (
-            self.archive_base.join(telescope)
-            .join(Time(creation_time.mjd - 0.5, format="mjd").datetime.date().isoformat())
-            .join(str(visitseq_uuid), forceDirectory=True)
-        )
-        return visitseq_base_rp
-
     def _write_data_to_archive(self, visitseq_uuid: UUID, content: bytes, file_name: str) -> ResourcePath:
         visitseq_metadata = self.get_visitseq_metadata(visitseq_uuid)
         visitseq_uuid = visitseq_metadata["visitseq_uuid"]
         telescope = visitseq_metadata["telescope"]
         creation_time = Time(visitseq_metadata["creation_time"])
-        visitseq_base_rp = self.construct_base_resource_path(telescope, creation_time, visitseq_uuid)
+        visitseq_base_rp = construct_base_resource_path(
+            self.archive_base, telescope, creation_time, visitseq_uuid
+        )
 
         # Make sure the base for the visit sequence exists
         if not visitseq_base_rp.exists():
@@ -1250,6 +1241,43 @@ def compute_conda_env() -> tuple:
     conda_env_json = conda_list_result.stdout
     conda_env_hash = bytes.fromhex(hashlib.sha256(conda_env_json.encode()).hexdigest())
     return conda_env_hash, conda_env_json
+
+
+def construct_base_resource_path(
+    archive_base: ResourcePath, telescope: str, creation_time: Time, visitseq_uuid: UUID
+) -> ResourcePath:
+    """Build the base ``ResourcePath`` for a visit‑sequence
+    archive entry.
+
+    Parameters
+    ----------
+    archive_base : `ResourcePath`
+        The base of the archive relative to which the visit sequence
+        will be added.
+    telescope : `str`
+        Identifier for the telescope (e.g. ``"simonyi"`` or ``"auxtel"`).
+    creation_time : `Time`
+        The timestamp when the visit sequence was created.
+    visitseq_uuid : `UUID`
+        The unique identifier of the visit sequence.
+
+    Returns
+    -------
+    ResourcePath
+        A ``ResourcePath`` instance representing the base directory for
+        this visit sequence.  The directory is structured as:
+
+        ``<archive_base>/<telescope>/<date>/<visitseq_uuid>/``
+
+        where ``<date>`` is the UTC‑12 date derived from ``creation_time``.
+    """
+    # Record in path according to datetime timezone (UTC-12)
+    visitseq_base_rp = (
+        archive_base.join(telescope)
+        .join(Time(creation_time.mjd - 0.5, format="mjd").datetime.date().isoformat())
+        .join(str(visitseq_uuid), forceDirectory=True)
+    )
+    return visitseq_base_rp
 
 
 @click.group()
