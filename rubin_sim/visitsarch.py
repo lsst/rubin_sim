@@ -1083,26 +1083,7 @@ class VisitSequenceArchive:
                 Always ``False`` for data written by
                 this method.
         """
-
-        stats_df = (
-            visits.groupby("day_obs")[list(columns)]
-            .describe(percentiles=[0.05, 0.25, 0.5, 0.75, 0.95])
-            .stack(level=0)
-            .reset_index()
-            .rename(
-                columns={
-                    "level_1": "value_name",
-                    "5%": "p05",
-                    "25%": "q1",
-                    "50%": "median",
-                    "75%": "q3",
-                    "95%": "p95",
-                }
-            )
-        )
-
-        stats_df["accumulated"] = False
-
+        stats_df = compute_nightly_stats(visits, columns)
         self.insert_nightly_stats(visitseq_uuid, stats_df)
 
         return stats_df
@@ -1300,6 +1281,29 @@ class VisitSequenceArchive:
             self.register_file(visitseq_uuid, file_type, file_sha256, location, update=update)
 
         return location
+
+
+def compute_nightly_stats(
+    visits: pd.DataFrame, columns: Tuple[str] = ("s_ra", "s_dec", "sky_rotation")
+) -> pd.DataFrame:
+    stats_df = (
+        visits.groupby("day_obs")[list(columns)]
+        .describe(percentiles=[0.05, 0.25, 0.5, 0.75, 0.95])
+        .stack(level=0)
+        .reset_index()
+        .rename(
+            columns={
+                "level_1": "value_name",
+                "5%": "p05",
+                "25%": "q1",
+                "50%": "median",
+                "75%": "q3",
+                "95%": "p95",
+            }
+        )
+    )
+    stats_df["accumulated"] = False
+    return stats_df
 
 
 @click.group()
