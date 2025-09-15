@@ -1525,6 +1525,67 @@ def update_visitseq_metadata(
 
 @visitsarch.command()
 @click.argument("uuid", type=click.UUID)
+@click.argument("tag", type=str)
+@click.pass_obj
+def is_tagged(vsarch: VisitSequenceArchiveMetadata, uuid: UUID, tag: str) -> None:
+    """Return whether a visit sequence is tagged with a given tag.
+
+    The command prints ``true`` if the tag exists for the visit sequence
+    and ``false`` otherwise.
+
+    Parameters
+    ----------
+    uuid : `UUID`
+        The UUID of the visit sequence to check.
+    tag : `str`
+        The tag name to query.
+    """
+    seq_is_tagged = vsarch.is_tagged(uuid, tag)
+    if seq_is_tagged:
+        click.echo("true")
+    else:
+        click.echo("false")
+
+
+@visitsarch.command()
+@click.argument("uuid", type=click.UUID)
+@click.argument("tags", nargs=-1, required=True)
+@click.pass_obj
+def tag(vsarch: VisitSequenceArchiveMetadata, uuid: UUID, tags: Tuple[str, ...]) -> None:
+    """Add one or more tags to a visit sequence.
+
+    Parameters
+    ----------
+    uuid : `UUID`
+        The UUID of the visit sequence to tag.
+    *tags : `str`
+        One or more tag names to add.
+    """
+    if len(tags) < 1:
+        raise ValueError("At least one tag must be requested.")
+
+    vsarch.tag(uuid, *tags)
+
+
+@visitsarch.command()
+@click.argument("uuid", type=click.UUID)
+@click.argument("tag", type=str)
+@click.pass_obj
+def untag(vsarch: VisitSequenceArchiveMetadata, uuid: UUID, tag: str) -> None:
+    """Remove a tag from a visit sequence.
+
+    Parameters
+    ----------
+    uuid : `UUID`
+        The UUID of the visit sequence to modify.
+    tag : `str`
+        The name of the tag to remove.
+    """
+    vsarch.untag(uuid, tag)
+
+
+@visitsarch.command()
+@click.argument("uuid", type=click.UUID)
 @click.argument("comment")
 @click.option(
     "--author",
