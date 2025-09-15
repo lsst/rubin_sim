@@ -469,3 +469,26 @@ class TestVisitSequenceArchive(unittest.TestCase):
         self.run_click_command(untag_command)
         is_tagged_command = ["is-tagged", uuid_str, sample_tags[0]]
         assert self.run_click_command(is_tagged_command).strip() == "false"
+
+        #
+        # Test adding comments
+        #
+
+        # Verify that there are no comments before we've added any.
+        get_comments_command = ["get-comments", uuid_str]
+        init_comments = self.run_click_command(get_comments_command)
+        assert len(init_comments.strip()) == 0
+
+        # Add a comment
+        test_comment = "My first test comment."
+        add_first_comment_command = ["comment", uuid_str, test_comment]
+        self.run_click_command(add_first_comment_command)
+        after_first_test_comment = self.run_click_command(get_comments_command)
+        assert test_comment in after_first_test_comment
+
+        next_test_comment = "My second test comment."
+        add_second_comment_command = ["comment", uuid_str, next_test_comment]
+        self.run_click_command(add_second_comment_command)
+        after_second_test_comment = self.run_click_command(get_comments_command)
+        assert test_comment in after_second_test_comment
+        assert next_test_comment in after_second_test_comment
