@@ -443,4 +443,29 @@ class TestVisitSequenceArchive(unittest.TestCase):
         ]
         self.run_click_command(update_first_day_obs_command)
         updated_metadata = self.vsarch.get_visitseq_metadata(visitseq_uuid, table=table_name)
-        assert updated_metadata.first_day_obs == test_day_obs_str
+        assert updated_metadata.first_day_obs.isoformat() == test_day_obs_str
+
+        #
+        # Test tagging and untagging
+        #
+
+        sample_tags = ["testtag1", "testtag2", "testtag3"]
+
+        # Check that a sample tag is not there
+        is_tagged1_command = ["is-tagged", uuid_str, sample_tags[0]]
+        is_tagged_output = self.run_click_command(is_tagged1_command)
+        is_tagged = is_tagged_output.strip()
+        assert is_tagged == "false"
+
+        # add our sample tags, and verify that they are there
+        tag_command = ["tag", uuid_str] + sample_tags
+        self.run_click_command(tag_command)
+        for tag in sample_tags:
+            is_tagged_command = ["is-tagged", uuid_str, tag]
+            assert self.run_click_command(is_tagged_command).strip() == "true"
+
+        # drop a sample tag, and check that it is gone.
+        untag_command = ["untag", uuid_str, sample_tags[0]]
+        self.run_click_command(untag_command)
+        is_tagged_command = ["is-tagged", uuid_str, sample_tags[0]]
+        assert self.run_click_command(is_tagged_command).strip() == "false"
