@@ -3,6 +3,7 @@ import hashlib
 import os
 import unittest
 from io import StringIO
+from pathlib import Path
 from tempfile import NamedTemporaryFile, TemporaryDirectory
 from uuid import UUID, uuid1
 
@@ -331,7 +332,7 @@ class TestVisitSequenceArchive(unittest.TestCase):
             temp_file.write(content)
             temp_file.flush()
             sent_location = visitsarch.add_file(
-                vseq_uuid, file_name, test_file_type, self.test_archive, self.vsarch
+                self.vsarch, vseq_uuid, file_name, test_file_type, self.test_archive
             )
 
         found_location = self.vsarch.get_file_url(vseq_uuid, test_file_type)
@@ -352,7 +353,7 @@ class TestVisitSequenceArchive(unittest.TestCase):
             visits.to_hdf(temp_file.name, key="visits")
             file_name = temp_file.name
             sent_location = visitsarch.add_file(
-                vseq_uuid, file_name, test_file_type, self.test_archive, self.vsarch
+                self.vsarch, vseq_uuid, file_name, test_file_type, self.test_archive
             )
 
         found_location = self.vsarch.get_file_url(vseq_uuid, test_file_type)
@@ -411,6 +412,20 @@ class TestVisitSequenceArchive(unittest.TestCase):
             stored_metadata = self.vsarch.get_visitseq_metadata(visitseq_uuid, table=table_name)
             self.assertEqual(stored_metadata["visitseq_label"], label)
 
+            # Archive the visits themselves
+            archive_visits_command = [
+                "archive-file",
+                uuid_str,
+                temp_file.name,
+                "visits",
+                "--archive-base",
+                self.test_archive_url,
+            ]
+            output = self.run_click_command(archive_visits_command)
+            archived_url = output.strip()
+            assert archived_url.startswith(self.test_archive_url)
+            assert archived_url.endswith(Path(temp_file.name).name)
+
         # Test getting the URL back from the metadata database
         get_url_command = [
             "get-visitseq-url",
@@ -418,7 +433,7 @@ class TestVisitSequenceArchive(unittest.TestCase):
         ]
         first_get_url_output = self.run_click_command(get_url_command)
         first_returned_url = first_get_url_output.strip()
-        assert first_returned_url == url
+        assert first_returned_url == archived_url
 
         # Test setting the URL to something else.
         new_url = f"{url}/new_extra_stuff"
