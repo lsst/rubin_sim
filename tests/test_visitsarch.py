@@ -436,6 +436,28 @@ class TestVisitSequenceArchive(unittest.TestCase):
             assert isinstance(read_visits, pd.DataFrame)
             pd.testing.assert_frame_equal(read_visits, TEST_VISITS)
 
+        # Attach a different file and see if we can get it back
+        test_content = "I am some test content."
+        with TemporaryDirectory() as temp_dir:
+            origin_fname = str(Path(temp_dir).joinpath("origin.txt"))
+            with open(origin_fname, "w") as origin_fp:
+                origin_fp.write(test_content)
+            arch_file_command = [
+                "archive-file",
+                uuid_str,
+                origin_fname,
+                "test",
+                "--archive-base",
+                self.test_archive_url,
+            ]
+            self.run_click_command(arch_file_command)
+            dest_fname = str(Path(temp_dir).joinpath("destination.txt"))
+            get_file_command = ["get-file", dest_fname, uuid_str, "test"]
+            self.run_click_command(get_file_command)
+            with open(dest_fname) as dest_fp:
+                returned_content = dest_fp.read()
+            assert returned_content == test_content
+
         # Test getting the URL back from the metadata database
         get_url_command = [
             "get-visitseq-url",
