@@ -1495,6 +1495,36 @@ def get_visitseq_url(vsarch: VisitSequenceArchiveMetadata, uuid: UUID) -> None:
 
 @visitsarch.command()
 @click.argument("uuid", type=click.UUID)
+@click.argument("field", type=str)
+@click.argument("value", type=str)
+@click.pass_obj
+def update_visitseq_metadata(
+    vsarch: VisitSequenceArchiveMetadata,
+    uuid: UUID,
+    field: str,
+    value: str,
+) -> None:
+    """Update a single metadata field for a visit sequence.
+
+    Parameters
+    ----------
+    vsarch : `VisiteSequenceArchiveMetadata`
+        An instance of the interface to the metadata archive.
+    uuid : `UUID`
+        The UUID of the visit sequence to update.
+    field : `str`
+        The name of the column in the metadata table to modify.
+    value : `str`
+        The new value for the field.  Postgresql will cast the type
+        to what is expected in the database schema.
+    """
+    # The value is passed as a string; psycopg2 will cast it to the correct
+    # column type based on the table schema.
+    vsarch.update_visitseq_metadata(uuid, field, value)
+
+
+@visitsarch.command()
+@click.argument("uuid", type=click.UUID)
 @click.argument("comment")
 @click.option(
     "--author",

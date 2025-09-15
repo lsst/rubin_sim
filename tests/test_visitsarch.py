@@ -26,8 +26,8 @@ obs_start_mjd   	s_ra	            s_dec    	        band	sky_rotation        exp
 64632.27136770076	51.536171530913606	-12.851173055354066	r	    122.60634698116121	29.2
 64632.27181591137	52.370714702087625	-9.768648967698063	r	    124.35795331534635	29.2
 64632.272264776075	55.09449662658469	-9.088025784959735	r	    130.6392705609067	29.2
-64632.27271223557	54.31431950468007	-12.171542795692007	r	    130.1590058301397	29.2
-64632.27316256726	57.08051812751406	-11.47047216067004	r	    136.8014944653928	29.2
+64633.27271223557	54.31431950468007	-12.171542795692007	r	    130.1590058301397	29.2
+64633.27316256726	57.08051812751406	-11.47047216067004	r	    136.8014944653928	29.2
 """
     ),
     sep=r"\s+",
@@ -379,16 +379,18 @@ class TestVisitSequenceArchive(unittest.TestCase):
         self.assertEqual(result.exit_code, 0, msg=result.output)
         return result.output
 
-    def test_cli_record_visitseq_metadata(self) -> None:
-        # Create a temporary HDF5 file with a ``visits`` key.
+    def test_cli(self) -> None:
+        # Create a temporary HDF5 file with a ``visits`` key
+        # and test recording it.
         with NamedTemporaryFile(suffix=".h5") as temp_file:
-            url = ResourcePath(temp_file.name).geturl()
+            # Make a dummy data file
+
             TEST_VISITS.to_hdf(temp_file.name, key="visits", mode="w")
 
-            # Build the command line arguments.
             table_name = "visitseq"
             label = f"CLI test {Time.now().iso}"
-            cmd = [
+            url = ResourcePath(temp_file.name).geturl()
+            record_command = [
                 "record-visitseq-metadata",
                 table_name,
                 temp_file.name,
@@ -399,12 +401,46 @@ class TestVisitSequenceArchive(unittest.TestCase):
                 url,
             ]
 
-            output = self.run_click_command(cmd)
+            output = self.run_click_command(record_command)
 
             # Extract the UUID that was printed.
-            output_uuid = output.strip()
-            visitseq_uuid = UUID(output_uuid)
+            uuid_str = output.strip()
+            visitseq_uuid = UUID(uuid_str)
 
             # Verify that the stored label matches what we supplied.
             stored_metadata = self.vsarch.get_visitseq_metadata(visitseq_uuid, table=table_name)
             self.assertEqual(stored_metadata["visitseq_label"], label)
+
+        # Test getting the URL back from the metadata database
+        get_url_command = [
+            "get-visitseq-url",
+            uuid_str,
+        ]
+        first_get_url_output = self.run_click_command(get_url_command)
+        first_returned_url = first_get_url_output.strip()
+        assert first_returned_url == url
+
+        # Test setting the URL to something else.
+        new_url = f"{url}/new_extra_stuff"
+        set_url_command = ["set-visitseq-url", uuid_str, new_url]
+        self.run_click_command(set_url_command)
+        new_get_url_output = self.run_click_command(get_url_command)
+        new_returned_url = new_get_url_output.strip()
+        assert new_returned_url != first_returned_url
+        assert new_returned_url == new_url
+
+        # Test changing other metadata.
+        # Use first_day_obs as an example
+        assert stored_metadata.first_day_obs is None
+        test_day_obs_str = (
+            Time(TEST_VISITS.obs_start_mjd.min() - 0.5, format="mjd").datetime.date().isoformat()
+        )
+        update_first_day_obs_command = [
+            "update-visitseq-metadata",
+            uuid_str,
+            "first_day_obs",
+            test_day_obs_str,
+        ]
+        self.run_click_command(update_first_day_obs_command)
+        updated_metadata = self.vsarch.get_visitseq_metadata(visitseq_uuid, table=table_name)
+        assert updated_metadata.first_day_obs == test_day_obs_str
