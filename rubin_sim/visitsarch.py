@@ -1651,10 +1651,27 @@ def archive_file(
     # Convert the base path string into a ResourcePath
     archive_base_rp = ResourcePath(archive_base)
 
-    # The real implementation lives in the ``archive_file`` helper.
     archived_location = add_file(vsarch, uuid, origin, file_type, archive_base_rp, update=update)
 
     click.echo(archived_location.geturl())
+
+
+@visitsarch.command()
+@click.argument("destination", type=click.Path(exists=False))
+@click.argument("uuid", type=click.UUID)
+@click.argument("file_type", type=click.STRING)
+@click.pass_obj
+def get_file(
+    vsarch: VisitSequenceArchiveMetadata,
+    destination: str,
+    uuid: UUID,
+    file_type: str,
+) -> None:
+    file_url = vsarch.get_file_url(uuid, file_type)
+    origin_rp = ResourcePath(file_url)
+    destination_rp = ResourcePath(destination)
+    destination_rp.transfer_from(origin_rp, "copy")
+    click.echo(f"Copied {origin_rp.geturl()} to {destination_rp.geturl()}")
 
 
 if __name__ == "__main__":
