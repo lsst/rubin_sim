@@ -426,6 +426,16 @@ class TestVisitSequenceArchive(unittest.TestCase):
             assert archived_url.startswith(self.test_archive_url)
             assert archived_url.endswith(Path(temp_file.name).name)
 
+        # Get the file out of the archive, and test it against
+        # what we sent.
+        with TemporaryDirectory() as temp_dir:
+            visits_fname = str(Path(temp_dir).joinpath("visits.h5"))
+            get_visits_command = ["get-file", visits_fname, uuid_str, "visits"]
+            self.run_click_command(get_visits_command)
+            read_visits = pd.read_hdf(visits_fname, "visits")
+            assert isinstance(read_visits, pd.DataFrame)
+            pd.testing.assert_frame_equal(read_visits, TEST_VISITS)
+
         # Test getting the URL back from the metadata database
         get_url_command = [
             "get-visitseq-url",
