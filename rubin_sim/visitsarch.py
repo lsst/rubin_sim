@@ -1291,11 +1291,11 @@ def _write_file_to_archive(
 
 
 def add_file(
-    visitseq_uuid: UUID,
+    vsarch: VisitSequenceArchiveMetadata,
+    uuid: UUID,
     origin: str | Path,
     file_type: str,
-    archive_base: ResourcePath,
-    vsarch_md: VisitSequenceArchiveMetadata,
+    archive_base: str | ResourcePath,
     update: bool = False,
 ) -> ResourcePath:
     """Archive a file associated with a visit sequence and
@@ -1303,7 +1303,10 @@ def add_file(
 
     Parameters
     ----------
-    visitseq_uuid : `UUID`
+    vsarch : `VisitSequenceArchiveMetadata`
+        Instance of `VisitSequenceArchiveMetadata` used to
+        query the sequence metadata and register the file.
+    uuid : `UUID`
         The unique identifier of the visit sequence that the file
         should be linked to.
     origin : `str` or `pathlib.Path`
@@ -1312,9 +1315,6 @@ def add_file(
         Identifier for the type of file being archived.
     archive_base : `lsst.resources.ResourcePath`
         Base location of the archive.
-    vsarch_md : `VisitSequenceArchiveMetadata`
-        Instance of `VisitSequenceArchiveMetadata` used to
-        query the sequence metadata and register the file.
     update : `bool`, optional
         If ``True`` and a record for the same ``visitseq_uuid`` and
         ``file_type`` already exists, the existing row will be
@@ -1327,17 +1327,21 @@ def add_file(
         The `ResourcePath` pointing to the archived file
         on the file store.
     """
-    visitseq_metadata = vsarch_md.get_visitseq_metadata(visitseq_uuid)
-    visitseq_uuid = visitseq_metadata["visitseq_uuid"]
+    if isinstance(archive_base, str):
+        archive_base = ResourcePath(archive_base)
+    assert isinstance(archive_base, ResourcePath)
+
+    visitseq_metadata = vsarch.get_visitseq_metadata(uuid)
+    uuid = visitseq_metadata["visitseq_uuid"]
     telescope = visitseq_metadata["telescope"]
     creation_time = Time(visitseq_metadata["creation_time"])
-    visitseq_base_rp = construct_base_resource_path(archive_base, telescope, creation_time, visitseq_uuid)
+    visitseq_base_rp = construct_base_resource_path(archive_base, telescope, creation_time, uuid)
 
     location, file_sha256 = _write_file_to_archive(origin, visitseq_base_rp)
     if file_type == "visits":
-        vsarch_md.set_visitseq_url(visitseq_uuid, location.geturl())
+        vsarch.set_visitseq_url(uuid, location.geturl())
     else:
-        vsarch_md.register_file(visitseq_uuid, file_type, file_sha256, location, update=update)
+        vsarch.register_file(uuid, file_type, file_sha256, location, update=update)
 
     return location
 
@@ -1648,9 +1652,9 @@ def archive_file(
     archive_base_rp = ResourcePath(archive_base)
 
     # The real implementation lives in the ``archive_file`` helper.
-    archived_location = add_file(uuid, origin, file_type, archive_base_rp, vsarch, update=update)
+    archived_location = add_file(vsarch, uuid, origin, file_type, archive_base_rp, update=update)
 
-    click.echo(f"Archived to {archived_location.geturl()}")
+    click.echo(archived_location.geturl())
 
 
 if __name__ == "__main__":
