@@ -1558,7 +1558,7 @@ def tag(vsarch: VisitSequenceArchiveMetadata, uuid: UUID, tags: Tuple[str, ...])
     ----------
     uuid : `UUID`
         The UUID of the visit sequence to tag.
-    *tags : `str`
+    tags : `str`
         One or more tag names to add.
     """
     if len(tags) < 1:
@@ -1597,6 +1597,26 @@ def comment(
     vsarch: VisitSequenceArchiveMetadata, uuid: UUID, comment: str, author: str | None = None
 ) -> None:
     vsarch.comment(uuid, comment, author)
+
+
+@visitsarch.command()
+@click.argument("uuid", type=click.UUID)
+@click.pass_obj
+def get_comments(vsarch: VisitSequenceArchiveMetadata, uuid: UUID) -> None:
+    """Retrieve all comments attached to a specific visit sequence.
+
+    The comments are printed as a tab‑separated table with columns:
+    ``visitseq_uuid``, ``comment_time``, ``author``, ``comment``.
+
+    Parameters
+    ----------
+    uuid : `UUID`
+        The UUID of the visit sequence whose comments should be fetched.
+    """
+    comments_df = vsarch.get_comments(uuid)
+    if not comments_df.empty:
+        # Pandas will include the index by default; omit it.
+        click.echo(comments_df.to_csv(sep="\t", index=False).rstrip("\n"))
 
 
 @visitsarch.command()
