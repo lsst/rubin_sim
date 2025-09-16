@@ -557,3 +557,57 @@ class TestVisitSequenceArchive(unittest.TestCase):
         after_second_test_comment = self.run_click_command(get_comments_command)
         assert test_comment in after_second_test_comment
         assert next_test_comment in after_second_test_comment
+
+    def test_record_conda_env_cli(self) -> None:
+        # Separate this from the other CLI testing
+        # because it is much slower than anything
+        # else, and we may want to disable this
+        # test independenty of the others.
+        output = self.run_click_command(["record-conda-env"])
+        hash_hex = output.strip()
+        hash_sha256 = bytes.fromhex(hash_hex)
+
+        query = sql.SQL(
+            """
+            SELECT package_version
+            FROM {}.conda_packages
+            WHERE conda_env_hash={} AND package_name='numpy'
+        """
+        ).format(sql.Identifier(TEST_METADATA_DB_SCHEMA), sql.Placeholder("hash_sha256"))
+        data = {"hash_sha256": hash_sha256}
+        found_versions = self.vsarch.query(query, data)
+        assert len(found_versions) == 1
+        found_version = found_versions[0][0]
+        assert found_version == np.__version__
+
+        # Associate it with a simulation, and query
+        # it from the simulation
+        # Begin by adding a simulation
+        visits = TEST_VISITS
+        label = f"Test on {Time.now().iso}"
+        vseq_uuid = self.vsarch.record_simulation_metadata(visits, label)
+
+        # Update the simulation to refer to the conda env
+        update_sim_conda_env_command = [
+            "update-visitseq-metadata",
+            str(vseq_uuid),
+            "conda_env_sha256",
+            hash_hex,
+        ]
+        self.run_click_command(update_sim_conda_env_command)
+
+        query = sql.SQL(
+            """
+            SELECT package_version
+            FROM {}.simulation_packages
+            WHERE package_name='numpy' AND visitseq_uuid={}
+        """
+        ).format(
+            sql.Identifier(TEST_METADATA_DB_SCHEMA),
+            sql.Placeholder("visitseq_uuid"),
+        )
+        data = {"visitseq_uuid": vseq_uuid}
+        found_versions = self.vsarch.query(query, data)
+        assert len(found_versions) == 1
+        found_version = found_versions[0][0]
+        assert found_version == np.__version__
