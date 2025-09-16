@@ -6,6 +6,7 @@ import subprocess
 import warnings
 from datetime import date, datetime
 from pathlib import Path
+from tempfile import TemporaryDirectory
 from typing import Mapping, Tuple
 from uuid import UUID
 
@@ -19,10 +20,12 @@ import sqlalchemy
 from astropy.time import Time
 from lsst.resources import ResourcePath
 from psycopg2 import sql
+from rubin_scheduler.scheduler.utils import SchemaConverter
 
 VSARCHIVE_PGDATABASE = "opsim_log"
 VSARCHIVE_PGHOST = "134.79.23.205"
 ARCHIVE_URL = "test_archive"
+SQLITE_EXTINSIONS = {".db", ".sqlite", ".sqlite3", ".db3"}
 
 JSON_DUMP_LIMIT = 4096
 
@@ -1377,6 +1380,18 @@ def add_file(
     creation_time = Time(visitseq_metadata["creation_time"])
     visitseq_base_rp = construct_base_resource_path(archive_base, telescope, creation_time, uuid)
 
+    # If we are adding a file that looks like opsim sqlite3 output but
+    # specify the file type as visits, convert to hdf5 using
+    # SchemaConverter and send the result.
+    if file_type == "visits" and Path(origin).suffix.lower() in SQLITE_EXTINSIONS:
+        schema_converter = SchemaConverter()
+        visits = schema_converter.obs2opsim(schema_converter.opsim2obs(origin))
+        with TemporaryDirectory() as temp_dir:
+            new_origin = Path(temp_dir).joinpath("visits.h5")
+            visits.to_hdf(new_origin, key="visits", complevel=2)
+            location = add_file(vsarch, uuid, new_origin, "visits", archive_base, update)
+        return location
+
     location, file_sha256 = _write_file_to_archive(origin, visitseq_base_rp)
     if file_type == "visits":
         vsarch.set_visitseq_url(uuid, location.geturl())
@@ -1471,8 +1486,11 @@ def record_visitseq_metadata(
     loaded into a :class:`pandas.DataFrame` and written to the
     specified table.
     """
-    # Load the visits table from HDF5 (key = 'visits')
-    visits_df = pd.read_hdf(visits_file, key="visits")
+    if Path(visits_file).suffix.lower() in SQLITE_EXTINSIONS:
+        schema_converter = SchemaConverter()
+        visits_df = schema_converter.obs2opsim(schema_converter.opsim2obs(visits_file))
+    else:
+        visits_df = pd.read_hdf(visits_file, key="visits")
     assert isinstance(visits_df, pd.DataFrame)
 
     # Convert the optional creation time string to an astropy Time object
@@ -1715,11 +1733,53 @@ def get_file(
     uuid: UUID,
     file_type: str,
 ) -> None:
+    """Retrieve a registered file and copy it to a local destination.
+
+    Parameters
+    ----------
+    vsarch : `VisitSequenceArchiveMetadata`
+        The metadata interface used to look up the file URL.
+    destination : `str`
+        Path where the retrieved file should be written. If the
+        destination does not exist it will be created.  For files
+        registered with the ``visits`` type and a SQLite3 extension
+        suffix, the file will be downloaded as an HDF5 ``visits.h5`` file,
+        converted back to the original opsim SQLite format, and written to
+        ``destination``.
+    uuid : `UUID`
+        The unique identifier of the visit sequence containing the
+        requested file.
+    file_type : `str`
+        The handle for the type of file to retrieve (e.g. ``visits``).
+
+    Notes
+    -----
+    The function obtains the URL from the metadata database,
+    then copies the file from the URL to the local filesystem.  For a
+    ``visits`` file whose destination ends with a SQLite3 extension
+    (``.db``, ``.sqlite``), the file is first downloaded as a HDF5
+    temporary file, converted to the legacy opsim SQLite format by
+    `SchemaConverter`, and then written to ``destination``.
+    Otherwise the file is copied directly.
+
+    This command prints the local path of the copied file.
+    """
     file_url = vsarch.get_file_url(uuid, file_type)
     origin_rp = ResourcePath(file_url)
-    destination_rp = ResourcePath(destination)
-    destination_rp.transfer_from(origin_rp, "copy")
-    click.echo(f"Copied {origin_rp.geturl()} to {destination_rp.geturl()}")
+    if file_type == "visits" and Path(destination).suffix.lower() in SQLITE_EXTINSIONS:
+        with TemporaryDirectory() as temp_dir:
+            h5_destination = ResourcePath(temp_dir).join("visits.h5")
+            h5_destination.transfer_from(origin_rp, "copy")
+            click.echo(f"Copied {origin_rp.geturl()} to {h5_destination.geturl()}")
+            visits = pd.read_hdf(h5_destination.ospath, "visits")
+            schema_converter = SchemaConverter()
+            obs = schema_converter.opsimdf2obs(visits)
+            schema_converter.obs2opsim(obs, destination)
+            click.echo(f"Converted to opsim and wrote to {destination}")
+    else:
+        destination_rp = ResourcePath(destination)
+        destination_rp.transfer_from(origin_rp, "copy")
+        click.echo(f"Copied {origin_rp.geturl()} to {destination_rp.geturl()}")
 
 
 @visitsarch.command()
