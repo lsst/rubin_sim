@@ -1562,9 +1562,17 @@ def update_visitseq_metadata(
         The new value for the field.  Postgresql will cast the type
         to what is expected in the database schema.
     """
-    # The value is passed as a string; psycopg2 will cast it to the correct
-    # column type based on the table schema.
-    vsarch.update_visitseq_metadata(uuid, field, value)
+    # psycopg2 usually converts strings to the right
+    # type base on column type in the database, but if
+    # hex values are provided for bytes colums it
+    # gets it wrong.
+    # So, if we're asking to update a bytes column, convert
+    # it from hex ourselves.
+    update_value = value
+    if field in {"conda_env_sha256"}:
+        update_value = bytes.fromhex(value)
+
+    vsarch.update_visitseq_metadata(uuid, field, update_value)
 
 
 @visitsarch.command()
@@ -1779,6 +1787,17 @@ def query_nightly_stats(vsarch: VisitSequenceArchiveMetadata, uuid: UUID) -> Non
     stats_df = vsarch.query_nightly_stats(uuid)
     output = stats_df.to_csv(sep="\t", index=False).rstrip("\n") if not stats_df.empty else ""
     click.echo(output)
+
+
+@visitsarch.command()
+@click.pass_obj
+def record_conda_env(vsarch: VisitSequenceArchiveMetadata) -> None:
+    """Record the current Conda environment in the metadata database,
+    and print the hash used as a key for the env in the database.
+    """
+    env_hash, env_json = compute_conda_env()
+    vsarch.record_conda_env(env_hash, env_json)
+    click.echo(env_hash.hex())
 
 
 if __name__ == "__main__":

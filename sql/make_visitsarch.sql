@@ -119,6 +119,39 @@ CREATE TABLE conda_env (
     conda_env       JSONB NOT NULL                          -- output of `conda list --json`
 );
 
+-- Make a view so we do not need to remember
+-- postgresql syntex for jsonb.
+CREATE VIEW conda_packages AS (
+    SELECT
+        c.conda_env_hash,
+        p.name AS package_name,
+        p.channel,
+        p.version AS package_version,
+        p.base_url,
+        p.platform,
+        p.dist_name,
+        p.build_number,
+        p.build_string
+    FROM
+        conda_env AS c,
+        jsonb_to_recordset(conda_env) AS p (
+            name TEXT,
+            channel TEXT,
+            version TEXT,
+            base_url TEXT,
+            platform TEXT,
+            dist_name TEXT,
+            build_number TEXT,
+            build_string TEXT
+        )
+);
+
+CREATE VIEW simulation_packages AS (
+    SELECT s.visitseq_uuid, p.*
+    FROM conda_packages AS p
+    JOIN simulations AS s ON p.conda_env_hash = s.conda_env_sha256
+);
+
 CREATE TABLE nightly_stats (
     visitseq_uuid   UUID NOT NULL,                          -- RFC 4122 Universally Unique IDentifier
     day_obs         DATE NOT NULL,                          -- The day obs of the visits included
