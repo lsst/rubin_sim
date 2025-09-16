@@ -1,5 +1,6 @@
 import datetime
 import hashlib
+import io
 import os
 import unittest
 from io import StringIO
@@ -305,9 +306,9 @@ class TestVisitSequenceArchive(unittest.TestCase):
 
     def test_nightly_stats(self) -> None:
         visits = TEST_VISITS.copy()
-        visits["day_obs"] = pd.Series(
-            Time(np.floor(visits.obs_start_mjd - 0.5), format="mjd").to_datetime()
-        ).dt.date
+        times = Time(np.floor(visits.obs_start_mjd - 0.5), format="mjd").to_datetime()
+        assert isinstance(times, np.ndarray)
+        visits = visits.assign(day_obs=pd.Series(times).dt.date)
 
         test_uuid = uuid1()
         stats_df = visitsarch.compute_nightly_stats(visits)
@@ -425,6 +426,16 @@ class TestVisitSequenceArchive(unittest.TestCase):
             archived_url = output.strip()
             assert archived_url.startswith(self.test_archive_url)
             assert archived_url.endswith(Path(temp_file.name).name)
+
+            # Compute and add nightly statistics
+            nightly_stats_command = [
+                "add-nightly-stats",
+                uuid_str,
+                temp_file.name,
+            ]
+            output = self.run_click_command(nightly_stats_command)
+            stats_from_output = pd.read_csv(io.StringIO(output), sep="\t")
+            assert len(stats_from_output) > 0
 
         # Get the file out of the archive, and test it against
         # what we sent.
