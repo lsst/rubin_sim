@@ -1180,8 +1180,13 @@ class VisitSequenceArchiveMetadata:
 
 
 def compute_nightly_stats(
-    visits: pd.DataFrame, columns: Tuple[str] = ("s_ra", "s_dec", "sky_rotation")
+    visits: pd.DataFrame, columns: Tuple[str, ...] = ("s_ra", "s_dec", "sky_rotation")
 ) -> pd.DataFrame:
+    if "day_obs" not in visits.columns:
+        times = Time(np.floor(visits.obs_start_mjd - 0.5), format="mjd").to_datetime()
+        assert isinstance(times, np.ndarray)
+        visits = visits.assign(day_obs=pd.Series(times).dt.date)
+
     stats_df = (
         visits.groupby("day_obs")[list(columns)]
         .describe(percentiles=[0.05, 0.25, 0.5, 0.75, 0.95])
@@ -1629,7 +1634,7 @@ def get_comments(vsarch: VisitSequenceArchiveMetadata, uuid: UUID) -> None:
 @click.argument("file_type", type=click.STRING)
 @click.option(
     "--archive-base",
-    default=ARCHIVE_URL,  # <-- use the global default
+    default=ARCHIVE_URL,
     show_default=True,
     help="Base directory for the archive (e.g. file://data/archive).",
 )
@@ -1672,6 +1677,56 @@ def get_file(
     destination_rp = ResourcePath(destination)
     destination_rp.transfer_from(origin_rp, "copy")
     click.echo(f"Copied {origin_rp.geturl()} to {destination_rp.geturl()}")
+
+
+@visitsarch.command()
+@click.argument("uuid", type=click.UUID)
+@click.argument("visits_file", type=click.Path(exists=True))
+@click.option(
+    "--columns",
+    "-c",
+    multiple=True,
+    help=(
+        "Columns to compute nightly statistics on. "
+        "If omitted, the default set defined in "
+        "``compute_nightly_stats`` is used."
+    ),
+)
+@click.pass_obj
+def add_nightly_stats(
+    vsarch: VisitSequenceArchiveMetadata,
+    uuid: UUID,
+    visits_file: str,
+    columns: tuple[str, ...],
+) -> None:
+    """Compute nightly statistics for a visit sequence and add
+    them to the visit sequence metadata database.
+
+    Parameters
+    ----------
+    uuid : `UUID`
+        The UUID of the visit sequence to attach the statistics to.
+    visits_file : `str`
+        Path to an HDF5 file containing a ``visits`` dataset.
+    columns : ``tuple[str]``
+        Optional list of columns to pass to `compute_nightly_stats`.
+    """
+    # Load the visits table from the HDF5 file
+    visits_df = pd.read_hdf(visits_file, key="visits")
+    assert isinstance(visits_df, pd.DataFrame), "Expected a DataFrame from key 'visits'"
+
+    # Compute the nightly statistics, passing the requested columns if any
+    if columns:
+        stats_df = compute_nightly_stats(visits_df, columns=tuple(columns))
+    else:
+        stats_df = compute_nightly_stats(visits_df)
+
+    # Insert into the database
+    vsarch.insert_nightly_stats(uuid, stats_df)
+
+    # Print the statistics as TSV
+    tsv = stats_df.to_csv(sep="\t", index=False).rstrip("\n")
+    click.echo(tsv)
 
 
 if __name__ == "__main__":
