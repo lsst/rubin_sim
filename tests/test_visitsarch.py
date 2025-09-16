@@ -15,8 +15,10 @@ import pandas as pd
 from astropy.time import Time
 from lsst.resources import ResourcePath
 from psycopg2 import sql
+from rubin_scheduler.scheduler.utils import SchemaConverter
 
 from rubin_sim import visitsarch
+from rubin_sim.data import get_baseline
 
 TEST_METADATA_DB_SCHEMA = "ehntest"
 TEST_METADATA_DB_KWARGS = {"database": "opsim_log", "host": "134.79.23.205"}
@@ -611,3 +613,50 @@ class TestVisitSequenceArchive(unittest.TestCase):
         assert len(found_versions) == 1
         found_version = found_versions[0][0]
         assert found_version == np.__version__
+
+    def test_opsim_cli(self) -> None:
+        # Test that we can archive and retrieve visits
+        # in the sqlite3 format.
+
+        # Make a sample file in opsim sqlite3 database format
+        schema_converter = SchemaConverter()
+        obs = schema_converter.opsim2obs(get_baseline())[:11]
+        db_file_name = str(Path(self.temp_dir.name).joinpath("test_opsim_cli_opsim.db"))
+        schema_converter.obs2opsim(obs, db_file_name)
+
+        # Make a visit sequence and send the visits
+        # attached to it.
+        label = f"CLI test {Time.now().iso}"
+        record_command = [
+            "record-visitseq-metadata",
+            "visitseq",
+            db_file_name,
+            label,
+            "--telescope",
+            "simonyi",
+        ]
+        uuid_str = self.run_click_command(record_command).strip()
+
+        # Archive the visits from the sqlite3 file
+        archive_visits_command = [
+            "archive-file",
+            uuid_str,
+            db_file_name,
+            "visits",
+            "--archive-base",
+            self.test_archive_url,
+        ]
+        self.run_click_command(archive_visits_command)
+
+        # Get it back as an h5 file
+        h5_file_name = str(Path(self.temp_dir.name).joinpath("test_opsim_cli_returned.h5"))
+        get_h5_visits_command = ["get-file", h5_file_name, uuid_str, "visits"]
+        self.run_click_command(get_h5_visits_command)
+        returned_visits_h5 = pd.read_hdf(h5_file_name, "visits")
+        assert len(returned_visits_h5) == len(obs)
+
+        ret_db_file_name = str(Path(self.temp_dir.name).joinpath("test_opsim_cli_returned.db"))
+        get_opsim_visits_command = ["get-file", ret_db_file_name, uuid_str, "visits"]
+        self.run_click_command(get_opsim_visits_command)
+        ret_obs = schema_converter.opsim2obs(ret_db_file_name)
+        assert len(ret_obs) == len(obs)
