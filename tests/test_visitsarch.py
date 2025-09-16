@@ -313,7 +313,9 @@ class TestVisitSequenceArchive(unittest.TestCase):
         test_uuid = uuid1()
         stats_df = visitsarch.compute_nightly_stats(visits)
         self.vsarch.insert_nightly_stats(test_uuid, stats_df)
-        assert len(stats_df) > 0
+        returned_stats_df = self.vsarch.query_nightly_stats(test_uuid)
+        assert len(returned_stats_df) > 0
+        assert len(stats_df) == len(returned_stats_df)
 
     def test_record_conda_env(self) -> None:
         conda_env_hash, conda_env_json = visitsarch.compute_conda_env()
@@ -436,6 +438,11 @@ class TestVisitSequenceArchive(unittest.TestCase):
             output = self.run_click_command(nightly_stats_command)
             stats_from_output = pd.read_csv(io.StringIO(output), sep="\t")
             assert len(stats_from_output) > 0
+
+            query_nightly_stats_command = ["query-nightly-stats", uuid_str]
+            query_output = self.run_click_command(query_nightly_stats_command)
+            returned_stats = pd.read_csv(io.StringIO(query_output), sep="\t")
+            assert len(returned_stats) == len(stats_from_output)
 
         # Get the file out of the archive, and test it against
         # what we sent.
