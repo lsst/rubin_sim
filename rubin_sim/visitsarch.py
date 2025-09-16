@@ -1102,6 +1102,41 @@ class VisitSequenceArchiveMetadata:
             )
             assert num_rows_added == len(stats_df)
 
+    def query_nightly_stats(self, visitseq_uuid: UUID) -> pd.DataFrame:
+        """Query the visit sequence metadata database for
+         nightly statistics.
+
+        Parameters
+        ----------
+        visitseq_uuid : `UUID`
+            The UUID of the visit sequence whose statistics are being
+            recorded.
+
+        Returns
+        -------
+        stats_df : `pd.DataFrame`
+            A table of nightly statistics.
+        """
+
+        psycopg2_query = sql.SQL("SELECT * FROM {}.nightly_stats WHERE visitseq_uuid=%s").format(
+            sql.Identifier(self.metadata_db_schema),
+        )
+
+        conn = None
+        try:
+            conn = self.pg_pool.getconn()
+            text_query = psycopg2_query.as_string(conn)
+        finally:
+            if conn:
+                self.pg_pool.putconn(conn)
+
+        # pandas works better if the connection is made by sqlalchemy
+        engine = sqlalchemy.create_engine("postgresql+psycopg2://", creator=self.pg_pool.getconn)
+        with engine.connect() as sa_conn:
+            stats_df = pd.read_sql(text_query, sa_conn, params=(visitseq_uuid,))
+
+        return stats_df
+
     def conda_env_is_saved(self, conda_env_hash: bytes) -> bool:
         """Check whether a conda environment with the given hash is already
         stored in the database.
@@ -1727,6 +1762,23 @@ def add_nightly_stats(
     # Print the statistics as TSV
     tsv = stats_df.to_csv(sep="\t", index=False).rstrip("\n")
     click.echo(tsv)
+
+
+@visitsarch.command()
+@click.argument("uuid", type=click.UUID)
+@click.pass_obj
+def query_nightly_stats(vsarch: VisitSequenceArchiveMetadata, uuid: UUID) -> None:
+    """Retrieve nightly statistics for a visit sequence and
+    print them as a tab‑separated table.
+
+    Parameters
+    ----------
+    uuid : `UUID`
+        The unique identifier of the visit sequence.
+    """
+    stats_df = vsarch.query_nightly_stats(uuid)
+    output = stats_df.to_csv(sep="\t", index=False).rstrip("\n") if not stats_df.empty else ""
+    click.echo(output)
 
 
 if __name__ == "__main__":
