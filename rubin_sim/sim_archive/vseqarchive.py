@@ -162,6 +162,65 @@ class VisitSequenceArchiveMetadata:
 
         return result
 
+    def pd_read_sql(
+        self, query_template: str, sql_params: list[sql.Composable], query_params: tuple
+    ) -> pd.DataFrame:
+        """Execute a SQL query using the internal PostgreSQL connection pool
+        and return the results as a pandas DataFrame.
+
+        Parameters
+        ----------
+        query_template : `str`
+            A query template containing ``%s`` placeholders for positional
+            parameters.  These placeholders are replaced by ``sql_params`` via
+            `psycopg2.sql.SQL`.
+        sql_params : `list[sql.Composable]`
+            Elements that will be substituted into the template (e.g. table or
+            schema identifiers).  They must be safe for use in a SQL statement
+            and are not the same as the query parameters bound to the query.
+            To make type checkers happy, you may need to explictly declare
+            variables passed as ``list[sql.Composable]``.
+        query_params : tuple
+            Positional parameters that will be bound to the rendered SQL
+            string.  These are the values that actually get passed to the
+            database.
+
+        Returns
+        -------
+        pandas.DataFrame
+            The result set of the query, wrapped in a DataFrame.
+
+        Raises
+        ------
+        psycopg2.Error
+            Propagated if the underlying query fails.
+
+        Notes
+        -----
+        This works around limitations in pandas when dealing with
+        complex datatypes in raw postgresql connections.
+        """
+        # Pandas sometimes has trouble with postgresql when working with it
+        # directly, so interact with it by way of sqlalchemy.
+        # But, we need to use postgresql's tools for inserting identifiers
+        # like the schema name, followed by the sqlalchemy templating
+        # for actual parameters.
+        query = sql.SQL(query_template).format(*sql_params)
+        conn = None
+        try:
+            conn = self.pg_pool.getconn()
+            text_query = query.as_string(conn)
+        finally:
+            if conn:
+                self.pg_pool.putconn(conn)
+
+        # Use the postgresql pool of connections.
+        engine = sqlalchemy.create_engine("postgresql+psycopg2://", creator=self.pg_pool.getconn)
+        with engine.connect() as sa_conn:
+            df = pd.read_sql(text_query, sa_conn, params=query_params)
+
+        return df
+
     def record_visitseq_metadata(
         self,
         visits: pd.DataFrame,
@@ -300,24 +359,10 @@ class VisitSequenceArchiveMetadata:
         if table not in {"visitseq", "mixedvisitseq", "completed", "simulations"}:
             raise ValueError()
 
-        psycopg2_query = sql.SQL("SELECT * FROM {}.{} WHERE visitseq_uuid=%s").format(
-            sql.Identifier(self.metadata_db_schema),
-            sql.Identifier(table),
-        )
-
-        conn = None
-        try:
-            conn = self.pg_pool.getconn()
-            text_query = psycopg2_query.as_string(conn)
-        finally:
-            if conn:
-                self.pg_pool.putconn(conn)
-
-        # pandas works better if the connection is made by sqlalchemy
-        engine = sqlalchemy.create_engine("postgresql+psycopg2://", creator=self.pg_pool.getconn)
-        with engine.connect() as sa_conn:
-            visitseq = pd.read_sql(text_query, sa_conn, params=(visitseq_uuid,)).iloc[0, :]
-
+        query_template = "SELECT * FROM {}.{} WHERE visitseq_uuid=%s"
+        sql_params: list[sql.Composable] = [sql.Identifier(self.metadata_db_schema), sql.Identifier(table)]
+        query_params = (visitseq_uuid,)
+        visitseq = self.pd_read_sql(query_template, sql_params, query_params).iloc[0, :]
         return visitseq
 
     def set_visitseq_url(self, visitseq_uuid: UUID, visitseq_url: str) -> None:
@@ -873,22 +918,10 @@ class VisitSequenceArchiveMetadata:
             above column names is returned.
 
         """
-        psycopg2_query = sql.SQL("SELECT * FROM {}.comments WHERE visitseq_uuid = %s").format(
-            sql.Identifier(self.metadata_db_schema)
-        )
-
-        conn = None
-        try:
-            conn = self.pg_pool.getconn()
-            text_query = psycopg2_query.as_string(conn)
-        finally:
-            if conn:
-                self.pg_pool.putconn(conn)
-
-        # pandas works better if the connection is made by sqlalchemy
-        engine = sqlalchemy.create_engine("postgresql+psycopg2://", creator=self.pg_pool.getconn)
-        with engine.connect() as sa_conn:
-            comments = pd.read_sql(text_query, sa_conn, params=(visitseq_uuid,))
+        query_template = "SELECT * FROM {}.comments WHERE visitseq_uuid = %s"
+        sql_params: list[sql.Composable] = [sql.Identifier(self.metadata_db_schema)]
+        query_params = (visitseq_uuid,)
+        comments = self.pd_read_sql(query_template, sql_params, query_params)
 
         # sqlalchemy seems to mess up the dtypes. Fix them.
         comments["comment"] = comments["comment"].astype("string")
@@ -1120,24 +1153,10 @@ class VisitSequenceArchiveMetadata:
         stats_df : `pd.DataFrame`
             A table of nightly statistics.
         """
-
-        psycopg2_query = sql.SQL("SELECT * FROM {}.nightly_stats WHERE visitseq_uuid=%s").format(
-            sql.Identifier(self.metadata_db_schema),
-        )
-
-        conn = None
-        try:
-            conn = self.pg_pool.getconn()
-            text_query = psycopg2_query.as_string(conn)
-        finally:
-            if conn:
-                self.pg_pool.putconn(conn)
-
-        # pandas works better if the connection is made by sqlalchemy
-        engine = sqlalchemy.create_engine("postgresql+psycopg2://", creator=self.pg_pool.getconn)
-        with engine.connect() as sa_conn:
-            stats_df = pd.read_sql(text_query, sa_conn, params=(visitseq_uuid,))
-
+        query_template = "SELECT * FROM {}.nightly_stats WHERE visitseq_uuid=%s"
+        sql_params: list[sql.Composable] = [sql.Identifier(self.metadata_db_schema)]
+        query_params = (visitseq_uuid,)
+        stats_df = self.pd_read_sql(query_template, sql_params, query_params)
         return stats_df
 
     def conda_env_is_saved(self, conda_env_hash: bytes) -> bool:
@@ -1210,6 +1229,40 @@ class VisitSequenceArchiveMetadata:
                 return table
 
         raise ValueError("Visit sequence not found.")
+
+    def sims_on_nights(
+        self,
+        first_day_obs: str | None = None,
+        last_day_obs: str | None = None,
+        tags: tuple[str] = ("prenight", "ideal", "nominal"),
+        telescope: str = "simonyi",
+        max_simulation_age: int = 2,
+    ) -> pd.DataFrame:
+        if len(tags) > 0:
+            tags_json = json.dumps(list(tags))
+            query_template = """
+            SELECT *
+            FROM {}.simulations_extra
+            WHERE %s BETWEEN first_day_obs AND last_day_obs
+                AND %s BETWEEN first_day_obs AND last_day_obs
+                AND telescope = %s
+                AND tags @> %s:JSONB
+                AND creation_time >= NOW() - INTERVAL '%s days'
+            """
+            query_params = (first_day_obs, last_day_obs, telescope, tags_json, max_simulation_age)
+        else:
+            query_template = """
+            SELECT *
+            FROM {}.simulations_extra
+            WHERE %s BETWEEN first_day_obs AND last_day_obs
+                AND %s BETWEEN first_day_obs AND last_day_obs
+                AND telescope = %s
+                AND creation_time >= NOW() - INTERVAL '%s days'
+            """
+            query_params = (first_day_obs, last_day_obs, telescope, max_simulation_age)
+
+        vseq = self.pd_read_sql(query_template, [sql.Identifier(self.metadata_db_schema)], query_params)
+        return vseq
 
 
 #
