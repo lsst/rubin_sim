@@ -71,7 +71,10 @@ CREATE INDEX files_visitseq_idx ON files(visitseq_uuid);
 
 -- A view to make it easy to query simulations and get tags, comments, and files back.
 CREATE VIEW simulations_extra AS
-    SELECT s.visitseq_uuid,
+    SELECT
+        DATE(s.creation_time - INTERVAL '12 hours') AS sim_creation_day_obs,
+        ROW_NUMBER() OVER (PARTITION BY DATE(s.creation_time - INTERVAL '12 hours') ORDER BY s.creation_time - INTERVAL '12 hours') AS daily_id,
+        s.visitseq_uuid,
         s.visitseq_label,
         s.visitseq_url,
         s.telescope,
