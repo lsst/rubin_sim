@@ -8,7 +8,7 @@ import warnings
 from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from typing import Mapping, Tuple
+from typing import Any, Dict, Mapping, Tuple
 from uuid import UUID
 
 import click
@@ -356,7 +356,7 @@ class VisitSequenceArchiveMetadata:
             sql.Placeholder("visitseq_label"),
             sql.Placeholder("telescope"),
         ]
-        data = {"visitseq_sha256": sha256, "visitseq_label": label, "telescope": telescope}
+        data: Dict[str, Any] = {"visitseq_sha256": sha256, "visitseq_label": label, "telescope": telescope}
 
         if url is not None:
             columns.append(sql.Identifier("visitseq_url"))
@@ -383,7 +383,9 @@ class VisitSequenceArchiveMetadata:
                 # is true, can sometimes need to be indexed
                 # by 0 to get a true scalar, and sometimes
                 # cannot be.
-                creation_datetime = creation_time.utc.datetime
+                creation_utc = creation_time.utc
+                assert isinstance(creation_utc, Time)
+                creation_datetime = creation_utc.datetime
             columns.append(sql.Identifier("creation_time"))
             data_placeholders.append(sql.Placeholder("creation_time"))
             data["creation_time"] = creation_datetime
@@ -569,7 +571,7 @@ class VisitSequenceArchiveMetadata:
             return set_clause
 
         set_clauses = []
-        data = {}
+        data: Dict[str, Any] = {}
         if scheduler_version is not None:
             set_clauses.append(make_set_clause("scheduler_version"))
             data["scheduler_version"] = scheduler_version
@@ -888,7 +890,7 @@ class VisitSequenceArchiveMetadata:
         query = sql.SQL("INSERT INTO {}.tags (visitseq_uuid, tag) VALUES ({}, {})").format(
             sql.Identifier(self.metadata_db_schema), sql.Placeholder("visitseq_uuid"), sql.Placeholder("tag")
         )
-        data = {"visitseq_uuid": visitseq_uuid}
+        data: Dict[str, Any] = {"visitseq_uuid": visitseq_uuid}
         for tag in tags:
             if not self.is_tagged(visitseq_uuid, tag):
                 data["tag"] = tag
@@ -934,7 +936,11 @@ class VisitSequenceArchiveMetadata:
             The author of the comment.
             Defaults to `None`.
         """
-        comment_time = Time.now().utc.datetime
+        comment_utc = Time.now().utc
+        # mypy cannot figure out that comment_utc cannot be masked
+        # so assert that it is not as a hint to it.
+        assert isinstance(comment_utc, Time)
+        comment_time = comment_utc.datetime
         query = ""
         data = {"visitseq_uuid": visitseq_uuid, "comment_time": comment_time, "comment": comment}
         if author is None:
@@ -1304,7 +1310,7 @@ class VisitSequenceArchiveMetadata:
         self,
         first_day_obs: str | date | int | None = None,
         last_day_obs: str | date | int | None = None,
-        tags: tuple[str] = ("prenight", "ideal", "nominal"),
+        tags: tuple[str, ...] = ("prenight", "ideal", "nominal"),
         telescope: str = "simonyi",
         max_simulation_age: int = 2,
     ) -> pd.DataFrame:
@@ -1360,7 +1366,7 @@ class VisitSequenceArchiveMetadata:
                 AND tags @> %s:JSONB
                 AND creation_time >= NOW() - INTERVAL '%s days'
             """
-            query_params = (first_day_obs, last_day_obs, telescope, tags_json, max_simulation_age)
+            query_params: Tuple = (first_day_obs, last_day_obs, telescope, tags_json, max_simulation_age)
         else:
             query_template = """
             SELECT *
@@ -1385,8 +1391,8 @@ def compute_nightly_stats(
     visits: pd.DataFrame, columns: Tuple[str, ...] = ("s_ra", "s_dec", "sky_rotation")
 ) -> pd.DataFrame:
     if "day_obs" not in visits.columns:
-        times = Time(np.floor(visits.obs_start_mjd - 0.5), format="mjd").to_datetime()
-        assert isinstance(times, np.ndarray)
+        # Pandas seems to work better with type hinding that astropy Time
+        times = pd.to_datetime(visits.obs_start_mjd + 2400000, unit="D", origin="julian")
         visits = visits.assign(day_obs=pd.Series(times).dt.date)
 
     stats_df = (
