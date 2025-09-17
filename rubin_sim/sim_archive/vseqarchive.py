@@ -171,23 +171,18 @@ class VisitSequenceArchiveMetadata:
         Parameters
         ----------
         query_template : `str`
-            A query template containing ``%s`` placeholders for positional
-            parameters.  These placeholders are replaced by ``sql_params`` via
-            `psycopg2.sql.SQL`.
+            A query template.
         sql_params : `list[sql.Composable]`
             Elements that will be substituted into the template (e.g. table or
-            schema identifiers).  They must be safe for use in a SQL statement
-            and are not the same as the query parameters bound to the query.
+            schema identifiers) using `psycopg2.sql.SQL.format`.
             To make type checkers happy, you may need to explictly declare
             variables passed as ``list[sql.Composable]``.
-        query_params : tuple
-            Positional parameters that will be bound to the rendered SQL
-            string.  These are the values that actually get passed to the
-            database.
+        query_params : `tuple`
+            Positional parameters that will be bound by sqlalchemy.
 
         Returns
         -------
-        pandas.DataFrame
+        df : `pd.DataFrame`
             The result set of the query, wrapped in a DataFrame.
 
         Raises
