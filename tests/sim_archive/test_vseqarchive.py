@@ -355,7 +355,7 @@ class TestVisitSequenceArchive(unittest.TestCase):
         vseq_uuid = self.vsarch.record_visitseq_metadata(visits, label, table="visitseq")
 
         with NamedTemporaryFile() as temp_file:
-            visits.to_hdf(temp_file.name, key="visits")
+            visits.to_hdf(temp_file.name, key="observations")
             file_name = temp_file.name
             sent_location = vseqarchive.add_file(
                 self.vsarch, vseq_uuid, file_name, test_file_type, self.test_archive
@@ -391,7 +391,7 @@ class TestVisitSequenceArchive(unittest.TestCase):
         with NamedTemporaryFile(suffix=".h5") as temp_file:
             # Make a dummy data file
 
-            TEST_VISITS.to_hdf(temp_file.name, key="visits", mode="w")
+            TEST_VISITS.to_hdf(temp_file.name, key="observations", mode="w")
 
             table_name = "visitseq"
             label = f"CLI test {Time.now().iso}"
@@ -452,7 +452,7 @@ class TestVisitSequenceArchive(unittest.TestCase):
             visits_fname = str(Path(temp_dir).joinpath("visits.h5"))
             get_visits_command = ["get-file", visits_fname, uuid_str, "visits"]
             self.run_click_command(get_visits_command)
-            read_visits = pd.read_hdf(visits_fname, "visits")
+            read_visits = pd.read_hdf(visits_fname, "observations")
             assert isinstance(read_visits, pd.DataFrame)
             pd.testing.assert_frame_equal(read_visits, TEST_VISITS)
 
@@ -652,7 +652,7 @@ class TestVisitSequenceArchive(unittest.TestCase):
         h5_file_name = str(Path(self.temp_dir.name).joinpath("test_opsim_cli_returned.h5"))
         get_h5_visits_command = ["get-file", h5_file_name, uuid_str, "visits"]
         self.run_click_command(get_h5_visits_command)
-        returned_visits_h5 = pd.read_hdf(h5_file_name, "visits")
+        returned_visits_h5 = pd.read_hdf(h5_file_name, "observations")
         assert len(returned_visits_h5) == len(obs)
 
         ret_db_file_name = str(Path(self.temp_dir.name).joinpath("test_opsim_cli_returned.db"))
