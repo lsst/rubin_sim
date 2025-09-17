@@ -2,6 +2,7 @@ import hashlib
 import json
 import logging
 import os
+import sqlite3
 import subprocess
 import warnings
 from datetime import date, datetime, timedelta, timezone
@@ -20,7 +21,6 @@ import sqlalchemy
 from astropy.time import Time
 from lsst.resources import ResourcePath
 from psycopg2 import sql
-from rubin_scheduler.scheduler.utils import SchemaConverter
 
 VSARCHIVE_PGDATABASE = "opsim_log"
 VSARCHIVE_PGHOST = "134.79.23.205"
@@ -55,6 +55,81 @@ def compute_visits_sha256(visits: pd.DataFrame) -> bytes:
     visitseq_hash.update(np.ascontiguousarray(recs).data.tobytes())
     visitseq_sha256 = bytes.fromhex(visitseq_hash.hexdigest())
     return visitseq_sha256
+
+
+def opsimdb_to_hdf5(opsimdb_path: str | Path, hdf5_path: str | Path | None = None) -> str:
+    """Convert an opsim sqlite3 format database into an hdf5
+    format table store.
+
+    Parameters
+    ----------
+    opsimdb_path : `str` or `Path`
+        Path to an opsim sqlite3-format database.
+    hdf5_path : `str` or `Path`
+        Path to the output HDF5 file to be created.
+
+    Returns
+    -------
+    hdf5_path : `str`
+        The path of the written file.
+    """
+
+    if hdf5_path is None:
+        hdf5_path = Path(opsimdb_path).with_suffix(".h5")
+
+    conn = sqlite3.connect(str(opsimdb_path))
+
+    try:
+        # Get all table names
+        cursor = conn.cursor()
+        cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
+        tables = [row[0] for row in cursor.fetchall()]
+
+        # Write each table to the HDF5 file
+        hdf5_mode = "w"
+        for table in tables:
+            df = pd.read_sql_query(f"SELECT * FROM {table}", conn)
+            df.to_hdf(str(hdf5_path), key=table, mode=hdf5_mode)
+            hdf5_mode = "a"
+
+    finally:
+        conn.close()
+
+    return str(hdf5_path)
+
+
+def hdf5_to_opsimdb(hdf5_path: str | Path, opsimdb_path: str | Path | None = None) -> str:
+    """Convert an hdf5 datastore with opsim output into an opsim sqlite3 file.
+
+    Parameters
+    ----------
+    hdf5_path : `str`
+        Path to the input HDF5 file.
+    opsimdb_path : `str`
+        Path to the output SQLite database file to be created.
+
+    Returns
+    -------
+    opsimdb_path : `str`
+        The path of the written file.
+    """
+    if opsimdb_path is None:
+        opsimdb_path = Path(hdf5_path).with_suffix(".h5")
+
+    conn = sqlite3.connect(str(opsimdb_path))
+
+    try:
+        with pd.HDFStore(str(hdf5_path), mode="r") as store:
+            for key in store.keys():
+                # Remove leading '/' from key name
+                table_name = key.lstrip("/")
+                df = pd.read_hdf(hdf5_path, key=key)
+                df.to_sql(table_name, conn, index=False)
+
+    finally:
+        conn.close()
+
+    return str(opsimdb_path)
 
 
 class VisitSequenceArchiveMetadata:
@@ -1264,7 +1339,7 @@ class VisitSequenceArchiveMetadata:
         """
 
         if first_day_obs is None:
-            first_day_obs = datetime.now(timezone(timedelta(hours=-12))).date().isoformat()
+            first_day_obs = datetime.now(timezone(timedelta(hours=-12))).date()
         if last_day_obs is None:
             last_day_obs = first_day_obs
 
@@ -1470,14 +1545,11 @@ def add_file(
     visitseq_base_rp = construct_base_resource_path(archive_base, telescope, creation_time, uuid)
 
     # If we are adding a file that looks like opsim sqlite3 output but
-    # specify the file type as visits, convert to hdf5 using
-    # SchemaConverter and send the result.
+    # specify the file type as visits, convert to hdf5.
     if file_type == "visits" and Path(origin).suffix.lower() in SQLITE_EXTINSIONS:
-        schema_converter = SchemaConverter()
-        visits = schema_converter.obs2opsim(schema_converter.opsim2obs(origin))
         with TemporaryDirectory() as temp_dir:
             new_origin = Path(temp_dir).joinpath("visits.h5")
-            visits.to_hdf(new_origin, key="visits", complevel=2)
+            opsimdb_to_hdf5(origin, new_origin)
             location = add_file(vsarch, uuid, new_origin, "visits", archive_base, update)
         return location
 
@@ -1576,10 +1648,12 @@ def record_visitseq_metadata(
     specified table.
     """
     if Path(visits_file).suffix.lower() in SQLITE_EXTINSIONS:
-        schema_converter = SchemaConverter()
-        visits_df = schema_converter.obs2opsim(schema_converter.opsim2obs(visits_file))
+        with TemporaryDirectory() as temp_dir:
+            hdf5_path = Path(temp_dir).joinpath("visits.h5")
+            opsimdb_to_hdf5(visits_file, hdf5_path)
+            visits_df = pd.read_hdf(str(hdf5_path), key="observations")
     else:
-        visits_df = pd.read_hdf(visits_file, key="visits")
+        visits_df = pd.read_hdf(visits_file, key="observations")
     assert isinstance(visits_df, pd.DataFrame)
 
     # Convert the optional creation time string to an astropy Time object
@@ -1847,8 +1921,7 @@ def get_file(
     then copies the file from the URL to the local filesystem.  For a
     ``visits`` file whose destination ends with a SQLite3 extension
     (``.db``, ``.sqlite``), the file is first downloaded as a HDF5
-    temporary file, converted to the legacy opsim SQLite format by
-    `SchemaConverter`, and then written to ``destination``.
+    temporary file, then converted to an opsim sqlite database file.
     Otherwise the file is copied directly.
 
     This command prints the local path of the copied file.
@@ -1860,10 +1933,7 @@ def get_file(
             h5_destination = ResourcePath(temp_dir).join("visits.h5")
             h5_destination.transfer_from(origin_rp, "copy")
             click.echo(f"Copied {origin_rp.geturl()} to {h5_destination.geturl()}")
-            visits = pd.read_hdf(h5_destination.ospath, "visits")
-            schema_converter = SchemaConverter()
-            obs = schema_converter.opsimdf2obs(visits)
-            schema_converter.obs2opsim(obs, destination)
+            hdf5_to_opsimdb(h5_destination.ospath, destination)
             click.echo(f"Converted to opsim and wrote to {destination}")
     else:
         destination_rp = ResourcePath(destination)
@@ -1904,8 +1974,8 @@ def add_nightly_stats(
         Optional list of columns to pass to `compute_nightly_stats`.
     """
     # Load the visits table from the HDF5 file
-    visits_df = pd.read_hdf(visits_file, key="visits")
-    assert isinstance(visits_df, pd.DataFrame), "Expected a DataFrame from key 'visits'"
+    visits_df = pd.read_hdf(visits_file, key="observations")
+    assert isinstance(visits_df, pd.DataFrame), "Expected a DataFrame from key 'observations'"
 
     # Compute the nightly statistics, passing the requested columns if any
     if columns:
