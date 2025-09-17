@@ -4,7 +4,7 @@ import logging
 import os
 import subprocess
 import warnings
-from datetime import date, datetime
+from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from typing import Mapping, Tuple
@@ -1227,12 +1227,53 @@ class VisitSequenceArchiveMetadata:
 
     def sims_on_nights(
         self,
-        first_day_obs: str | None = None,
-        last_day_obs: str | None = None,
+        first_day_obs: str | date | int | None = None,
+        last_day_obs: str | date | int | None = None,
         tags: tuple[str] = ("prenight", "ideal", "nominal"),
         telescope: str = "simonyi",
         max_simulation_age: int = 2,
     ) -> pd.DataFrame:
+        """Return a table of simulations that cover a given night range.
+
+        Parameters
+        ----------
+        first_day_obs : `str` | `date` | `int` | `None`, optional
+            The first observation day of the window for which simulations are
+            requested.  It can be specified as a `datetime.date` object, an
+            ISO‑formatted string (e.g. ``'2025-12-01'``), or an integer in
+            SMTN‑032 format (e.g. ``20251201``).  If ``None`` (the default),
+            the method uses the current dayobs.
+        last_day_obs : `str` | `date` | `int` | `None`, optional
+            The last observation day of the window.  It accepts the same
+            types as ``first_day_obs``.  If ``None`` the same value as
+            ``first_day_obs`` is used, giving a single‑night query.
+        tags : `tuple[str]`, optional
+            A sequence of tags that must be present on the simulation record.
+            The default tags are ``("prenight", "ideal", "nominal")``.  If
+            an empty tuple is supplied, the tag test is omitted.
+        telescope : `str`, optional
+            The telescope simulated.  The default is ``simonyi``.
+        max_simulation_age : `int`, optional
+            The maximum age of a simulation in days.
+            The default is 2 days.
+
+        Returns
+        -------
+        vseqs : `pd.DataFrame`
+            A table of metadata for matching simulations.
+        """
+
+        if first_day_obs is None:
+            first_day_obs = datetime.now(timezone(timedelta(hours=-12))).date().isoformat()
+        if last_day_obs is None:
+            last_day_obs = first_day_obs
+
+        first_day_obs = _dayobs_to_date(first_day_obs)
+        last_day_obs = _dayobs_to_date(last_day_obs)
+
+        assert isinstance(first_day_obs, date)
+        assert isinstance(last_day_obs, date)
+
         if len(tags) > 0:
             tags_json = json.dumps(list(tags))
             query_template = """
@@ -1256,8 +1297,8 @@ class VisitSequenceArchiveMetadata:
             """
             query_params = (first_day_obs, last_day_obs, telescope, max_simulation_age)
 
-        vseq = self.pd_read_sql(query_template, [sql.Identifier(self.metadata_db_schema)], query_params)
-        return vseq
+        vseqs = self.pd_read_sql(query_template, [sql.Identifier(self.metadata_db_schema)], query_params)
+        return vseqs
 
 
 #
