@@ -17,8 +17,8 @@ from lsst.resources import ResourcePath
 from psycopg2 import sql
 from rubin_scheduler.scheduler.utils import SchemaConverter
 
-from rubin_sim import visitsarch
 from rubin_sim.data import get_baseline
+from rubin_sim.sim_archive import vseqarchive
 
 TEST_METADATA_DB_SCHEMA = "ehntest"
 TEST_METADATA_DB_KWARGS = {"database": "opsim_log", "host": "134.79.23.205"}
@@ -43,7 +43,7 @@ class TestVisitSequenceArchive(unittest.TestCase):
         self.temp_dir = TemporaryDirectory()
         self.test_archive_url = "file://" + self.temp_dir.name + "/archive/"
         self.test_archive = ResourcePath(self.test_archive_url)
-        self.vsarch = visitsarch.VisitSequenceArchiveMetadata(
+        self.vsarch = vseqarchive.VisitSequenceArchiveMetadata(
             metadata_db_kwargs=TEST_METADATA_DB_KWARGS,
             metadata_db_schema=TEST_METADATA_DB_SCHEMA,
         )
@@ -51,7 +51,7 @@ class TestVisitSequenceArchive(unittest.TestCase):
     def tearDown(self) -> None:
         self.temp_dir.cleanup()
 
-    def num_rows_in_table(self, archive: visitsarch.VisitSequenceArchiveMetadata, table: str) -> int:
+    def num_rows_in_table(self, archive: vseqarchive.VisitSequenceArchiveMetadata, table: str) -> int:
         result = archive.query(
             sql.SQL("SELECT COUNT(*) FROM {}.{};").format(
                 sql.Identifier(TEST_METADATA_DB_SCHEMA), sql.Identifier(table)
@@ -63,7 +63,7 @@ class TestVisitSequenceArchive(unittest.TestCase):
         return num_rows
 
     def num_rows_for_visitseq(
-        self, archive: visitsarch.VisitSequenceArchiveMetadata, table: str, visitseq_uuid: UUID
+        self, archive: vseqarchive.VisitSequenceArchiveMetadata, table: str, visitseq_uuid: UUID
     ) -> int:
         data = {"visitseq_uuid": visitseq_uuid}
         result = archive.query(
@@ -313,14 +313,14 @@ class TestVisitSequenceArchive(unittest.TestCase):
         visits = visits.assign(day_obs=pd.Series(times).dt.date)
 
         test_uuid = uuid1()
-        stats_df = visitsarch.compute_nightly_stats(visits)
+        stats_df = vseqarchive.compute_nightly_stats(visits)
         self.vsarch.insert_nightly_stats(test_uuid, stats_df)
         returned_stats_df = self.vsarch.query_nightly_stats(test_uuid)
         assert len(returned_stats_df) > 0
         assert len(stats_df) == len(returned_stats_df)
 
     def test_record_conda_env(self) -> None:
-        conda_env_hash, conda_env_json = visitsarch.compute_conda_env()
+        conda_env_hash, conda_env_json = vseqarchive.compute_conda_env()
         self.vsarch.record_conda_env(conda_env_hash, conda_env_json)
         assert self.vsarch.conda_env_is_saved(conda_env_hash)
         assert conda_env_hash is not None
@@ -336,7 +336,7 @@ class TestVisitSequenceArchive(unittest.TestCase):
             file_name = temp_file.name
             temp_file.write(content)
             temp_file.flush()
-            sent_location = visitsarch.add_file(
+            sent_location = vseqarchive.add_file(
                 self.vsarch, vseq_uuid, file_name, test_file_type, self.test_archive
             )
 
@@ -357,7 +357,7 @@ class TestVisitSequenceArchive(unittest.TestCase):
         with NamedTemporaryFile() as temp_file:
             visits.to_hdf(temp_file.name, key="visits")
             file_name = temp_file.name
-            sent_location = visitsarch.add_file(
+            sent_location = vseqarchive.add_file(
                 self.vsarch, vseq_uuid, file_name, test_file_type, self.test_archive
             )
 
@@ -379,7 +379,7 @@ class TestVisitSequenceArchive(unittest.TestCase):
         }
 
         runner = click.testing.CliRunner()
-        result = runner.invoke(visitsarch.visitsarch, command, env=env)
+        result = runner.invoke(vseqarchive.vseqarchive, command, env=env)
 
         # Verify the command ran successfully.
         self.assertEqual(result.exit_code, 0, msg=result.output)

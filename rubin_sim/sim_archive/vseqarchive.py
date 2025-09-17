@@ -1428,7 +1428,7 @@ def add_file(
     help="Schema of the metadata database containing the visit‑sequence tables",
 )
 @click.pass_context
-def visitsarch(
+def vseqarchive(
     click_context: click.Context,
     database: str,
     host: str,
@@ -1447,7 +1447,7 @@ def visitsarch(
     click_context.obj = VisitSequenceArchiveMetadata(metadata_db_kwargs, schema)
 
 
-@visitsarch.command()
+@vseqarchive.command()
 @click.argument("table", type=str)
 @click.argument("visits_file", type=click.Path(exists=True))
 @click.argument("label")
@@ -1510,7 +1510,7 @@ def record_visitseq_metadata(
     print(visitseq_uuid)
 
 
-@visitsarch.command()
+@vseqarchive.command()
 @click.argument("uuid", type=click.UUID)
 @click.option(
     "--table",
@@ -1531,7 +1531,7 @@ def get_visitseq_metadata(vsarch: VisitSequenceArchiveMetadata, uuid: UUID, tabl
     print(sequence_metadata.to_frame().T.to_csv(sep="\t", index=False).rstrip("\n"))
 
 
-@visitsarch.command()
+@vseqarchive.command()
 @click.argument("uuid", type=click.UUID)
 @click.argument("url", type=click.STRING)
 @click.pass_obj
@@ -1543,7 +1543,7 @@ def set_visitseq_url(vsarch: VisitSequenceArchiveMetadata, uuid: UUID, url: str)
     vsarch.set_visitseq_url(uuid, url)
 
 
-@visitsarch.command()
+@vseqarchive.command()
 @click.argument("uuid", type=click.UUID)
 @click.pass_obj
 def get_visitseq_url(vsarch: VisitSequenceArchiveMetadata, uuid: UUID) -> None:
@@ -1555,7 +1555,7 @@ def get_visitseq_url(vsarch: VisitSequenceArchiveMetadata, uuid: UUID) -> None:
     click.echo(url)
 
 
-@visitsarch.command()
+@vseqarchive.command()
 @click.argument("uuid", type=click.UUID)
 @click.argument("field", type=str)
 @click.argument("value", type=str)
@@ -1593,7 +1593,7 @@ def update_visitseq_metadata(
     vsarch.update_visitseq_metadata(uuid, field, update_value)
 
 
-@visitsarch.command()
+@vseqarchive.command()
 @click.argument("uuid", type=click.UUID)
 @click.argument("tag", type=str)
 @click.pass_obj
@@ -1617,7 +1617,7 @@ def is_tagged(vsarch: VisitSequenceArchiveMetadata, uuid: UUID, tag: str) -> Non
         click.echo("false")
 
 
-@visitsarch.command()
+@vseqarchive.command()
 @click.argument("uuid", type=click.UUID)
 @click.argument("tags", nargs=-1, required=True)
 @click.pass_obj
@@ -1637,7 +1637,7 @@ def tag(vsarch: VisitSequenceArchiveMetadata, uuid: UUID, tags: Tuple[str, ...])
     vsarch.tag(uuid, *tags)
 
 
-@visitsarch.command()
+@vseqarchive.command()
 @click.argument("uuid", type=click.UUID)
 @click.argument("tag", type=str)
 @click.pass_obj
@@ -1654,7 +1654,7 @@ def untag(vsarch: VisitSequenceArchiveMetadata, uuid: UUID, tag: str) -> None:
     vsarch.untag(uuid, tag)
 
 
-@visitsarch.command()
+@vseqarchive.command()
 @click.argument("uuid", type=click.UUID)
 @click.argument("comment")
 @click.option(
@@ -1669,7 +1669,7 @@ def comment(
     vsarch.comment(uuid, comment, author)
 
 
-@visitsarch.command()
+@vseqarchive.command()
 @click.argument("uuid", type=click.UUID)
 @click.pass_obj
 def get_comments(vsarch: VisitSequenceArchiveMetadata, uuid: UUID) -> None:
@@ -1689,7 +1689,7 @@ def get_comments(vsarch: VisitSequenceArchiveMetadata, uuid: UUID) -> None:
         click.echo(comments_df.to_csv(sep="\t", index=False).rstrip("\n"))
 
 
-@visitsarch.command()
+@vseqarchive.command()
 @click.argument("uuid", type=click.UUID)
 @click.argument("origin", type=click.Path(exists=True))
 @click.argument("file_type", type=click.STRING)
@@ -1722,7 +1722,7 @@ def archive_file(
     click.echo(archived_location.geturl())
 
 
-@visitsarch.command()
+@vseqarchive.command()
 @click.argument("destination", type=click.Path(exists=False))
 @click.argument("uuid", type=click.UUID)
 @click.argument("file_type", type=click.STRING)
@@ -1782,7 +1782,7 @@ def get_file(
         click.echo(f"Copied {origin_rp.geturl()} to {destination_rp.geturl()}")
 
 
-@visitsarch.command()
+@vseqarchive.command()
 @click.argument("uuid", type=click.UUID)
 @click.argument("visits_file", type=click.Path(exists=True))
 @click.option(
@@ -1832,7 +1832,7 @@ def add_nightly_stats(
     click.echo(tsv)
 
 
-@visitsarch.command()
+@vseqarchive.command()
 @click.argument("uuid", type=click.UUID)
 @click.pass_obj
 def query_nightly_stats(vsarch: VisitSequenceArchiveMetadata, uuid: UUID) -> None:
@@ -1849,7 +1849,7 @@ def query_nightly_stats(vsarch: VisitSequenceArchiveMetadata, uuid: UUID) -> Non
     click.echo(output)
 
 
-@visitsarch.command()
+@vseqarchive.command()
 @click.pass_obj
 def record_conda_env(vsarch: VisitSequenceArchiveMetadata) -> None:
     """Record the current Conda environment in the metadata database,
@@ -1861,4 +1861,4 @@ def record_conda_env(vsarch: VisitSequenceArchiveMetadata) -> None:
 
 
 if __name__ == "__main__":
-    visitsarch()
+    vseqarchive()

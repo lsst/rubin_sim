@@ -1,6 +1,6 @@
-CREATE SCHEMA visitsarch;
+CREATE SCHEMA vseqmeta;
 
-SET SEARCH_PATH TO visitsarch;
+SET SEARCH_PATH TO vseqmeta;
 
 CREATE TABLE visitseq (
     visitseq_uuid   UUID PRIMARY KEY DEFAULT gen_random_uuid(),   -- RFC 4122 Universally Unique IDentifier
