@@ -34,7 +34,7 @@ LOGGER = logging.getLogger(__name__)
 psycopg2.extras.register_uuid()
 
 
-def _dayobs_to_date(dayobs: str | date | int) -> date:
+def _dayobs_to_date(dayobs: str | date | int | Time) -> date:
     match dayobs:
         case int():
             year = dayobs // 10000
@@ -43,6 +43,17 @@ def _dayobs_to_date(dayobs: str | date | int) -> date:
             dayobs = date(year, month, day)
         case str():
             dayobs = datetime.fromisoformat(dayobs).date()
+        case Time():
+            # Pacify type checkers
+            assert isinstance(dayobs, Time)
+            dayobs_dt = dayobs.to_datetime(timezone=timezone(timedelta(hours=-12)))
+            if isinstance(dayobs_dt, datetime):
+                dayobs = dayobs_dt.date()
+            else:
+                assert isinstance(dayobs_dt, np.ndarray)
+                assert len(dayobs_dt) == 1
+                dayobs = dayobs_dt.item().date()
+                assert isinstance(dayobs, date)
         case _:
             assert isinstance(dayobs, date)
 
@@ -1463,10 +1474,10 @@ def construct_base_resource_path(
 
         where ``<date>`` is the UTC‑12 date derived from ``creation_time``.
     """
-    # Record in path according to datetime timezone (UTC-12)
+    creation_time_iso_dayobs = _dayobs_to_date(Time(creation_time.mjd, format="mjd")).isoformat()
     visitseq_base_rp = (
         archive_base.join(telescope)
-        .join(Time(creation_time.mjd - 0.5, format="mjd").datetime.date().isoformat())
+        .join(creation_time_iso_dayobs)
         .join(str(visitseq_uuid), forceDirectory=True)
     )
     return visitseq_base_rp
@@ -1755,8 +1766,8 @@ def update_visitseq_metadata(
     # gets it wrong.
     # So, if we're asking to update a bytes column, convert
     # it from hex ourselves.
-    update_value = value
-    if field in {"conda_env_sha256"}:
+    update_value: str | bytes = value
+    if field.endswith("sha256"):
         update_value = bytes.fromhex(value)
 
     vsarch.update_visitseq_metadata(uuid, field, update_value)
