@@ -186,6 +186,15 @@ class VisitSequenceArchiveMetadata:
             metadata_db_kwargs["host"] = os.environ.get("VSARCHIVE_PGHOST", VSARCHIVE_PGHOST)
 
         self.pg_pool = psycopg2.pool.SimpleConnectionPool(1, 5, **metadata_db_kwargs)
+        # On some operations, pandas does not
+        # work well directly with the psycopg2
+        # connection, but can work with sqlalchemy.
+        # Make and alchemy engine that acts as
+        # a middle-man between pandas and psycopg2,
+        # using the same connection pool.
+        self.sa_engine = sqlalchemy.create_engine(
+            "postgresql+psycopg2://", creator=self.pg_pool.getconn, pool_pre_ping=True
+        )
 
         self.metadata_db_schema: str = metadata_db_schema
 
@@ -295,9 +304,7 @@ class VisitSequenceArchiveMetadata:
             if conn:
                 self.pg_pool.putconn(conn)
 
-        # Use the postgresql pool of connections.
-        engine = sqlalchemy.create_engine("postgresql+psycopg2://", creator=self.pg_pool.getconn)
-        with engine.connect() as sa_conn:
+        with self.sa_engine.connect() as sa_conn:
             df = pd.read_sql(text_query, sa_conn, params=query_params)
 
         return df
@@ -380,7 +387,7 @@ class VisitSequenceArchiveMetadata:
             data["first_day_obs"] = _dayobs_to_date(first_day_obs)
 
         if last_day_obs is not None:
-            columns.append(sql.Identifier("first_day_obs"))
+            columns.append(sql.Identifier("last_day_obs"))
             data_placeholders.append(sql.Placeholder("last_day_obs"))
             data["last_day_obs"] = _dayobs_to_date(last_day_obs)
 
@@ -1374,7 +1381,7 @@ class VisitSequenceArchiveMetadata:
             WHERE %s BETWEEN first_day_obs AND last_day_obs
                 AND %s BETWEEN first_day_obs AND last_day_obs
                 AND telescope = %s
-                AND tags @> %s:JSONB
+                AND tags @> %s::JSONB
                 AND creation_time >= NOW() - INTERVAL '%s days'
             """
             query_params: Tuple = (first_day_obs, last_day_obs, telescope, tags_json, max_simulation_age)

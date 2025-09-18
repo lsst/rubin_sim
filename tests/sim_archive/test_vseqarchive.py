@@ -367,6 +367,63 @@ class TestVisitSequenceArchive(unittest.TestCase):
         visits_found_location = self.vsarch.get_visitseq_url(vseq_uuid)
         assert visits_found_location == sent_location.geturl()
 
+    def test_sims_on_nights(self) -> None:
+        # Make a tag for just this execution of this test:
+        test_tag = str(uuid1())
+
+        first_day_obs = "2025-12-01"
+        last_day_obs = "2025-12-03"
+        tags = (test_tag,)
+
+        # Verify that we start off with no sims matching
+        # our test tag.
+        result = self.vsarch.sims_on_nights(first_day_obs, last_day_obs, tags)
+        assert len(result) == 0
+
+        # Add a sim with our tag, and verify we see it
+        sim_uuids = []
+        sim_uuid = self.vsarch.record_simulation_metadata(
+            TEST_VISITS,
+            f"Test {test_tag} on {Time.now().iso}",
+            telescope="simonyi",
+            first_day_obs="2025-12-01",
+            last_day_obs="2025-12-03",
+        )
+        sim_uuids.append(sim_uuid)
+        self.vsarch.tag(sim_uuid, *tags)
+        result = self.vsarch.sims_on_nights(first_day_obs, last_day_obs, tags)
+        assert len(result) == 1
+        assert result.visitseq_uuid[0] == sim_uuid
+
+        # Make sure we do not get it back if we ask for a tag it
+        # does not have
+        result = self.vsarch.sims_on_nights(first_day_obs, last_day_obs, tags + ("extra",))
+        assert len(result) == 0
+
+        # Add another sim with a wider time range, and make sure
+        # we get both back.
+        sim_uuid = self.vsarch.record_simulation_metadata(
+            TEST_VISITS,
+            f"Test {test_tag} on {Time.now().iso}",
+            telescope="simonyi",
+            first_day_obs="2025-11-15",
+            last_day_obs="2025-12-30",
+        )
+        sim_uuids.append(sim_uuid)
+        self.vsarch.tag(sim_uuid, *tags)
+        result = self.vsarch.sims_on_nights(first_day_obs, last_day_obs, tags)
+        assert set(sim_uuids) == set(result.visitseq_uuid)
+
+        # Shift the time range we request to get only the second
+        # we added
+        result = self.vsarch.sims_on_nights("2025-12-10", tags=tags)
+        assert len(result) == 1
+        assert sim_uuids[-1] == result.visitseq_uuid[0]
+
+        # Make sure we do not see this if we ask for auxtel
+        result = self.vsarch.sims_on_nights(first_day_obs, last_day_obs, tags, telescope="auxtel")
+        assert len(result) == 0
+
     def run_click_command(self, command: list[str]) -> str:
         # Wrapper around click's testing tools that sets up
         # the environment to point at the tests and runs
