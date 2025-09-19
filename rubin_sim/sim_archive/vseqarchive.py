@@ -227,6 +227,11 @@ class VisitSequenceArchiveMetadata:
         # Make and alchemy engine that acts as
         # a middle-man between pandas and psycopg2,
         # using the same connection pool.
+        # There is a potential issue in that SA
+        # does not return connections to the
+        # psycopg pool when it is done. But, it
+        # has its own pool, and so in expected use
+        # it will just get one and keep reusing it.
         self.sa_engine = sqlalchemy.create_engine(
             "postgresql+psycopg2://", creator=self.pg_pool.getconn, pool_pre_ping=True
         )
