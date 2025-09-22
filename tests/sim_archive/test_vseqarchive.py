@@ -13,11 +13,11 @@ import click
 import click.testing
 import numpy as np
 import pandas as pd
+import testing.postgresql
 from astropy.time import Time
 from lsst.resources import ResourcePath
 from psycopg2 import sql
 
-# from testing.postgresql import PostgresqlSkipIfNotInstalledDecorator
 from rubin_scheduler.scheduler.utils import SchemaConverter
 
 from rubin_sim.data import get_baseline
@@ -42,11 +42,15 @@ obs_start_mjd   	s_ra	            s_dec    	        band	sky_rotation        exp
 )
 
 
-# @PostgresqlSkipIfNotInstalledDecorator()
 class TestVisitSequenceArchive(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls) -> None:
+        try:
+            testing.postgresql.find_program("postgres", ["bin"])
+        except RuntimeError:
+            raise unittest.SkipTest("PostgreSQL not found, skipping visit sequence archive tests")
+
         cls.temp_dir = TemporaryDirectory()
         cls.test_archive_url = "file://" + cls.temp_dir.name + "/archive/"
         cls.test_archive = ResourcePath(cls.test_archive_url)
