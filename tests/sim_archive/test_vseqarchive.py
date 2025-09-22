@@ -3,6 +3,7 @@ import hashlib
 import io
 import os
 import unittest
+from getpass import getuser
 from io import StringIO
 from pathlib import Path
 from tempfile import NamedTemporaryFile, TemporaryDirectory
@@ -15,10 +16,13 @@ import pandas as pd
 from astropy.time import Time
 from lsst.resources import ResourcePath
 from psycopg2 import sql
+
+# from testing.postgresql import PostgresqlSkipIfNotInstalledDecorator
 from rubin_scheduler.scheduler.utils import SchemaConverter
 
 from rubin_sim.data import get_baseline
 from rubin_sim.sim_archive import vseqarchive
+from rubin_sim.sim_archive.tempdb import LocalOnlyPostgresql
 
 TEST_METADATA_DB_SCHEMA = "ehntest"
 TEST_METADATA_DB_KWARGS = {"database": "opsim_log", "host": "134.79.23.205"}
@@ -38,18 +42,29 @@ obs_start_mjd   	s_ra	            s_dec    	        band	sky_rotation        exp
 )
 
 
+# @PostgresqlSkipIfNotInstalledDecorator()
 class TestVisitSequenceArchive(unittest.TestCase):
-    def setUp(self) -> None:
-        self.temp_dir = TemporaryDirectory()
-        self.test_archive_url = "file://" + self.temp_dir.name + "/archive/"
-        self.test_archive = ResourcePath(self.test_archive_url)
-        self.vsarch = vseqarchive.VisitSequenceArchiveMetadata(
-            metadata_db_kwargs=TEST_METADATA_DB_KWARGS,
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.temp_dir = TemporaryDirectory()
+        cls.test_archive_url = "file://" + cls.temp_dir.name + "/archive/"
+        cls.test_archive = ResourcePath(cls.test_archive_url)
+
+        cls.test_database = LocalOnlyPostgresql(base_dir=cls.temp_dir.name)
+        cls.vsarch = vseqarchive.VisitSequenceArchiveMetadata(
+            metadata_db_kwargs=cls.test_database.psycopg2_dsn(),
             metadata_db_schema=TEST_METADATA_DB_SCHEMA,
         )
+        cls.vsarch.create_schema_in_database()
 
-    def tearDown(self) -> None:
-        self.temp_dir.cleanup()
+    @classmethod
+    def tearDownClass(cls) -> None:
+        try:
+            if cls.test_database is not None:
+                cls.test_database.stop()
+        finally:
+            cls.temp_dir.cleanup()
 
     def num_rows_in_table(self, archive: vseqarchive.VisitSequenceArchiveMetadata, table: str) -> int:
         result = archive.query(
@@ -429,9 +444,12 @@ class TestVisitSequenceArchive(unittest.TestCase):
         # the environment to point at the tests and runs
         # a command in that environment.
 
+        dsn = self.test_database.psycopg2_dsn()
         env = {
-            "VSARCHIVE_PGDATABASE": TEST_METADATA_DB_KWARGS["database"],
-            "VSARCHIVE_PGHOST": TEST_METADATA_DB_KWARGS["host"],
+            "VSARCHIVE_PGDATABASE": dsn["database"],
+            "VSARCHIVE_PGHOST": dsn["host"],
+            "VSARCHIVE_PGPORT": str(dsn["port"]),
+            "VSARCHIVE_PGUSER": getuser(),
             "VSARCHIVE_PGSCHEMA": TEST_METADATA_DB_SCHEMA,
         }
 
