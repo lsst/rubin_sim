@@ -24,6 +24,7 @@ from psycopg2 import sql
 
 VSARCHIVE_PGDATABASE = "opsim_log"
 VSARCHIVE_PGHOST = "134.79.23.205"
+VSARCHIVE_PGSCHEMA = "vsmdarchive"
 ARCHIVE_URL = "test_archive"
 SQLITE_EXTINSIONS = {".db", ".sqlite", ".sqlite3", ".db3"}
 
@@ -179,11 +180,31 @@ class VisitSequenceArchiveMetadata:
             metadata_db_kwargs = {} if metadata_db_kwargs is None else dict(metadata_db_kwargs)
         assert isinstance(metadata_db_kwargs, dict)
 
+        if metadata_db_kwargs is None:
+            metadata_db_kwargs = {}
+
+        assert isinstance(metadata_db_kwargs, Mapping)
+
         if "database" not in metadata_db_kwargs:
-            metadata_db_kwargs["database"] = os.environ.get("VSARCHIVE_PGDATABASE", VSARCHIVE_PGDATABASE)
+            if "VSARCHIVE_PGDATABASE" in os.environ:
+                metadata_db_kwargs["database"] = os.environ["VSARCHIVE_PGDATABASE"]
+            else:
+                metadata_db_kwargs["database"] = VSARCHIVE_PGDATABASE
 
         if "host" not in metadata_db_kwargs:
-            metadata_db_kwargs["host"] = os.environ.get("VSARCHIVE_PGHOST", VSARCHIVE_PGHOST)
+            if "VSARCHIVE_PGHOST" in os.environ:
+                metadata_db_kwargs["host"] = os.environ["VSARCHIVE_PGHOST"]
+            else:
+                metadata_db_kwargs["host"] = VSARCHIVE_PGHOST
+
+        if "user" not in metadata_db_kwargs and "VSARCHIVE_PGUSER" in os.environ:
+            metadata_db_kwargs["user"] = os.environ["VSARCHIVE_PGUSER"]
+
+        if "port" not in metadata_db_kwargs and "VSARCHIVE_PGPORT" in os.environ:
+            metadata_db_kwargs["port"] = os.environ["VSARCHIVE_PGPORT"]
+
+        if "port" not in metadata_db_kwargs and "VSARCHIVE_PGPORT" in os.environ:
+            metadata_db_kwargs["port"] = os.environ["VSARCHIVE_PGPORT"]
 
         self.pg_pool = psycopg2.pool.SimpleConnectionPool(1, 5, **metadata_db_kwargs)
         # On some operations, pandas does not
@@ -229,7 +250,10 @@ class VisitSequenceArchiveMetadata:
             # Get a connection from the pool
             connection = self.pg_pool.getconn()
             with connection.cursor() as cursor:
-                cursor.execute(query, data)
+                if len(data) > 0:
+                    cursor.execute(query, data)
+                else:
+                    cursor.execute(query)
                 result = cursor.fetchall() if return_result else (None,)
             if commit:
                 connection.commit()
@@ -256,6 +280,36 @@ class VisitSequenceArchiveMetadata:
                 self.pg_pool.putconn(connection)
 
         return result
+
+    def create_schema_in_database(self):
+        """Create the visit sequence metadata schema in a database."""
+
+        # Creation of the production schema should be
+        # a one-off execution.
+        assert "test" in self.metadata_db_schema
+
+        # Make sure the schema does not already exist
+        schema_test_query = sql.SQL(
+            "SELECT EXISTS(SELECT * FROM information_schema.schemata WHERE schema_name = {});"
+        ).format(sql.Placeholder("schema"))
+        data = {"schema": self.metadata_db_schema}
+        schema_exists_return = self.query(schema_test_query, data, return_result=True)
+        schema_exists = schema_exists_return[0][0]
+        if schema_exists:
+            raise ValueError("Schema already exists.")
+
+        creation_sql_file = Path(__file__).parent.parent.parent / "sql" / "make_vseqmeta.sql"
+        with open(creation_sql_file, "r") as f:
+            query_template = f.read()
+
+        # Sanity check what we read.
+        assert "CREATE SCHEMA" in query_template
+
+        query = sql.SQL(query_template).format(
+            sql.Identifier(self.metadata_db_schema), sql.Identifier(self.metadata_db_schema)
+        )
+        self.query(query, {}, commit=True, return_result=False)
+        print("Created test database and schema ", self.metadata_db_schema)
 
     def pd_read_sql(
         self, query_template: str, sql_params: list[sql.Composable], query_params: tuple
@@ -1594,12 +1648,12 @@ def add_file(
 @click.group()
 @click.option(
     "--database",
-    default=os.getenv("VSARCHIVE_PGDATABASE", VSARCHIVE_PGDATABASE),
+    default=None,
     help="PostgreSQL database name of the metadata database",
 )
 @click.option(
     "--host",
-    default=os.getenv("VSARCHIVE_PGHOST", VSARCHIVE_PGHOST),
+    default=None,
     help="PostgreSQL host address of the metadata database",
 )
 @click.option(
@@ -1609,7 +1663,7 @@ def add_file(
 )
 @click.option(
     "--schema",
-    default=os.getenv("VSARCHIVE_PGSCHEMA", "ehntest"),
+    default=None,
     help="Schema of the metadata database containing the visit‑sequence tables",
 )
 @click.pass_context
@@ -1622,12 +1676,22 @@ def vseqarchive(
 ) -> None:
     """visitseq command line interface."""
 
-    # Create an instance of the interface to
-    # the metadata database that can be used
-    # by all commands.
-    metadata_db_kwargs = {"database": database, "host": host}
-    if user:
+    metadata_db_kwargs = {}
+    if database is not None:
+        metadata_db_kwargs["database"] = database
+
+    if user is not None:
         metadata_db_kwargs["user"] = user
+
+    if host is not None:
+        metadata_db_kwargs["host"] = host
+
+    if schema is None:
+        if "VSARCHIVE_PGSCHEMA" in os.environ:
+            schema = os.environ["VSARCHIVE_PGSCHEMA"]
+        else:
+            schema = VSARCHIVE_PGSCHEMA
+    assert isinstance(schema, str)
 
     click_context.obj = VisitSequenceArchiveMetadata(metadata_db_kwargs, schema)
 

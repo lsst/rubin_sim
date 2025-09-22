@@ -1,6 +1,6 @@
-CREATE SCHEMA vseqmeta;
+CREATE SCHEMA {};
 
-SET SEARCH_PATH TO vseqmeta;
+SET SEARCH_PATH TO {};
 
 CREATE TABLE visitseq (
     visitseq_uuid   UUID PRIMARY KEY DEFAULT gen_random_uuid(),   -- RFC 4122 Universally Unique IDentifier
@@ -93,11 +93,11 @@ CREATE VIEW simulations_extra AS
         ) AS tags,
         COALESCE (
              JSONB_OBJECT_AGG(c.comment_time, c.comment) FILTER (WHERE c.comment_time IS NOT NULL),
-             '{}'::JSONB
+             '{{}}'::JSONB
         ) AS comments,
         COALESCE (
              JSONB_OBJECT_AGG(f.file_type, f.file_url) FILTER (WHERE f.file_type IS NOT NULL),
-             '{}'::JSONB
+             '{{}}'::JSONB
         ) AS files
     FROM simulations AS s
     LEFT JOIN tags AS t ON t.visitseq_uuid=s.visitseq_uuid
