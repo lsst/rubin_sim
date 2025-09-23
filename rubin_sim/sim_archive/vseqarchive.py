@@ -1692,7 +1692,6 @@ def vseqarchive(
     schema: str,
 ) -> None:
     """visitseq command line interface."""
-
     metadata_db_kwargs = {}
     if database is not None:
         metadata_db_kwargs["database"] = database
@@ -1743,15 +1742,39 @@ def record_visitseq_metadata(
     last_day_obs: str | int | None,
     creation_time: str | None,
 ) -> None:
-    """Record metadata for a new visit sequence from an HDF5 visits file.
+    """Record visit‑sequence metadata from an HDF5 visits file.
 
-    The first positional argument is the database table to insert into
-    (e.g. ``visitseq``, ``simulations``, ``completed``, or
-    ``mixedvisitseq``).  The second argument is the path to an
-    HDF5 file that contains a dataset named ``visits`` which will be
-    loaded into a :class:`pandas.DataFrame` and written to the
-    specified table.
+    Parameters
+    ----------
+    vsarch : `VisitSequenceArchiveMetadata`
+        The database interface instance.
+    table : `str`
+        Target table for the record (e.g. ``visitseq``, ``simulations``,
+        ``completed`` or ``mixedvisitseq``).
+    visits_file : `str`
+        Path to the HDF5 file (or SQLite3 file) containing the
+        ``visits`` dataset.
+    label : `str`
+        Human‑readable label for the visit sequence.
+    telescope : `str`, optional
+        Telescope identifier, default ``simonyi``.
+    url : `str`, optional
+        URL where the visits file can be downloaded.
+    first_day_obs : `str` or `int`, optional
+        First day of observation in SMTN‑032 format, ISO string, or
+        ``YYYY‑MM‑DD``.
+    last_day_obs : `str` or `int`, optional
+        Last day of observation (same formats as ``first_day_obs``).
+    creation_time : `str`, optional
+        ISO‑formatted timestamp of when the sequence was created;
+        if omitted, the current time is used.
+
+    Returns
+    -------
+    None
+        The UUID of the inserted visit sequence is printed to stdout.
     """
+
     if Path(visits_file).suffix.lower() in SQLITE_EXTINSIONS:
         with TemporaryDirectory() as temp_dir:
             hdf5_path = Path(temp_dir).joinpath("visits.h5")
@@ -1790,12 +1813,19 @@ def record_visitseq_metadata(
 def get_visitseq_metadata(vsarch: VisitSequenceArchiveMetadata, uuid: UUID, table: str) -> None:
     """Retrieve and display metadata for a visit sequence.
 
-    The result is printed as a tab‑separated table for easy reading
-    or machine‑parsing.
+    Parameters
+    ----------
+    vsarch : `VisitSequenceArchiveMetadata`
+        The metadata interface instance.
+    uuid : `UUID`
+        The UUID of the visit sequence to query.
+    table : `str`, optional
+        Name of the child table to search; one of ``visitseq``, ``simulations``,
+        ``completed`` or ``mixedvisitseq``. Defaults to ``visitseq``.
     """
     sequence_metadata = vsarch.get_visitseq_metadata(uuid, table=table)
 
-    # Print the DataFrame as a tab‑separated table (no row index)
+    # Print the DataFrame as a tab‑separated table
     print(sequence_metadata.to_frame().T.to_csv(sep="\t", index=False).rstrip("\n"))
 
 
@@ -1804,9 +1834,16 @@ def get_visitseq_metadata(vsarch: VisitSequenceArchiveMetadata, uuid: UUID, tabl
 @click.argument("url", type=click.STRING)
 @click.pass_obj
 def set_visitseq_url(vsarch: VisitSequenceArchiveMetadata, uuid: UUID, url: str) -> None:
-    """Update the URL for a visit sequence file.
+    """Update the stored URL for a visit‑sequence file.
 
-    The URL is stored in the specified table for the given visit sequence UUID.
+    Parameters
+    ----------
+    vsarch : `VisitSequenceArchiveMetadata`
+        The metadata interface instance.
+    uuid : `UUID`
+        The UUID of the visit sequence whose URL is to be updated.
+    url : `str`
+        The new URL pointing to the visits file.
     """
     vsarch.set_visitseq_url(uuid, url)
 
@@ -1815,9 +1852,14 @@ def set_visitseq_url(vsarch: VisitSequenceArchiveMetadata, uuid: UUID, url: str)
 @click.argument("uuid", type=click.UUID)
 @click.pass_obj
 def get_visitseq_url(vsarch: VisitSequenceArchiveMetadata, uuid: UUID) -> None:
-    """Print the URL for the visits file of a visit sequence.
+    """Retrieve and print the URL for the visits in a visit sequence.
 
-    The URL is stored in the appropriate child table of the metadata database.
+    Parameters
+    ----------
+    vsarch : `VisitSequenceArchiveMetadata`
+        The metadata interface instance.
+    uuid : `UUID`
+        The UUID of the visit sequence whose URL is to be retrieved.
     """
     url = vsarch.get_visitseq_url(uuid)
     click.echo(url)
@@ -1873,6 +1915,8 @@ def is_tagged(vsarch: VisitSequenceArchiveMetadata, uuid: UUID, tag: str) -> Non
 
     Parameters
     ----------
+    vsarch : `VisitSequenceArchiveMetadata`
+        The interface to the metadata database.
     uuid : `UUID`
         The UUID of the visit sequence to check.
     tag : `str`
@@ -1894,6 +1938,8 @@ def tag(vsarch: VisitSequenceArchiveMetadata, uuid: UUID, tags: Tuple[str, ...])
 
     Parameters
     ----------
+    vsarch : `VisitSequenceArchiveMetadata`
+        The interface to the metadata database.
     uuid : `UUID`
         The UUID of the visit sequence to tag.
     tags : `str`
@@ -1914,6 +1960,8 @@ def untag(vsarch: VisitSequenceArchiveMetadata, uuid: UUID, tag: str) -> None:
 
     Parameters
     ----------
+    vsarch : `VisitSequenceArchiveMetadata`
+        The interface to the metadata database.
     uuid : `UUID`
         The UUID of the visit sequence to modify.
     tag : `str`
@@ -1934,6 +1982,20 @@ def untag(vsarch: VisitSequenceArchiveMetadata, uuid: UUID, tag: str) -> None:
 def comment(
     vsarch: VisitSequenceArchiveMetadata, uuid: UUID, comment: str, author: str | None = None
 ) -> None:
+    """Attach a comment to a visit sequence in the metadata database.
+
+    Parameters
+    ----------
+    vsarch : `VisitSequenceArchiveMetadata`
+        The interface to the metadata database.
+    uuid : `UUID`
+        The UUID of the visit sequence to comment on.
+    comment : `str`
+        The comment text to attach.
+    author : `str`, optional
+        The author of the comment. If omitted the comment will be recorded
+        without an author field.
+    """
     vsarch.comment(uuid, comment, author)
 
 
@@ -1942,9 +2004,6 @@ def comment(
 @click.pass_obj
 def get_comments(vsarch: VisitSequenceArchiveMetadata, uuid: UUID) -> None:
     """Retrieve all comments attached to a specific visit sequence.
-
-    The comments are printed as a tab‑separated table with columns:
-    ``visitseq_uuid``, ``comment_time``, ``author``, ``comment``.
 
     Parameters
     ----------
@@ -1981,7 +2040,25 @@ def archive_file(
     archive_base: str,
     update: bool,
 ) -> None:
-    """Archive a file and register its location in the metadata database."""
+    """Archive a file and register its location in the metadata database.
+
+    Parameters
+    ----------
+    vsarch : `VisitSequenceArchiveMetadata`
+        The metadata interface instance.
+    uuid : `UUID`
+        The UUID of the visit sequence that the file should be linked to.
+    origin : `str`
+        Path to the local file to be archived.
+    file_type : `str`
+        Identifier for the type of file being archived.
+    archive_base : `str`, optional
+        Base location of the archive.
+    update : `bool`, optional
+        If true, an existing record for the same
+        ``visitseq_uuid``/``file_type`` combination is updated rather
+        than raising an error.    
+    """
     # Convert the base path string into a ResourcePath
     archive_base_rp = ResourcePath(archive_base)
 
@@ -2019,17 +2096,6 @@ def get_file(
         requested file.
     file_type : `str`
         The handle for the type of file to retrieve (e.g. ``visits``).
-
-    Notes
-    -----
-    The function obtains the URL from the metadata database,
-    then copies the file from the URL to the local filesystem.  For a
-    ``visits`` file whose destination ends with a SQLite3 extension
-    (``.db``, ``.sqlite``), the file is first downloaded as a HDF5
-    temporary file, then converted to an opsim sqlite database file.
-    Otherwise the file is copied directly.
-
-    This command prints the local path of the copied file.
     """
     file_url = vsarch.get_file_url(uuid, file_type)
     origin_rp = ResourcePath(file_url)
@@ -2071,12 +2137,14 @@ def add_nightly_stats(
 
     Parameters
     ----------
+    vsarch : `VisitSequenceArchiveMetadata`
+        The metadata interface.
     uuid : `UUID`
         The UUID of the visit sequence to attach the statistics to.
     visits_file : `str`
         Path to an HDF5 file containing a ``visits`` dataset.
-    columns : ``tuple[str]``
-        Optional list of columns to pass to `compute_nightly_stats`.
+    columns : `tuple`
+        List of columns for which stats should be added.
     """
     # Load the visits table from the HDF5 file
     visits_df = pd.read_hdf(visits_file, key="observations")
@@ -2105,6 +2173,8 @@ def query_nightly_stats(vsarch: VisitSequenceArchiveMetadata, uuid: UUID) -> Non
 
     Parameters
     ----------
+    vsarch : `VisitSequenceArchiveMetadata`
+        The metadata interface.
     uuid : `UUID`
         The unique identifier of the visit sequence.
     """
@@ -2118,6 +2188,11 @@ def query_nightly_stats(vsarch: VisitSequenceArchiveMetadata, uuid: UUID) -> Non
 def record_conda_env(vsarch: VisitSequenceArchiveMetadata) -> None:
     """Record the current Conda environment in the metadata database,
     and print the hash used as a key for the env in the database.
+
+    Parameters
+    ----------
+    vsarch : `VisitSequenceArchiveMetadata`
+        The metadata interface.
     """
     env_hash, env_json = compute_conda_env()
     vsarch.record_conda_env(env_hash, env_json)

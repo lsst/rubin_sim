@@ -80,6 +80,7 @@ archive_sim = "rubin_sim.sim_archive:make_sim_archive_cli"
 compile_sim_archive_metadata_resource = "rubin_sim.sim_archive.sim_archive:compile_sim_archive_metadata_cli"
 prenight_sim = "rubin_sim.sim_archive:prenight_sim_cli"
 scheduler_snapshot = "rubin_sim.sim_archive:make_scheduler_snapshot_cli"
+vseqarchive = "rubin_sim.sim_archive.vseqarchive:vseqarchive"
 
 [tool.setuptools.dynamic]
 version = { attr = "setuptools_scm.get_version" }
