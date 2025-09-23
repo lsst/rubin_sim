@@ -222,7 +222,7 @@ class VisitSequenceArchiveMetadata:
     def query(
         self,
         query: str | sql.SQL | sql.Composed,
-        data: dict,
+        data: dict = {},
         commit: bool = False,
         return_result: bool = True,
     ) -> tuple:
@@ -250,6 +250,11 @@ class VisitSequenceArchiveMetadata:
             # Get a connection from the pool
             connection = self.pg_pool.getconn()
             with connection.cursor() as cursor:
+                search_path_query = sql.SQL("SET search_path TO {};").format(
+                    sql.Identifier(self.metadata_db_schema)
+                )
+                cursor.execute(search_path_query)
+
                 if len(data) > 0:
                     cursor.execute(query, data)
                 else:
@@ -312,7 +317,10 @@ class VisitSequenceArchiveMetadata:
         print("Created test database and schema ", self.metadata_db_schema)
 
     def pd_read_sql(
-        self, query_template: str, sql_params: list[sql.Composable], query_params: tuple
+        self,
+        query_template: str,
+        sql_params: list[sql.Composable] | None = None,
+        query_params: tuple | None = None,
     ) -> pd.DataFrame:
         """Execute a SQL query using the internal PostgreSQL connection pool
         and return the results as a pandas DataFrame.
@@ -344,6 +352,15 @@ class VisitSequenceArchiveMetadata:
         This works around limitations in pandas when dealing with
         complex datatypes in raw postgresql connections.
         """
+
+        if sql_params is None:
+            sql_params = []
+        assert isinstance(sql_params, list)
+
+        if query_params is None:
+            query_params = tuple([])
+        assert isinstance(query_params, tuple)
+
         # Pandas sometimes has trouble with postgresql when working with it
         # directly, so interact with it by way of sqlalchemy.
         # But, we need to use postgresql's tools for inserting identifiers
@@ -500,7 +517,7 @@ class VisitSequenceArchiveMetadata:
             If the table is not one of "visitseq", "mixedvisitseq",
             "completed", or "simulations".
         """
-        if table not in {"visitseq", "mixedvisitseq", "completed", "simulations"}:
+        if table not in {"visitseq", "mixedvisitseq", "completed", "simulations", "simulations_extra"}:
             raise ValueError()
 
         query_template = "SELECT * FROM {}.{} WHERE visitseq_uuid=%s"
@@ -578,7 +595,7 @@ class VisitSequenceArchiveMetadata:
         conda_env_sha256: bytes | None = None,
         parent_visitseq_uuid: UUID | None = None,
         sim_runner_kwargs: dict | None = None,
-        parent_last_dayobs: str | date | int | None = None,
+        parent_last_day_obs: str | date | int | None = None,
     ) -> UUID:
         """Record metadata for a new simulation sequence.
 
@@ -616,7 +633,7 @@ class VisitSequenceArchiveMetadata:
             by default `None`.
         sim_runner_kwargs : `dict`, optional
             Arguments to ``sim_runner`` as a `dict`, by default `None`.
-        parent_last_dayobs : `str`, optional
+        parent_last_day_obs : `str`, optional
             day_obs of last visit loaded into scheduler before running,
             by default `None`.
 
@@ -684,9 +701,9 @@ class VisitSequenceArchiveMetadata:
             set_clauses.append(make_set_clause("sim_runner_kwargs"))
             data["sim_runner_kwargs"] = psycopg2.extras.Json(sim_runner_munged_kwargs)
 
-        if parent_last_dayobs is not None:
-            set_clauses.append(make_set_clause("parent_last_dayobs"))
-            data["parent_last_dayobs"] = parent_last_dayobs
+        if parent_last_day_obs is not None:
+            set_clauses.append(make_set_clause("parent_last_day_obs"))
+            data["parent_last_day_obs"] = parent_last_day_obs
 
         num_columns_to_update = len(set_clauses)
 
