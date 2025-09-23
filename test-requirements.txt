@@ -3,4 +3,4 @@ pytest-cov
 black>=25.0.0
 ruff
 isort
-
+postgresql
