@@ -24,8 +24,7 @@ from rubin_sim.data import get_baseline
 from rubin_sim.sim_archive import vseqarchive
 from rubin_sim.sim_archive.tempdb import LocalOnlyPostgresql
 
-TEST_METADATA_DB_SCHEMA = "ehntest"
-TEST_METADATA_DB_KWARGS = {"database": "opsim_log", "host": "134.79.23.205"}
+TEST_METADATA_DB_SCHEMA = "test"
 
 TEST_VISITS = pd.read_csv(
     StringIO(
