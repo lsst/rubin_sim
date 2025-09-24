@@ -18,6 +18,7 @@ import psycopg2
 import psycopg2.extras
 import psycopg2.pool
 import sqlalchemy
+import yaml
 from astropy.time import Time
 from lsst.resources import ResourcePath
 from psycopg2 import sql
@@ -145,6 +146,90 @@ def hdf5_to_opsimdb(hdf5_path: str | Path, opsimdb_path: str | Path | None = Non
     return str(opsimdb_path)
 
 
+def metadata_yaml_from_prototype(
+    sim_date: str | date,
+    sim_index: str | int,
+    proto_sim_archive_uri: str = "s3://rubin:rubin-scheduler-prenight/opsim/",
+) -> str:
+    """Return a sim metadata YAML derived from the prototype sim archive.
+
+    Parameters
+    ----------
+    sim_date : `str` or `datetime.date`
+        The simulation date in ISO format or a ``date`` object.
+    sim_index : `str` or `int`
+        The simulation index identifying the specific simulation
+        within the date directory.
+    proto_sim_archive_uri : `str`, optional
+        Base URI of the simulation archive.
+        Defaults to the prototype location in the S3 bucket.
+
+    Returns
+    -------
+    sim_metadata: `str`
+        `yaml` representation of the simulation metadata.
+
+    """
+    if isinstance(sim_date, date):
+        sim_date = sim_date.isoformat()
+    assert isinstance(sim_date, str)
+
+    sim_archive_rp = (
+        ResourcePath(proto_sim_archive_uri)
+        .join(sim_date, forceDirectory=True)
+        .join(str(sim_index), forceDirectory=True)
+    )
+    sims_found = sim_archive_rp.exists() and sim_archive_rp.join("sim_metadata.yaml").exists()
+    if not sim_archive_rp.exists():
+        raise ValueError(f"No simulations found at {sim_archive_rp.geturl()}.")
+
+    if not sim_archive_rp.join("sim_metadata.yaml").exists():
+        raise ValueError(
+            f"No simulation metadata found at {sim_archive_rp.join('sim_metadata.yaml').geturl()}"
+        )
+
+    if sims_found:
+        metadata = yaml.safe_load(sim_archive_rp.join("sim_metadata.yaml").read().decode())
+    else:
+        raise ValueError("No simulation found")
+
+    if "label" not in metadata:
+        raise ValueError("Metadata yaml must include a label")
+
+    label = metadata["label"]
+
+    # If there is no creation time given, try extracting it from the label
+    if "creation_time" not in metadata:
+        # The prenight labels usually end in the creation time.
+        if " ".join(label.split()[-3:-1]) == "run at":
+            maybe_date_str = label.split()[-1]
+            is_date_str = False
+            try:
+                datetime.fromisoformat(maybe_date_str)
+                is_date_str = True
+            except ValueError:
+                is_date_str = False
+
+            if is_date_str:
+                metadata["creation_time"] = maybe_date_str
+
+    # If we still do not have a creation time, invent one from the date
+    # and index.
+    if "creation_time" not in metadata:
+        creation_time = datetime.fromisoformat(sim_date + "T12:00:00Z") + timedelta(seconds=int(sim_index))
+        metadata["creation_time"] = creation_time.isoformat()
+
+    if "files" in metadata:
+        for file_type in metadata["files"]:
+            if "url" not in metadata["files"][file_type]:
+                fname = metadata["files"][file_type]["name"]
+                metadata["files"][file_type]["url"] = sim_archive_rp.join(fname).geturl()
+
+    metadata_yaml = yaml.dump(metadata)
+
+    return metadata_yaml
+
+
 class VisitSequenceArchiveMetadata:
     """Interface to metadata database that tracks sequences
     of visits.
@@ -183,7 +268,7 @@ class VisitSequenceArchiveMetadata:
     def __init__(
         self,
         metadata_db_kwargs: Mapping | None = None,
-        metadata_db_schema: str| None = None,
+        metadata_db_schema: str | None = None,
     ):
         if metadata_db_schema is None:
             metadata_db_schema = VSARCHIVE_PGSCHEMA
@@ -218,7 +303,6 @@ class VisitSequenceArchiveMetadata:
 
         if "port" not in metadata_db_kwargs and "VSARCHIVE_PGPORT" in os.environ:
             metadata_db_kwargs["port"] = os.environ["VSARCHIVE_PGPORT"]
-
 
         self.pg_pool = psycopg2.pool.SimpleConnectionPool(1, 5, **metadata_db_kwargs)
         # On some operations, pandas does not
@@ -305,7 +389,7 @@ class VisitSequenceArchiveMetadata:
 
         return result
 
-    def create_schema_in_database(self):
+    def create_schema_in_database(self) -> None:
         """Create the visit sequence metadata schema in a database."""
 
         # Creation of the production schema should be
@@ -1489,6 +1573,161 @@ class VisitSequenceArchiveMetadata:
         vseqs = self.pd_read_sql(query_template, [sql.Identifier(self.metadata_db_schema)], query_params)
         return vseqs
 
+    def import_sim_from_yaml(self, metadata_yaml: str, archive_base: str | None = None) -> UUID:
+        """Import a simulation from a YAML metadata description.
+
+        Parameters
+        ----------
+        metadata_yaml : `str`
+            YAML string with simulation metadata.
+        archive_base : `str` or `None`
+            Base location of the archive to which to copy the visit
+            sequence. If ``None``, the visits will not be copied.
+            Defaults to ``None``.
+
+        Returns
+        -------
+        visitseq_uuid : `UUID`
+            The UUID of the newly registered visit sequence.
+        """
+
+        sim_archive_metadata = yaml.safe_load(metadata_yaml)
+
+        if "label" not in sim_archive_metadata:
+            raise ValueError("Metadata yaml must include a label")
+
+        if "files" not in sim_archive_metadata or "observations" not in sim_archive_metadata["files"]:
+            raise ValueError("Metadata yaml must include the observations file")
+
+        label = sim_archive_metadata["label"]
+        record_sim_kwargs = {"label": label}
+
+        # The prenight labels usually end in the creation time.
+        if " ".join(label.split()[-3:-1]) == "run at":
+            maybe_date_str = label.split()[-1]
+            try:
+                record_sim_kwargs["creation_time"] = Time(datetime.fromisoformat(maybe_date_str))
+            except ValueError:
+                pass
+
+        for key in ["scheduler_version", "telescope"]:
+            if key in sim_archive_metadata:
+                record_sim_kwargs[key] = sim_archive_metadata[key]
+
+        for side in ["first", "last"]:
+            try:
+                record_sim_kwargs[f"{side}_day_obs"] = sim_archive_metadata["simulated_dates"][side]
+            except KeyError:
+                pass
+
+        # Get the visits hdf5 file
+        with TemporaryDirectory() as temp_dir:
+            visits_h5_fname = Path(temp_dir) / "visits.h5"
+            obs_rp = ResourcePath(sim_archive_metadata["files"]["observations"]["url"])
+            with obs_rp.as_local() as obs_local_rp:
+                opsimdb_to_hdf5(obs_local_rp.ospath, visits_h5_fname)
+
+            record_sim_kwargs["visits"] = pd.read_hdf(visits_h5_fname, "observations")
+
+            sim_uuid = self.record_simulation_metadata(**record_sim_kwargs)
+
+            if archive_base is not None:
+                add_file(self, sim_uuid, visits_h5_fname, "visits", archive_base)
+
+        if "files" in sim_archive_metadata:
+            for file_type in sim_archive_metadata["files"]:
+                file_rp = ResourcePath(sim_archive_metadata["files"][file_type]["url"])
+                file_sha256 = bytes.fromhex(hashlib.sha256(file_rp.read()).hexdigest())
+                self.register_file(sim_uuid, file_type, file_sha256, file_rp)
+
+        if "tags" in sim_archive_metadata:
+            valid_tags = [t for t in sim_archive_metadata["tags"] if isinstance(t, str)]
+            self.tag(sim_uuid, *valid_tags)
+
+        return sim_uuid
+
+    def import_sim_from_prototype_sim_archive(
+        self, archive_base: str, sim_date: str | date, sim_index: str | int, proto_sim_archive_uri: str
+    ) -> UUID:
+        """Import a simulation metadata from the prototype achive.
+
+        Parameters
+        ----------
+        archive_base : `str`
+            Base location where the new archive entry will be written
+            (e.g. an S3 bucket or a local directory).  The method
+            will write and hdf5 with visits to this location and
+            register the resulting URL in the database.
+        sim_date : `str` or `datetime.date`
+            The ISO‑formatted date (e.g. ``'2025-03-12'``) or a
+            ``date`` object that identifies (with the sim_index)
+            a simulation in the prototype archive.
+        sim_index : `str` or `int`
+            The index of the simulation which completes the
+            identification of the simulation in the prototype.
+        proto_sim_archive_uri : `str`
+            Base URI of the prototype simulation archive.  By default
+            this is ``'s3://rubin:rubin-scheduler-prenight/opsim/'``.
+
+        Returns
+        -------
+        visitseq_uuid : `UUID`
+            The UUID of the visit sequence that was created and
+            registered.
+        """
+
+        metadata_yaml = metadata_yaml_from_prototype(sim_date, sim_index, proto_sim_archive_uri)
+        sim_uuid = self.import_sim_from_yaml(metadata_yaml, archive_base)
+        self.tag(sim_uuid, "from_prototype_sim_archive")
+
+        sim_date_str = sim_date if isinstance(sim_date, str) else sim_date.isoformat()
+        self.comment(sim_uuid, f"Imported from prototype sim_archive {sim_date_str}, {sim_index}")
+        return sim_uuid
+
+    def sim_metadata_yaml(self, visitseq_uuid: UUID) -> str:
+        """Return a YAML representation of a simulation's metadata.
+
+        Parameters
+        ----------
+        visitseq_uuid : `UUID`
+            The unique identifier of the visit sequence for which
+            metadata should be exported.
+
+        Returns
+        -------
+        md_yaml: `str`
+            yaml representation of (some of) the simulation metadata
+            in the metadata database.
+        """
+
+        metadata_seq = self.get_visitseq_metadata(visitseq_uuid, "simulations_extra")
+
+        metadata: dict = {"uuid": str(metadata_seq.visitseq_uuid), "label": str(metadata_seq.visitseq_label)}
+        for key in ["telescope", "tags", "scheduler_version"]:
+            if metadata_seq[key] is not None:
+                metadata[key] = metadata_seq[key]
+
+        if metadata_seq["creation_time"] is not None:
+            metadata["creation_time"] = metadata_seq["creation_time"].isoformat()
+
+        if metadata_seq.first_day_obs is not None or metadata_seq.last_day_obs is not None:
+            metadata["simulation_dates"] = {}
+            if metadata_seq.first_day_obs is not None:
+                metadata["simulation_dates"]["first"] = metadata_seq.first_day_obs
+            if metadata_seq.last_day_obs is not None:
+                metadata["simulation_dates"]["last"] = metadata_seq.last_day_obs
+
+        if metadata_seq.files is not None:
+            metadata["files"] = {}
+            for file_type in metadata_seq.files:
+                metadata["files"][file_type] = {
+                    "url": metadata_seq.files[file_type],
+                    "name": ResourcePath(metadata_seq.files[file_type]).basename(),
+                }
+
+        metadata_yaml = yaml.dump(metadata)
+        return metadata_yaml
+
 
 #
 # Computation
@@ -1839,8 +2078,9 @@ def get_visitseq_metadata(vsarch: VisitSequenceArchiveMetadata, uuid: UUID, tabl
     uuid : `UUID`
         The UUID of the visit sequence to query.
     table : `str`, optional
-        Name of the child table to search; one of ``visitseq``, ``simulations``,
-        ``completed`` or ``mixedvisitseq``. Defaults to ``visitseq``.
+        Name of the child table to search; one of ``visitseq``,
+        ``simulations``, ``completed`` or ``mixedvisitseq``.
+        Defaults to ``visitseq``.
     """
     sequence_metadata = vsarch.get_visitseq_metadata(uuid, table=table)
 
@@ -2076,7 +2316,7 @@ def archive_file(
     update : `bool`, optional
         If true, an existing record for the same
         ``visitseq_uuid``/``file_type`` combination is updated rather
-        than raising an error.    
+        than raising an error.
     """
     # Convert the base path string into a ResourcePath
     archive_base_rp = ResourcePath(archive_base)
