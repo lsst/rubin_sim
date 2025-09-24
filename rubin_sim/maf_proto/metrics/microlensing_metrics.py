@@ -353,7 +353,7 @@ class MicrolensingMetric(BaseMetric):
             if self.metric_calc == "detect":
                 if self.time_before_peak == "optimal":
                     time_before_peak_optimal = info_peak_before_t0(
-                        self.events["impact_parameter"][indx], self.events["corssing_time"][indx]
+                        self.events["impact_parameter"][indx], self.events["crossing_time"][indx]
                     )
                     # observations pre-peak and in the given filter
                     infilt = np.where(
@@ -397,14 +397,14 @@ class MicrolensingMetric(BaseMetric):
                 infilt = np.where(
                     (visits[self.filter_col] == filtername)
                     & (t < (self.events["peak_time"][indx]))
-                    & (t > (self.events["peak_time"][indx] - self.events["corssing_time"][indx]))
+                    & (t > (self.events["peak_time"][indx] - self.events["crossing_time"][indx]))
                     & (snr > self.detect_sigma)
                 )[0]
                 # observations post-peak and in the given filter within 2tE
                 outfilt = np.where(
                     (visits[self.filter_col] == filtername)
                     & (t > (self.events["peak_time"][indx]))
-                    & (t < (self.events["peak_time"][indx] + self.events["corssing_time"][indx]))
+                    & (t < (self.events["peak_time"][indx] + self.events["crossing_time"][indx]))
                     & (snr > self.detect_sigma)
                 )[0]
                 n_pre.append(len(infilt))
@@ -419,7 +419,7 @@ class MicrolensingMetric(BaseMetric):
                 fis_mat = fis_mat_wzeros + fisher_matrix(
                     t[infilt],
                     t0=self.events["peak_time"][indx],
-                    te=self.events["corssing_time"][indx],
+                    te=self.events["crossing_time"][indx],
                     u0=self.events["impact_parameter"][indx],
                     fs=fs,
                     fb=fb,
@@ -437,7 +437,7 @@ class MicrolensingMetric(BaseMetric):
                 fis_mat = np.delete(fis_mat, mask_idx[0], 1)
                 try:
                     cov = np.linalg.inv(fis_mat)
-                    sigmat_e_t_e = cov[0, 0] ** 0.5 / self.events["corssing_time"][indx]
+                    sigmat_e_t_e = cov[0, 0] ** 0.5 / self.events["crossing_time"][indx]
                 except np.linalg.LinAlgError:
                     sigmat_e_t_e = np.inf
 
