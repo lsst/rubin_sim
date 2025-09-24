@@ -23,9 +23,10 @@ from lsst.resources import ResourcePath
 from psycopg2 import sql
 
 VSARCHIVE_PGDATABASE = "opsim_log"
-VSARCHIVE_PGHOST = "134.79.23.205"
-VSARCHIVE_PGSCHEMA = "vsmdarchive"
-ARCHIVE_URL = "test_archive"
+VSARCHIVE_PGHOST = "134.79.23.203"
+VSARCHIVE_PGUSER = "rubin"
+VSARCHIVE_PGSCHEMA = "vsmd"
+ARCHIVE_URL = "s3://rubin:rubin-scheduler-prenight/visit_sequences/"
 SQLITE_EXTINSIONS = {".db", ".sqlite", ".sqlite3", ".db3"}
 
 JSON_DUMP_LIMIT = 4096
@@ -150,13 +151,21 @@ class VisitSequenceArchiveMetadata:
 
     Parameters
     ----------
-    metadata_db_kwargs: `Mapping`
+    metadata_db_kwargs: `Mapping` or `None`
         A dictionary or other mapping defining the connection
         parameters for connecting to the postgresql database
         that holds the sequence metadata. Keys are passed as keyword
-        arguments to `psycopg2.pool.SimppleConnectionPool`.
-    metadata_db_schema: `str`
-        The schema in the database holding the metadata.
+        arguments to `psycopg2.pool.SimpleConnectionPool`.
+        If ``None``, the dictionary is built from the environment
+        variables ``VSARCHIVE_PGDATABASE``, ``VSARCHIVE_PGHOST``,
+        ``VSARCHIVE_PGUSER``, and ``VSARCHIVE_PGPORT`` (if they
+        exist) or corresponding module variables in
+        ``rubin_sim.sim_archive.vseqarchiv`` (if they do not).
+    metadata_db_schema: `str` or `None`
+        The schema in the database holding the metadata. If
+        ``None``, defaults to
+        ``rubin_sim.sim_archive.vseqarchive.ARCHIVE_URL``.
+        Default is ``None``.
 
     Notes
     -----
@@ -174,8 +183,12 @@ class VisitSequenceArchiveMetadata:
     def __init__(
         self,
         metadata_db_kwargs: Mapping | None = None,
-        metadata_db_schema: str = "ehntest",
+        metadata_db_schema: str| None = None,
     ):
+        if metadata_db_schema is None:
+            metadata_db_schema = VSARCHIVE_PGSCHEMA
+        assert isinstance(metadata_db_schema, str)
+
         if not isinstance(metadata_db_kwargs, dict):
             metadata_db_kwargs = {} if metadata_db_kwargs is None else dict(metadata_db_kwargs)
         assert isinstance(metadata_db_kwargs, dict)
@@ -197,14 +210,15 @@ class VisitSequenceArchiveMetadata:
             else:
                 metadata_db_kwargs["host"] = VSARCHIVE_PGHOST
 
-        if "user" not in metadata_db_kwargs and "VSARCHIVE_PGUSER" in os.environ:
-            metadata_db_kwargs["user"] = os.environ["VSARCHIVE_PGUSER"]
+        if "user" not in metadata_db_kwargs:
+            if "VSARCHIVE_PGUSER" in os.environ:
+                metadata_db_kwargs["user"] = os.environ["VSARCHIVE_PGUSER"]
+            else:
+                metadata_db_kwargs["user"] = VSARCHIVE_PGUSER
 
         if "port" not in metadata_db_kwargs and "VSARCHIVE_PGPORT" in os.environ:
             metadata_db_kwargs["port"] = os.environ["VSARCHIVE_PGPORT"]
 
-        if "port" not in metadata_db_kwargs and "VSARCHIVE_PGPORT" in os.environ:
-            metadata_db_kwargs["port"] = os.environ["VSARCHIVE_PGPORT"]
 
         self.pg_pool = psycopg2.pool.SimpleConnectionPool(1, 5, **metadata_db_kwargs)
         # On some operations, pandas does not
