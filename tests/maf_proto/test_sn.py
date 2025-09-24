@@ -34,6 +34,15 @@ class TestSN(unittest.TestCase):
         assert np.nanmax(hp_array["n_sn"]) > 0
         assert np.nanmax(hp_array["zlim"]) > 0
 
+    def test_rate(self):
+        rates = ["Ripoche", "Perrett", "Dilday"]
+
+        for rate in rates:
+            snrate = maf.SnRate(rate=rate)
+            val, err = snrate.sn_rate(0.1)
+            assert val > 0
+            assert err > 0
+
 
 if __name__ == "__main__":
     unittest.main()
