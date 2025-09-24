@@ -32,7 +32,7 @@ def launch_jobs(shared_data, metric, slicer, processes=6):
     return result
 
 
-def metric_parallel(visits, metric, slicer, info=None, processes=6, set_multi_method=True):
+def metric_parallel(visits, metric, slicer, info=None, processes=6, multi_method="fork"):
     """Run a metric and slicer in parallel.
 
     Parameters
@@ -48,15 +48,16 @@ def metric_parallel(visits, metric, slicer, info=None, processes=6, set_multi_me
         Default None
     processes : `int`
         Number of processes to launch. Default 6.
-    set_multi_method : `bool`
+    multi_method : `bool`
         Use multiprocessing.set_start_method to ensure
-        things work on mac OS. Default True.
+        things work on mac OS. Should be one of
+        "fork", "spawn", "forkserver". Default "fork".
     """
 
     # This seems to be required for things to
     # work on mac OS.
-    if set_multi_method:
-        set_start_method("fork", force=True)
+    if multi_method is not None:
+        set_start_method(multi_method, force=True)
 
     shared_array = SharedNumpyArray(visits)
     slicer.setup_slicer(visits)
