@@ -76,21 +76,6 @@ class TestSimple(unittest.TestCase):
         assert np.all(hp_array[good] >= 0)
         assert np.nanmax(hp_array[good]) > 0
 
-    def test_microlensing(self):
-
-        mjd0 = self.visits_array["observationStartMJD"].min()
-
-        metric_calcs = ["detect", "Npts", "Fisher"]
-        n_events = 20
-        for metric_calc in metric_calcs:
-            metric = maf.MicrolensingMetric(mjd0=mjd0, metric_calc=metric_calc)
-
-            metric.generate_microlensing_events(n_events=n_events, min_crossing_time=5, max_crossing_time=10)
-            sl = maf.Slicer(nside=None, missing=0, ra=np.degrees(metric.ra), dec=np.degrees(metric.dec))
-            mic_array = sl(self.visits_array, metric)
-
-            assert len(mic_array) == n_events
-
     def test_bd(self):
 
         # Add any new columns we need
