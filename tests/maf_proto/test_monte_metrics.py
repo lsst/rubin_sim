@@ -60,6 +60,19 @@ class TestMonte(unittest.TestCase):
 
             assert len(mic_array) == n_events
 
+    def test_tde(self):
+
+        mjd0 = self.visits_array["observationStartMJD"].min()
+
+        n_events = 100
+        metric = maf.TdePopMetric(mjd0=mjd0)
+        metric.generate_tde_pop(n_events=n_events)
+        slicer = maf.Slicer()
+
+        results = slicer(self.visits_array, metric)
+
+        assert len(results) == n_events
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -33,7 +33,14 @@ TEFF_FIDUCIAL_DEPTH = defaultdict(
 TEFF_FIDUCIAL_EXPTIME = 30.0
 
 
-def t_eff(m5_depth, filter_name, exptime=None, fiducial_depth=None, teff_base=None, normed=False):
+def t_eff(
+    m5_depth,
+    filter_name,
+    exptime=TEFF_FIDUCIAL_EXPTIME,
+    fiducial_depth=TEFF_FIDUCIAL_DEPTH,
+    teff_base=TEFF_FIDUCIAL_EXPTIME,
+    normed=False,
+):
     """Compute the effective exposure time for a limiting magnitude.
 
     Parameters
@@ -60,14 +67,6 @@ def t_eff(m5_depth, filter_name, exptime=None, fiducial_depth=None, teff_base=No
         Effective expsore time, in seconds (if normed is False) or unitless
         (if normed is true).
     """
-    if fiducial_depth is None:
-        fiducial_depth = TEFF_FIDUCIAL_DEPTH
-
-    if teff_base is None:
-        teff_base = TEFF_FIDUCIAL_EXPTIME
-
-    if exptime is None:
-        exptime = TEFF_FIDUCIAL_EXPTIME
 
     try:
         fiducial_m5_depth = fiducial_depth[filter_name]

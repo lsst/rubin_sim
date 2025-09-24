@@ -97,7 +97,6 @@ class TestSimple(unittest.TestCase):
         self.df["ra_dcr_amp"] = ra_dcr_amp
         self.df["dec_dcr_amp"] = dec_dcr_amp
 
-        # But mostly want numpy array for speed.
         visits_array = self.df.to_records(index=False)
 
         metric = maf.BDParallaxMetric()
@@ -107,6 +106,66 @@ class TestSimple(unittest.TestCase):
         result = sl(visits_array, metric)
 
         assert np.max(result) > 0
+
+        # Get the parallax coverage metric here too
+        metric = maf.ParallaxCoverageMetric(theta_range=0.01)
+        result = sl(visits_array, metric)
+        assert np.nanmax(result) > 0
+
+    def test_norm_parallax(self):
+        """Test parallax metrics which normalized=True"""
+        # Add any new columns we need
+        ra_pi_amp, dec_pi_amp = maf.parallax_amplitude(
+            self.df["fieldRA"].values,
+            self.df["fieldDec"].values,
+            self.df["observationStartMJD"].values,
+            degrees=True,
+        )
+        self.df["ra_pi_amp"] = ra_pi_amp
+        self.df["dec_pi_amp"] = dec_pi_amp
+
+        ra_dcr_amp, dec_dcr_amp = maf.dcr_amplitude(
+            90.0 - self.df["altitude"].values,
+            self.df["paraAngle"].values,
+            self.df["filter"].values,
+            degrees=True,
+        )
+        self.df["ra_dcr_amp"] = ra_dcr_amp
+        self.df["dec_dcr_amp"] = dec_dcr_amp
+
+        visits_array = self.df.to_records(index=False)
+
+        metric = maf.ParallaxMetric(normalize=True)
+        nside = 4
+        sl = maf.Slicer(nside=nside)
+        result = sl(visits_array, metric)
+
+        assert np.nanmax(result) > 0
+
+        metric = maf.ProperMotionMetric(normalize=True)
+        nside = 4
+        sl = maf.Slicer(nside=nside)
+        result = sl(visits_array, metric)
+        assert np.nanmax(result) > 0
+
+    def test_inc_templates(self):
+
+        nside = 4
+        sl = maf.Slicer(nside=nside)
+        metric = maf.TemplateTime()
+        result = sl(self.visits_array, metric)
+        assert np.nanmax(result["bench_m5"]) > 0
+
+    def test_fo(self):
+        """Test the fO as a function of time"""
+
+        times = np.arange(365)
+        metric = maf.AccumulateCountMetric(times)
+        sl = maf.Slicer(nside=16, missing=0)
+        hp_time_array = sl(self.visits_array, metric)
+
+        fo_time = maf.fO_time_calcs(hp_time_array, asky=100.0, n_visit=5, stat=np.median)
+        assert np.nanmax(fo_time) > 0
 
 
 if __name__ == "__main__":
