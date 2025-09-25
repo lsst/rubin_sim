@@ -128,7 +128,7 @@ def hdf5_to_opsimdb(hdf5_path: str | Path, opsimdb_path: str | Path | None = Non
         The path of the written file.
     """
     if opsimdb_path is None:
-        opsimdb_path = Path(hdf5_path).with_suffix(".h5")
+        opsimdb_path = Path(hdf5_path).with_suffix(".db")
 
     conn = sqlite3.connect(str(opsimdb_path))
 

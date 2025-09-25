@@ -15,6 +15,7 @@ __all__ = [
     "fetch_sim_for_nights",
     "fetch_obsloctap_visits",
     "fetch_sim_stats_for_night",
+    "export_sim_to_prototype_sim_archive",
 ]
 
 import argparse
@@ -33,18 +34,21 @@ from numbers import Integral, Number
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from urllib.parse import urlparse
+from uuid import UUID
 
 import numpy as np
 import pandas as pd
 import rubin_scheduler
 import yaml
 from astropy.time import Time
+from lsst.resources import ResourcePath
 from rubin_scheduler.scheduler import sim_runner
 from rubin_scheduler.scheduler.utils import SchemaConverter
 from rubin_scheduler.site_models.almanac import Almanac
 
 from rubin_sim import maf
 from rubin_sim.maf.utils.opsim_utils import get_sim_data
+from rubin_sim.sim_archive import vseqarchive
 
 from .future_vsarch import _fetch_obsloctap_visits as fetch_obsloctap_visits
 
@@ -255,6 +259,32 @@ def make_sim_archive_dir(
     return data_path
 
 
+def _next_sim_date_and_index(archive_base_uri: str):
+    insert_date = datetime.datetime.utcnow().date().isoformat()
+    insert_date_rpath = ResourcePath(archive_base_uri).join(insert_date, forceDirectory=True)
+    if not insert_date_rpath.exists():
+        insert_date_rpath.mkdir()
+        LOGGER.debug(f"Created {insert_date_rpath}.")
+
+    # Number the sims in the insert date dir by
+    # looing for all the interger directories, and choosing the next one.
+    found_ids = []
+    for base_dir, found_dirs, found_files in insert_date_rpath.walk():
+        if base_dir == insert_date_rpath:
+            for found_dir in found_dirs:
+                try:
+                    found_dir_index = found_dir[:-1] if found_dir.endswith("/") else found_dir
+                    found_ids.append(int(found_dir_index))
+                except ValueError:
+                    pass
+
+    new_id = max(found_ids) + 1 if len(found_ids) > 0 else 1
+    resource_rpath = insert_date_rpath.join(f"{new_id}", forceDirectory=True)
+    resource_rpath.mkdir()
+    LOGGER.debug(f"Created {resource_rpath}.")
+    return insert_date, new_id, resource_rpath
+
+
 def transfer_archive_dir(archive_dir, archive_base_uri="s3://rubin:rubin-scheduler-prenight/opsim/"):
     """Transfer the contents of an archive directory to an resource.
 
@@ -279,28 +309,7 @@ def transfer_archive_dir(archive_dir, archive_base_uri="s3://rubin:rubin-schedul
         sim_metadata = yaml.safe_load(metadata_io)
         LOGGER.debug(f"Completed read of {archive_dir}.")
 
-    insert_date = datetime.datetime.utcnow().date().isoformat()
-    insert_date_rpath = ResourcePath(archive_base_uri).join(insert_date, forceDirectory=True)
-    if not insert_date_rpath.exists():
-        insert_date_rpath.mkdir()
-        LOGGER.debug(f"Created {insert_date_rpath}.")
-
-    # Number the sims in the insert date dir by
-    # looing for all the interger directories, and choosing the next one.
-    found_ids = []
-    for base_dir, found_dirs, found_files in insert_date_rpath.walk():
-        if base_dir == insert_date_rpath:
-            for found_dir in found_dirs:
-                try:
-                    found_dir_index = found_dir[:-1] if found_dir.endswith("/") else found_dir
-                    found_ids.append(int(found_dir_index))
-                except ValueError:
-                    pass
-
-    new_id = max(found_ids) + 1 if len(found_ids) > 0 else 1
-    resource_rpath = insert_date_rpath.join(f"{new_id}", forceDirectory=True)
-    resource_rpath.mkdir()
-    LOGGER.debug(f"Created {resource_rpath}.")
+    insert_date, new_id, resource_rpath = _next_sim_date_and_index(archive_base_uri)
 
     # Include the metadata file itself.
     sim_metadata["files"]["metadata"] = {"name": "sim_metadata.yaml"}
@@ -1288,3 +1297,61 @@ def fetch_sim_stats_for_night(day_obs: str | int | None = None) -> dict:
     # nominal simulation, numbers of DDF/WFD/ToO visits, etc.
 
     return night_sim_stats
+
+
+def export_sim_to_prototype_sim_archive(
+    archive_metadata: vseqarchive.VisitSequenceArchiveMetadata, sim_uuid: UUID, proto_sim_archive_url: str
+) -> ResourcePath:
+    """Export a simulation to the prototype simulation archive.
+
+    Parameters
+    ----------
+    archive_metadata : `vseqarchive.VisitSequenceArchiveMetadata`
+        Interface to the visit‑sequence metadata database from
+        which the simulation is to be imported.
+    sim_uuid : `uuid.UUID`
+        UUID of the simulation to be exported.
+    proto_sim_archive_url : ``str``
+        Base URL of the prototype simulation archive to which
+        the simulations is to be exported.
+
+    Returns
+    -------
+    sim_rp: `lsst.resources.ResourcePath`
+        ResourcePath pointing to the root of the newly created
+        prototype archive entry.
+    """
+
+    insert_date, new_id, proto_sim_rpath = _next_sim_date_and_index(proto_sim_archive_url)
+    metadata = yaml.safe_load(archive_metadata.sim_metadata_yaml(sim_uuid))
+
+    have_opsim = False
+    for file_type in metadata["files"]:
+        if file_type == "observations":
+            have_opsim = True
+
+        origin = ResourcePath(metadata["files"][file_type]["url"])
+        destination = proto_sim_rpath.join(origin.basename())
+        destination.transfer_from(origin, "copy")
+        metadata["files"][file_type]["url"] = destination.geturl()
+
+    if not have_opsim:
+        visits_url = archive_metadata.get_visitseq_url(sim_uuid)
+        visits_rp = ResourcePath(visits_url)
+        with visits_rp.as_local() as visits_local_rp:
+            with TemporaryDirectory() as temp_dir:
+                opsimdb_fname = str(Path(temp_dir) / "opsim.db")
+                vseqarchive.hdf5_to_opsimdb(visits_local_rp.ospath, opsimdb_fname)
+                opsimdb_rp = proto_sim_rpath.join("opsim.db")
+                opsimdb_rp.transfer_from(ResourcePath(opsimdb_fname), "copy")
+        metadata["files"]["observations"] = {"name": "opsim.db", "url": opsimdb_rp.geturl()}
+
+    metadata["files"]["metadata"] = {"name": "sim_metadata.yaml"}
+    metadata["files"]["metadata"]["url"] = proto_sim_rpath.join(
+        metadata["files"]["metadata"]["name"]
+    ).geturl()
+
+    metadata_yaml = yaml.dump(metadata)
+    ResourcePath(metadata["files"]["metadata"]["url"]).write(metadata_yaml.encode("utf-8"))
+
+    return proto_sim_rpath
