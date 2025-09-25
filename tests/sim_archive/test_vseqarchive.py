@@ -14,12 +14,13 @@ import click.testing
 import numpy as np
 import pandas as pd
 import testing.postgresql
+import yaml
 from astropy.time import Time
 from lsst.resources import ResourcePath
 from psycopg2 import sql
-
 from rubin_scheduler.scheduler.utils import SchemaConverter
 
+import rubin_sim.sim_archive
 from rubin_sim.data import get_baseline
 from rubin_sim.sim_archive import vseqarchive
 from rubin_sim.sim_archive.tempdb import LocalOnlyPostgresql
@@ -42,7 +43,6 @@ obs_start_mjd   	s_ra	            s_dec    	        band	sky_rotation        exp
 
 
 class TestVisitSequenceArchive(unittest.TestCase):
-
     @classmethod
     def setUpClass(cls) -> None:
         try:
@@ -441,6 +441,68 @@ class TestVisitSequenceArchive(unittest.TestCase):
         # Make sure we do not see this if we ask for auxtel
         result = self.vsarch.sims_on_nights(first_day_obs, last_day_obs, tags, telescope="auxtel")
         assert len(result) == 0
+
+    def test_proto_export_import(self) -> None:
+        # ***** Create a test simulation
+        label = f"Test on {Time.now().iso}"
+        first_day_obs = "2025-01-01"
+        last_day_obs = "2025-01-05"
+        sim_runner_kwargs = {"foo": 5, "bar": [1, 2, 3]}
+
+        sim_uuid = self.vsarch.record_simulation_metadata(
+            TEST_VISITS,
+            label,
+            first_day_obs=first_day_obs,
+            last_day_obs=last_day_obs,
+            sim_runner_kwargs=sim_runner_kwargs,
+        )
+        in_tags = ["prototest1", "proto"]
+        self.vsarch.tag(sim_uuid, *in_tags)
+
+        with NamedTemporaryFile() as temp_file:
+            TEST_VISITS.to_hdf(temp_file.name, key="observations")
+            file_name = temp_file.name
+            vseqarchive.add_file(self.vsarch, sim_uuid, file_name, "visits", self.test_archive)
+
+        # Include an attached file
+        content = os.urandom(100)
+        test_file_type = "testbytes"
+        with NamedTemporaryFile() as temp_file:
+            file_name = temp_file.name
+            temp_file.write(content)
+            temp_file.flush()
+            vseqarchive.add_file(self.vsarch, sim_uuid, file_name, test_file_type, self.test_archive)
+
+        # ***** Send it to a prototype archive
+        proto_archive_url = "file://" + self.temp_dir.name + "/proto/"
+        proto_sim_rp = rubin_sim.sim_archive.export_sim_to_prototype_sim_archive(
+            self.vsarch, sim_uuid, proto_archive_url
+        )
+        assert proto_sim_rp.isdir()
+        assert proto_sim_rp.exists()
+        proto_sim_index = proto_sim_rp.ospath.split("/")[-2]
+        assert proto_sim_index.isdigit()
+        today = datetime.datetime.now().date().isoformat()
+        assert proto_sim_rp.ospath.split("/")[-3] == today
+
+        metadata_yaml_rp = proto_sim_rp.join("sim_metadata.yaml")
+        assert metadata_yaml_rp.exists()
+        read_metadata = yaml.safe_load(metadata_yaml_rp.read().decode("UTF-8"))
+
+        assert set(read_metadata["tags"]) == set(in_tags)
+        assert read_metadata["label"] == label
+        assert read_metadata["uuid"] == str(sim_uuid)
+        read_bytes = ResourcePath(read_metadata["files"]["testbytes"]["url"]).read()
+        assert read_bytes == content
+
+        # ***** Transfer it back out of the prototype archive into
+        #       a new entry in the vseqarchive
+        new_sim_uuid = self.vsarch.import_sim_from_prototype_sim_archive(
+            self.test_archive_url, today, proto_sim_index, proto_archive_url
+        )
+        round_trip_metadata = self.vsarch.get_visitseq_metadata(new_sim_uuid, "simulations_extra")
+        assert round_trip_metadata["files"]["testbytes"] == read_metadata["files"]["testbytes"]["url"]
+        assert set(["from_prototype_sim_archive"] + in_tags) == set(round_trip_metadata["tags"])
 
     def run_click_command(self, command: list[str]) -> str:
         # Wrapper around click's testing tools that sets up
