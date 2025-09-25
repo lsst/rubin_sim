@@ -483,17 +483,6 @@ class PlotLambert(BasePlot):
     def __init__(self, info=None):
         self.info = info
         self.generated_plot_dict = self._gen_default_labels(info)
-        self.generated_cb_dict = self._gen_default_cb(info)
-
-    def _gen_default_cb(self, info):
-
-        result = {"labelsize": None, "format": "%i", "label": "#"}
-
-        if info is not None:
-            if "metric: unit" in info.keys():
-                result["label"] = info["metric: unit"]
-
-        return result
 
     def _gen_default_labels(self, info):
         result = {}
@@ -522,8 +511,30 @@ class PlotLambert(BasePlot):
         title=None,
         alt_limit=10.0,
         levels=200,
+        cb_params={"labelsize": None, "format": "%i", "label": None},
         **kwargs,
     ):
+        """
+        Parameters
+        ----------
+        values_in : `np.array`
+            The values used to generate contours
+        latitudes : `np.array`
+            Latitude-like coordinates (probably altitude).
+            Should be same size as values_in. Default of None
+            assumes HEALpix array. Degrees.
+        title : `str`
+            String to use for the plot title. Will override
+            generated default.
+        levels : `int`
+            Number of levels to use. Passed to matplotlib.Axes.tricontourf.
+            Default 200.
+        cb_params : `dict`
+            Dictionary of colorbar parameters. If cb_params["label"] is
+            None, will check info dict for "metric: unit" value to use.
+        **kwargs
+            Additional kwargs passed through to matplotlib.Axes.tricontourf
+        """
 
         overrides = {"title": title}
         plot_dict = copy.copy(self.generated_plot_dict)
@@ -566,10 +577,14 @@ class PlotLambert(BasePlot):
         ax.set_xlim([-max_val, max_val])
         ax.set_ylim([-max_val, max_val])
 
-        # Pop in an extra line to raise the title a bit
+        # Title.
         ax.set_title(plot_dict["title"])
 
-        cb_params = self.generated_cb_dict
+        if cb_params["label"] is None:
+            if "metric: unit" in self.info.keys():
+                cb_params["label"] = self.info["metric: unit"]
+            else:
+                cb_params["label"] = "#"
 
         cb = plt.colorbar(tcf, format=cb_params["format"])
         cb.set_label(cb_params["label"])
