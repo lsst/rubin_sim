@@ -90,7 +90,7 @@ export ARCHIVE="s3://rubin:rubin-scheduler-prenight/opsim/"
 
 echo "Fetching completed visits"
 date --iso=s
-fetch_sv_visits ${DAYOBS} completed_visits.db ~/.usdf_access_token
+fetch_sv_visits ${DAYOBS} completed_visits.db ~/.lsst/usdf_access_token
 
 echo "Creating scheduler pickle"
 date --iso=s
