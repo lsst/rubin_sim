@@ -329,9 +329,9 @@ class TestHealpixCameraRadius(unittest.TestCase):
             use_camera=True,
             camera_radius=self.camera_radius,
         )
-        nvalues = 1000
+        nvalues = 100
         self.dv = make_data_values(
-            size=nvalues,
+            size=nvalues * hp.nside2npix(self.nside),
             minval=0.0,
             maxval=1.0,
             ramin=0,
@@ -340,6 +340,15 @@ class TestHealpixCameraRadius(unittest.TestCase):
             decmax=0,
             random=55,
         )
+        # Replace ra/dec to make them close to healpix points
+        hpix = np.arange(0, hp.nside2npix(self.nside))
+        ra, dec = hp.pix2ang(nside=self.nside, ipix=hpix, lonlat=True)
+        rng = np.random.RandomState(1147)
+        rr = rng.rand(nvalues) * 1.5
+        ra = (ra[:, np.newaxis] + rr).reshape(len(ra) * len(rr))
+        dec = (dec[:, np.newaxis] + rr).reshape(len(dec) * len(rr))
+        self.dv["ra"] = np.radians(ra)
+        self.dv["dec"] = np.radians(dec)
 
     def tearDown(self):
         del self.testslicer
@@ -376,7 +385,7 @@ class TestHealpixCameraRadius(unittest.TestCase):
             if len(sidxs) > 0:
                 for indx in sidxs:
                     self.assertIn(self.dv["testdata"][indx], self.dv["testdata"][didxs])
-            self.assertLessEqual(len(ss["idxs"]), len(s["idxs"]))
+            self.assertLess(len(ss["idxs"]), len(s["idxs"]))
 
 
 class TestHealpixSlicerPlotting(unittest.TestCase):
