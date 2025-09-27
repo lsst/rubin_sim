@@ -301,6 +301,84 @@ class TestHealpixChipGap(unittest.TestCase):
                     self.assertIn(self.dv["testdata"][indx], self.dv["testdata"][didxs])
 
 
+class TestHealpixCameraRadius(unittest.TestCase):
+    # Check that setting the camera radius to a smaller value
+    # reduces the number of points matched (that we are using
+    # LsstCameraFootprint correctly)
+
+    def setUp(self):
+        self.nside = 8
+        self.radius = 2.041
+        self.testslicer = HealpixSlicer(
+            nside=self.nside,
+            verbose=False,
+            lon_col="ra",
+            lat_col="dec",
+            lat_lon_deg=False,
+            radius=self.radius,
+            use_camera=True,
+        )
+        self.camera_radius = 0.5
+        self.testsmallslicer = HealpixSlicer(
+            nside=self.nside,
+            verbose=False,
+            lon_col="ra",
+            lat_col="dec",
+            lat_lon_deg=False,
+            radius=self.radius,
+            use_camera=True,
+            camera_radius=self.camera_radius,
+        )
+        nvalues = 1000
+        self.dv = make_data_values(
+            size=nvalues,
+            minval=0.0,
+            maxval=1.0,
+            ramin=0,
+            ramax=2 * np.pi,
+            decmin=-np.pi,
+            decmax=0,
+            random=55,
+        )
+
+    def tearDown(self):
+        del self.testslicer
+        self.testslicer = None
+        del self.testsmallslicer
+        self.testsmallslicer = None
+
+    def test_slicing(self):
+        """Test slicing returns (most) data points which are
+        within 'radius' of bin point or camera_radius for small slicer"""
+        # Test that slicing fails before setup_slicer
+        self.assertRaises(NotImplementedError, self.testslicer._slice_sim_data, 0)
+        # Set up and test actual slicing.
+        self.testslicer.setup_slicer(self.dv)
+        self.testsmallslicer.setup_slicer(self.dv)
+        for s, ss in zip(self.testslicer, self.testsmallslicer):
+            ra = s["slice_point"]["ra"]
+            dec = s["slice_point"]["dec"]
+            # Find the points of 'dv' which are within self.radius of
+            # this slice_point
+            distances = calc_dist_vincenty(ra, dec, self.dv["ra"], self.dv["dec"])
+            didxs = np.where(distances <= np.radians(self.radius))
+            # find the indexes of dv which the slicer says are in the
+            # camera footprint
+            sidxs = s["idxs"]
+            self.assertLessEqual(len(sidxs), len(didxs[0]))
+            if len(sidxs) > 0:
+                for indx in sidxs:
+                    self.assertIn(self.dv["testdata"][indx], self.dv["testdata"][didxs])
+            # find the indexes of dv which the slicer says are in the
+            # camera footprint
+            sidxs = ss["idxs"]
+            self.assertLessEqual(len(sidxs), len(didxs[0]))
+            if len(sidxs) > 0:
+                for indx in sidxs:
+                    self.assertIn(self.dv["testdata"][indx], self.dv["testdata"][didxs])
+            self.assertLessEqual(len(ss["idxs"]), len(s["idxs"]))
+
+
 class TestHealpixSlicerPlotting(unittest.TestCase):
     def setUp(self):
         rng = np.random.RandomState(713244122)

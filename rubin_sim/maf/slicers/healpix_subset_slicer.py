@@ -24,7 +24,7 @@ def make_circle_subset_slicer(ra_cen, dec_cen, radius=3.0, nside=512, use_cache=
     dec_cen : `float`
         Dec of the center of the slicer (degrees).
     radius : `float`, optional
-        Radius of the circular slicer shape (degrees).
+        Radius of the circular slicer extent (degrees).
     nside : `int`, optional
         Nside resolution of the healpix subset slicer.
     use_cache : `bool`, optional
@@ -137,6 +137,8 @@ class HealpixSubsetSlicer(HealpixSlicer):
     use_camera : `bool`, optional
         Flag to indicate whether to use the LSST camera footprint or not.
         Default False.
+    camera_radius : `float`, optional
+        max_radius for the LsstCameraFootprint (degrees).
     camera_footprint_file : `str`, optional
         Name of the camera footprint map to use. Can be None, which will
         use the default.
@@ -160,6 +162,7 @@ class HealpixSubsetSlicer(HealpixSlicer):
         leafsize=100,
         radius=2.45,
         use_camera=True,
+        camera_radius=1.94,
         camera_footprint_file=None,
         rot_sky_pos_col_name="rotSkyPos",
     ):
@@ -173,6 +176,7 @@ class HealpixSubsetSlicer(HealpixSlicer):
             radius=radius,
             leafsize=leafsize,
             use_cache=use_cache,
+            camera_radius=camera_radius,
             use_camera=use_camera,
             rot_sky_pos_col_name=rot_sky_pos_col_name,
             camera_footprint_file=camera_footprint_file,
