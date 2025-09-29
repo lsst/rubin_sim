@@ -533,7 +533,7 @@ class TestVisitSequenceArchive(unittest.TestCase):
 
             TEST_VISITS.to_hdf(temp_file.name, key="observations", mode="w")
 
-            table_name = "visitseq"
+            table_name = "simulations"
             label = f"CLI test {Time.now().iso}"
             url = ResourcePath(temp_file.name).geturl()
             record_command = [
@@ -627,15 +627,6 @@ class TestVisitSequenceArchive(unittest.TestCase):
         first_returned_url = first_get_url_output.strip()
         assert first_returned_url == archived_url
 
-        # Test setting the URL to something else.
-        new_url = f"{url}/new_extra_stuff"
-        set_url_command = ["set-visitseq-url", uuid_str, new_url]
-        self.run_click_command(set_url_command)
-        new_get_url_output = self.run_click_command(get_url_command)
-        new_returned_url = new_get_url_output.strip()
-        assert new_returned_url != first_returned_url
-        assert new_returned_url == new_url
-
         # Test changing other metadata.
         # Use first_day_obs as an example
         assert stored_metadata.first_day_obs is None
@@ -699,6 +690,47 @@ class TestVisitSequenceArchive(unittest.TestCase):
         after_second_test_comment = self.run_click_command(get_comments_command)
         assert test_comment in after_second_test_comment
         assert next_test_comment in after_second_test_comment
+
+        # Test exporting a sim to a prototype archive,
+        # and importing it again.
+
+        # Make a temp archive for the test proto archive.
+        with TemporaryDirectory() as temp_dir:
+            proto_base_rp = ResourcePath(temp_dir).join("proto", forceDirectory=True)
+            proto_base_url = proto_base_rp.geturl()
+
+            # Write a test sim into the test proto archive
+            output = self.run_click_command(
+                ["export-proto", uuid_str, "--proto-sim-archive-url", proto_base_url]
+            )
+            exported_url = output.strip()
+
+            expected_date = datetime.datetime.now(datetime.UTC).date().isoformat()
+            expected_exported_url = proto_base_rp.join(expected_date).join("1", forceDirectory=True).geturl()
+            assert exported_url == expected_exported_url
+
+            # Import the test sim back from the proto archive
+            output = self.run_click_command(
+                [
+                    "import-proto",
+                    self.test_archive_url,
+                    expected_date,
+                    "1",
+                    "--proto-sim-archive-url",
+                    proto_base_url,
+                ]
+            )
+            # Make sure we get back a valid UUID
+            UUID(output.strip())
+
+        # Test setting the URL to something else.
+        new_url = f"{url}/new_extra_stuff"
+        set_url_command = ["set-visitseq-url", uuid_str, new_url]
+        self.run_click_command(set_url_command)
+        new_get_url_output = self.run_click_command(get_url_command)
+        new_returned_url = new_get_url_output.strip()
+        assert new_returned_url != first_returned_url
+        assert new_returned_url == new_url
 
     def test_record_conda_env_cli(self) -> None:
         # Separate this from the other CLI testing

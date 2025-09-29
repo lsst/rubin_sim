@@ -260,7 +260,7 @@ def make_sim_archive_dir(
 
 
 def _next_sim_date_and_index(archive_base_uri: str):
-    insert_date = datetime.datetime.utcnow().date().isoformat()
+    insert_date = datetime.datetime.now(datetime.UTC).date().isoformat()
     insert_date_rpath = ResourcePath(archive_base_uri).join(insert_date, forceDirectory=True)
     if not insert_date_rpath.exists():
         insert_date_rpath.mkdir()
