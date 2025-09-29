@@ -2458,5 +2458,91 @@ def record_conda_env(vsarch: VisitSequenceArchiveMetadata) -> None:
     click.echo(env_hash.hex())
 
 
+@vseqarchive.command("import-proto")
+@click.argument("archive_base", type=str)
+@click.argument("sim_date", type=str)
+@click.argument("sim_index", type=str)
+@click.option(
+    "--proto-sim-archive-url",
+    default="s3://rubin:rubin-scheduler-prenight/opsim/",
+    show_default=True,
+    help="Base URI of the prototype simulation archive.",
+)
+@click.pass_obj
+def import_proto(
+    vsarch: VisitSequenceArchiveMetadata,
+    archive_base: str,
+    sim_date: str,
+    sim_index: str,
+    proto_sim_archive_url: str = "s3://rubin:rubin-scheduler-prenight/opsim/",
+) -> None:
+    """Import a simulation from the prototype simulation archive,
+    and print the UUID of the resultant entry in the destintation
+    archive.
+
+    Parameters
+    ----------
+    vsarch : `VisitSequenceArchiveMetadata`
+        The metadata interface instance.
+    archive_base :`str`
+        Base location of the destination archive.
+    sim_date : `str`
+        The ISO‑formatted date (e.g. ``'2025-03-12'``) by
+        which the prototype simulation is indexed.
+    sim_index : `str`
+        The index of the simulation which completes the
+        identification of the simulation in the prototype.
+    proto_sim_archive_url : `str`, optional
+        Base URI of the prototype simulation archive.  Defaults to
+        ``s3://rubin:rubin-scheduler-prenight/opsim/``.
+    """
+    sim_uuid = vsarch.import_sim_from_prototype_sim_archive(
+        archive_base,
+        sim_date,
+        sim_index,
+        proto_sim_archive_url,
+    )
+    click.echo(sim_uuid)
+
+
+@vseqarchive.command("export-proto")
+@click.argument("uuid", type=click.UUID)
+@click.option(
+    "--proto-sim-archive-url",
+    default="s3://rubin:rubin-scheduler-prenight/opsim/",
+    show_default=True,
+    help="Base URL of the prototype simulation archive to which to export.",
+)
+@click.pass_obj
+def export_proto(
+    vsarch: VisitSequenceArchiveMetadata,
+    uuid: UUID,
+    proto_sim_archive_url: str = "s3://rubin:rubin-scheduler-prenight/opsim/",
+) -> None:
+    """Export a simulation from the visit sequence archive
+    to the prototype simulation archive, and print the
+    URL in the prototype sim archive.
+
+    Parameters
+    ----------
+    vsarch : `VisitSequenceArchiveMetadata`
+        The metadata interface instance.
+    uuid : `UUID`
+        UUID of the simulation to export.
+    proto_sim_archive_url : `str`
+        Base URL of the prototype simulation archive to which the simulation
+        should be exported.
+    """
+    # Import here to avoid circular imports at module load time
+    from rubin_sim.sim_archive import sim_archive
+
+    destination_rp = sim_archive.export_sim_to_prototype_sim_archive(
+        archive_metadata=vsarch,
+        sim_uuid=uuid,
+        proto_sim_archive_url=proto_sim_archive_url,
+    )
+    click.echo(destination_rp.geturl())
+
+
 if __name__ == "__main__":
     vseqarchive()
