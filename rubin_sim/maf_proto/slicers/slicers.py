@@ -47,11 +47,9 @@ class Slicer(object):
     radius : `float`, optional
         Radius for matching in the kdtree.
         Equivalent to the radius of the FOV, in degrees.
-    use_camera : `bool`, optional
-        Flag to indicate whether to use the LSST camera footprint or not.
-    camera_footprint_file : `str`, optional
-        Name of the camera footprint map to use.
-        Can be None, which will use the default file.
+    camera : `str` or camera object
+        Default value of "default" loads utils.LsstCameraFootprint.
+        False uses no camera. Or pass in a custom camera object.
     """
 
     def __init__(
@@ -61,8 +59,7 @@ class Slicer(object):
         lat_col="fieldDec",
         leafsize=100,
         radius=2.45,
-        use_camera=True,
-        camera_footprint_file=None,
+        camera="default",
         rot_sky_pos_col_name="rotSkyPos",
         missing=np.nan,
         cache=False,
@@ -73,8 +70,6 @@ class Slicer(object):
         self.lon_col = lon_col
         self.lat_col = lat_col
         self.rot_sky_pos_col_name = rot_sky_pos_col_name
-        self.use_camera = use_camera
-        self.camera_footprint_file = camera_footprint_file
         self.leafsize = leafsize
 
         self.missing = missing
@@ -82,6 +77,15 @@ class Slicer(object):
         self.radius = radius
 
         self.cache = cache
+
+        if not camera:
+            self.use_camera = False
+        else:
+            self.use_camera = True
+            if camera == "default":
+                self.camera = utils.LsstCameraFootprint(units="radians")
+            else:
+                self.camera = camera
 
         # Setup with default values.
         if ra is not None:
@@ -159,9 +163,6 @@ class Slicer(object):
         self.data_dec_rad = np.radians(pointings_data[self.lat_col])
         self.data_rot_rad = np.radians(pointings_data[self.rot_sky_pos_col_name])
 
-        if self.use_camera:
-            self._setupLSSTCamera()
-
         self._build_tree(self.data_ra_rad, self.data_dec_rad, self.leafsize)
 
     def slice_data(self, islice):
@@ -201,10 +202,6 @@ class Slicer(object):
             else:
                 slice_point[key] = self.slice_points[key]
         return {"idxs": indices, "slice_point": slice_point}
-
-    def _setupLSSTCamera(self):
-        """If we want to include the camera chip gaps, etc."""
-        self.camera = utils.LsstCameraFootprint(units="radians", footprint_file=self.camera_footprint_file)
 
     def _build_tree(self, ra_rad, dec_rad, leafsize=100):
         """Build KD tree on sim_dataRA/Dec.
