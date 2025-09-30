@@ -160,6 +160,9 @@ class DirectObs(BaseObs):
         if prelim_eph_mode not in ("2body", "nbody"):
             raise ValueError("Ephemeris generation must be 2body or nbody.")
         self.prelim_eph_mode = prelim_eph_mode
+        # Load up default filters. User can call method
+        # to set something else.
+        self.read_filters()
 
     def run(self, orbits, obs_data, object_positions=None, object_mjds=None):
         """Find any observations of each object.
