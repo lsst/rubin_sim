@@ -219,7 +219,7 @@ Finaly, we can save statistics.
 For the basic statistics tools currently available, the visits are needed in an HDF5 file, but in the above instructions we just have an sqlite3 file.
 We can get the HDF5 by asking for the visits from the archive and giving it a destination filename with an `.h5` extension::
 
-    vseqarchive get-file visits.h5 ${SIM_UUID} visits
+    vseqarchive get-file ${SIM_UUID} visits visits.h5
 
 and then we can compute the statistics on our columns of interest and add them to the metadata database::
 
