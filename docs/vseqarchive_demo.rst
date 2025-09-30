@@ -35,17 +35,17 @@ Find the version we want, and activate the ``conda`` environment::
 
 Next we install specific versions of packages in a separate location so we have full control for just this execution::
 
-    SIM_PACKAGE_DIR=$(mktemp --suffix=.opsim_packages)
-    export PYTHONPATH=${PACKAGE_DIR}:${PYTHONPATH}
-    export PATH=${PACKAGE_DIR}/bin:${PATH}
+    SIM_PACKAGE_DIR=$(mktemp -d --suffix=.opsim_packages)
+    export PYTHONPATH=${SIM_PACKAGE_DIR}:${PYTHONPATH}
+    export PATH=${SIM_PACKAGE_DIR}/bin:${PATH}
 
 Set the actual versions we want. These will usually be tags, but can be any github reference (e.g. tags, branches, commits)::
 
 
-    RUBIN_SIM_REFERENCE="v2.3.0"
+    RUBIN_SIM_REFERENCE="tickets/SP-2167"
     SCHEDVIEW_REFERENCE="v0.19.0"
     TS_FBS_UTILS_REFERENCE="v0.17.0"
-    SIMS_SV_SURVEY_REFERENCE="v0.1.1"
+    SIMS_SV_SURVEY_REFERENCE="tickets/SP-2167"
     RUBIN_NIGHTS_REFERENCE="v0.4.0"
     RUBIN_SCHEDULER_REFERENCE="v3.14.1"
 
@@ -63,7 +63,7 @@ You can also use the github API and bash tools to get the highest tag for a repo
 Now actually do the install of all requested versions.
 Pick up the current version of ``lsst-resources`` along the way.::
 
-    pip install --no-deps --target=${PACKAGE_DIR} \
+    pip install --no-deps --target=${SIM_PACKAGE_DIR} \
         git+https://github.com/lsst/rubin_sim.git@${RUBIN_SIM_REFERENCE} \
         git+https://github.com/lsst/schedview.git@${SCHEDVIEW_REFERENCE} \
         git+https://github.com/lsst-ts/ts_fbs_utils.git@${TS_FBS_UTILS_REFERENCE} \
@@ -90,6 +90,10 @@ Let's use something from github::
     SCHED_CONFIG_FNAME=$(basename "$SCHED_CONFIG_URL")
     curl -sL ${SCHED_CONFIG_URL} -o ${SCHED_CONFIG_FNAME}
 
+    SUPP_CONFIG_URL="https://raw.githubusercontent.com/lsst-ts/ts_config_ocs/refs/tags/${TS_CONFIG_OCS_REFERENCE}/Scheduler/feature_scheduler/maintel/ddf_sv.dat"
+    SUPP_CONFIG_FNAME=$(basename "${SUPP_CONFIG_URL}")
+    curl -sL ${SUPP_CONFIG_URL} -o ${SUPP_CONFIG_FNAME}
+
 We need to set the ``dayobs`` on which the simulation should start::
 
     DAYOBS="20260101"
@@ -97,13 +101,13 @@ We need to set the ``dayobs`` on which the simulation should start::
 Get the pre-existing visits from consdb::
 
     USDF_ACCESS_TOKEN_PATH=~/.lsst/usdf_access_token
-    fetch_sv_visits ${DAYOBS} completed_visits.db ~/.lsst/usdf_access_token
+    fetch_sv_visits ${DAYOBS} completed_visits.db ${USDF_ACCESS_TOKEN_PATH}
 
 Note that you will need a USDF access token.
 
 Create a pickle of the scheduler to run, with completed visits pre-loaded, and write it to a pickle, ``scheduler.p``::
 
-    make_sv_scheduler scheduler.p --opsim completed_visits.db --config-script ${SCHEDULER_CONFIG_SCRIPT}
+    make_sv_scheduler scheduler.p --opsim completed_visits.db --config-script=${SCHED_CONFIG_FNAME}
 
 Create a model observatory and write it to pickle file, ``observatory.p``::
 
