@@ -1739,7 +1739,15 @@ def compute_nightly_stats(
 ) -> pd.DataFrame:
     if "day_obs" not in visits.columns:
         # Pandas seems to work better with type hinding that astropy Time
-        times = pd.to_datetime(visits.obs_start_mjd + 2400000, unit="D", origin="julian")
+        start_mjd_field = ""
+        for candidate_field in ["obs_start_mjd", "observationStartMJD"]:
+            if candidate_field in visits.columns:
+                start_mjd_field = candidate_field
+                break
+        if len(start_mjd_field) == 0:
+            raise ValueError("No day_obs or start mjd field found")
+
+        times = pd.to_datetime(visits.loc[:, start_mjd_field] + 2400000, unit="D", origin="julian")
         visits = visits.assign(day_obs=pd.Series(times).dt.date)
 
     stats_df = (
@@ -2374,15 +2382,11 @@ def get_file(
 @vseqarchive.command()
 @click.argument("uuid", type=click.UUID)
 @click.argument("visits_file", type=click.Path(exists=True))
-@click.option(
-    "--columns",
-    "-c",
-    multiple=True,
-    help=(
-        "Columns to compute nightly statistics on. "
-        "If omitted, the default set defined in "
-        "``compute_nightly_stats`` is used."
-    ),
+@click.argument(
+    "columns",
+    type=str,
+    required=False,
+    nargs=-1,
 )
 @click.pass_obj
 def add_nightly_stats(
