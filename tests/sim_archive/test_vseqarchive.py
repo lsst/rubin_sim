@@ -590,7 +590,7 @@ class TestVisitSequenceArchive(unittest.TestCase):
         # what we sent.
         with TemporaryDirectory() as temp_dir:
             visits_fname = str(Path(temp_dir).joinpath("visits.h5"))
-            get_visits_command = ["get-file", visits_fname, uuid_str, "visits"]
+            get_visits_command = ["get-file", uuid_str, "visits", visits_fname]
             self.run_click_command(get_visits_command)
             read_visits = pd.read_hdf(visits_fname, "observations")
             assert isinstance(read_visits, pd.DataFrame)
@@ -612,7 +612,7 @@ class TestVisitSequenceArchive(unittest.TestCase):
             ]
             self.run_click_command(arch_file_command)
             dest_fname = str(Path(temp_dir).joinpath("destination.txt"))
-            get_file_command = ["get-file", dest_fname, uuid_str, "test"]
+            get_file_command = ["get-file", uuid_str, "test", dest_fname]
             self.run_click_command(get_file_command)
             with open(dest_fname) as dest_fp:
                 returned_content = dest_fp.read()
@@ -822,13 +822,13 @@ class TestVisitSequenceArchive(unittest.TestCase):
 
         # Get it back as an h5 file
         h5_file_name = str(Path(self.temp_dir.name).joinpath("test_opsim_cli_returned.h5"))
-        get_h5_visits_command = ["get-file", h5_file_name, uuid_str, "visits"]
+        get_h5_visits_command = ["get-file", uuid_str, "visits", h5_file_name]
         self.run_click_command(get_h5_visits_command)
         returned_visits_h5 = pd.read_hdf(h5_file_name, "observations")
         assert len(returned_visits_h5) == len(obs)
 
         ret_db_file_name = str(Path(self.temp_dir.name).joinpath("test_opsim_cli_returned.db"))
-        get_opsim_visits_command = ["get-file", ret_db_file_name, uuid_str, "visits"]
+        get_opsim_visits_command = ["get-file", uuid_str, "visits", ret_db_file_name]
         self.run_click_command(get_opsim_visits_command)
         ret_obs = schema_converter.opsim2obs(ret_db_file_name)
         assert len(ret_obs) == len(obs)
