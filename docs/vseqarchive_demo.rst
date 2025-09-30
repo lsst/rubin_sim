@@ -140,6 +140,21 @@ Now, create a root for a demonstration resource in which to save the data itself
     mkdir ${HOME}/devel/test_visitseq_archive
     export ARCHIVE_URL="file:///sdf/data/rubin/user/${HOME}/devel/test_visitseq_archive"
 
+Make a simple utility shell function
+------------------------------------
+
+For the demonstration, it will be useful to query the metadata databas, but specifying all the connection parameters will be inconvenient.
+One option would be to set the environment variables ``psql`` uses (``PGDATABASE``, ``PGHOST``, ``PGUSER``), but setting these might confuse other utilities that query different postgresql databases (like ``consdb``), so lets make a utility that just sets them for one command::
+
+    vseq-psql() {
+        PGDATABASE=${VSARCHIVE_PGDATABASE} \
+        PGHOST=${VSARCHIVE_PGHOST} \
+        PGUSER=${VSARCHIVE_PGUSER} \
+        psql "$@"
+    }
+
+This results in a now shell command, ``vseq-psql``, that works just like ``psql``, but where the user does not need to specify connection parameters.
+
 Adding an entry for pre-existing visits to the archive
 ------------------------------------------------------
 
