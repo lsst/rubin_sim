@@ -2335,15 +2335,15 @@ def archive_file(
 
 
 @vseqarchive.command()
-@click.argument("destination", type=click.Path(exists=False))
 @click.argument("uuid", type=click.UUID)
 @click.argument("file_type", type=click.STRING)
+@click.argument("destination", type=click.Path(exists=False))
 @click.pass_obj
 def get_file(
     vsarch: VisitSequenceArchiveMetadata,
-    destination: str,
     uuid: UUID,
     file_type: str,
+    destination: str,
 ) -> None:
     """Retrieve a registered file and copy it to a local destination.
 
@@ -2351,6 +2351,11 @@ def get_file(
     ----------
     vsarch : `VisitSequenceArchiveMetadata`
         The metadata interface used to look up the file URL.
+    uuid : `UUID`
+        The unique identifier of the visit sequence containing the
+        requested file.
+    file_type : `str`
+        The handle for the type of file to retrieve (e.g. ``visits``).
     destination : `str`
         Path where the retrieved file should be written. If the
         destination does not exist it will be created.  For files
@@ -2358,11 +2363,6 @@ def get_file(
         suffix, the file will be downloaded as an HDF5 ``visits.h5`` file,
         converted back to the original opsim SQLite format, and written to
         ``destination``.
-    uuid : `UUID`
-        The unique identifier of the visit sequence containing the
-        requested file.
-    file_type : `str`
-        The handle for the type of file to retrieve (e.g. ``visits``).
     """
     file_url = vsarch.get_file_url(uuid, file_type)
     origin_rp = ResourcePath(file_url)
