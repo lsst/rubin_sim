@@ -159,6 +159,9 @@ This command only adds an entry to the metadata, it does not save the visits the
 We can skip saving the visits themselves, if we are okay with relying on using consdb to recreate it.
 (If you want to be sure, you can save them in the same way as simulated visits are saved below.)
 
+Adding the simulation
+---------------------
+
 Now create an entry for the simulated visits::
 
     SIM_UUID=$(vseqarchive record-visitseq-metadata \
@@ -184,6 +187,7 @@ and the visits and rewards to the resource::
     vseqarchive archive-file ${SIM_UUID} rewards.h5 rewards --archive-base ${ARCHIVE_URL}
 
 We can alse add tags and comments to the metadata database::
+
     vseqarchive tag ${SIM_UUID} test prenight nominal
     vseqarchive comment ${SIM_UUID} "Just a test prenight"
 
