@@ -132,8 +132,8 @@ The visit sequence archive has two components: a ``postgresql`` dataabase that t
 Begin by configuring the environment variables that the tools use to find the metadata database::
 
     export VSARCHIVE_PGDATABASE="opsim_log"
-    export VSARCHIVE_PGHOST="134.79.23.205"
-    export VSARCHIVE_PGUSER="rubin"
+    export VSARCHIVE_PGHOST="usdf-maf-visit-seq-archive-tx.sdf.slac.stanford.edu"
+    export VSARCHIVE_PGUSER="tester"
     export VSARCHIVE_PGSCHEMA="test"
 
 Note that we have set ``VSARCHIVE_PGSCHEMA`` to ``test``, so metadata will be saved in a test schema.
