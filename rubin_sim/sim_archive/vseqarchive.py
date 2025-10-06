@@ -8,7 +8,7 @@ import warnings
 from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from typing import Any, Dict, Mapping, Tuple
+from typing import Any, Dict, Mapping, Sequence, Tuple
 from uuid import UUID
 
 import click
@@ -22,6 +22,8 @@ import yaml
 from astropy.time import Time
 from lsst.resources import ResourcePath
 from psycopg2 import sql
+
+from rubin_sim.maf.stackers import BaseStacker
 
 VSARCHIVE_PGDATABASE = "opsim_log"
 VSARCHIVE_PGHOST = "134.79.23.203"
@@ -1921,6 +1923,49 @@ def add_file(
         vsarch.register_file(uuid, file_type, file_sha256, location, update=update)
 
     return location
+
+
+def get_visits(
+    visits_url: str | ResourcePath,
+    query: str = "",
+    stackers: Sequence[BaseStacker] = (),
+) -> pd.DataFrame:
+    """Retrieve visits for a visit sequence.
+
+    Parameters
+    ----------
+    visits_url : `str`
+        The origin of the visits.
+    query : `str`
+        A query in `pandas.DataFrame.query` syntax to select visits
+        from the returned sequence. Applied before stackers are run.
+    stackers : `Sequence[BaseStacker]`
+        A sequence of maf stackers to apply.
+
+    Returns
+    -------
+    visits: `pd.DataFrame`
+        The visits in the sequence.
+    """
+    origin_rp = ResourcePath(visits_url)
+
+    with TemporaryDirectory() as temp_dir:
+        h5_destination = ResourcePath(temp_dir).join("visits.h5")
+        h5_destination.transfer_from(origin_rp, "copy")
+        visits = pd.read_hdf(h5_destination.ospath, key="observations")
+
+    assert isinstance(visits, pd.DataFrame)
+
+    if len(query) > 0:
+        visits.query(query, inplace=True)
+
+    if len(stackers) > 0:
+        visit_records = visits.to_records()
+        for stacker in stackers:
+            visit_records = stacker.run(visit_records)
+        visits = pd.DataFrame(visit_records)
+
+    return visits
 
 
 #
