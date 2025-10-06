@@ -1349,18 +1349,30 @@ class VisitSequenceArchiveMetadata:
         assert isinstance(env_exists, bool)
         return env_exists
 
-    def record_conda_env(self, conda_env_hash: bytes, conda_env_json: str) -> bytes:
+    def record_conda_env(
+        self, conda_env_hash: bytes | None = None, conda_env_json: str | None = None
+    ) -> bytes:
         """Record the current Conda environment in the database.
 
         Parameters
         ----------
-        conda_env_hash : `bytes`
+        conda_env_hash : `bytes` or `None`
             The SHA‑256 digest of the Conda environment JSON
-            representation.
-        conda_env_json : `str`
+            representation. ``None`` (the default)
+            uses the current conda environment.
+        conda_env_json : `str` or `None`
             The json representing the conda environment.
+            ``None`` (the default) uses the current
+            conda environment.
         """
-        conda_env_hash, conda_env_json = compute_conda_env()
+        if conda_env_hash is None != conda_env_json is None:
+            raise ValueError("conda_env_hash and conda_env_json must both be set, or neither.")
+
+        if conda_env_hash is None:
+            conda_env_hash, conda_env_json = compute_conda_env()
+
+        assert isinstance(conda_env_hash, bytes)
+        assert isinstance(conda_env_json, str)
 
         if self.conda_env_is_saved(conda_env_hash):
             warnings.warn("Conda env with hash already exists, not saving again.")
