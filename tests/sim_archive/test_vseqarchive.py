@@ -22,7 +22,7 @@ from rubin_scheduler.scheduler.utils import SchemaConverter
 
 import rubin_sim.sim_archive
 from rubin_sim.data import get_baseline
-from rubin_sim.sim_archive import vseqarchive
+from rubin_sim.sim_archive import vseqarchive, vseqmetadata
 from rubin_sim.sim_archive.tempdb import LocalOnlyPostgresql
 
 TEST_METADATA_DB_SCHEMA = "test"
@@ -55,7 +55,7 @@ class TestVisitSequenceArchive(unittest.TestCase):
         cls.test_archive = ResourcePath(cls.test_archive_url)
 
         cls.test_database = LocalOnlyPostgresql(base_dir=cls.temp_dir.name)
-        cls.vsarch = vseqarchive.VisitSequenceArchiveMetadata(
+        cls.vsarch = vseqmetadata.VisitSequenceArchiveMetadata(
             metadata_db_kwargs=cls.test_database.psycopg2_dsn(),
             metadata_db_schema=TEST_METADATA_DB_SCHEMA,
         )
@@ -384,6 +384,15 @@ class TestVisitSequenceArchive(unittest.TestCase):
 
         visits_found_location = self.vsarch.get_visitseq_url(vseq_uuid)
         assert visits_found_location == sent_location.geturl()
+
+        reread_visits = vseqarchive.get_visits(found_location)
+        pd.testing.assert_frame_equal(reread_visits, visits)
+
+        max_obs_start_mjd = visits.obs_start_mjd.max()
+        max_visits = vseqarchive.get_visits(
+            found_location, query=f"obs_start_mjd > {max_obs_start_mjd - 0.0001}"
+        )
+        assert len(max_visits) == 1
 
     def test_sims_on_nights(self) -> None:
         # Make a tag for just this execution of this test:
