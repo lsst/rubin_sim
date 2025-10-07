@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #SBATCH --account=rubin:developers      # Account name
-#SBATCH --job-name=auxtel_prenight_daily   # Job name
+#SBATCH --job-name=prenight_simonyi_daily   # Job name
 #SBATCH --output=/sdf/data/rubin/shared/scheduler/prenight/sbatch/run_prenight_sims_%A_%a.out # Output file (stdout)
 #SBATCH --error=/sdf/data/rubin/shared/scheduler/prenight/sbatch/run_prenight_sims_%A_%a.out  # Error file (stderr)
 #SBATCH --partition=milano              # Partition (queue) names
@@ -59,7 +59,7 @@ else
   # alternately, set specific versions
   RUBIN_SCHEDULER_REFERENCE="v3.14.1"
   RUBIN_SIM_REFERENCE="tickets/SP-2167"
-  SCHEDVIEW_REFERENCE="main"
+  SCHEDVIEW_REFERENCE="tickets/SP-2167"
   TS_FBS_UTILS_REFERENCE="v0.17.0"
   SIMS_SV_SURVEY_REFERENCE="tickets/SP-2167"
   RUBIN_NIGHTS_REFERENCE="v0.6.1"
