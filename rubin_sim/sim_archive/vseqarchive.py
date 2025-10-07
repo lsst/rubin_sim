@@ -16,7 +16,7 @@ from rubin_sim.maf.stackers import BaseStacker
 from .util import compute_conda_env, dayobs_to_date, hdf5_to_opsimdb, opsimdb_to_hdf5
 from .vseqmetadata import VSARCHIVE_PGSCHEMA, VisitSequenceArchiveMetadata
 
-ARCHIVE_URL = "s3://rubin:rubin-scheduler-prenight/visit_sequences/"
+ARCHIVE_URL = "s3://rubin:rubin-scheduler-prenight/vseq/"
 SQLITE_EXTINSIONS = {".db", ".sqlite", ".sqlite3", ".db3"}
 
 LOGGER = logging.getLogger(__name__)
