@@ -1,16 +1,16 @@
 """Tools for maintaining an archive of opsim output and metadata."""
 
 __all__ = [
-    "make_sim_archive_dir",
-    "transfer_archive_dir",
-    "check_opsim_archive_resource",
-    "read_archived_sim_metadata",
-    "make_sim_archive_cli",
-    "compile_sim_metadata",
-    "read_sim_metadata_from_hdf",
-    "verify_compiled_sim_metadata",
+    "make_sim_dir",
+    "transfer_dir_to_prototype_archive",
+    "check_prototype_archive_resource",
+    "read_prototype_archive_sim_metadata",
+    "make_prototype_sim_archive_cli",
+    "compile_sim_metadata_from_prototype_archive",
+    "read_prototype_sim_metadata_from_hdf",
+    "verify_compiled_sim_metadata_in_prototype_archive",
     "drive_sim",
-    "compile_sim_archive_metadata_cli",
+    "compile_prototype_sim_archive_metadata_cli",
     "find_latest_prenight_sim_for_nights",
     "fetch_sim_for_nights",
     "fetch_obsloctap_visits",
@@ -60,7 +60,7 @@ except ModuleNotFoundError:
     LOGGER.error("Module lsst.resources required to use rubin_sim.sim_archive.")
 
 
-def make_sim_archive_dir(
+def make_sim_dir(
     observations: np.recarray,
     reward_df: pd.DataFrame | None = None,
     obs_rewards: pd.DataFrame | None = None,
@@ -71,7 +71,7 @@ def make_sim_archive_dir(
     data_path: str | Path | None = None,
     opsim_metadata: dict | None = None,
 ) -> Path | str:
-    """Create or fill a local simulation archive directory.
+    """Create or fill a local directory with simulation data.
 
     Parameters
     ----------
@@ -217,7 +217,7 @@ def make_sim_archive_dir(
     return data_path
 
 
-def _next_sim_date_and_index(archive_base_uri: str) -> tuple:
+def _next_sim_date_and_index_in_prototype_archive(archive_base_uri: str) -> tuple:
     insert_date = datetime.datetime.now(datetime.UTC).date().isoformat()
     insert_date_rpath = ResourcePath(archive_base_uri).join(insert_date, forceDirectory=True)
     if not insert_date_rpath.exists():
@@ -243,7 +243,7 @@ def _next_sim_date_and_index(archive_base_uri: str) -> tuple:
     return insert_date, new_id, resource_rpath
 
 
-def transfer_archive_dir(
+def transfer_dir_to_prototype_archive(
     archive_dir: str, archive_base_uri: str = "s3://rubin:rubin-scheduler-prenight/opsim/"
 ) -> ResourcePath:
     """Transfer the contents of an archive directory to an resource.
@@ -269,7 +269,7 @@ def transfer_archive_dir(
         sim_metadata = yaml.safe_load(metadata_io)
         LOGGER.debug(f"Completed read of {archive_dir}.")
 
-    insert_date, new_id, resource_rpath = _next_sim_date_and_index(archive_base_uri)
+    insert_date, new_id, resource_rpath = _next_sim_date_and_index_in_prototype_archive(archive_base_uri)
 
     # Include the metadata file itself.
     sim_metadata["files"]["metadata"] = {"name": "sim_metadata.yaml"}
@@ -288,7 +288,7 @@ def transfer_archive_dir(
     return resource_rpath
 
 
-def check_opsim_archive_resource(archive_uri: str) -> dict:
+def check_prototype_archive_resource(archive_uri: str) -> dict:
     """Check the contents of an opsim archive resource.
 
     Parameters
@@ -347,9 +347,9 @@ def _build_archived_sim_label(base_uri: str, metadata_resource: ResourcePath, me
     return label
 
 
-def read_archived_sim_metadata(
+def read_prototype_archive_sim_metadata(
     base_uri: str,
-    latest: str = None,
+    latest: str | None = None,
     num_nights: int = 5,
     compilation_resource: ResourcePath | str | None = None,
     verify_compilation: bool = False,
@@ -393,7 +393,7 @@ def read_archived_sim_metadata(
     if compilation_resource is not None:
         LOGGER.debug(f"Reading metadata cache {compilation_resource}.")
         try:
-            compilation.update(read_sim_metadata_from_hdf(compilation_resource))
+            compilation.update(read_prototype_sim_metadata_from_hdf(compilation_resource))
             for uri in compilation:
                 iso_date = Path(urlparse(uri).path).parts[-2]
                 if iso_date not in compiled_uris_by_date:
@@ -464,7 +464,7 @@ def read_archived_sim_metadata(
     return all_metadata
 
 
-def make_sim_archive_cli(*args: Any) -> str:
+def make_prototype_sim_archive_cli(*args: Any) -> str:
     parser = argparse.ArgumentParser(description="Add files to sim archive")
     parser.add_argument(
         "label",
@@ -537,7 +537,7 @@ def make_sim_archive_cli(*args: Any) -> str:
         except AttributeError:
             pass
 
-    data_path = make_sim_archive_dir(
+    data_path = make_sim_dir(
         observations,
         reward_df,
         obs_rewards,
@@ -548,15 +548,15 @@ def make_sim_archive_cli(*args: Any) -> str:
     )
     LOGGER.info(f"Created simulation archived directory: {data_path.name}")
 
-    sim_archive_uri = transfer_archive_dir(data_path.name, arg_values.archive_base_uri)
+    sim_archive_uri = transfer_dir_to_prototype_archive(data_path.name, arg_values.archive_base_uri)
     LOGGER.info(f"Transferred {data_path} to {sim_archive_uri}")
 
     return sim_archive_uri
 
 
-def compile_sim_metadata(
+def compile_sim_metadata_from_prototype_archive(
     archive_uri: str, compilation_resource: str | ResourcePath, num_nights: int = 10000, append: bool = False
-) -> str:
+) -> ResourcePath:
     """Read sim archive metadata and export it to tables in an hdf5 files.
 
     Parameters
@@ -580,11 +580,11 @@ def compile_sim_metadata(
     LOGGER.debug("Starting compile_sim_metadata.")
 
     if append:
-        sim_metadata = read_archived_sim_metadata(
+        sim_metadata = read_prototype_archive_sim_metadata(
             archive_uri, num_nights=num_nights, compilation_resource=compilation_resource
         )
     else:
-        sim_metadata = read_archived_sim_metadata(archive_uri, num_nights=num_nights)
+        sim_metadata = read_prototype_archive_sim_metadata(archive_uri, num_nights=num_nights)
 
     sim_rows = []
     file_rows = []
@@ -636,7 +636,7 @@ def compile_sim_metadata(
     return compilation_resource
 
 
-def read_sim_metadata_from_hdf(compilation_resource: str | ResourcePath) -> dict:
+def read_prototype_sim_metadata_from_hdf(compilation_resource: str | ResourcePath) -> dict:
     """Read sim archive metadata from an hdf5 file.
     Return a dict as if it were generated by read_archived_sim_metadata.
 
@@ -719,7 +719,7 @@ def read_sim_metadata_from_hdf(compilation_resource: str | ResourcePath) -> dict
     return sim_metadata
 
 
-def verify_compiled_sim_metadata(
+def verify_compiled_sim_metadata_in_prototype_archive(
     archive_uri: str, compilation_resource: str | ResourcePath, num_nights: int = 10000
 ) -> list[dict]:
     """Verify that a compilation of sim archive metadata matches directaly
@@ -741,7 +741,7 @@ def verify_compiled_sim_metadata(
         and empty list.
     """
 
-    direct_sim_metadata = read_archived_sim_metadata(archive_uri, num_nights=num_nights)
+    direct_sim_metadata = read_prototype_archive_sim_metadata(archive_uri, num_nights=num_nights)
 
     try:
         # One old sim uses a couple of non-standard keywords, so update them.
@@ -756,7 +756,7 @@ def verify_compiled_sim_metadata(
         # If the archive doesn't have this old sim, don't worry about it.
         pass
 
-    compiled_sim_metadata = read_sim_metadata_from_hdf(compilation_resource)
+    compiled_sim_metadata = read_prototype_sim_metadata_from_hdf(compilation_resource)
 
     # Test that everything in direct_sim_metadata has a corresponding matching
     # entry in the compilation.
@@ -905,7 +905,7 @@ def drive_sim(
         reward_df = sim_results[3] if scheduler.keep_rewards else None
         obs_rewards = sim_results[4] if scheduler.keep_rewards else None
 
-        data_dir = make_sim_archive_dir(
+        data_dir = make_sim_dir(
             observations,
             reward_df=reward_df,
             obs_rewards=obs_rewards,
@@ -917,7 +917,7 @@ def drive_sim(
         )
 
         if archive_uri is not None:
-            resource_path = transfer_archive_dir(data_dir.name, archive_uri)
+            resource_path = transfer_dir_to_prototype_archive(data_dir.name, archive_uri)
         else:
             resource_path = ResourcePath(data_dir.name, forceDirctory=True)  # type: ignore
 
@@ -925,7 +925,7 @@ def drive_sim(
     return results
 
 
-def compile_sim_archive_metadata_cli(*args: Any) -> None:
+def compile_prototype_sim_archive_metadata_cli(*args: Any) -> None:
     parser = argparse.ArgumentParser(description="Create a metadata compilation HDF5 file at a URI")
     parser.add_argument(
         "--compilation_uri",
@@ -964,7 +964,9 @@ def compile_sim_archive_metadata_cli(*args: Any) -> None:
     else:
         compilation_resource = ResourcePath(compilation_uri)
 
-    compilation_resource = compile_sim_metadata(archive_uri, compilation_resource, append=append)
+    compilation_resource = compile_sim_metadata_from_prototype_archive(
+        archive_uri, compilation_resource, append=append
+    )
 
 
 def find_latest_prenight_sim_for_nights(
@@ -1015,7 +1017,7 @@ def find_latest_prenight_sim_for_nights(
     if last_day_obs is None:
         last_day_obs = first_day_obs
 
-    sim_metadata = read_archived_sim_metadata(
+    sim_metadata = read_prototype_archive_sim_metadata(
         archive_uri, num_nights=max_simulation_age, compilation_resource=compilation_uri
     )
     LOGGER.debug(f"Total simulations it the last {max_simulation_age} days: {len(sim_metadata)}.")
@@ -1279,7 +1281,9 @@ def export_sim_to_prototype_sim_archive(
         prototype archive entry.
     """
 
-    insert_date, new_id, proto_sim_rpath = _next_sim_date_and_index(proto_sim_archive_url)
+    insert_date, new_id, proto_sim_rpath = _next_sim_date_and_index_in_prototype_archive(
+        proto_sim_archive_url
+    )
     metadata = yaml.safe_load(archive_metadata.sim_metadata_yaml(sim_uuid))
 
     have_opsim = False
