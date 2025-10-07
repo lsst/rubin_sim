@@ -21,18 +21,16 @@ __all__ = [
 import argparse
 import datetime
 import hashlib
-import json
 import logging
 import lzma
 import os
 import pickle
 import shutil
 import socket
-import sys
-from contextlib import redirect_stdout
 from numbers import Integral, Number
 from pathlib import Path
 from tempfile import TemporaryDirectory
+from typing import Any
 from urllib.parse import urlparse
 from uuid import UUID
 
@@ -43,6 +41,8 @@ import yaml
 from astropy.time import Time
 from lsst.resources import ResourcePath
 from rubin_scheduler.scheduler import sim_runner
+from rubin_scheduler.scheduler.model_observatory import ModelObservatory
+from rubin_scheduler.scheduler.schedulers import CoreScheduler
 from rubin_scheduler.scheduler.utils import SchemaConverter
 from rubin_scheduler.site_models.almanac import Almanac
 
@@ -59,28 +59,18 @@ try:
 except ModuleNotFoundError:
     LOGGER.error("Module lsst.resources required to use rubin_sim.sim_archive.")
 
-try:
-    from conda.cli.main_list import print_packages
-    from conda.gateways.disk.test import is_conda_environment
-
-    have_conda = True
-except ModuleNotFoundError:
-    have_conda = False
-    LOGGER.warning("No conda module found, no conda environment data will be saved")
-
 
 def make_sim_archive_dir(
-    observations,
-    reward_df=None,
-    obs_rewards=None,
-    in_files={},
-    sim_runner_kwargs={},
-    tags=[],
-    label=None,
-    data_path=None,
-    capture_env=True,
-    opsim_metadata=None,
-):
+    observations: np.recarray,
+    reward_df: pd.DataFrame | None = None,
+    obs_rewards: pd.DataFrame | None = None,
+    in_files: dict = {},
+    sim_runner_kwargs: dict = {},
+    tags: list = [],
+    label: str | None = None,
+    data_path: str | Path | None = None,
+    opsim_metadata: dict | None = None,
+) -> Path | str:
     """Create or fill a local simulation archive directory.
 
     Parameters
@@ -104,9 +94,6 @@ def make_sim_archive_dir(
         A label to be included in the metadata, by default None.
     data_path : `str` or `pathlib.Path`, optional
         The path to the simulation archive directory, by default None.
-    capture_env : `bool`
-        Use the current environment as the sim environment.
-        Defaults to True.
     opsim_metadata : `dict`
         Metadata to be included.
 
@@ -146,34 +133,6 @@ def make_sim_archive_dir(
     with open(stats_fname, "w") as stats_io:
         print(SchemaConverter().obs2opsim(observations).describe().T.to_csv(sep="\t"), file=stats_io)
 
-    if capture_env:
-        # Consider replacing this with conda_packages.getCondaPackages
-        # Save the conda environment
-        conda_prefix = Path(sys.executable).parent.parent.as_posix()
-        if have_conda and is_conda_environment(conda_prefix):
-            conda_base_fname = "environment.txt"
-            environment_fname = data_path.joinpath(conda_base_fname).as_posix()
-
-            # Python equivalent of
-            # conda list --export -p $conda_prefix > $environment_fname
-            with open(environment_fname, "w") as environment_io:
-                with redirect_stdout(environment_io):
-                    print_packages(conda_prefix, format="export")
-
-            files["environment"] = {"name": conda_base_fname}
-
-        # Save pypi packages
-        pypi_base_fname = "pypi.json"
-        pypi_fname = data_path.joinpath(pypi_base_fname).as_posix()
-
-        pip_json_output = os.popen("pip list --format json")
-        pip_list = json.loads(pip_json_output.read())
-
-        with open(pypi_fname, "w") as pypi_io:
-            print(json.dumps(pip_list, indent=4), file=pypi_io)
-
-        files["pypi"] = {"name": pypi_base_fname}
-
     # Add supplied files
     for file_type, fname in in_files.items():
         files[file_type] = {"name": Path(fname).name}
@@ -190,19 +149,18 @@ def make_sim_archive_dir(
 
         files[file_type]["md5"] = hashlib.md5(content).hexdigest()
 
-    def convert_mjd_to_dayobs(mjd):
+    def convert_mjd_to_dayobs(mjd: float) -> str:
         # Use dayObs defn. from SITCOMTN-32: https://sitcomtn-032.lsst.io/
         evening_local_mjd = np.floor(mjd - 0.5).astype(int)
         evening_local_iso = Time(evening_local_mjd, format="mjd").iso[:10]
+        assert isinstance(evening_local_iso, str)
         return evening_local_iso
 
     if opsim_metadata is None:
         opsim_metadata = {}
 
-    if capture_env:
-        opsim_metadata["scheduler_version"] = rubin_scheduler.__version__
-        opsim_metadata["host"] = socket.getfqdn()
-
+    opsim_metadata["scheduler_version"] = rubin_scheduler.__version__
+    opsim_metadata["host"] = socket.getfqdn()
     opsim_metadata["username"] = os.environ["USER"]
 
     simulation_dates = {}
@@ -259,7 +217,7 @@ def make_sim_archive_dir(
     return data_path
 
 
-def _next_sim_date_and_index(archive_base_uri: str):
+def _next_sim_date_and_index(archive_base_uri: str) -> tuple:
     insert_date = datetime.datetime.now(datetime.UTC).date().isoformat()
     insert_date_rpath = ResourcePath(archive_base_uri).join(insert_date, forceDirectory=True)
     if not insert_date_rpath.exists():
@@ -285,7 +243,9 @@ def _next_sim_date_and_index(archive_base_uri: str):
     return insert_date, new_id, resource_rpath
 
 
-def transfer_archive_dir(archive_dir, archive_base_uri="s3://rubin:rubin-scheduler-prenight/opsim/"):
+def transfer_archive_dir(
+    archive_dir: str, archive_base_uri: str = "s3://rubin:rubin-scheduler-prenight/opsim/"
+) -> ResourcePath:
     """Transfer the contents of an archive directory to an resource.
 
     Parameters
@@ -538,11 +498,6 @@ def make_sim_archive_cli(*args) -> str:
         help=notebook_help,
     )
     parser.add_argument(
-        "--current_env",
-        action="store_true",
-        help="Record the current environment as the simulation environment.",
-    )
-    parser.add_argument(
         "--archive_base_uri",
         type=str,
         default="s3://rubin:rubin-scheduler-prenight/opsim/",
@@ -585,7 +540,6 @@ def make_sim_archive_cli(*args) -> str:
         in_files,
         tags=arg_values.tags,
         label=arg_values.label,
-        capture_env=arg_values.current_env,
         opsim_metadata={"telescope": arg_values.telescope},
     )
     LOGGER.info(f"Created simulation archived directory: {data_path.name}")
@@ -850,15 +804,15 @@ def verify_compiled_sim_metadata(
 
 
 def drive_sim(
-    observatory,
-    scheduler,
-    archive_uri=None,
-    label=None,
-    tags=[],
-    script=None,
-    notebook=None,
-    opsim_metadata=None,
-    **kwargs,
+    observatory: ModelObservatory,
+    scheduler: CoreScheduler,
+    archive_uri: str | None = None,
+    label: str | None = None,
+    tags: list = [],
+    script: str | None = None,
+    notebook: str | None = None,
+    opsim_metadata: dict | None = None,
+    **kwargs: Any,
 ) -> tuple:
     """Run a simulation and archive the results.
 
@@ -955,14 +909,13 @@ def drive_sim(
             sim_runner_kwargs=kwargs,
             tags=tags,
             label=label,
-            capture_env=True,
             opsim_metadata=opsim_metadata,
         )
 
         if archive_uri is not None:
             resource_path = transfer_archive_dir(data_dir.name, archive_uri)
         else:
-            resource_path = ResourcePath(data_dir.name, forceDirctory=True)
+            resource_path = ResourcePath(data_dir.name, forceDirctory=True)  # type: ignore
 
     results = sim_results + (resource_path,)
     return results
