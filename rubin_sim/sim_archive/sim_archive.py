@@ -288,7 +288,7 @@ def transfer_archive_dir(
     return resource_rpath
 
 
-def check_opsim_archive_resource(archive_uri):
+def check_opsim_archive_resource(archive_uri: str) -> dict:
     """Check the contents of an opsim archive resource.
 
     Parameters
@@ -323,7 +323,7 @@ def check_opsim_archive_resource(archive_uri):
     return results
 
 
-def _build_archived_sim_label(base_uri, metadata_resource, metadata):
+def _build_archived_sim_label(base_uri: str, metadata_resource: ResourcePath, metadata: dict) -> str:
     label_base = metadata_resource.dirname().geturl().removeprefix(base_uri).rstrip("/").lstrip("/")
 
     # If a label is supplied by the metadata, use it
@@ -348,8 +348,12 @@ def _build_archived_sim_label(base_uri, metadata_resource, metadata):
 
 
 def read_archived_sim_metadata(
-    base_uri, latest=None, num_nights=5, compilation_resource=None, verify_compilation=False
-):
+    base_uri: str,
+    latest: str = None,
+    num_nights: int = 5,
+    compilation_resource: ResourcePath | str | None = None,
+    verify_compilation: bool = False,
+) -> dict:
     """Read metadata for a time range of archived opsim output.
 
     Parameters
@@ -460,7 +464,7 @@ def read_archived_sim_metadata(
     return all_metadata
 
 
-def make_sim_archive_cli(*args) -> str:
+def make_sim_archive_cli(*args: Any) -> str:
     parser = argparse.ArgumentParser(description="Add files to sim archive")
     parser.add_argument(
         "label",
@@ -551,7 +555,7 @@ def make_sim_archive_cli(*args) -> str:
 
 
 def compile_sim_metadata(
-    archive_uri: str, compilation_resource: str | ResourcePath, num_nights: int = 10000, append=False
+    archive_uri: str, compilation_resource: str | ResourcePath, num_nights: int = 10000, append: bool = False
 ) -> str:
     """Read sim archive metadata and export it to tables in an hdf5 files.
 
@@ -921,7 +925,7 @@ def drive_sim(
     return results
 
 
-def compile_sim_archive_metadata_cli(*args):
+def compile_sim_archive_metadata_cli(*args: Any) -> None:
     parser = argparse.ArgumentParser(description="Create a metadata compilation HDF5 file at a URI")
     parser.add_argument(
         "--compilation_uri",
