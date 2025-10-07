@@ -23,8 +23,8 @@ from psycopg2 import sql
 from .util import compute_conda_env, dayobs_to_date, opsimdb_to_hdf5
 
 VSARCHIVE_PGDATABASE = "opsim_log"
-VSARCHIVE_PGHOST = "134.79.23.203"
-VSARCHIVE_PGUSER = "rubin"
+VSARCHIVE_PGHOST = "usdf-maf-visit-seq-archive-tx-ro.sdf.slac.stanford.edu"
+VSARCHIVE_PGUSER = "reader"
 VSARCHIVE_PGSCHEMA = "vsmd"
 
 JSON_DUMP_LIMIT = 4096
@@ -173,11 +173,6 @@ class VisitSequenceArchiveMetadata:
         if not isinstance(metadata_db_kwargs, dict):
             metadata_db_kwargs = {} if metadata_db_kwargs is None else dict(metadata_db_kwargs)
         assert isinstance(metadata_db_kwargs, dict)
-
-        if metadata_db_kwargs is None:
-            metadata_db_kwargs = {}
-
-        assert isinstance(metadata_db_kwargs, Mapping)
 
         if "database" not in metadata_db_kwargs:
             if "VSARCHIVE_PGDATABASE" in os.environ:
