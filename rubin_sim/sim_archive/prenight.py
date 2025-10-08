@@ -45,7 +45,6 @@ DEFAULT_ARCHIVE_URI = "s3://rubin:rubin-scheduler-prenight/opsim/"
 
 def _run_sim(
     sim_start_mjd: float,
-    archive_uri: str,
     scheduler_io: io.BufferedRandom,
     label: str,
     tags: Sequence[str] = tuple(),
@@ -68,7 +67,6 @@ def _run_sim(
     drive_sim(
         observatory=observatory,
         scheduler=scheduler,
-        archive_uri=archive_uri,
         label=label,
         tags=tags,
         script=__file__,
@@ -197,7 +195,6 @@ class AnomalousOverheadFunc:
 
 def run_prenights(
     day_obs_mjd: float,
-    archive_uri: str,
     scheduler_file: Optional[str] = None,
     minutes_delays: tuple[float, ...] = (0, 1, 10, 60, 240),
     anomalous_overhead_seeds: tuple[int, ...] = (101, 102, 103, 104, 105),
@@ -210,8 +207,6 @@ def run_prenights(
     ----------
     day_obs_mjd : `float`
         The starting MJD.
-    archive_uri : `str`
-        The URI of visits completed before this night.
     scheduler_file : `str`, optional
         File from which to load the scheduler. None defaults to the example
         scheduler in rubin_sim, if it is installed.
@@ -234,9 +229,7 @@ def run_prenights(
     scheduler_io: io.BufferedRandom = _create_scheduler_io(day_obs_mjd, scheduler_fname=scheduler_file)
 
     # Assign args common to all sims for this execution.
-    run_sim = partial(
-        _run_sim, archive_uri=archive_uri, scheduler_io=scheduler_io, opsim_metadata=opsim_metadata
-    )
+    run_sim = partial(_run_sim, scheduler_io=scheduler_io, opsim_metadata=opsim_metadata)
 
     # Find the start of observing for the specified day_obs.
     # Almanac.get_sunset_info does not use day_obs, so just index
@@ -320,12 +313,6 @@ def prenight_sim_cli(cli_args: list = []) -> None:
         default=default_time.iso,
         help="The day_obs of the night to simulate.",
     )
-    parser.add_argument(
-        "--archive",
-        type=str,
-        default=DEFAULT_ARCHIVE_URI,
-        help="Archive in which to store simulation results.",
-    )
     parser.add_argument("--scheduler", type=str, default=None, help="pickle file of the scheduler to run.")
     parser.add_argument("--config_version", type=str, default=None, help="Version of ts_config_ocs used.")
     parser.add_argument("--telescope", type=str, default=None, help="Telescope scheduled.")
@@ -360,7 +347,6 @@ def prenight_sim_cli(cli_args: list = []) -> None:
     args = parser.parse_args() if len(cli_args) == 0 else parser.parse_args(cli_args)
 
     day_obs_mjd = _parse_dayobs_to_mjd(args.dayobs)
-    archive_uri = args.archive
 
     scheduler_file = args.scheduler
     opsim_metadata = {"telescope": args.telescope}
@@ -396,7 +382,6 @@ def prenight_sim_cli(cli_args: list = []) -> None:
 
     run_prenights(
         day_obs_mjd,
-        archive_uri,
         scheduler_file,
         minutes_delays=(0, 1, 10, 60),
         anomalous_overhead_seeds=(101, 102),
