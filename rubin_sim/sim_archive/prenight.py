@@ -1,10 +1,6 @@
 """Tools for running the set of simulations used for a pre-night briefing."""
 
-__all__ = [
-    "AnomalousOverheadFunc",
-    "run_prenights",
-    "prenight_sim_cli",
-]
+__all__ = ["AnomalousOverheadFunc", "run_prenights", "prenight_sim_cli", "run_prenight_sim_cli"]
 
 import argparse
 import bz2
@@ -16,7 +12,7 @@ import os
 import pickle
 import typing
 import warnings
-from datetime import datetime
+from datetime import date, datetime
 from functools import partial
 from pathlib import Path
 from tempfile import TemporaryFile
@@ -402,7 +398,7 @@ def prenight_sim_cli(cli_args: list = []) -> None:
     )
 
 
-def compute_sim_start_and_end(day_obs: int, sim_nights: int, delay: float = 0) -> tuple(float, float):
+def compute_sim_start_and_end(day_obs: int, sim_nights: int, delay: float = 0) -> tuple[float, float]:
     """Compute simulation start and end time for a prenight simulation.
 
     Parameters
@@ -429,7 +425,7 @@ def compute_sim_start_and_end(day_obs: int, sim_nights: int, delay: float = 0) -
     # and has epoch 1899-12-31T12:00:00.
     sunsets = Almanac().sunsets
     djd_mjd_offset = 15019.5
-    djd0 = datetime.date(1899, 12, 31)
+    djd0 = date(1899, 12, 31)
 
     night0_djd = int(np.floor(sunsets["sunset"][0] - djd_mjd_offset))
     day_obs_date = dayobs_to_date(day_obs)
