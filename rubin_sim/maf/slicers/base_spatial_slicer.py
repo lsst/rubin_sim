@@ -56,6 +56,8 @@ class BaseSpatialSlicer(BaseSlicer):
         Equivalent to the radius of the FOV, in degrees.
     use_camera : `bool`, optional
         Flag to indicate whether to use the LSST camera footprint or not.
+    camera_radius : `float`, optional
+        max_radius for the LsstCameraFootprint (degrees).
     camera_footprint_file : `str`, optional
         Name of the camera footprint map to use.
         Can be None, which will use the default file.
@@ -72,6 +74,7 @@ class BaseSpatialSlicer(BaseSlicer):
         leafsize=100,
         radius=2.45,
         use_camera=True,
+        camera_radius=1.94,
         camera_footprint_file=None,
     ):
         super().__init__(verbose=verbose, badval=badval)
@@ -81,6 +84,7 @@ class BaseSpatialSlicer(BaseSlicer):
         self.rotSkyPosColName = rot_sky_pos_col_name
         self.columns_needed = [lon_col, lat_col, rot_sky_pos_col_name]
         self.use_camera = use_camera
+        self.camera_radius = camera_radius
         self.camera_footprint_file = camera_footprint_file
         self.radius = radius
         self.leafsize = leafsize
@@ -182,7 +186,7 @@ class BaseSpatialSlicer(BaseSlicer):
     def _setupLSSTCamera(self):
         """If we want to include the camera chip gaps, etc."""
         self.camera = simsUtils.LsstCameraFootprint(
-            units="radians", footprint_file=self.camera_footprint_file
+            units="radians", footprint_file=self.camera_footprint_file, max_radius=self.camera_radius
         )
 
     def _build_tree(self, sim_dataRa, sim_dataDec, leafsize=100):

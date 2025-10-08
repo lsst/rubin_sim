@@ -72,6 +72,8 @@ class HealpixSlicer(BaseSpatialSlicer):
         Equivalent to the radius of the FOV. Degrees.
     use_camera : `bool`, optional
         Flag to indicate whether to use the LSST camera footprint or not.
+    camera_radius : `float`, optional
+        max_radius for the LsstCameraFootprint (degrees).
     camera_footprint_file : `str`, optional
         Name of the camera footprint map to use.
         Can be None, which will use the default footprint map.
@@ -96,6 +98,7 @@ class HealpixSlicer(BaseSpatialSlicer):
         leafsize=100,
         radius=2.45,
         use_camera=True,
+        camera_radius=1.94,
         camera_footprint_file=None,
         rot_sky_pos_col_name="rotSkyPos",
         badval=np.nan,
@@ -108,6 +111,7 @@ class HealpixSlicer(BaseSpatialSlicer):
             radius=radius,
             leafsize=leafsize,
             use_camera=use_camera,
+            camera_radius=camera_radius,
             camera_footprint_file=camera_footprint_file,
             rot_sky_pos_col_name=rot_sky_pos_col_name,
             lat_lon_deg=lat_lon_deg,
