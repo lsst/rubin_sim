@@ -130,6 +130,7 @@ SIM_UUID=$(vseqarchive record-visitseq-metadata \
     simulations \
     ${OPSIM_RESULT_DIR}/opsim.db \
     "${LABEL}" \
+    --telescope auxtel \
     --first_day_obs ${DAYOBS} \
     --last_day_obs ${DAYOBS}
     )
@@ -160,6 +161,7 @@ for DELAY in 60 240 ; do
       simulations \
       ${OPSIM_RESULT_DIR}/opsim.db \
       "${LABEL}" \
+      --telescope auxtel \
       --first_day_obs ${DAYOBS} \
       --last_day_obs ${DAYOBS}
       )
@@ -188,6 +190,7 @@ for ANOM_SEED in 101 102 ; do
       simulations \
       ${OPSIM_RESULT_DIR}/opsim.db \
       "${LABEL}" \
+      --telescope auxtel \
       --first_day_obs ${DAYOBS} \
       --last_day_obs ${DAYOBS}
       )
