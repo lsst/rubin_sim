@@ -13,7 +13,6 @@ from lsst.resources import ResourcePath
 
 from rubin_sim.maf.stackers import BaseStacker
 
-from .prototype import export_sim_to_prototype_sim_archive
 from .util import compute_conda_env, dayobs_to_date, hdf5_to_opsimdb, opsimdb_to_hdf5
 from .vseqmetadata import VSARCHIVE_PGSCHEMA, VisitSequenceArchiveMetadata
 
@@ -853,6 +852,8 @@ def export_proto(
         Base URL of the prototype simulation archive to which the simulation
         should be exported.
     """
+    # Import here to avoid circular imports
+    from .prototype import export_sim_to_prototype_sim_archive
 
     destination_rp = export_sim_to_prototype_sim_archive(
         archive_metadata=vsarch,
