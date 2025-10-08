@@ -20,9 +20,9 @@ from lsst.resources import ResourcePath
 from psycopg2 import sql
 from rubin_scheduler.scheduler.utils import SchemaConverter
 
-import rubin_sim.sim_archive
 from rubin_sim.data import get_baseline
 from rubin_sim.sim_archive import vseqarchive, vseqmetadata
+from rubin_sim.sim_archive.prototype import export_sim_to_prototype_sim_archive
 from rubin_sim.sim_archive.tempdb import LocalOnlyPostgresql
 
 TEST_METADATA_DB_SCHEMA = "test"
@@ -484,9 +484,7 @@ class TestVisitSequenceArchive(unittest.TestCase):
 
         # ***** Send it to a prototype archive
         proto_archive_url = "file://" + self.temp_dir.name + "/proto/"
-        proto_sim_rp = rubin_sim.sim_archive.export_sim_to_prototype_sim_archive(
-            self.vsarch, sim_uuid, proto_archive_url
-        )
+        proto_sim_rp = export_sim_to_prototype_sim_archive(self.vsarch, sim_uuid, proto_archive_url)
         assert proto_sim_rp.isdir()
         assert proto_sim_rp.exists()
         proto_sim_index = proto_sim_rp.ospath.split("/")[-2]
