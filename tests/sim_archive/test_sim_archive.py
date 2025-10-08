@@ -19,18 +19,18 @@ if HAVE_LSST_RESOURCES:
     from lsst.resources import ResourcePath
 
     from rubin_sim.sim_archive.sim_archive import (
-        check_prototype_archive_resource,
-        compile_sim_metadata_from_prototype_archive,
+        check_opsim_archive_resource,
+        compile_sim_metadata,
         fetch_obsloctap_visits,
         fetch_sim_for_nights,
         fetch_sim_stats_for_night,
         find_latest_prenight_sim_for_nights,
-        make_prototype_sim_archive_cli,
-        make_sim_dir,
-        read_prototype_archive_sim_metadata,
-        read_prototype_sim_metadata_from_hdf,
-        transfer_dir_to_prototype_archive,
-        verify_compiled_sim_metadata_in_prototype_archive,
+        make_sim_archive_cli,
+        make_sim_archive_dir,
+        read_archived_sim_metadata,
+        read_sim_metadata_from_hdf,
+        transfer_archive_dir,
+        verify_compiled_sim_metadata,
     )
 
 
@@ -66,7 +66,7 @@ class TestSimArchive(unittest.TestCase):
         )
 
         # Make the scratch sim archive
-        make_sim_dir(
+        make_sim_archive_dir(
             observations,
             reward_df=reward_df,
             obs_rewards=obs_rewards,
@@ -80,10 +80,10 @@ class TestSimArchive(unittest.TestCase):
         # Move the scratch sim archive to a test resource
         test_resource_dir = TemporaryDirectory()
         test_resource_uri = "file://" + test_resource_dir.name
-        sim_archive_uri = transfer_dir_to_prototype_archive(data_dir.name, test_resource_uri)
+        sim_archive_uri = transfer_archive_dir(data_dir.name, test_resource_uri)
 
         # Check the saved archive
-        archive_check = check_prototype_archive_resource(sim_archive_uri)
+        archive_check = check_opsim_archive_resource(sim_archive_uri)
         self.assertEqual(
             archive_check.keys(),
             set(
@@ -101,7 +101,7 @@ class TestSimArchive(unittest.TestCase):
             self.assertTrue(value)
 
         # Read back the metadata
-        archive_metadata = read_prototype_archive_sim_metadata(test_resource_uri)
+        archive_metadata = read_archived_sim_metadata(test_resource_uri)
         base = sim_archive_uri.dirname().geturl().removeprefix(test_resource_uri).rstrip("/").lstrip("/")
         expected_label = f"{base} test"
         self.assertEqual(archive_metadata[sim_archive_uri.geturl()]["label"], expected_label)
@@ -110,12 +110,10 @@ class TestSimArchive(unittest.TestCase):
         test_compiled_metadata_uri = test_resource_uri + "/compiled_metadata_cache.h5"
 
         # Test reading from cached metadata
-        compile_sim_metadata_from_prototype_archive(test_resource_uri, test_compiled_metadata_uri)
-        read_prototype_sim_metadata_from_hdf(test_compiled_metadata_uri)
-        read_prototype_archive_sim_metadata(
-            test_resource_uri, compilation_resource=test_compiled_metadata_uri
-        )
-        verify_compiled_sim_metadata_in_prototype_archive(test_resource_uri, test_compiled_metadata_uri)
+        compile_sim_metadata(test_resource_uri, test_compiled_metadata_uri)
+        read_sim_metadata_from_hdf(test_compiled_metadata_uri)
+        read_archived_sim_metadata(test_resource_uri, compilation_resource=test_compiled_metadata_uri)
+        verify_compiled_sim_metadata(test_resource_uri, test_compiled_metadata_uri)
 
     @unittest.skipIf(not HAVE_LSST_RESOURCES, "No lsst.resources")
     @unittest.skipIf(importlib.util.find_spec("schedview") is None, "No schedview")
@@ -132,7 +130,7 @@ class TestSimArchive(unittest.TestCase):
 
         with TemporaryDirectory() as test_archive_dir:
             test_archive_uri = f"file://{test_archive_dir}/"
-            make_prototype_sim_archive_cli(
+            make_sim_archive_cli(
                 "Test",
                 opsim,
                 "--rewards",
