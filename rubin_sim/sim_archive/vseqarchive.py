@@ -906,7 +906,7 @@ def make_prenight_index(
         if data is None:
             return None
 
-        assert isinstance(data, str)
+        assert isinstance(data, memoryview)
         return data.hex()
 
     prenights["conda_env_sha256"] = prenights["conda_env_sha256"].apply(to_hex)
