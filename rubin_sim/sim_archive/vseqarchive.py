@@ -1,3 +1,4 @@
+import datetime
 import hashlib
 import logging
 import os
@@ -16,7 +17,8 @@ from rubin_sim.maf.stackers import BaseStacker
 from .util import compute_conda_env, dayobs_to_date, hdf5_to_opsimdb, opsimdb_to_hdf5
 from .vseqmetadata import VSARCHIVE_PGSCHEMA, VisitSequenceArchiveMetadata
 
-ARCHIVE_URL = "s3://rubin:rubin-scheduler-prenight/vseq/"
+ARCHIVE_URL = "s3://rubin:rubin-scheduler-prenight/opsim/vseq/"
+PRENIGHT_INDEX_URL = "s3://rubin:rubin-scheduler-prenight/opsim/prenight_index/"
 SQLITE_EXTINSIONS = {".db", ".sqlite", ".sqlite3", ".db3"}
 
 LOGGER = logging.getLogger(__name__)
@@ -860,6 +862,73 @@ def export_proto(
         sim_uuid=uuid,
         proto_sim_archive_url=proto_sim_archive_url,
     )
+    click.echo(destination_rp.geturl())
+
+
+@vseqarchive.command()
+@click.argument("dayobs", type=click.DateTime(formats=["%Y-%m-%d", "%Y%m%d"]))
+@click.argument("telescope", type=click.Choice(["simonyi", "auxtel"]))
+@click.option(
+    "--destination",
+    default=PRENIGHT_INDEX_URL,
+    type=str,
+    help="Base of the resource to which to write the prenight index.",
+)
+@click.pass_obj
+def make_prenight_index(
+    vsarch: VisitSequenceArchiveMetadata,
+    dayobs: str | datetime.datetime | datetime.date | int | Time,
+    telescope: str,
+    destination: str,
+) -> None:
+    """Write a json index of prenight for a telescope and dayobs to a resource.
+
+    Parameters
+    ----------
+    vsarch : `VisitSequenceArchiveMetadata`
+        The metadata interface instance.
+    dayobs : `datetime` or `date` or `int` or `str`
+        A datetime in the desired dayobs
+    telescope : `str`
+        The telescope, either ``simonyi`` or ``auxtel``
+    destination : `str`
+        Base of the resource to which to write the prenight index.
+    """
+    dayobs = dayobs_to_date(dayobs)
+    assert isinstance(dayobs, datetime.date)
+
+    prenights = vsarch.sims_on_nights(
+        dayobs, dayobs, tags=("prenight",), telescope=telescope, max_simulation_age=4000
+    ).set_index("visitseq_uuid")
+    #    breakpoint()
+
+    def to_hex(data: memoryview | None) -> str | None:
+        if data is None:
+            return None
+
+        assert isinstance(data, str)
+        return data.hex()
+
+    prenights["conda_env_sha256"] = prenights["conda_env_sha256"].apply(to_hex)
+
+    def to_str_dayobs(d: datetime.date | None) -> str | None:
+        if d is None:
+            return None
+        return d.isoformat()
+
+    for column in ("sim_creation_day_obs", "first_day_obs", "last_day_obs", "parent_last_day_obs"):
+        prenights[column] = prenights[column].apply(to_str_dayobs)
+
+    table_json = prenights.to_json(orient="index", date_format="iso", indent=4)
+
+    destination_dir_rp = (
+        ResourcePath(destination)
+        .join(telescope)
+        .join(str(dayobs.year))
+        .join(str(dayobs.month), forceDirectory=True)
+    )
+    destination_rp = destination_dir_rp.join(f"{telescope}_prenights_for_{dayobs.isoformat()}.json")
+    destination_rp.write(table_json.encode())
     click.echo(destination_rp.geturl())
 
 
