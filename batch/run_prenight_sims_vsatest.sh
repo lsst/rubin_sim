@@ -203,7 +203,9 @@ for ANOM_SEED in 101 102 ; do
   date --iso=s
   run_sv_sim scheduler.p observatory.p "" ${DAYOBS} 1 "${OPSIMRUN}" \
     --keep_rewards --label "${LABEL}" \
-    --delay 0 --anom_overhead_scale ${ANOM_SCALE} \
+    --delay 0 \
+    --anom_overhead_scale ${ANOM_SCALE} \
+    --anom_overhead_seed ${ANOM_SEED} \
     --results ${OPSIM_RESULT_DIR}
 
   SIM_UUID=$(vseqarchive record-visitseq-metadata \
