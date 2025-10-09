@@ -650,6 +650,15 @@ class TestVisitSequenceArchive(unittest.TestCase):
         updated_metadata = self.vsarch.get_visitseq_metadata(visitseq_uuid, table=table_name)
         assert updated_metadata.first_day_obs.isoformat() == test_day_obs_str
 
+        # This will be needed when testing prenight index creation.
+        update_last_day_obs_command = [
+            "update-visitseq-metadata",
+            uuid_str,
+            "last_day_obs",
+            test_day_obs_str,
+        ]
+        self.run_click_command(update_last_day_obs_command)
+
         #
         # Test tagging and untagging
         #
@@ -697,6 +706,26 @@ class TestVisitSequenceArchive(unittest.TestCase):
         after_second_test_comment = self.run_click_command(get_comments_command)
         assert test_comment in after_second_test_comment
         assert next_test_comment in after_second_test_comment
+
+        # Make a temp to test prenight index creation.
+        with TemporaryDirectory() as temp_dir:
+            # Tag the sim as a prenight so it will be picked up
+            tag_command = ["tag", uuid_str, "prenight"]
+            self.run_click_command(tag_command)
+
+            # Test making a prenight index
+            prenight_index_base_rp = ResourcePath(temp_dir).join("prenight", forceDirectory=True)
+            make_prenight_index_command = [
+                "make-prenight-index",
+                test_day_obs_str,
+                "simonyi",
+                "--destination",
+                prenight_index_base_rp.geturl(),
+            ]
+            make_index_output = self.run_click_command(make_prenight_index_command)
+            prenight_index_url = make_index_output.strip()
+            prenight_index_df = pd.read_json(ResourcePath(prenight_index_url).ospath, orient="index")
+            assert prenight_index_df.loc[uuid_str, "first_day_obs"] == test_day_obs_str
 
         # Test exporting a sim to a prototype archive,
         # and importing it again.
