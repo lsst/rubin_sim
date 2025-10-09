@@ -42,9 +42,12 @@ def dayobs_to_date(dayobs: str | date | int | Time) -> date:
                 assert len(dayobs_dt) == 1
                 dayobs = dayobs_dt.item().date()
                 assert isinstance(dayobs, date)
+        case datetime():
+            dayobs = dayobs.date()
         case _:
             assert isinstance(dayobs, date)
 
+    assert isinstance(dayobs, date)
     return dayobs
 
 
