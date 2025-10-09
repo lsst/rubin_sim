@@ -60,7 +60,8 @@ else
   RUBIN_SCHEDULER_REFERENCE="v3.14.1"
   RUBIN_SIM_REFERENCE="tickets/SP-2167"
   SCHEDVIEW_REFERENCE="tickets/SP-2167"
-  TS_FBS_UTILS_REFERENCE="v0.17.0"
+  # TS_FBS_UTILS_REFERENCE="v0.17.0"
+  TS_FBS_UTILS_REFERENCE=$(curl -s https://api.github.com/repos/lsst-ts/ts_fbs_utils/tags | jq -r '.[].name' | egrep '^v[0-9]+.[0-9]+.[0-9]+$' | sort -V | tail -1)
   SIMS_SV_SURVEY_REFERENCE="tickets/SP-2167"
   RUBIN_NIGHTS_REFERENCE="v0.6.1"
 fi
@@ -183,7 +184,9 @@ for ANOM_SEED in 101 102 ; do
   date --iso=s
   run_prenight_sim scheduler.p observatory.p ${DAYOBS} 1 \
     --keep_rewards --label "${LABEL}" \
-    --delay 0 --anom_overhead_scale ${ANOM_SCALE} \
+    --delay 0 \
+    --anom_overhead_scale ${ANOM_SCALE} \
+    --anom_overhead_seed ${ANOM_SEED} \
     --results ${OPSIM_RESULT_DIR}
 
   SIM_UUID=$(vseqarchive record-visitseq-metadata \
