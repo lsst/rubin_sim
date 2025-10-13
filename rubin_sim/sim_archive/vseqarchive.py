@@ -900,7 +900,6 @@ def make_prenight_index(
     prenights = vsarch.sims_on_nights(
         dayobs, dayobs, tags=("prenight",), telescope=telescope, max_simulation_age=4000
     ).set_index("visitseq_uuid")
-    #    breakpoint()
 
     def to_hex(data: memoryview | None) -> str | None:
         if data is None:

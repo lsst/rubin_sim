@@ -1453,8 +1453,19 @@ class VisitSequenceArchiveMetadata:
         if len(tags) > 0:
             tags_json = json.dumps(list(tags))
             query_template = """
+            WITH aggstats AS (
+                SELECT
+                    visitseq_uuid,
+                    JSONB_OBJECT_AGG(
+                        value_name,
+                        TO_JSONB(ns) - 'value_name' - 'visitseq_uuid' - 'day_obs'
+                    ) AS stats
+                FROM {}.nightly_stats AS ns
+                GROUP BY ns.visitseq_uuid
+            )
             SELECT *
-            FROM {}.simulations_extra
+            FROM {}.simulations_extra AS s
+            LEFT JOIN aggstats AS ns ON s.visitseq_uuid=ns.visitseq_uuid
             WHERE %s BETWEEN first_day_obs AND last_day_obs
                 AND %s BETWEEN first_day_obs AND last_day_obs
                 AND telescope = %s
@@ -1464,16 +1475,31 @@ class VisitSequenceArchiveMetadata:
             query_params: Tuple = (first_day_obs, last_day_obs, telescope, tags_json, max_simulation_age)
         else:
             query_template = """
+            WITH aggstats AS (
+                SELECT
+                    visitseq_uuid,
+                    JSONB_OBJECT_AGG(
+                        value_name,
+                        TO_JSONB(ns) - 'value_name' - 'visitseq_uuid' - 'day_obs'
+                    ) AS stats
+                FROM {}.nightly_stats AS ns
+                GROUP BY ns.visitseq_uuid
+            )
             SELECT *
-            FROM {}.simulations_extra
+            FROM {}.simulations_extra AS s
+            LEFT JOIN aggstats AS ns ON s.visitseq_uuid=ns.visitseq_uuid
             WHERE %s BETWEEN first_day_obs AND last_day_obs
                 AND %s BETWEEN first_day_obs AND last_day_obs
-                AND telescope = %s
+                AND telescope = %
                 AND creation_time >= NOW() - INTERVAL '%s days'
             """
             query_params = (first_day_obs, last_day_obs, telescope, max_simulation_age)
 
-        vseqs = self.pd_read_sql(query_template, [sql.Identifier(self.metadata_db_schema)], query_params)
+        vseqs = self.pd_read_sql(
+            query_template,
+            [sql.Identifier(self.metadata_db_schema), sql.Identifier(self.metadata_db_schema)],
+            query_params,
+        )
         return vseqs
 
     def import_sim_from_yaml(self, metadata_yaml: str, archive_base: str | None = None) -> UUID:
