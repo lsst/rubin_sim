@@ -1,0 +1,147 @@
+{% extends "master.html" %}
+{% import 'macros.html' as mcr %}
+
+{% set active_page = "multicolor" %}
+
+{% set skymapTypes = ['SkyMap', 'TwoD', 'neoxyPlotter'] %}
+{% set comboplotTypes = ['ComboHistogram', 'ComboMetricVsH', 'Combo'] %}
+{% set hourglassTypes = ['Hourglass'] %}
+
+{% set run = runlist.get_run(runId) %}
+
+{% set metrics = run.metrics %}
+
+{% block moresidebar %}
+
+<ul>
+{% for g in run.groups.keys() %}
+    <li>
+        <a href="#{{g}}">{{g|escape}}</a>
+  {% for sg in run.groups[g] %}
+   {% set subsetMetrics = run.metrics_in_subgroup(g, sg) %}
+   {% set skysetMetrics = run.metrics_with_plot_type(plot_type=skymapTypes, metrics=subsetMetrics) %}
+   {% set combosetMetrics = run.metrics_with_plot_type(plot_type=comboplotTypes, metrics=subsetMetrics) %}
+   {% set hourglassMetrics = run.metrics_with_plot_type(plot_type=hourglassTypes, metrics=subsetMetrics) %}
+   {% set statNames = run.all_stat_names(subsetMetrics) %}
+   {% set displaygroup = skysetMetrics|length + combosetMetrics|length
+  + hourglassMetrics|length + statNames|length %}
+   {% if displaygroup > 0 %}
+        <div id='smallindent'><a href="#{{g}}_{{sg}}">{{sg|escape}}</a></div>
+    {% endif %}
+    {% endfor %}
+    </li>
+    {% endfor %}
+</ul>
+{% endblock %}
+
+{% block content %}
+
+{% set metricInfo = run.metric_info() %}
+{% set ninfo = metricInfo|length %}
+
+{% for g in run.groups.keys() %}
+ {% set groupstart = True %}
+ {% for sg in run.groups[g] %}
+   {# Get the metrics, skymaps and combo histograms in this subgroup. #}
+   {% set subsetMetrics = run.metrics_in_subgroup(g, sg) %}
+   {% set skysetMetrics = run.metrics_with_plot_type(plot_type=skymapTypes, metrics=subsetMetrics) %}
+   {% set combosetMetrics = run.metrics_with_plot_type(plot_type=comboplotTypes, metrics=subsetMetrics) %}
+   {% set hourglassMetrics = run.metrics_with_plot_type(plot_type=hourglassTypes, metrics=subsetMetrics) %}
+   {% set statNames = run.all_stat_names(subsetMetrics) %}
+
+   {% set displaygroup = skysetMetrics|length + combosetMetrics|length + vectorMetrics|length
+    + hourglassMetrics|length + statNames|length %}
+    {% if displaygroup > 0 %}
+     {# then show this group ... #}
+
+   {% if groupstart == True %}
+      <a name = "{{g|escape}}" ></a>
+      {% set groupstart = False %}
+   {% endif %}
+   <p>
+   <a name = "{{g|escape}}_{{sg|escape}}"><b>{{g|escape}} : {{sg|escape}}</b> </a>
+   </p>
+
+   {# In each group, plot sky maps/TwoD maps, then combo hists, then hourglass, then summary
+   stats #}
+
+   {% set metricNames = run.unique_metric_names(skysetMetrics, baseonly=True) %}
+   {% for mname in metricNames %}
+     {% set mskyset = run.metrics_with_metric_name(mname, skysetMetrics, baseonly=True) %}
+     {% set skymaps = run.get_sky_maps(mskyset, plot_type=skymapTypes) %}
+     {% set skymaps = run.order_plots(skymaps) %}
+     {% if skymaps|length > 0 %}
+      <div id='metricset'>
+       {% set metricLink = 'metricResults?runId=%s&metricId=' %(runId)
+   %}
+       {# add a link to click to the skymap group's details #}
+       {% set metricSelect = run.metrics_to_metric_ids(mskyset)|join('&metricId=') %}
+       {% set metricLink = metricLink ~ metricSelect %}
+	<a href={{metricLink}}>{{mname}}</a> </br>
+	<table class='blank'>
+          <tr class='blank'>
+       {# put in the sky map plots #}
+        {% for skymap in skymaps %}
+            {% set mapkey = 'SkyMap' %}
+            {% if skymap[mapkey]['plot_file']|length == 0 %}
+            <td class='blank'>
+            </td>
+            {% else %}
+              {% set plotfile = skymap[mapkey]['plot_file'][0] %}
+              {% set thumbfile = skymap[mapkey]['thumb_file'][0] %}
+              <td class='blank' align='center'>
+                  <a href="{{plotfile}}"> <img class="sm_thumbnail" src='{{thumbfile}}'></a>
+              </td>
+              {% endif %}
+              {% if loop.index is divisibleby 3 %}
+          </tr><tr>
+        {% endif %}
+        {% endfor  %}
+    </tr>
+    </table>
+      </div>
+    {% endif %}
+    {% endfor %}
+
+   {% for m in combosetMetrics %}
+     {% set comboplots = run.plots_for_metric(m) %}
+     {% set combodict = run.plot_dict(comboplots) %}
+     {% set combohist = combodict['ComboHistogram'] %}
+     {% if combohist|length > 0 %}
+      <div id='metricset'>
+	{% set metricInfo = run.metric_info(m) %}
+        {{ metricInfo['MetricName']|escape }} ({{metricInfo['Slicer']|escape}})
+	</br> <div id='indent'> {{metricInfo['InfoLabel']|escape}} </div> </br>
+	{% for plotfile, thumbfile in zip(combohist['plotFile'], combohist['thumbFile']) %}
+        <a href="{{plotfile}}"> <img class="thumbnail" src='{{thumbfile}}'></a>
+	 {% endfor %}
+       </div>
+      {% endif %}
+   {% endfor  %}
+
+   {% if hourglassMetrics|length > 0 %}
+   <div id='metricset'>
+   {% for h in hourglassMetrics %}
+      {% set metricInfo = run.metric_info(h) %}
+      {# {{metricInfo['InfoLabel']|escape}} </br> #}
+      {% set hourglassplots = run.plots_for_metric(h) %}
+      {% set hourglassdict = run.plot_dict(hourglassplots) %}
+      {% set hourglass = hourglassdict['Hourglass'] %}
+      {% for plotfile, thumbfile in zip(hourglass['plotFile'], hourglass['thumbFile']) %}
+         <a href="{{plotfile}}"> <img class="thumbnail" src='{{thumbfile}}'></a>
+      {% endfor %}
+   {% endfor %}
+   </div>
+   {% endif %}
+
+    {% if statNames | length > 0 %}
+      <div id= 'metricset'>
+      {{ mcr.MakeStatTable(subsetMetrics, g, sg, run) }}
+      </div>
+   {% endif %}
+
+  {% endif %}
+ {% endfor %}
+{% endfor %}
+
+{% endblock %}

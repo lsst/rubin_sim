@@ -1,0 +1,243 @@
+{#   ##### MACROS #### #}
+
+{# # #}
+{% macro MakePlotTable(plots, run) %}
+{# Convert 'plots' to dictionary with filenames. #}
+ {# plotdict = {'plottype': {'plot_file':[], 'thumb_file':[]}} #}
+ {% set plotdict = run.plot_dict(plots) %}
+ {% if plotdict|length > 0 %}
+  <table class="blank">
+  <tr class="blank" width=100%>
+   {% for plottype in plotdict %}
+     {% for plotfile, thumbfile in zip(plotdict[plottype]['plot_file'],
+ plotdict[plottype]['thumb_file']) %}
+       <td class="blank">
+        <a href="{{plotfile}}"> <img class="thumbnail" src='{{thumbfile}}'></a>
+       </td>
+     {% endfor  %}
+  {% endfor %}
+  </tr>
+  </table>
+  {% endif %}
+{%- endmacro %}
+
+{# # #}
+{% macro PrintMetricInfo(runId, metric, metricInfo) %}
+{# print metric info, adding link for metric data if available #}
+ <b>
+ {% for key in metricInfo %}
+    {% if key == 'Data' %}
+       <a href="getData?datatype=npz&runId={{runId}}&metricId={{metric['metric_id']}}">npz</a>
+       <a href="getData?datatype=json&runId={{runId}}&metricId={{metric['metric_id']}}">JSON</a>
+    {% else %}
+       {{ metricInfo[key]|escape }}
+    {% endif %}
+ {% endfor %}
+ </b>
+ </br>
+{%- endmacro %}
+
+{# # #}
+  {% macro FormatSummaryStat(statname, statvalue) %}
+  {% if False %}
+  {{statvalue}}
+  {% else %}
+  {# convert statvalue from series to single value #}
+  {% if 'Count' in statname or '-3Sigma' in statname or '+3Sigma' in statname or 'TableFraction' in statname %}
+   {{ '%.0f'|format(statvalue) }}
+  {% else %}
+   {% if statvalue|abs < 0.03 %} 
+      {{ '%.4f'|format(statvalue) }}
+   {% else %}
+      {{ '%.2f'|format(statvalue) }}
+   {% endif %}
+  {% endif %}
+  {% endif %}
+{%- endmacro %}
+
+{# # #}
+{% macro MakeStatTable(metrics, group, subgroup, run) %}
+{# big macro for stats tables #}
+
+{# Always split tables so that one table per slicer. #}
+{# Table can either be: metric rows x stat cols (if #metrics > #stats) #}
+{#                   OR stat rows x metric cols (if #stats > #metrics) #}
+{#                   OR info_label rows x metric cols (if only single summary stat)  #}
+
+{# Check that there is *some* summary stat info from this group/subgroup to put into a table #}
+  {% set statNames = run.all_stat_names(metrics) %}
+
+{% if statNames|length > 0 %}
+   {# we have some good stats, let's show them. #}
+  {# Put in a link to jump to this part of the page. #}
+  <a name="{{group}}_{{subgroup}}"> </a>
+
+  {% set metricInfo = run.metric_info(with_data_link=False, with_slicer_name=False) %}
+  {% set lenMinfo = metricInfo|length %}
+
+  {% set slicers = run.unique_slicer_names(metrics) %}
+  {% for slicer in slicers %}
+   {# Set up and make table, one per slicer. #}
+
+   {% set slicermetrics = run.metrics_with_slicer(slicer, metrics) %}
+   {% set slicermetrics = run.metrics_with_stats(slicermetrics) %}
+   {% if slicermetrics|length > 0 %}
+
+    {# Count number of metric names. #}
+    {% set metricNames = run.unique_metric_names(slicermetrics, baseonly=False) %}
+
+    {# Count the number of metric + info_label combinations #}
+    {% set metricNameInfo = run.unique_metric_name_and_info_label(slicermetrics) %}
+
+    {# Count number of different summary metric names. #}
+    {% set statNames = run.all_stat_names(slicermetrics) %}
+
+
+    {% if statNames|length == 1 %}
+      {# Only one stat reported per metric/info_label combo #}
+      {#  so we make a info_label rows x metric cols table. #}
+
+      {% set statName = statNames[0] %}
+      {% set InfoLabel = run.unique_metric_info_label(slicermetrics) %}
+
+      {% set ncols = metricNames|length + 1 %}
+
+      <table>
+      <tr class="lightestgray">
+      <td colspan={{ncols}}>
+         Group: <i>{{group }}</i>; Subgroup: <i>{{ subgroup }}</i>; Slicer: <i>{{ slicer }}</i>
+      </td>
+      </tr>
+
+      {# Table header. #}
+      <tr>
+      <th> </th>
+      {% for mName in metricNames %}
+      	 <th>{{ mName }} </th>
+      {% endfor %}
+      </tr>
+
+      {% for il in InfoLabel %}
+         <tr>
+     	 <td><b>{{il}}</b> </td>
+	 {# Find metric that matches the metric name for this column and this info_label. #}
+         {% for mName in metricNames %}
+	    {% set mset = run.metrics_with_metric_name(mName, slicermetrics, baseonly=False) %}
+            {% set m = run.metrics_with_info_label(il, mset) %}
+            {% if m|length > 0 %}
+              {% set stats = run.stats_for_metric(m) %}
+              {% set statDict = run.stat_dict(stats) %}
+                <td> {{ FormatSummaryStat(mName, statDict[statName])}}
+                </td>
+                {% else %}
+                 <td> -- </td>
+             {% endif %}
+  	   {% endfor %}
+	   </tr>
+        {% endfor %}
+        </table>
+
+   {% elif statNames|length <= (metricNameInfo|length + lenMinfo + 3) %}
+      {# make a table with rows = each metric, columns = summary stats #}
+      {% set ncols = statNames|length + lenMinfo %}
+
+      <table>
+      <tr class="lightestgray">
+        <td colspan={{ncols}}>
+          Group: <i>{{group }}</i>; Subgroup: <i>{{ subgroup }}</i>; Slicer: <i>{{slicer}}</i>
+	</td>
+      </tr>
+
+      {# Table header. #}
+      <tr>
+      {% for key in metricInfo %}
+         <th>{{ key }} </th>
+      {% endfor %}
+      {% for name in statNames %}
+         <th> {{name}} </th>
+      {% endfor %}
+      </tr>
+
+     {# Add the summary stat info. #}
+     {% for metric in slicermetrics %}
+       {% set metricInfo = run.metric_info(metric, with_data_link=False, with_slicer_name=False) %}
+       {% set stats = run.stats_for_metric(metric) %}
+       {% set statDict = run.stat_dict(stats) %}
+
+       {% if statDict|length > 0 %}
+      <tr>
+        {# print the metric info - metricname/slicer/info_label #}
+         {% for key in metricInfo %}
+           <td><b>{{ metricInfo[key]|escape }}</b></td>
+         {% endfor %}
+         {% for statName in statNames %}
+	   {% if statName in statDict.keys() %}
+               <td> {{ FormatSummaryStat(statName, statDict[statName]) }} </td>
+	    {% else %}
+	          <td> -- </td>
+	   {% endif %}
+         {% endfor %}
+         </tr>
+        {% endif %}
+     {% endfor %}
+     </table>
+
+   {% elif statNames|length > (metricNameInfo|length + lenMinfo + 3) %}
+      {# make a table with rows = each summary stats, columns = metrics #}
+      {% set ncols = metricNameInfo|length + 1 %}
+
+      <table>
+      <tr class="lightestgray">
+        <td colspan={{ncols}}>
+          Group: <i>{{group }}</i>; Subgroup: <i>{{ subgroup }}</i>; Slicer: <i>{{slicer}}</i>
+	</td>
+      </tr>
+
+      {# Table header. #}
+      <tr>
+	<th></th>
+      {% for m in slicermetrics %}
+  	  {% set mInfo = run.metric_info(m, with_data_link=False, with_slicer_name=False) %}
+	  <th>
+	   {{mInfo['MetricName']}}
+	  </th>
+      {% endfor %}
+      </tr>
+      <tr>
+	<th></th>
+      {% for m in slicermetrics %}
+	  {% set mInfo = run.metric_info(m, with_data_link=False, with_slicer_name=False) %}
+	  <th>
+	   {{mInfo['InfoLabel']}}
+	  </th>
+      {% endfor %}
+      </tr>
+
+      {# Add the summary stat info. #}
+      {% for statName in statNames %}
+        <tr>
+	<td><b>{{statName}}</b> </td>
+	{# Find metric that matches the metric name for this column and this statName. #}
+	{% for m in slicermetrics %}
+           {% set stats = run.stats_for_metric(m, stat_name=statName) %}
+           {# there should only ever be either 1 or 0
+      statName/metricName/metricInfoLabel combo #}
+           {% if stats|length == 0 %}
+                <td> -- </td>
+           {% else %}
+             {% set statDict = run.stat_dict(stats) %}
+	     <td> {{ FormatSummaryStat(statName, statDict[statName]) }} </td>
+	    {% endif %}
+	 {% endfor %}
+	 </tr>
+      {% endfor %}
+      </table>
+
+   {% endif %}  {# End of various table options. #}
+   {% endif %} {# End of 'if' to skip table for slicer. #}
+
+  {% endfor %} {# End of running through slicers. #}
+
+{% endif %} {# End of if to skip all table creation. #}
+
+{%- endmacro %}
