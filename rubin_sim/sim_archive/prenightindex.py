@@ -72,6 +72,7 @@ def get_prenight_index_from_database(
     prenights = visit_seq_archive_metadata.sims_on_nights(
         day_obs_date, day_obs_date, tags=["prenight"], telescope=telescope, max_simulation_age=MAX_AGE
     ).set_index("visitseq_uuid")
+    LOGGER.info("Got metadata on {len(prenights)} simulations) from database")
     return prenights
 
 
@@ -137,14 +138,7 @@ def get_prenight_index(
     database: str | None = None,
     prenight_index_path: str | ResourcePath | None = None,
 ) -> pd.DataFrame:
-    """
-    Retrieve the pre‑night observation index for a given night.
-
-    The function first attempts to read the index from the LSST SIM Archive
-    database via ``get_prenight_index_from_database``.  If that call
-    fails (e.g., missing credentials or connectivity issues) it falls back
-    to :func:`get_prenight_index_from_bucket` to load the JSON file from
-    the remote bucket.
+    """Retrieve the pre‑night observation index for a given night.
 
     Parameters
     ----------
@@ -173,6 +167,7 @@ def get_prenight_index(
         prenights = get_prenight_index_from_database(day_obs, telescope, schema, host, user, database)
     except Exception:
         # Fall back to the bucket
+        LOGGER.info("Database not accessible, falling back on the index in the S3 bucket.")
         if prenight_index_path is None:
             prenight_index_path = "s3://rubin:rubin-scheduler-prenight/opsim/test/prenight_index/"
         prenights = get_prenight_index_from_bucket(day_obs, telescope, prenight_index_path)
