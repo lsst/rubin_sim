@@ -29,7 +29,7 @@ LOGGER = logging.getLogger(__name__)
 
 
 def compute_nightly_stats(
-    visits: pd.DataFrame, columns: Tuple[str, ...] = ("s_ra", "s_dec", "sky_rotation")
+    visits: pd.DataFrame, columns: Tuple[str, ...] = ("altitude", "azimuth")
 ) -> pd.DataFrame:
     if "day_obs" not in visits.columns:
         # Pandas seems to work better with type hinding that astropy Time
