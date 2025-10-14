@@ -1453,6 +1453,71 @@ class VisitSequenceArchiveMetadata:
         if len(tags) > 0:
             tags_json = json.dumps(list(tags))
             query_template = """
+            SELECT *
+            FROM {}.simulations_extra AS s
+            WHERE %s BETWEEN first_day_obs AND last_day_obs
+                AND %s BETWEEN first_day_obs AND last_day_obs
+                AND telescope = %s
+                AND tags @> %s::JSONB
+                AND creation_time >= NOW() - INTERVAL '%s days'
+            """
+            query_params: Tuple = (first_day_obs, last_day_obs, telescope, tags_json, max_simulation_age)
+        else:
+            query_template = """
+            SELECT *
+            FROM {}.simulations_extra AS s
+            WHERE %s BETWEEN first_day_obs AND last_day_obs
+                AND %s BETWEEN first_day_obs AND last_day_obs
+                AND telescope = %
+                AND creation_time >= NOW() - INTERVAL '%s days'
+            """
+            query_params = (first_day_obs, last_day_obs, telescope, max_simulation_age)
+
+        vseqs = self.pd_read_sql(
+            query_template,
+            [sql.Identifier(self.metadata_db_schema)],
+            query_params,
+        )
+        return vseqs
+
+    def sims_on_night_with_stats(
+        self,
+        day_obs: str | date | int | None = None,
+        tags: tuple[str, ...] = ("prenight", "ideal", "nominal"),
+        telescope: str = "simonyi",
+        max_simulation_age: int = 2,
+    ) -> pd.DataFrame:
+        """Return a table of simulations that cover a given night range.
+
+        Parameters
+        ----------
+        day_obs : `str` | `date` | `int` | `None`, optional
+            The day_obs for which to get simulations.
+        tags : `tuple[str]`, optional
+            A sequence of tags that must be present on the simulation record.
+            The default tags are ``("prenight", "ideal", "nominal")``.  If
+            an empty tuple is supplied, the tag test is omitted.
+        telescope : `str`, optional
+            The telescope simulated.  The default is ``simonyi``.
+        max_simulation_age : `int`, optional
+            The maximum age of a simulation in days.
+            The default is 2 days.
+
+        Returns
+        -------
+        vseqs : `pd.DataFrame`
+            A table of metadata for matching simulations.
+        """
+
+        if day_obs is None:
+            day_obs = datetime.now(timezone(timedelta(hours=-12))).date()
+
+        day_obs = dayobs_to_date(day_obs)
+        assert isinstance(day_obs, date)
+
+        if len(tags) > 0:
+            tags_json = json.dumps(list(tags))
+            query_template = """
             WITH aggstats AS (
                 SELECT
                     visitseq_uuid,
@@ -1467,12 +1532,11 @@ class VisitSequenceArchiveMetadata:
             FROM {}.simulations_extra AS s
             LEFT JOIN aggstats AS ns ON s.visitseq_uuid=ns.visitseq_uuid
             WHERE %s BETWEEN first_day_obs AND last_day_obs
-                AND %s BETWEEN first_day_obs AND last_day_obs
                 AND telescope = %s
                 AND tags @> %s::JSONB
                 AND creation_time >= NOW() - INTERVAL '%s days'
             """
-            query_params: Tuple = (first_day_obs, last_day_obs, telescope, tags_json, max_simulation_age)
+            query_params: Tuple = (day_obs, telescope, tags_json, max_simulation_age)
         else:
             query_template = """
             WITH aggstats AS (
@@ -1489,11 +1553,10 @@ class VisitSequenceArchiveMetadata:
             FROM {}.simulations_extra AS s
             LEFT JOIN aggstats AS ns ON s.visitseq_uuid=ns.visitseq_uuid
             WHERE %s BETWEEN first_day_obs AND last_day_obs
-                AND %s BETWEEN first_day_obs AND last_day_obs
                 AND telescope = %
                 AND creation_time >= NOW() - INTERVAL '%s days'
             """
-            query_params = (first_day_obs, last_day_obs, telescope, max_simulation_age)
+            query_params = (day_obs, telescope, max_simulation_age)
 
         vseqs = self.pd_read_sql(
             query_template,
