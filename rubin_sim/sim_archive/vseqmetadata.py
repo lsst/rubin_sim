@@ -1528,7 +1528,7 @@ class VisitSequenceArchiveMetadata:
                 FROM {}.nightly_stats AS ns
                 GROUP BY ns.visitseq_uuid
             )
-            SELECT *
+            SELECT s.*, ns.stats
             FROM {}.simulations_extra AS s
             LEFT JOIN aggstats AS ns ON s.visitseq_uuid=ns.visitseq_uuid
             WHERE %s BETWEEN first_day_obs AND last_day_obs
@@ -1549,7 +1549,7 @@ class VisitSequenceArchiveMetadata:
                 FROM {}.nightly_stats AS ns
                 GROUP BY ns.visitseq_uuid
             )
-            SELECT *
+            SELECT s.*, ns.stats
             FROM {}.simulations_extra AS s
             LEFT JOIN aggstats AS ns ON s.visitseq_uuid=ns.visitseq_uuid
             WHERE %s BETWEEN first_day_obs AND last_day_obs
