@@ -16,11 +16,11 @@ import os
 import pickle
 import shutil
 import socket
-from datetime import datetime
+from datetime import date, datetime, timedelta
 from numbers import Integral, Number
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from typing import Any, Sequence
+from typing import Any, Optional, Sequence, cast
 from zoneinfo import ZoneInfo
 
 import numpy as np
@@ -29,6 +29,7 @@ import rubin_scheduler
 import yaml
 from astropy.time import Time
 from lsst.resources import ResourcePath
+from pandas.api.types import is_numeric_dtype
 from rubin_scheduler.scheduler import sim_runner
 from rubin_scheduler.scheduler.model_observatory import ModelObservatory
 from rubin_scheduler.scheduler.schedulers import CoreScheduler
@@ -39,7 +40,9 @@ from rubin_sim import maf
 from rubin_sim.maf.stackers import BaseStacker
 from rubin_sim.maf.utils.opsim_utils import get_sim_data
 from rubin_sim.sim_archive.prenightindex import get_prenight_index, select_latest_prenight_sim
-from rubin_sim.sim_archive.vseqarchive import get_visits
+from rubin_sim.sim_archive.util import dayobs_to_date
+from rubin_sim.sim_archive.vseqarchive import compute_nightly_stats, get_visits
+from rubin_sim.sim_archive.vseqmetadata import VisitSequenceArchiveMetadata
 
 LOGGER = logging.getLogger(__name__)
 
@@ -551,21 +554,119 @@ def fetch_obsloctap_visits(
     return visits
 
 
-def fetch_sim_stats_for_night(day_obs: str | int | None = None) -> dict:
+def fetch_sim_stats_for_night(
+    day_obs: str | int | None = None,
+    tags: tuple[str, ...] = ("ideal", "nominal"),
+    telescope: str = "simonyi",
+    max_simulation_age: int = 2,
+    host: Optional[str] = None,
+    user: Optional[str] = None,
+    database: Optional[str] = None,
+    schema: Optional[str] = None,
+    prenight_index_path: str | ResourcePath | None = None,
+) -> dict:
     """Count the visits on a night in the latest nominal sim for a night.
 
     Parameters
     ----------
     day_obs : `str` or 'int' or `None`
-        Date (in UTC-12hrs timezone) for which to get the count of visits,
-        in ISO8601 (YYYY-MM-DD as a string) or int dayobs (int(YYYYMMDD))
+        Integer dayobs (int(YYYYMMDD)) or ISO string (``YYYY-MM-DD``)
         or `None` (day_obs including the evening of yesterday in local time).
+    tags : `tuple[str]`
+        A tuple of tags to filter simulations by.
+        Defaults to ``('ideal', 'nominal')``.
+    telescope : `str`
+        The telescope to search for (simonyi or auxtel).
+        Defaults to simonyi.
+    max_simulation_age : `int`
+        The maximum age of simulations to consider, in days.
+        Simulations older than ``max_simulation_age`` will not be considered.
+        Defaults to 2.
+    host : `str` or `None`, optional
+        Database host address.
+    user : `str` or `None`, optional
+        Database user name.
+    database : `str` or `None`, optional
+        Database name.
+    schema : `str` or None, optional
+        The schema in the database to use.
+    prenight_index_path :  `str` or `ResourcePath`, optional
+        Root path to the bucket files (used only if the database call fails).
 
     Returns
     -------
     sim_stats : `dict`
-        A dict with statistics for the night.
-        Presently, it has one key: `nominal_visits`, the number of visits
-        in the latest nominal simulation.
+        A dict with statistics for the night. Returns an empty dict when
+        no statistics are availble.
     """
-    raise NotImplementedError()
+    if day_obs is None:
+        day_obs = (date.today() - timedelta(days=1)).isoformat()
+    else:
+        day_obs = dayobs_to_date(day_obs).isoformat()
+
+    sim = find_latest_prenight_sim_for_nights(
+        day_obs,
+        tags=tags,
+        telescope=telescope,
+        max_simulation_age=max_simulation_age,
+        get_prenight_index_kwargs={
+            "host": host,
+            "user": user,
+            "database": database,
+            "schema": schema,
+            "prenight_index_path": prenight_index_path,
+        },
+    )
+
+    if "stats" in sim:
+        stats_maybe = sim["stats"]
+    else:
+        LOGGER.info(f"Querying the medatadata database for stats on {day_obs}")
+        vseq_metadata = VisitSequenceArchiveMetadata(
+            metadata_db_kwargs={"host": host, "user": user, "database": database}, metadata_db_schema=schema
+        )
+        sims_with_stats = vseq_metadata.sims_on_night_with_stats(
+            day_obs, tags=tags, telescope=telescope, max_simulation_age=max_simulation_age
+        )
+        try:
+            stats_maybe = sims_with_stats.loc[sim["visitseq_uuid"], "stats"]
+        except KeyError:
+            stats_maybe = None
+        if stats_maybe is None:
+            LOGGER.info("Stats not found in metadata database.")
+
+    stats = cast(dict[str, Any], stats_maybe) if isinstance(stats_maybe, dict) else {}
+
+    if len(stats) == 0 and isinstance(sim["visitseq_url"], str):
+        # We still got nothin'.
+        # Get the visits themselves and compute the stats
+        # from them.
+        LOGGER.info("Computing stats from visits.")
+        visits = get_visits(sim["visitseq_url"])
+        columns = [c for c in visits.columns if is_numeric_dtype(visits[c])]
+        stats_df = compute_nightly_stats(visits, columns=tuple(columns))
+        stats_maybe = stats_df.set_index("value_name").to_dict(orient="index")
+        stats = cast(dict[str, Any], stats_maybe) if isinstance(stats_maybe, dict) else {}
+
+    # We need to report number of nominal visits.
+    # This is not a directly recorded statistic,
+    # but every statistic records the number of
+    # values from which its statitics were calculated,
+    # which is what we want.
+    # Go through the values we have, and get the first
+    # with counts reported.
+    if "nominal_visits" not in stats:
+        for value_name in stats.keys():
+            value_stats = stats[value_name]
+            if isinstance(value_stats, dict):
+                if "count" in stats[value_name]:
+                    stats["nominal_visits"] = stats[value_name]["count"]
+                break
+
+        # If we still do not have a count of visits, get
+        # the actual visits and count them
+        if isinstance(sim["visitseq_url"], str):
+            visits = get_visits(sim["visitseq_url"])
+            stats["nominal_visits"] = len(visits)
+
+    return stats
