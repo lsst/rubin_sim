@@ -258,4 +258,7 @@ def glance(observations=None, run_name=None, quick_test=False, fig_saver=None):
         fig = hr(visits_array[indx])
         fig_saver(fig, info=info)
 
+    # Save the stats as well to the DB
+    fig_saver.save_stats(summary_stats)
+
     return summary_stats
