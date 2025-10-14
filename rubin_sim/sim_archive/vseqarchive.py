@@ -897,8 +897,8 @@ def make_prenight_index(
     dayobs = dayobs_to_date(dayobs)
     assert isinstance(dayobs, datetime.date)
 
-    prenights = vsarch.sims_on_nights(
-        dayobs, dayobs, tags=("prenight",), telescope=telescope, max_simulation_age=4000
+    prenights = vsarch.sims_on_night_with_stats(
+        dayobs, tags=("prenight",), telescope=telescope, max_simulation_age=4000
     ).set_index("visitseq_uuid")
 
     def to_hex(data: memoryview | None) -> str | None:
