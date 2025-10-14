@@ -7,6 +7,7 @@ from getpass import getuser
 from io import StringIO
 from pathlib import Path
 from tempfile import NamedTemporaryFile, TemporaryDirectory
+from typing import ClassVar, cast
 from uuid import UUID, uuid1
 
 import click
@@ -43,6 +44,12 @@ obs_start_mjd       s_ra      s_dec band  sky_rotation exp_time   altitude     a
 
 
 class TestVisitSequenceArchive(unittest.TestCase):
+    temp_dir: ClassVar[TemporaryDirectory]
+    test_archive_url: ClassVar[str]
+    test_archive: ClassVar[ResourcePath]
+    test_database: ClassVar[LocalOnlyPostgresql]
+    vsarch: ClassVar[vseqmetadata.VisitSequenceArchiveMetadata]
+
     @classmethod
     def setUpClass(cls) -> None:
         try:
@@ -637,9 +644,11 @@ class TestVisitSequenceArchive(unittest.TestCase):
         # Test changing other metadata.
         # Use first_day_obs as an example
         assert stored_metadata.first_day_obs is None
-        test_day_obs_str = (
-            Time(TEST_VISITS.obs_start_mjd.min() - 0.5, format="mjd").datetime.date().isoformat()
+        test_day_obs_datetime = cast(
+            datetime.datetime,
+            Time(TEST_VISITS.obs_start_mjd.min() - 0.5, format="mjd").datetime,
         )
+        test_day_obs_str = test_day_obs_datetime.date().isoformat()
         update_first_day_obs_command = [
             "update-visitseq-metadata",
             uuid_str,
@@ -816,8 +825,8 @@ class TestVisitSequenceArchive(unittest.TestCase):
             sql.Identifier(TEST_METADATA_DB_SCHEMA),
             sql.Placeholder("visitseq_uuid"),
         )
-        data = {"visitseq_uuid": vseq_uuid}
-        found_versions = self.vsarch.query(query, data)
+        package_query_data = {"visitseq_uuid": vseq_uuid}
+        found_versions = self.vsarch.query(query, package_query_data)
         assert len(found_versions) == 1
         found_version = found_versions[0][0]
         assert found_version == np.__version__
