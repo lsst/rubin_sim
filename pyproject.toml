@@ -49,6 +49,7 @@ test = [
      "ruff",
      "isort",
      "pytest-cov",
+     "testing.postgresql"
 ]
 dev = [
   "documenteer[guide]",
