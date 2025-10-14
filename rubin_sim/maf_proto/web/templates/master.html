@@ -1,0 +1,294 @@
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+
+{#   ######## CSS ##### #}
+
+<style>
+
+#headerHolder
+{
+width:100%;
+height:100px;
+padding:0px;
+margin:0px;
+}
+
+#header
+{
+position:fixed;
+background-color:#A0A0A0;
+height:40px;
+width:100%;
+padding:10px;
+padding-left:20px;
+text-align:left;
+font-weight: bold;
+font-size:2em;
+margin-top:0px;
+margin-left:0px;
+}
+
+#navbar
+{
+position:fixed;
+display:block;
+background-color:#FFFFFF;
+height:40px;
+padding:0px;
+width:100%;
+margin-top:60px;
+margin-left:0px;
+}
+
+
+#sidebar { 
+  display:block;
+  width: 170px; 
+  float:left;
+  margin-top:0px;
+  margin-left: 0px;
+  background-color:#E8E8E8;
+  width:170px;
+  height:85vh;
+  padding:3px;
+  overflow:auto;
+}
+
+#content
+{
+display:block;
+padding:5px;
+margin-top:0px;
+margin-left:180px;
+height:85vh;
+overflow:auto;
+}
+
+#footer
+{
+display:block;
+background-color:#A0A0A0;
+clear:both;
+text-align:center;
+margin:0px;
+padding:5px;
+height:20px;
+}
+
+#metricset
+{
+margin:0px;
+margin-bottom:40px;
+border-bottom:1px solid gray;
+}
+
+#mybutton {
+display: block;
+width: 6.4em;
+height: 1.8em;
+border: 2px solid black;
+padding:0;
+text-align:center;
+vertical-align:middle;
+font-size: 1.1em;
+color:#000000;
+background-color:#A0A0A0;
+   background: #A0A0A0;
+   background: -webkit-gradient(linear, left top, left bottom, from(#A0A0A0), to(#E8E8E8));
+   background: -webkit-linear-gradient(top, #A0A0A0, #E8E8E8);
+   background: -moz-linear-gradient(top, #A0A0A0, #E8E8E8);
+   background: -ms-linear-gradient(top, #A0A0A0, #E8E8E8);
+   background: -o-linear-gradient(top, #A0A0A0, #E8E8E8);
+cursor:pointer;
+   -webkit-border-radius: 10px;
+   -moz-border-radius: 10px;
+   border-radius: 10px;
+}
+#mybutton:hover {
+background-color:#808080;
+}
+
+table,th,td
+{
+border:1px solid black;
+border-collapse:collapse;
+margin-bottom: 20px
+}
+th
+{
+background-color: #E8E8E8;
+}
+th, td
+{
+padding:5px;
+text-align:left;
+}
+tr.lightestgray
+{
+background-color:#F5F5F5;
+}
+
+table.blank, th.blank, td.blank
+{
+border:0px;
+margin:0px;
+}
+th.blank, td.blank
+{
+margin:0px;
+padding:0px;
+text-align:left;
+}
+
+img.thumbnail {
+    height: 280px;
+    padding:0px;
+    margin: 0px;
+}
+
+img.sm_thumbnail {
+    height: 200px;
+    padding:0px;
+    margin: 0px;
+}
+
+p
+{
+text-indent:5px;
+line-height:130%;
+}
+
+ul
+{
+list-style-type: dot;
+padding-left:20px;
+padding-bottom:20px;
+padding-top:5px;
+margin:2px;
+}
+
+li
+{
+text-indent:0px;
+padding-left:0px;
+padding-bottom:5px;
+}
+
+
+ul.nav {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+}
+
+li.nav {
+    float: left;
+}
+
+a.nav:link, a.nav:visited {
+    display: block;
+    border:1px solid gray;
+    margin:2px;
+    min-width: 150px;
+    font-weight: bold;
+    color: black;
+    background-color:#C0C0C0;
+    text-align: center;
+    padding: 5px;
+    text-decoration: none;
+}
+
+a.nav:hover, a.nav:active {
+    background-color:#808080;
+}
+
+a.activenav:link, a.activenav:visited {
+    display: block;
+    border:1px solid gray;
+    margin:2px;
+    min-width: 150px;
+    font-weight: bold;
+    color: black;
+    background-color:#FFFFFF;
+    text-align: center;
+    padding: 5px;
+    text-decoration: none;
+}
+
+#indent
+{
+text-indent:25px;
+}
+#smallindent
+{
+text-indent:5px;
+}
+</style>
+
+{#   ##### END CSS ##### #}
+
+<title>
+{% block pagetitle %}
+{{run.run_name }}
+{% endblock %}
+</title>
+</head>
+
+<body style="display:block;margin:0px;position:relative; top:0px;">
+
+{% set active_page = active_page|default('listRuns') -%}
+
+<div id="headerHolder">
+{% block header %}
+<div id="header">
+{%block title %}
+  OpSim Run: {{ run.run_name }}
+{% endblock %}
+</div>
+{% endblock %}
+
+{% block navbar %}
+<div id="navbar">
+  {% set navigation_bar = [
+    ('/', 'listRuns', 'Run List'),
+    ('metricSelect', 'listMetrics', 'Metrics List'),
+    ('allMetricResults', 'allMetricResults', 'All Results'),
+    ('multiColor', 'multicolor', 'Multi Color'),
+    ('summaryStats', 'stats', 'Summary Stats')]  -%}
+ <ul class="nav">
+ {% for href, id, caption in navigation_bar %}
+   <li class="nav">
+     <a
+     {% if id == active_page %}
+       class="activenav"
+     {% else %}
+       class="nav"
+     {% endif %}
+      href="{{ href }}?runId={{runId}}">{{ caption|e }}</a>
+    </li>
+ {% endfor %}
+ </ul>
+ </div>
+{% endblock %}
+</div>
+
+
+<div id="sidebar">
+{% block moresidebar %}
+{% endblock %}
+</div>
+
+<div id="content">
+{% block content %}
+{% endblock %}
+</div>
+
+<div id="footer">
+<a
+  href="http://rubin-sim.lsst.io"
+  target="_blank">
+  LSST Metrics Analysis Framework (MAF)</a>
+</div>
+

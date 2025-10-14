@@ -1,0 +1,72 @@
+{% extends "master.html" %}
+{% import 'macros.html' as mcr %}
+
+{% set active_page = "allMetricResults" %}
+
+{% set run = runlist.get_run(runId) %}
+
+{% set metrics = run.metrics %}
+
+{% block moresidebar %}
+
+<ul>
+{% for g in run.groups.keys() %}
+  <li>
+  <a href="#{{ g|escape }}">{{ g|escape }}</a> </br>
+  {% for sg in run.groups[g] %}
+    <div id='smallindent'><a href="#{{g|escape}}_{{sg|escape}}">{{sg|escape}}</a></div>
+ {% endfor %}
+ </li>
+{% endfor %}
+</ul>
+{% endblock %}
+
+
+{% block content %}
+
+{# Show all metric results, including summary stats in a table rather
+than per metric. #}
+
+{% set metricInfo = run.metric_info() %}
+
+{% for g in run.groups.keys() %}
+ {% set groupstart = True %}
+ {% for sg in run.groups[g] %}
+   {% if groupstart == True %}
+      <a name = "{{g|escape}}" ></a>
+      {% set groupstart = False %}
+   {% endif %}
+   <p>
+   <a name = "{{g|escape}}_{{sg|escape}}"><i>Group: {{g|escape}};  Subgroup: {{sg|escape}}</i> </a>
+   </p>
+  {% set subsetMetrics = run.metrics_in_subgroup(g, sg) %}
+  <div id="metricset">
+  {% for metric in subsetMetrics %}
+    {% set metricInfo = run.metric_info(metric) %}
+    {% set metricPlots = run.plots_for_metric(metric) %}
+    {# Only show anything here for this metric if it had plots #}
+    {% if metricPlots|length > 0 %}
+      {# Print the metric info #}
+      {{ mcr.PrintMetricInfo(runId, metric, metricInfo) }}
+      {# Add the plots for this metric #}
+      {{ mcr.MakePlotTable(metricPlots, run) }}
+      <p>
+      {% set caption = run.caption_for_metric(metric) %}
+      {{ caption|escape }}
+      </p>
+    {% endif %}
+
+  {% endfor %}
+
+  {# Add a table with the summary stats for all the metrics in this subgroup #}
+
+  {% set statNames = run.all_stat_names(subsetMetrics) %}
+
+  {{ mcr.MakeStatTable(subsetMetrics, g, sg, run) }}
+
+  </div>
+
+ {% endfor %}
+{% endfor %}
+
+{% endblock %}
