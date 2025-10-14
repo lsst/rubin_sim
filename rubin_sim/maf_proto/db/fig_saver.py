@@ -5,6 +5,7 @@ import sqlite3
 from pathlib import Path
 
 import matplotlib.pylab as plt
+import pandas as pd
 
 from .schemas import empty_info
 
@@ -79,6 +80,11 @@ class FigSaver:
             raise ValueError("Unable to generate output filename from info dict")
 
         return filename
+
+    def save_stats(self, stats):
+        """Save summary statistics to the output DB."""
+        df = pd.DataFrame(stats)
+        df.to_sql("stats", self.conn, index=False, if_exists="append")
 
     def __call__(self, fig, info, filename=None):
         """Save a figure
