@@ -39,6 +39,11 @@ jobs:
           conda install --yes --file=optional-requirements.txt
           conda install --yes --file=test-requirements.txt
 
+      - name: pip install pypi requirements for testing
+        shell: bash -l {0}
+        run: |
+          pip install testing.postgresql
+
       - name: install rubin_sim
         shell: bash -l {0}
         run: |
