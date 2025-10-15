@@ -76,6 +76,19 @@ class TestVisitSequenceArchive(unittest.TestCase):
         finally:
             cls.temp_dir.cleanup()
 
+    def setUp(self) -> None:
+        self.start_environ: dict = {}
+        self.start_environ.update(os.environ)
+        os.environ["LSST_DISABLE_BUCKET_VALIDATION"] = "1"
+
+    def tearDown(self) -> None:
+        for key in os.environ:
+            if key not in self.start_environ:
+                del os.environ[key]
+            else:
+                if os.environ[key] != self.start_environ[key]:
+                    os.environ[key] = self.start_environ[key]
+
     def num_rows_in_table(self, archive: vseqarchive.VisitSequenceArchiveMetadata, table: str) -> int:
         result = archive.query(
             sql.SQL("SELECT COUNT(*) FROM {}.{};").format(
