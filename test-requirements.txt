@@ -4,3 +4,5 @@ black>=25.0.0
 ruff
 isort
 postgresql
+boto3
+botocore
