@@ -42,7 +42,7 @@ jobs:
       - name: pip install pypi requirements for testing
         shell: bash -l {0}
         run: |
-          pip install testing.postgresql
+          pip install testing.postgresql lsst.resources
 
       - name: install rubin_sim
         shell: bash -l {0}
