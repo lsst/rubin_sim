@@ -21,13 +21,13 @@ from lsst.resources import ResourcePath
 from psycopg2 import sql
 from rubin_scheduler.scheduler.utils import SchemaConverter
 
-from rubin_sim.data import get_baseline
 from rubin_sim.sim_archive import vseqarchive, vseqmetadata
 from rubin_sim.sim_archive.prototype import export_sim_to_prototype_sim_archive
 from rubin_sim.sim_archive.tempdb import LocalOnlyPostgresql
 
 TEST_METADATA_DB_SCHEMA = "test"
 
+# Test visits using consdb column names
 TEST_VISITS = pd.read_csv(
     StringIO(
         """
@@ -40,6 +40,62 @@ obs_start_mjd       s_ra      s_dec band  sky_rotation exp_time   altitude     a
 """
     ),
     sep=r"\s+",
+)
+
+# Test visits using opsim column names
+# Taken from baseline, but used instead of baseline
+# so it works when get_baseline() fails.
+TEST_OBS = pd.DataFrame(
+    {
+        "ID": {0: 0, 1: 1, 2: 2},
+        "RA": {0: 4.565221270744618, 1: 4.587617254424366, 2: 4.569874353050399},
+        "dec": {0: -0.47877497696518434, 1: -0.3942901024801995, 2: -0.34708159948758066},
+        "mjd": {0: 60980.00162606769, 1: 60980.00187693634, 2: 60980.002122816804},
+        "flush_by_mjd": {0: 60980.02490014931, 1: 60980.02490014931, 2: 60980.02490014931},
+        "exptime": {0: 15.0, 1: 15.0, 2: 15.0},
+        "band": {0: "r", 1: "r", 2: "r"},
+        "filter": {0: "r", 1: "r", 2: "r"},
+        "rotSkyPos": {0: 5.876022662133265, 1: 5.919075559769473, 2: 5.94587053925843},
+        "rotSkyPos_desired": {0: 0.0, 1: 0.0, 2: 0.0},
+        "nexp": {0: 1, 1: 1, 2: 1},
+        "airmass": {0: 1.9425330274137829, 1: 2.0097732394514645, 2: 2.1437619807371933},
+        "FWHM_500": {0: 0.9789617075932842, 1: 0.9789617075932842, 2: 0.9789617075932842},
+        "FWHMeff": {0: 1.7561043378017294, 1: 1.7923280611783998, 2: 1.8630958886242825},
+        "FWHM_geometric": {0: 1.4955177656730214, 1: 1.5252936662886447, 2: 1.5834648204491601},
+        "skybrightness": {0: 18.571033643475822, 1: 18.499742358339535, 2: 18.4280549931739},
+        "night": {0: 0, 1: 0, 2: 0},
+        "slewtime": {0: 106.51934924053808, 1: 5.675050952948157, 2: 5.244072029689301},
+        "visittime": {0: 16.0, 1: 16.0, 2: 16.0},
+        "slewdist": {0: 1.0476600064430734, 1: 0.08688615327418507, 2: 0.05002065991954836},
+        "fivesigmadepth": {0: 21.929073206570653, 1: 21.863266843112314, 2: 21.768922123808583},
+        "alt": {0: 0.5428304424974331, 1: 0.5289410180743699, 2: 0.49345760977076153},
+        "az": {0: 4.437241068620033, 1: 4.536614524865317, 2: 4.57781450588731},
+        "pa": {0: 1.9277474700579063, 1: 1.9698101688642318, 2: 1.997014567506373},
+        "pseudo_pa": {0: 1.9306710506086011, 1: 1.9726118749454766, 2: 1.999754703197624},
+        "clouds": {0: 0.0, 1: 0.0, 2: 0.0},
+        "moonAlt": {0: 1.1813900553282524, 1: 1.1818643717117499, 2: 1.1823244654562768},
+        "sunAlt": {0: -0.21560611790270862, 1: -0.2168497474147377, 2: -0.21806791322669622},
+        "scheduler_note": {0: "twilight_near_sun, 0", 1: "twilight_near_sun, 0", 2: "twilight_near_sun, 0"},
+        "target_name": {0: "bulgy", 1: "bulgy", 2: "bulgy"},
+        "target_id": {0: 0, 1: 1, 2: 2},
+        "lmst": {0: 22.024928004140648, 1: 22.03096533614179, 2: 22.03688262412642},
+        "rotTelPos": {0: 0.7670373688600254, 1: 0.7659252955606934, 2: 0.7662731443238844},
+        "rotTelPos_backup": {0: 0.0, 1: 0.0, 2: 0.0},
+        "moonAz": {0: 0.4062715059631942, 1: 0.40266683110724966, 2: 0.3991218282595135},
+        "sunAz": {0: 4.275439688438064, 1: 4.274507556583111, 2: 4.273593129782555},
+        "sunRA": {0: 3.771398634838603, 1: 3.7714029138801326, 2: 3.7714071078422475},
+        "sunDec": {0: -0.2499715857671971, 1: -0.24997299288585925, 2: -0.24997437202179135},
+        "moonRA": {0: 5.912319257908991, 1: 5.912350571271447, 2: 5.912381259109779},
+        "moonDec": {0: -0.1677616241703147, 1: -0.16773479483758946, 2: -0.1677084921417354},
+        "moonDist": {0: 1.296308274027283, 1: 1.2808773106616722, 2: 1.3009217682807237},
+        "solarElong": {0: 0.7714313357065409, 1: 0.7844179510467449, 2: 0.7670707340378583},
+        "moonPhase": {0: 65.73037246219155, 1: 65.73146495686613, 2: 65.73253572916387},
+        "cummTelAz": {0: -1.8461922459167281, 1: -1.7467049213662156, 2: -1.7050034487399},
+        "observation_reason": {0: "pairs_i_5.0", 1: "pairs_i_5.0", 2: "pairs_i_5.0"},
+        "science_program": {0: "None", 1: "None", 2: "None"},
+        "cloud_extinction": {0: 0.0, 1: 0.0, 2: 0.0},
+        "note": {0: "", 1: "", 2: ""},
+    }
 )
 
 
@@ -850,9 +906,8 @@ class TestVisitSequenceArchive(unittest.TestCase):
 
         # Make a sample file in opsim sqlite3 database format
         schema_converter = SchemaConverter()
-        obs = schema_converter.opsim2obs(get_baseline())[:11]
         db_file_name = str(Path(self.temp_dir.name).joinpath("test_opsim_cli_opsim.db"))
-        schema_converter.obs2opsim(obs, db_file_name)
+        schema_converter.obs2opsim(TEST_OBS, db_file_name)
 
         # Make a visit sequence and send the visits
         # attached to it.
@@ -883,10 +938,10 @@ class TestVisitSequenceArchive(unittest.TestCase):
         get_h5_visits_command = ["get-file", uuid_str, "visits", h5_file_name]
         self.run_click_command(get_h5_visits_command)
         returned_visits_h5 = pd.read_hdf(h5_file_name, "observations")
-        assert len(returned_visits_h5) == len(obs)
+        assert len(returned_visits_h5) == len(TEST_OBS)
 
         ret_db_file_name = str(Path(self.temp_dir.name).joinpath("test_opsim_cli_returned.db"))
         get_opsim_visits_command = ["get-file", uuid_str, "visits", ret_db_file_name]
         self.run_click_command(get_opsim_visits_command)
         ret_obs = schema_converter.opsim2obs(ret_db_file_name)
-        assert len(ret_obs) == len(obs)
+        assert len(ret_obs) == len(TEST_OBS)
