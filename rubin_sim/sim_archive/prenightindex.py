@@ -80,7 +80,7 @@ def get_prenight_index_from_database(
 def get_prenight_index_from_bucket(
     day_obs: str | int | date,
     telescope: str = "simonyi",
-    prenight_index_path: (str | ResourcePath) = PRENIGHT_INDEX_URL,
+    prenight_index_path: str | ResourcePath = PRENIGHT_INDEX_URL,
 ) -> pd.DataFrame:
     """
     Load the pre‑night observation index for a given night from a remote
