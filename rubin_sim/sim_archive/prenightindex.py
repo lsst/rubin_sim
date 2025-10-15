@@ -72,7 +72,7 @@ def get_prenight_index_from_database(
     prenights = visit_seq_archive_metadata.sims_on_nights(
         day_obs_date, day_obs_date, tags=["prenight"], telescope=telescope, max_simulation_age=MAX_AGE
     ).set_index("visitseq_uuid")
-    LOGGER.info(f"Got metadata on {len(prenights)} simulations) from database")
+    LOGGER.info(f"Got metadata on {len(prenights)} simulations from database")
     return prenights
 
 
