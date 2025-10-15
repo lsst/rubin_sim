@@ -1,10 +1,15 @@
 import logging
+import os
 from datetime import date
 
 import pandas as pd
 from lsst.resources import ResourcePath
 
-from rubin_sim.sim_archive.vseqarchive import PRENIGHT_INDEX_URL
+if "PRENIGHT_INDEX_URL" in os.environ:
+    PRENIGHT_INDEX_URL = os.environ["PRENIGHT_INDEX_URL"]
+else:
+    from rubin_sim.sim_archive.vseqarchive import PRENIGHT_INDEX_URL
+
 from rubin_sim.sim_archive.vseqmetadata import VisitSequenceArchiveMetadata
 
 from .util import dayobs_to_date
