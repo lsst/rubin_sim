@@ -16,6 +16,9 @@ from rubin_scheduler.scheduler.model_observatory import ModelObservatory
 from rubin_scheduler.utils import SURVEY_START_MJD
 
 HAVE_LSST_RESOURCES = importlib.util.find_spec("lsst") and importlib.util.find_spec("lsst.resources")
+HAVE_AWS_CREDENTIALS = "AWS_SHARED_CREDENTIALS_FILE" in os.environ and os.path.isfile(
+    os.environ["AWS_SHARED_CREDENTIALS_FILE"]
+)
 
 if HAVE_LSST_RESOURCES:
     from lsst.resources import ResourcePath
@@ -144,6 +147,7 @@ class TestPrototypeSimArchive(unittest.TestCase):
             )
 
     @unittest.skipIf(not HAVE_LSST_RESOURCES, "No lsst.resources")
+    @unittest.skipIf(not HAVE_AWS_CREDENTIALS, "No credentials")
     def test_find_latest_prenight_sim_for_night(self) -> None:
         day_obs = "2025-09-25"
         max_simulation_age = int(np.ceil(Time.now().mjd - Time(day_obs).mjd)) + 1
@@ -151,6 +155,7 @@ class TestPrototypeSimArchive(unittest.TestCase):
         assert sim_metadata["simulated_dates"]["first"] <= day_obs <= sim_metadata["simulated_dates"]["last"]
 
     @unittest.skipIf(not HAVE_LSST_RESOURCES, "No lsst.resources")
+    @unittest.skipIf(not HAVE_AWS_CREDENTIALS, "No credentials")
     def test_fetch_sim_for_nights(self) -> None:
         day_obs = "2025-09-25"
         max_simulation_age = int(np.ceil(Time.now().mjd - Time(day_obs).mjd)) + 1
@@ -158,6 +163,7 @@ class TestPrototypeSimArchive(unittest.TestCase):
         assert len(visits) > 0
 
     @unittest.skipIf(not HAVE_LSST_RESOURCES, "No lsst.resources")
+    @unittest.skipIf(not HAVE_AWS_CREDENTIALS, "No credentials")
     def test_fetch_obsloctap_visits(self) -> None:
         day_obs = "2025-09-25"
         num_nights = 2
@@ -184,6 +190,7 @@ class TestPrototypeSimArchive(unittest.TestCase):
         assert "target_name" in visits.columns
 
     @unittest.skipIf(not HAVE_LSST_RESOURCES, "No lsst.resources")
+    @unittest.skipIf(not HAVE_AWS_CREDENTIALS, "No credentials")
     def test_fetch_sim_stats_for_night(self) -> None:
         day_obs = "2025-09-12"
         num_visits = fetch_sim_stats_for_night(day_obs)["nominal_visits"]
