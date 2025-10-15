@@ -621,13 +621,16 @@ def fetch_sim_stats_for_night(
     if "stats" in sim:
         stats_maybe = sim["stats"]
     else:
-        LOGGER.info(f"Querying the medatadata database for stats on {day_obs}")
+        LOGGER.info(
+            f"Querying the metadata database (host {host}, user {user}, schema {schema})"
+            "for stats on {day_obs}"
+        )
         vseq_metadata = VisitSequenceArchiveMetadata(
             metadata_db_kwargs={"host": host, "user": user, "database": database}, metadata_db_schema=schema
         )
         sims_with_stats = vseq_metadata.sims_on_night_with_stats(
             day_obs, tags=tags, telescope=telescope, max_simulation_age=max_simulation_age
-        )
+        ).set_index("visitseq_uuid")
         try:
             stats_maybe = sims_with_stats.loc[sim["visitseq_uuid"], "stats"]
         except KeyError:
