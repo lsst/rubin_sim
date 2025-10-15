@@ -4,6 +4,7 @@ from datetime import date
 import pandas as pd
 from lsst.resources import ResourcePath
 
+from rubin_sim.sim_archive.vseqarchive import PRENIGHT_INDEX_URL
 from rubin_sim.sim_archive.vseqmetadata import VisitSequenceArchiveMetadata
 
 from .util import dayobs_to_date
@@ -79,9 +80,7 @@ def get_prenight_index_from_database(
 def get_prenight_index_from_bucket(
     day_obs: str | int | date,
     telescope: str = "simonyi",
-    prenight_index_path: (
-        str | ResourcePath
-    ) = "s3://rubin:rubin-scheduler-prenight/opsim/test/prenight_index/",
+    prenight_index_path: (str | ResourcePath) = PRENIGHT_INDEX_URL,
 ) -> pd.DataFrame:
     """
     Load the pre‑night observation index for a given night from a remote
@@ -97,8 +96,7 @@ def get_prenight_index_from_bucket(
     prenight_index_path : `str` or `ResourcePath`, optional
         The root path where the pre‑night index
         JSON files are stored.  It can be a string URL or a
-        :class:`lsst.resources.ResourcePath` instance.  Default:
-        ``"s3://rubin:rubin-scheduler-prenight/opsim/test/prenight_index/"``
+        ``ResourcePath`` instance.
 
     Returns
     -------
@@ -169,8 +167,11 @@ def get_prenight_index(
         # Fall back to the bucket
         LOGGER.info("Database not accessible, falling back on the index in the S3 bucket.")
         if prenight_index_path is None:
-            prenight_index_path = "s3://rubin:rubin-scheduler-prenight/opsim/test/prenight_index/"
-        prenights = get_prenight_index_from_bucket(day_obs, telescope, prenight_index_path)
+            prenight_index_path = PRENIGHT_INDEX_URL
+        try:
+            prenights = get_prenight_index_from_bucket(day_obs, telescope, prenight_index_path)
+        except FileNotFoundError:
+            prenights = pd.DataFrame()
 
     return prenights
 
