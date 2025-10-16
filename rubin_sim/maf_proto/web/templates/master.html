@@ -244,7 +244,7 @@ text-indent:5px;
 {% block header %}
 <div id="header">
 {%block title %}
-  OpSim Run: {{ run.run_name }}
+  Simulation: {{ run.run_name }}
 {% endblock %}
 </div>
 {% endblock %}
@@ -253,7 +253,6 @@ text-indent:5px;
 <div id="navbar">
   {% set navigation_bar = [
     ('/', 'listRuns', 'Run List'),
-    ('metricSelect', 'listMetrics', 'Metrics List'),
     ('allMetricResults', 'allMetricResults', 'All Results'),
     ('multiColor', 'multicolor', 'Multi Color'),
     ('summaryStats', 'stats', 'Summary Stats')]  -%}
