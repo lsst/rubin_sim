@@ -11,8 +11,7 @@
     <li>
     <a href="#{{group}}">{{group}}</a>
   {% for subgroup in run.groups[group] %}
-    {% set metrics = run.metrics_in_subgroup(group, subgroup) %}
-    {% set statNames = run.all_stat_names(metrics) %}
+    {% set statNames = run.all_stat_names(subgroup) %}
     {% if statNames|length > 0 %}
         <div id='smallindent'><a href="#{{group}}_{{subgroup}}">{{subgroup}}</a></div>
     {% endif %}
@@ -34,7 +33,6 @@ Download <a href="{{resultsDb}}" download>summary results sqlite file</a>
    {% set groupstart = True %}
    {% for subgroup in run.groups[group] %}
        {# Identify the metrics to put into table #}
-       {% set metrics = run.metrics_in_subgroup(group, subgroup) %}
 
        {# add an anchor if it's the start of a group #}
        {% if groupstart %}

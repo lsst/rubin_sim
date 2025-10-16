@@ -16,8 +16,8 @@ class FigSaver:
 
     Parameters
     ----------
-    tracking_file : `str`
-        Path to tracking database. If directory does not exist,
+    results_file : `str`
+        Path to results database. If directory does not exist,
         it will be created.
     png_dpi : `int`
         DPI to use for pngs. Default 72 (top for web pages).
@@ -33,15 +33,15 @@ class FigSaver:
 
     def __init__(
         self,
-        tracking_file="maf_figs/maf_tracking.db",
+        results_file="maf_figs/maf_results.db",
         png_dpi=72,
         close_figs=True,
         pdf_dpi=600,
         bbox_inches="tight",
     ):
-        self.outdir = os.path.dirname(tracking_file)
+        self.outdir = os.path.dirname(results_file)
         Path(self.outdir).mkdir(parents=True, exist_ok=True)
-        self.conn = sqlite3.connect(tracking_file)
+        self.conn = sqlite3.connect(results_file)
         self.close_figs = close_figs
         self.pdf_dpi = pdf_dpi
         self.png_dpi = png_dpi

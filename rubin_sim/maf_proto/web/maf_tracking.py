@@ -18,13 +18,14 @@ class MafTracking:
     ----------
     database : `str`, optional
         Path to the sqlite tracking database file.
-        If None, looks for `trackingDb_sqlite.db` default file in the
+        If None, looks for disp_maf.sqlite default file in the
         current directory.
     """
 
-    def __init__(self, database=None):
+    def __init__(self, database=None, filename="disp_maf.sqlite"):
         if database is None:
-            database = os.path.join(os.getcwd(), "trackingDb_sqlite.db")
+            database = os.path.join(os.getcwd(), filename)
+
         self.tracking_db = database
         self.stamp = os.stat(self.tracking_db).st_mtime
 
@@ -52,7 +53,7 @@ class MafTracking:
         if new_stamp != self.stamp:
             self.__init__(database=self.tracking_db)
 
-    def run_info(self, run):
+    def run_info(self, run, filename="maf_results.db"):
         """Get the tracking database information relevant for a given run
         in a format that the jinja2 templates for show_maf  can use.
 
@@ -77,7 +78,7 @@ class MafTracking:
             os.path.relpath(run["db_file"]),
             os.path.split(run["db_file"])[1],
         ]
-        runInfo["ResultsDb"] = os.path.join(maf_dir, "resultsDb_sqlite.db")
+        runInfo["ResultsDb"] = os.path.join(maf_dir, filename)
         runInfo["maf_dir"] = maf_dir
         runInfo["sched_version"] = run["run_version"]
         runInfo["sched_date"] = run["run_date"]

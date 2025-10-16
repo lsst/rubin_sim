@@ -69,12 +69,18 @@ def glance(observations=None, run_name=None, quick_test=False, fig_saver=None):
 
         # Coadd depth
         metrics.append(maf.CoaddM5Metric(filtername))
-        infos.append(copy.copy(info))
+        temp_info = copy.copy(info)
+        temp_info["group"] = "Basics"
+        temp_info["subgroup"] = "Coadd"
+        infos.append(temp_info)
         plot_dicts.append({})
 
         # Number of visits
         metrics.append(maf.CountMetric())
-        infos.append(copy.copy(info))
+        temp_info = copy.copy(info)
+        temp_info["group"] = "Basics"
+        temp_info["subgroup"] = "Counts"
+        infos.append(temp_info)
         plot_dicts.append({"log": True, "min": 1, "norm": "log", "cb_params": {"format": "%i", "n_ticks": 4}})
 
         # Run the metics through the slicer
@@ -92,6 +98,8 @@ def glance(observations=None, run_name=None, quick_test=False, fig_saver=None):
     # Number of obs, all filters
     info = {"run_name": run_name}
     info["observations_subset"] = "All"
+    info["group"] = "Basics"
+    info["subgroup"] = "Counts"
     metric = maf.CountMetric()
     sl = maf.Slicer(nside=64)
     counts_hp_array, info = sl(visits_array, metric, info=info)
@@ -104,6 +112,7 @@ def glance(observations=None, run_name=None, quick_test=False, fig_saver=None):
     # Now make counts for FO, and make FO plot
     info = {"run_name": run_name}
     info["observations_subset"] = "Exptime > 19s"
+    info["group"] = "SRD"
     subset = visits_array[np.where(visits_array["visitExposureTime"] > 19)]
     metric = maf.CountMetric()
     sl = maf.Slicer(nside=64)
@@ -137,6 +146,7 @@ def glance(observations=None, run_name=None, quick_test=False, fig_saver=None):
     for subset in alt_az_sub:
         info = {"run_name": run_name}
         info["observations_subset"] = subset
+        info["group"] = "AltAz"
         sub_data = visits_array[alt_az_sub[subset]]
         metric = maf.CountMetric()
         sl = maf.Slicer(nside=64, lat_col="altitude", lon_col="azimuth")
@@ -160,6 +170,7 @@ def glance(observations=None, run_name=None, quick_test=False, fig_saver=None):
     for subset in year_subs:
         info = {"run_name": run_name}
         info["observations_subset"] = subset
+        info["group"] = "Roll Check"
         sub_data = visits_array[year_subs[subset]]
         metric = maf.CountMetric()
         sl = maf.Slicer(nside=64)
@@ -175,6 +186,7 @@ def glance(observations=None, run_name=None, quick_test=False, fig_saver=None):
     info["metric: unit"] = "Slew Time (sec)"
     info["observations_subset"] = "all"
     info["metric: name"] = "slew time"
+    info["group"] = "Slew"
     # Maybe this is just a function and not a class
     ph = maf.PlotHist(info=info)
     fig = ph(visits_array["slewTime"], log=True)
@@ -186,6 +198,7 @@ def glance(observations=None, run_name=None, quick_test=False, fig_saver=None):
     summary_stats.append(maf.gen_summary_row(info, "median", np.median(visits_array["slewTime"])))
 
     info = {"run_name": run_name}
+    info["group"] = "Slew"
     info["metric: unit"] = "Slew Distance (deg)"
     info["metric: name"] = "slewDistance"
     ph = maf.PlotHist(info=info)
@@ -194,6 +207,7 @@ def glance(observations=None, run_name=None, quick_test=False, fig_saver=None):
 
     # Open Shutter Fraction overall
     info = {"run_name": run_name}
+    info["group"] = "Slew"
     info["metric: unit"] = "Open Shutter Fraction"
     info["observations_subset"] = "all"
     osf = maf.open_shutter_fraction(visits_array["observationStartMJD"], visits_array["visitExposureTime"])
@@ -202,6 +216,7 @@ def glance(observations=None, run_name=None, quick_test=False, fig_saver=None):
     # Filter changes per night
     stats = {"mean": np.mean, "median": np.median, "max": np.max, "min": np.min}
     info = {"run_name": run_name}
+    info["group"] = "Slew"
     info["metric: name"] = "filter changes"
     info["caption"] = "Filter changes per night"
     fpn = df.groupby("night")["filter"].apply(maf.count_value_changes)
@@ -213,6 +228,7 @@ def glance(observations=None, run_name=None, quick_test=False, fig_saver=None):
 
     # Open shutter fraction per night
     info = {"run_name": run_name}
+    info["group"] = "Slew"
     info["metric: name"] = "open shutter fraction"
     info["caption"] = "Open Shutter Fraction per night"
     osfpn = df.groupby("night").apply(maf.osf_visit_array, include_groups=False)
@@ -223,6 +239,7 @@ def glance(observations=None, run_name=None, quick_test=False, fig_saver=None):
     # Effective exposure time per filter
     for filtername in "ugrizy":
         info = {"run_name": run_name}
+        info["group"] = "Slew"
         info["metric: unit"] = "T Effective (normed)"
         info["observations_subset"] = "filter=%s" % filtername
         indx = np.where(visits_array["filter"] == filtername)
@@ -234,6 +251,7 @@ def glance(observations=None, run_name=None, quick_test=False, fig_saver=None):
     n_obs = np.size(note_roots)
     for note in np.unique(note_roots):
         info = {"run_name": run_name}
+        info["group"] = "Per Note"
         info["metric: unit"] = "#"
         info["observations_subset"] = "note start %s" % note
         count = np.size(np.where(note_roots == note)[0])
@@ -243,6 +261,7 @@ def glance(observations=None, run_name=None, quick_test=False, fig_saver=None):
 
     # Hourglass per year
     info = {"run_name": run_name}
+    info["group"] = "Hourglass"
     min_year = np.floor(visits_array["night"].min() / DAYS_IN_YEAR)
     max_year = np.ceil(visits_array["night"].max() / DAYS_IN_YEAR)
     hstart = np.arange(min_year, max_year)
