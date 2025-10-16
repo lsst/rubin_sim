@@ -111,7 +111,7 @@ def get_prenight_index_from_bucket(
         those stored in the JSON file.
     """
     day_obs_date = dayobs_to_date(day_obs)
-    assert isinstance(day_obs, date)
+    assert isinstance(day_obs_date, date)
 
     prenight_index_path = ResourcePath(prenight_index_path, forceDirectory=True)
     assert isinstance(prenight_index_path, ResourcePath)
