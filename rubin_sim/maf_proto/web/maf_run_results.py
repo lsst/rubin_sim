@@ -1,13 +1,86 @@
-__all__ = ("MafRunResults",)
+__all__ = ("MafRunResults", "read_stat_table", "read_plot_table", "crop_df", "chop_stat_table")
 
 import os
 import re
 from collections import OrderedDict
 
 import numpy as np
+import pandas as pd
+import sqlite3
 
-import rubin_sim.maf.db as db
-import rubin_sim.maf.metric_bundles as metricBundles
+
+def read_stat_table(db_file):
+    """Read the stats table
+    """
+    con = sqlite3.connect(db_file)
+    result = pd.read_sql("select * from stats;", con)
+    con.close()
+    return result
+
+
+def read_plot_table(db_file):
+    con = sqlite3.connect(db_file)
+    result = pd.read_sql("select * from plots;", con)
+    con.close()
+    return result
+
+
+def crop_df(df_in):
+    """Crop down a dataframe for display
+    """
+    # All have the same subset
+    if np.size(np.unique(df_in["observations_subset"])) == 1:
+        out_df = pd.DataFrame()
+        out_df["cols"] = df_in["summary_name"] + " " + df_in["metric: unit"]
+        # Put the data subset as the row title
+        out_df[np.unique(df_in["observations_subset"])[0]] = df_in["value"]
+        out_df.set_index('cols', inplace=True)
+        out_df = out_df.transpose()
+
+    else:
+        rows = []
+        to_bunch = df_in["observations_subset"] + " " + df_in["metric: name"]
+        try:
+
+            bunches = np.unique(to_bunch).tolist()
+        except:
+            import pdb ; pdb.set_trace()
+
+        for bunch in bunches:
+            out_df = pd.DataFrame()
+            indx = np.where(to_bunch == bunch)[0]
+            out_df["cols"] = df_in["summary_name"].iloc[indx]
+            out_df[bunch] = df_in["value"].iloc[indx]
+            out_df.set_index("cols", inplace=True)
+            out_df = out_df.transpose()
+            rows.append(out_df)
+        out_df = pd.concat(rows)
+
+    return out_df
+
+
+def chop_stat_table(df_in):
+    """Divide up a stat table for each one to be displayed
+    """
+
+    # Replace any None values
+    keys = ["group", "subgroup", "observations_subset", "metric: name"]
+    for key in keys:
+        indx = np.where(df_in[key].values == None)[0]
+        df_in.loc[indx, key] = ""
+
+    g_p_sg = df_in["group"] + "," + df_in["subgroup"]
+    up_p_sg = np.unique(g_p_sg)
+
+    out_frames = []
+    for grouping in up_p_sg:
+        indx = np.where(g_p_sg == grouping)[0]
+        temp_df = df_in.iloc[indx]
+        temp_df = crop_df(temp_df)
+        # Folks hate it when I do this. But it's so convienent.
+        temp_df.title = grouping
+        out_frames.append(temp_df)
+    return out_frames
 
 
 class MafRunResults:
@@ -34,24 +107,21 @@ class MafRunResults:
 
         # Read in the results database.
         if results_db is None:
-            results_db = os.path.join(self.out_dir, "resultsDb_sqlite.db")
-        database = db.ResultsDb(database=results_db)
-
-        # Get the metric and display info (1-1 match)
-        self.metrics = database.get_metric_display_info()
-        self.metrics = self.sort_metrics(self.metrics)
+            results_db = os.path.join(self.out_dir, "maf_results.db")
 
         # Get the plot and stats info (many-1 metric match)
-        skip_stats = ["Completeness@Time", "Completeness H", "FractionPop "]
-        self.stats = database.get_summary_stats(summary_name_notlike=skip_stats)
-        self.plots = database.get_plot_files()
+        self.stats = read_stat_table(results_db)
+        self.plots = read_plot_table(results_db)
 
         # Pull up the names of the groups and subgroups.
-        groups = sorted(np.unique(self.metrics["display_group"]))
-        self.groups = OrderedDict()
-        for g in groups:
-            group_metrics = self.metrics[np.where(self.metrics["display_group"] == g)]
-            self.groups[g] = sorted(np.unique(group_metrics["display_subgroup"]))
+        group_list = np.unique(self.plots["group"].tolist() + self.stats["group"].tolist())
+
+        self.groups = {}
+        for group in group_list:
+            indx1 = np.where(self.stats["group"] == group)[0]
+            indx2 = np.where(self.plots["group"] == group)[0]
+            self.groups[group] = list(set(self.stats["subgroup"].values[indx1].tolist() +
+                                          self.plots["subgroup"].values[indx2].tolist()))
 
         self.summary_stat_order = [
             "Id",
@@ -68,93 +138,8 @@ class MafRunResults:
             "Min",
             "Max",
         ]
-        # Add in the table fraction sorting to summary stat ordering.
-        table_fractions = [
-            x for x in list(np.unique(self.stats["summary_metric"])) if x.startswith("TableFraction")
-        ]
-        if len(table_fractions) > 0:
-            for x in (
-                "TableFraction 0 == P",
-                "TableFraction 1 == P",
-                "TableFraction 1 < P",
-            ):
-                if x in table_fractions:
-                    table_fractions.remove(x)
-            table_fractions = sorted(table_fractions)
-            self.summary_stat_order.append("TableFraction 0 == P")
-            for table_frac in table_fractions:
-                self.summary_stat_order.append(table_frac)
-            self.summary_stat_order.append("TableFraction 1 == P")
-            self.summary_stat_order.append("TableFraction 1 < P")
 
         self.plot_order = ["SkyMap", "Histogram", "PowerSpectrum", "Combo"]
-
-    # Methods to deal with metricIds
-
-    def convert_select_to_metrics(self, group_list, metric_id_list):
-        """
-        Convert the lists of values returned by 'select metrics' template page
-        into an appropriate dataframe of metrics (in sorted order).
-
-        Parameters
-        ----------
-        group_list : `list` [`str`]
-            The groups of metrics to show on the show_maf pages.
-        metric_id_list : `list` [`int`]
-            The integer ids of the metrics in the sqlite results database.
-
-        Returns
-        -------
-        metrics : `np.ndarray`, (N,)
-            An array of the metric information for the metrics .
-        """
-        metric_ids = set()
-        for group_subgroup in group_list:
-            group = group_subgroup.split("_")[0]
-            subgroup = group_subgroup.split("_")[-1].replace("+", " ")
-            m_ids = self.metric_ids_in_subgroup(group, subgroup)
-            for m_id in m_ids:
-                metric_ids.add(m_id)
-        for m_id in metric_id_list:
-            m_id = int(m_id)
-            metric_ids.add(m_id)
-        metric_ids = list(metric_ids)
-        metrics = self.metric_ids_to_metrics(metric_ids)
-        metrics = self.sort_metrics(metrics)
-        return metrics
-
-    def get_json(self, metric):
-        """
-        Return the JSON string containing the data for a particular metric.
-        """
-        if len(metric) > 1:
-            return None
-        metric = metric[0]
-        filename = metric["metric_datafile"]
-        if filename.upper() == "NULL":
-            return None
-        datafile = os.path.join(self.out_dir, filename)
-        # Read data back into a  bundle.
-        m_b = metricBundles.create_empty_metric_bundle()
-        m_b.read(datafile)
-        io = m_b.output_json()
-        if io is None:
-            return None
-        return io.get_value()
-
-    def get_npz(self, metric):
-        """
-        Return the npz data.
-        """
-        if len(metric) > 1:
-            return None
-        metric = metric[0]
-        filename = metric["metric_datafile"]
-        if filename.upper() == "NULL":
-            return None
-        else:
-            datafile = os.path.join(self.out_dir, filename)
-            return datafile
 
     def get_results_db(self):
         """
@@ -163,90 +148,6 @@ class MafRunResults:
         """
         return os.path.join(self.out_dir, "resultsDb_sqlite.db")
 
-    def metric_ids_in_subgroup(self, group, subgroup):
-        """
-        Return the metric_ids within a given group/subgroup.
-        """
-        metrics = self.metrics_in_subgroup(group, subgroup)
-        metric_ids = list(metrics["metric_id"])
-        return metric_ids
-
-    def metric_ids_to_metrics(self, metric_ids, metrics=None):
-        """
-        Return an ordered numpy array of metrics matching metric_ids.
-        """
-        if metrics is None:
-            metrics = self.metrics
-        metrics = metrics[np.isin(metrics["metric_id"], metric_ids)]
-        return metrics
-
-    def metrics_to_metric_ids(self, metrics):
-        """
-        Return a list of the metric Ids corresponding to a subset of metrics.
-        """
-        return list(metrics["metric_id"])
-
-    # Methods to deal with metrics in numpy recarray.
-
-    def sort_metrics(
-        self,
-        metrics,
-        order=(
-            "display_group",
-            "display_subgroup",
-            "base_metric_name",
-            "slicer_name",
-            "display_order",
-            "metric_info_label",
-        ),
-    ):
-        """
-        Sort the metrics by order specified by 'order'.
-
-        Default is to sort by group, subgroup, metric name, slicer,
-        display order, then info_label.
-        Returns sorted numpy array.
-        """
-        if len(metrics) > 0:
-            metrics = np.sort(metrics, order=order)
-        return metrics
-
-    def metrics_in_group(self, group, metrics=None, sort=True):
-        """
-        Given a group, return the metrics belonging to this group,
-        in display order.
-        """
-        if metrics is None:
-            metrics = self.metrics
-        metrics = metrics[np.where(metrics["display_group"] == group)]
-        if sort:
-            metrics = self.sort_metrics(metrics)
-        return metrics
-
-    def metrics_in_subgroup(self, group, subgroup, metrics=None):
-        """
-        Given a group and subgroup, return a dataframe of the metrics
-        belonging to these group/subgroups, in display order.
-
-        If 'metrics' is provided, then only consider this subset of metrics.
-        """
-        metrics = self.metrics_in_group(group, metrics, sort=False)
-        if len(metrics) > 0:
-            metrics = metrics[np.where(metrics["display_subgroup"] == subgroup)]
-            metrics = self.sort_metrics(metrics)
-        return metrics
-
-    def metrics_to_subgroups(self, metrics):
-        """
-        Given an array of metrics, return an ordered dict of their
-        group/subgroups.
-        """
-        group_list = sorted(np.unique(metrics["display_group"]))
-        groups = OrderedDict()
-        for group in group_list:
-            groupmetrics = self.metrics_in_group(group, metrics, sort=False)
-            groups[group] = sorted(np.unique(groupmetrics["display_subgroup"]))
-        return groups
 
     def metrics_with_plot_type(self, plot_type="SkyMap", metrics=None):
         """
@@ -273,175 +174,6 @@ class MafRunResults:
         metrics = self.metric_ids_to_metrics(plot_match["metric_id"], metrics)
         return metrics
 
-    def unique_metric_names(self, metrics=None, baseonly=True):
-        """
-        Return a list of the unique metric names,
-        preserving the order of 'metrics'.
-        """
-        if metrics is None:
-            metrics = self.metrics
-        if baseonly:
-            sort_name = "base_metric_name"
-        else:
-            sort_name = "metric_name"
-        metric_names = list(np.unique(metrics[sort_name]))
-        return metric_names
-
-    def metrics_with_summary_stat(self, summary_stat_name="Identity", metrics=None):
-        """
-        Return metrics with summary stat matching 'summary_stat_name'
-        (optionally, within a metric subset).
-        """
-        if metrics is None:
-            metrics = self.metrics
-        # Identify the potentially matching stats.
-        stats = self.stats[np.isin(self.stats["summary_metric"], summary_stat_name)]
-        # Identify the subset of relevant metrics.
-        metrics = self.metric_ids_to_metrics(stats["metric_id"], metrics)
-        # Re-sort metrics because at this point, probably want displayOrder
-        # + info_label before metric name.
-        metrics = self.sort_metrics(
-            metrics,
-            order=[
-                "display_group",
-                "display_subgroup",
-                "slicer_name",
-                "display_order",
-                "metric_info_label",
-                "base_metric_name",
-            ],
-        )
-        return metrics
-
-    def metrics_with_stats(self, metrics=None):
-        """
-        Return metrics that have any summary stat.
-        """
-        if metrics is None:
-            metrics = self.metrics
-        # Identify metricIds which are also in stats.
-        metrics = metrics[np.isin(metrics["metric_id"], self.stats["metric_id"])]
-        metrics = self.sort_metrics(
-            metrics,
-            order=[
-                "display_group",
-                "display_subgroup",
-                "slicer_name",
-                "display_order",
-                "metric_info_label",
-                "base_metric_name",
-            ],
-        )
-        return metrics
-
-    def unique_slicer_names(self, metrics=None):
-        """
-        For an array of metrics, return the unique slicer names.
-        """
-        if metrics is None:
-            metrics = self.metrics
-        return list(np.unique(metrics["slicer_name"]))
-
-    def metrics_with_slicer(self, slicer, metrics=None):
-        """
-        For an array of metrics, return the subset which match a
-        particular 'slicername' value.
-        """
-        if metrics is None:
-            metrics = self.metrics
-        metrics = metrics[np.where(metrics["slicer_name"] == slicer)]
-        return metrics
-
-    def unique_metric_name_and_info_label(self, metrics=None):
-        """
-        For an array of metrics, return the unique metric names
-        + info_label combo in same order.
-        """
-        if metrics is None:
-            metrics = self.metrics
-        metric_info_label = []
-        for metric_name, info_label in zip(metrics["metric_name"], metrics["metric_info_label"]):
-            metricinfo = " ".join([metric_name, info_label])
-            if metricinfo not in metric_info_label:
-                metric_info_label.append(metricinfo)
-        return metric_info_label
-
-    def unique_metric_info_label(self, metrics=None):
-        """
-        For an array of metrics, return a list of the unique info_label.
-        """
-        if metrics is None:
-            metrics = self.metrics
-        return list(np.unique(metrics["metric_info_label"]))
-
-    def metrics_with_info_label(self, info_label, metrics=None):
-        """
-        For an array of metrics, return the subset which match a
-        particular 'info_label' value.
-        """
-        if metrics is None:
-            metrics = self.metrics
-        metrics = metrics[np.where(metrics["metric_info_label"] == info_label)]
-        return metrics
-
-    def metrics_with_metric_name(self, metric_name, metrics=None, baseonly=True):
-        """
-        Return all metrics which match metric_name
-        (default, only the 'base' metric name).
-        """
-        if metrics is None:
-            metrics = self.metrics
-        if baseonly:
-            metrics = metrics[np.where(metrics["base_metric_name"] == metric_name)]
-        else:
-            metrics = metrics[np.where(metrics["metric_name"] == metric_name)]
-        return metrics
-
-    def metric_info(self, metric=None, with_data_link=False, with_slicer_name=True):
-        """
-        Return a dict with the metric info we want to show on the webpages.
-
-        Currently : MetricName / Slicer/ InfoLabel / datafile (for download)
-        Used to build a lot of tables in showMaf.
-        """
-        metric_info = OrderedDict()
-        if metric is None:
-            metric_info["Metric Name"] = ""
-            if with_slicer_name:
-                metric_info["Slicer"] = ""
-            metric_info["Info Label"] = ""
-            if with_data_link:
-                metric_info["Data"] = []
-                metric_info["Data"].append([None, None])
-            return metric_info
-        # Otherwise, do this for real (not a blank).
-        metric_info["Metric Name"] = metric["metric_name"]
-        if with_slicer_name:
-            metric_info["Slicer"] = metric["slicer_name"]
-        metric_info["InfoL abel"] = metric["metric_info_label"]
-        if with_data_link:
-            metric_info["Data"] = []
-            metric_info["Data"].append(metric["metric_datafile"])
-            metric_info["Data"].append(os.path.join(self.out_dir, metric["metric_datafile"]))
-        return metric_info
-
-    def caption_for_metric(self, metric):
-        """
-        Return the caption for a given metric.
-        """
-        caption = metric["display_caption"]
-        if caption == "NULL":
-            return ""
-        else:
-            return caption
-
-    # Methods for plots.
-
-    def plots_for_metric(self, metric):
-        """
-        Return a numpy array of the plots which match a given metric.
-        """
-        return self.plots[np.where(self.plots["metric_id"] == metric["metric_id"])]
 
     def plot_dict(self, plots=None):
         """
@@ -625,15 +357,20 @@ class MafRunResults:
             namelist.append(remaining)
         return namelist
 
-    def all_stat_names(self, metrics):
+    def summary_table(self, group, subgroup):
+        indx = np.where((self.stats["group"].values == group) & (self.stats["subgroup"].values == subgroup))[0]
+
+        # if the observation subset is the same, no need to have that as a column
+
+
+
+
+    def all_stat_names(self, subgroup):
         """
-        Given an array of metrics, return a list containing all the
-        unique 'summary_metric' names in a default ordering.
         """
-        names = np.unique(
-            self.stats["summary_metric"][np.isin(self.stats["metric_id"], metrics["metric_id"])]
-        )
-        names = list(names)
+        indx = np.where(self.stats["subgroup"] == subgroup)
+
+        names = self.stats["summary_name"].values[indx].tolist()
         # Add some default sorting.
         namelist = []
         for nord in self.summary_stat_order:
