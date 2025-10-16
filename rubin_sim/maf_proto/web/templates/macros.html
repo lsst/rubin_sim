@@ -21,21 +21,6 @@
   {% endif %}
 {%- endmacro %}
 
-{# # #}
-{% macro PrintMetricInfo(runId, metric, metricInfo) %}
-{# print metric info, adding link for metric data if available #}
- <b>
- {% for key in metricInfo %}
-    {% if key == 'Data' %}
-       <a href="getData?datatype=npz&runId={{runId}}&metricId={{metric['metric_id']}}">npz</a>
-       <a href="getData?datatype=json&runId={{runId}}&metricId={{metric['metric_id']}}">JSON</a>
-    {% else %}
-       {{ metricInfo[key]|escape }}
-    {% endif %}
- {% endfor %}
- </b>
- </br>
-{%- endmacro %}
 
 {# # #}
   {% macro FormatSummaryStat(statname, statvalue) %}
@@ -56,32 +41,23 @@
 {%- endmacro %}
 
 {# # #}
-{% macro MakeStatTable(metrics, group, subgroup, run) %}
+{% macro MakeStatTable(group, subgroup, run) %}
 {# big macro for stats tables #}
 
-{# Always split tables so that one table per slicer. #}
 {# Table can either be: metric rows x stat cols (if #metrics > #stats) #}
 {#                   OR stat rows x metric cols (if #stats > #metrics) #}
 {#                   OR info_label rows x metric cols (if only single summary stat)  #}
 
 {# Check that there is *some* summary stat info from this group/subgroup to put into a table #}
-  {% set statNames = run.all_stat_names(metrics) %}
+  {% set statNames = run.all_stat_names(subgroup) %}
 
 {% if statNames|length > 0 %}
    {# we have some good stats, let's show them. #}
   {# Put in a link to jump to this part of the page. #}
   <a name="{{group}}_{{subgroup}}"> </a>
 
-  {% set metricInfo = run.metric_info(with_data_link=False, with_slicer_name=False) %}
-  {% set lenMinfo = metricInfo|length %}
 
-  {% set slicers = run.unique_slicer_names(metrics) %}
   {% for slicer in slicers %}
-   {# Set up and make table, one per slicer. #}
-
-   {% set slicermetrics = run.metrics_with_slicer(slicer, metrics) %}
-   {% set slicermetrics = run.metrics_with_stats(slicermetrics) %}
-   {% if slicermetrics|length > 0 %}
 
     {# Count number of metric names. #}
     {% set metricNames = run.unique_metric_names(slicermetrics, baseonly=False) %}
@@ -105,7 +81,7 @@
       <table>
       <tr class="lightestgray">
       <td colspan={{ncols}}>
-         Group: <i>{{group }}</i>; Subgroup: <i>{{ subgroup }}</i>; Slicer: <i>{{ slicer }}</i>
+         Group: <i>{{group }}</i>; Subgroup: <i>{{ subgroup }}</i>
       </td>
       </tr>
 

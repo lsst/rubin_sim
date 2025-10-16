@@ -28,11 +28,14 @@ def empty_info(as_df_row=False, **kwargs):
     result["run_name"] = ""
     result["metric: name"] = ""
     result["metric: col"] = ""
+    result["metric: unit"] = ""
     result["observations_subset"] = ""
     result["slicer: nside"] = 0
     result["summary_name"] = ""
     result["value"] = 0.0
     result["caption"] = ""
+    result["group"] = ""
+    result["subgroup"] = ""
 
     if as_df_row:
         result = pd.Series(result).to_frame().T
