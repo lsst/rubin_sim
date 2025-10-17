@@ -1,6 +1,6 @@
 .. py:currentmodule:: rubin_sim.sim_archive
 
-.. _archive:
+.. _archive-architecture:
 
 ==========================
 The Visit Sequence Archive
