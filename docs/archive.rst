@@ -1,456 +1,226 @@
-.. py:currentmodule:: rubin_sim.sim_archive
+.. py:currentmodule:: rubin_sim.sim_archive.vseqarchive
 
-.. _archive:
+.. _vseqarchivedemo:
 
-==========================
-The Visit Sequence Archive
-==========================
+===========================================================================
+Example of running a simulation and adding it to the visit sequence archive
+===========================================================================
 
 Introduction
-~~~~~~~~~~~~
-
-An assortment of tools used in Rubin Observatory depend on access to tables describing sequences of visits, including both opsim output and the results of queries to the consdb.
-For example:
-
-- The generation of simulations for both the pre-night briefing and other predictions of future scheduler behavior depend on pre-loading the scheduler with visits already completed, for example as queried from the consdb.
-- The pre-night briefing report includes figures generated from opsim simulations of the night on which it is reporting.
-- ``obsloctap`` provides predictions of visits to be scheduled for observing.
-- Progress reports include maf metrics computed from this visit data.
-
-The visit sequence archive is a service for storing and retrieving sequences of visits and ancilliary files associated with sequences of visits (e.g. tables of rewards), tracking metadata describing the sequences of visits, and searching for available sequences of visits based on this metadata.
-
-Prototype
-~~~~~~~~~
-
-An initial prototype (described in :doc:`protoarchive`) used for pre-night simulations and reports saved both data and metadata in an S3 bucket.
-This prototype saved the visits themselves as ``sqlite3`` database files as produced by ``rubin_scheduler``, and metadata in ``yaml`` files for each sequence.
-A python function provided by the prototype configured simulations, executed them (by calling ``rubin_scheduler.scheduler.sim_runner``), wrote metadata to a yaml file, and added of results (including the opsim database output, metadata file, and ancilliary files) to the S3 bucket. and wrapped this in a command line call to run the simulation from with a shell script submitter as a batch job.
-Other functions supported searching metadata in the yaml files for pre-night simulations for a given night and retrieving the corresponding visit tables and other files.
-
-The prototype had two significant problems:
-
-1. Saving metadata for each simulation in its own yaml file meant that searching for simulations according to metadata required retrieving the metadata yaml files for all simulations in the archive from the S3 bucket, which is not scalable. This was partially addressed through creation of an index file in the same S3 bucket which combined metadata from all simulations up to some date, but this was just a stop-gap measure.
-2. The bundling of insertion of data into the archive with driving the execution of the simulation made the archive itself inflexible, making it awkward to modify either how the simulation were driven or data were archived separately.
-
-The visit sequence archive addresses these concerns by:
-
-1. Keeping the metadata in a separate ``postgresql`` database.
-2. Separating the archiving API from the simulation driver: commands that add data to the archive are independent of how the visit data are generated.
-
-Top-level components
-~~~~~~~~~~~~~~~~~~~~
-
-The visit sequence archive has three major components:
-
-1. A data store that contains the table of visits (as an ``hdf5`` file) and ancilliary data files.
-   This is implemented using ``lsst.resources``, and the data store used is set by a base URI relative to which files are stored.
-   In production, on S3 bucket is used, while a directory in the local file system is used for testing and demonstrations.
-2. A ``postgresql`` database with tables of sequences of visits with metadata on provenance, comments, and statistics (but not the table of visits themselves).
-3. A python API and set of shell commands for adding, updating, and querying the archive.
-
-The ``python`` API and shell commands
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-The ``sim_archive`` submodule of ``rubin_sim`` holds the ``python`` API and shell commands that constitude the higher-level interface to the visit sequence archive.
-It consists of four sub-sub-modules:
-
-``rubin_sim.sim_archive.vseqarchive``
-  contains a collection of functions that support interaction with the archive as a whole, combining interaction with the metadata database and data store where it makes sense to do so.
-  For example, ``rubin_sim.sim_archive.vseqarchive.add_file`` combines the addition of a file to the data store and making a record of that file in the metadata database.
-  This submodule also defines the ``vsarchive`` ``click.group`` and most functions within it are decorated with ``click`` decorators that place them in this group.
-  As a result, these python functions each have corresponding shell commands that take the same arguments.
-  (See `the click documentation <https://click.palletsprojects.com/en/stable/>`_ for more details.)
-``rubin_sim.sim_archive.vseqmetadata``
-  defines the ``VisitSequenceArchiveMetadata`` class, an API that manages queries to the database and provides methods that wrap queries for standard operations.
-  In a typical use, ``python`` code will instantiate an instance of ``VisitSequenceArchiveMetadata`` with database connection parameters.
-  Then, it can query of modify the database either by calling methods of this class directly, or passing the instance as an argument to functions provided by ``rubin_sim.sim_archive.vsarchive``.
-  In corresponding shell commands created using ``click``, the ``click.group`` definition automatically instantiates an instance using command line arguments and passes it to the subcommand.
-``rubin_sim.sim_archive.sim_archive``
-  provides a handful of functions that replicate functions provided by the prototype implementation.
-  For example, the ``obsloctap`` service use the prototype ``fetch_obsloctab_visits`` function to retrieve visits from the best pre-night simultation for a night.
-  This submodule therefore implements ``fetch_obsloctap_visits`` here for backwards compatibility.
-``rubin_sim.sim_archive.prenightindex``
-  provides tools that return inventories of pre-night simulations in the archive.
-  Few users have credentials for that allow access to the metadata database, and connections are only possible on a very limited subnet.
-  A handful of use cases require broader access, particularly by services running at the observatory.
-  These use cases require access to the metadata for only a very limited number of predictable queries, in particular getting inventories of pre-night simulations run for specific nights, and statistics on these simulations.
-  The services that need this already need and have access to the data store.
-  So, to provide access to the required invertories, the ``prenightindex`` submodule provides tools for querying the matadata database and placing the results in a predictable key in the data store,
-  and functions that retrieve the needed data by first attempting to query the metadata database, but fall back on reading the pre-generated results from the data store if necessary.
-``rubin_sim.sim_archive.prototype``
-  Contains the functions that implemented the prototype data archive.
-  These are retained (for now) to provide access to data recorded by the prototype.
-
-The data store
-~~~~~~~~~~~~~~
-
-The visit sequerce archive uses the ``lsst.resources`` package to save and retrieve data.
-Each visit sequence is indentified by a `UUID <https://www.rfc-editor.org/rfc/rfc9562>`_, and the archive store data at a URI according to a base URI for the data store, the telescope, the visit sequence UUID, the date of creation, and a file name:
-
-.. parsed-literal::
-    ${ARCHIVE_URI}/${TELESCOPE}/${CREATION_DATE}/${VISITSEQ_UUID}/${FILENAME}
-
-Where the elements are:
-
-ARCHIVE_URI
-  is the base of the archive.
-  The default is set to ``s3://rubin:rubin-scheduler-prenight/opsim/vseq/`` by the `rubin_sim.sim_archive.vseqarchive.ARCHIVE_URL` module-level variable.
-  For testing, it is typically set to a temporary local directory (``file:///some/tmp/dir``) generated by ``python``'s ``tempfile`` standard  library.
-TELESCOPE
-  designates the relevant telescope, either ``simonyi`` or ``auxtel``
-CREATION_DATE
-  is the creation date (in the UTC-12 time zone used by `SITCOMTN-032 <https://sitcomtn-032.lsst.io/>`_ for ``dayobs``) of the visit sequence in ISO-8601 (``YYYY-MM-DD``) format.
-  In the case of completed visits, this is the date on which the query was made.
-  For simulations, it is the date on which the simulation was run.
-  When this date is not available, the ``sim_archive`` tools default to the date on which the visit sequence was added to the archive.
-FILENAME
-  The name of the file in which the data is stored on local disk.
-
-So, a typical URI will look like this:
-
-.. parsed-literal::
-    s3://rubin:rubin-scheduler-prenight/opsim/vseq/simonyi/2025-10-16/47ed5c53-ec5a-45a3-bdfe-6b93a3f67bf9/visits.h5
-
-A URL with a ``FILENAME`` of ``visits.h5``, if present, holds the data for visits themselves in `HDF5 format <https://www.hdfgroup.org/solutions/hdf5/>`_, in the ``observations`` key, corresponding to the ``observations`` table in ``sqlite3`` database produced by the ``rubin_scehduler`` simulations.
-If the visits originated with the database produced by a ``rubin_scheduler`` simulation, other tables in this database will be saved as tables in corresponding keys in ``visits.h5``.
-
-The archive infrastructure does not limit the keys and file names of other data to be added, but other keys and filenames used can include:
-
-``rewards.h5``
-    An HDF5 containing reward data recorded by ``rubin_scheduler`` simulations when called with ``record_rewards=True``.
-``opsim.db``
-    The ``sqlite3`` file generated by ``rubin_scheduler`` simulations, as written by ``rubin_scheduler``.
-    In general, this should be redundant with the ``visits.h5`` file.
-
-The ``postgresql`` metadata database
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Tables of sequences of visits
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-The central tables in metadata database are those that save metadata on the visit sequences themselves, with one row per visit sequence.
-There are three such tables:
-
-``simulations``
-  The ``simulations`` table stores metadata on sequences of simulated visits, for example as simulated by ``rubin_scheduler``.
-  Visit sequences in these tables should include *only* simulated visits.
-  Sequences that are created using a combination of completed and simulated visits, for example a sequence that includes completed visits pre-leaded into the scheduler and then simulated thereafter, should be saved in the ``mexedvisitseq`` table instead.
-``completed``
-  The ``completed`` table stores metadata on sequences of actually completed visits, for example results of queries to ``consdb``.
-``mixed``
-  The ``mixed`` table stores metadata in sequences that combine visits from other sequences of visits.
-  For example metadat on a set of visits that include completed visits up to some date and simulated visits thereafter would be recorded in the ``mixed`` table.
-
-These tables have the following columns in common:
-
-.. list-table:: visitseq
-   :widths: 25 20 20 35
-   :header-rows: 1
-
-   * - Column
-     - Type
-     - Default
-     - Description
-   * - visitseq_uuid
-     - UUID
-     - `gen_random_uuid()`
-     - Primary key – RFC 9562 Universally Unique Identifier.
-   * - visitseq_sha256
-     - BYTEA
-     - *None*
-     - SHA‑256 hash of bytes of the ``numpy.recarray`` representation of the visits table, as calculated in `vseqmetadata.compute_visits_sha256`
-   * - visitseq_label
-     - TEXT
-     - *None*
-     - Human‑readable label for plots and tables
-   * - visitseq_url
-     - TEXT
-     - *None*
-     - URL to the full visit table (NULL if not available)
-   * - telescope
-     - TEXT
-     - *None*
-     - Telescope used (e.g. "simonyi", "auxtel")
-   * - first_day_obs
-     - DATE
-     - *None*
-     - Date (in the UTC-12 hour timezone) of the first night included in the sequence.
-   * - last_day_obs
-     - DATE
-     - *None*
-     - Date (in the UTC-12 hour timezone) of the last night included in the sequence.
-   * - creation_time
-     - TIMESTAMP WITH TIME ZONE
-     - `NOW()`
-     - When the simulation was run or (if not set) when the sequence was added to the archive.
-
-The values in ``first_day_obs`` and ``last_day_obs`` might not correspond to the dates of the first and last visits in the sequence, if the sequence covers dates on which there were no visits.
-For example, if an entry in the ``completed`` table were created by querying ``consdb`` for visits between ``2025-10-01`` and ``2025-10-31``, but there no visits in ``consdb`` on ``2025-10-01``, the value of ``first_day_obs`` would still be ``2025-10-01``.
-In such a case, a user can interpret such a record as a positive assertion that there were no visits on ``2025-10-01`` fitting the query criteria.
-
-The visit tables for each type include extra columns.
-
-``simulations`` has the following additional columns:
-
-.. list-table::
-   :widths: 25 20 55
-   :header-rows: 1
-
-   * - Column
-     - Type
-     - Description
-   * - scheduler_version
-     - TEXT
-     - Version of ``rubin_scheduler`` used
-   * - config_url
-     - TEXT
-     - URL of the configuration script, typically a URL for a specific commit of a specific file in github.
-   * - conda_env_sha256
-     - BYTEA
-     - SHA‑256 hash of the output of ``conda list --json``
-   * - parent_visitseq_uuid
-     - UUID
-     - UUID of the visitseq loaded into the scheduler before running
-   * - sim_runner_kwargs
-     - JSONB
-     - Arguments passed to the simulation runner as a JSON dictionary
-   * - parent_last_day_obs
-     - DATE
-     - Date (in the UTC-12hrs time zone) of the last visit loaded into the scheduler before running
-
-The ``completed`` table has just one column (in addition to those all visit sequence tables have in common):
-
-.. list-table::
-   :widths: 25 20 55
-   :header-rows: 1
-
-   * - Column
-     - Type
-     - Description
-   * - query
-     - TEXT
-     - Query used to select visits from ``consdb``
-
-The ``mixed`` table has additional columns describing how the parent visit sequences were combined:
-
-.. list-table::
-   :widths: 25 20 55
-   :header-rows: 1
-
-   * - Column
-     - Type
-     - Description
-   * - last_early_day_obs
-     - DATE
-     - The last day_obs drawn from the early parent visit sequence
-   * - first_late_day_obs
-     - DATE
-     - The first day_obs drawn from the late parent visit sequence
-   * - early_parent_uuid
-     - UUID
-     - UUID of the early parent visit sequence
-   * - late_parent_uuid
-     - UUID
-     - UUID of the late parent visit sequence
-
-These three tables are implemented in ``postgresql`` as childen of a single parent table, ``visitseq``.
-Therefore, queries of the ``visitseq`` table will include rows from all three of these tables, but only columns they all have in common.
-
-Tags
-^^^^
-
-The ``tags`` table associates tags with visit sequences:
-
-.. list-table::
-   :widths: 25 20 55
-   :header-rows: 1
-
-   * - Column
-     - Type
-     - Description
-   * - visitseq_uuid
-     - UUID
-     - The visit sequence tagged
-   * - tag
-     - TEXT
-     - The tag
-
-Each row corresponds to a tag applied to a visit sequence.
-
-To query the metadata archive and get a table with one row per visit sequence and lists of tags as a column, use the ``json`` tools in ``postgresql``.
-For example:
-
-.. parsed-literal::
-  SET SEARCH_PATH TO vsmd;
-  SELECT s.visitseq_uuid,
-         s.visitseq_label,
-         COALESCE (
-           JSONB_AGG(DISTINCT t.tag) FILTER (WHERE t.tag IS NOT NULL),
-           '[]'::JSONB) AS tags
-         FROM simulations AS s
-         LEFT JOIN tags AS t ON t.visitseq_uuid=s.visitseq_uuid
-         GROUP BY s.visitseq_uuid, visitseq_label;
-
-Reporting tools use tags to identify visit sequences generated to support specific reports.
-For example, the ``prenight`` tag identifies simulations made for the pre-night briefing.
-
-Comments
-^^^^^^^^
-
-The ``comments`` table associates comments with visit sequences:
-
-.. list-table::
-   :widths: 25 25 55
-   :header-rows: 1
-
-   * - Column
-     - Type
-     - Description
-   * - visitseq_uuid
-     - UUID
-     - Identifier of the visit sequence to which the comment belongs
-   * - comment_time
-     - TIMESTAMP WITH TIME ZONE
-     - When the comment was added (defaults to ``NOW()``)
-   * - author
-     - TEXT
-     - User or system that added the comment
-   * - comment
-     - TEXT
-     - The comment text (not nullable)
-
-Files
-^^^^^
-
-The ``files`` table associates URIs of files with file types and visit sequences.
-
-.. list-table::
-   :widths: 25 20 55
-   :header-rows: 1
-
-   * - Column
-     - Type
-     - Description
-   * - visitseq_uuid
-     - UUID
-     - Identifier of the visit sequence that the file belongs to
-   * - file_type
-     - TEXT
-     - The type of file (e.g., ``rewards``)
-   * - file_sha256
-     - BYTEA
-     - SHA‑256 hash of the file contents
-   * - file_url
-     - TEXT
-     - URL where the file can be retrieved; may be ``NULL`` if only the hash is stored
-
-Note that the ``visits`` ``file_type`` is special, and stored in the corresponding visits sequence table itself rather than in this ``files`` table.
-
-``conda`` environments
-^^^^^^^^^^^^^^^^^^^^^^
-
-The ``simulations`` table records the hash of the specifications for the conda environment (as reported by ``conda list --json``) in which the simulations was run.
-By itself, this record allows a user to identify which simulations were made with the same environment, but not what that environment was.
-The ``conda_env`` table records the actual content of the ``conda list --json`` output, in a format that can be use with ``postgresql``'s json tools.
-
-.. list-table::
-   :widths: 25 20 55
-   :header-rows: 1
-
-   * - Column
-     - Type
-     - Description
-   * - conda_env_hash
-     - BYTEA
-     - Primary key – SHA‑256 hash of the output of ``conda list --json``
-   * - conda_env
-     - JSONB
-     - Full JSON representation of the conda environment (``conda list --json`` output)
-
-The ``conda_packages`` view supports querying this table as if each package were stored in its own row of a table.
-For example, to get the ``astropy`` versions for all simulations for which the conda environment is recorded:
-
-.. parsed-literal::
-  SET SEARCH_PATH TO vsmd;
-  SELECT creation_time, visitseq_uuid, package_version AS astropy_version FROM simulations NATURAL JOIN conda_packages WHERE package_name='astropy';
-
-Nightly statistics
-^^^^^^^^^^^^^^^^^^
-
-The nightly_stats table can records basic statistics by night for any value for which each visit has an associated value.
-Examples can be columns in the visits table referenced by ``visitseq_url``, but may also be derived quentities such as those produced by ``maf`` stackers.
-
-.. list-table::
-   :widths: 25 25 55
-   :header-rows: 1
-
-   * - Column
-     - Type
-     - Description
-   * - visitseq_uuid
-     - UUID
-     - Identifier of the visit sequence
-   * - day_obs
-     - DATE
-     - The date (in the UTC-12hrs timezone, following SITCOMTN-032) of the night
-   * - value_name
-     - TEXT
-     - Name of the metric or column being summarized
-   * - accumulated
-     - BOOLEAN
-     - ``TRUE`` if the values include all data through *day_obs*,
-       ``FALSE`` if only the data from *day_obs* itself
-   * - count
-     - INTEGER
-     - Number of values in the distribution
-   * - mean
-     - DOUBLE PRECISION
-     - Arithmetic mean of the values
-   * - std
-     - DOUBLE PRECISION
-     - Standard deviation of the values
-   * - min
-     - DOUBLE PRECISION
-     - Minimum value
-   * - p05
-     - DOUBLE PRECISION
-     - 5% quantile
-   * - q1
-     - DOUBLE PRECISION
-     - First quartile (25% quantile)
-   * - median
-     - DOUBLE PRECISION
-     - Median (50% quantile)
-   * - q3
-     - DOUBLE PRECISION
-     - Third quartile (75% quantile)
-   * - p95
-     - DOUBLE PRECISION
-     - 95% quantile
-   * - max
-     - DOUBLE PRECISION
-     - Maximum value
-
-
-``maf`` results
-^^^^^^^^^^^^^^^
-
-Additional tables exist for possible future support of saving ``maf`` summary metrics in the visit sequence metadata database.
-There are currently no tools to support their use.
-
-These tables are:
-
-``maf_metrics``
-  records parameters used to run metrics.
-  Columns are ``maf_metric_name``, ``rubin_sim_version``, ``maf_constraint``, ``metric_class_name``, ``metric_args``, ``slicer_class_name``, ``slicer_args``
-``maf_summary_metrics``
-  records the values of summary metrics themselves for a given visit sequence.
-  Columns are ``visitseq_uuid``, ``maf_metric_name``, ``day_obs``, ``accumulated``, ``summary_value``.
-  The combination of the ``day_obs`` and ``accumulated`` columns support recording values from either visits only on (if ``accumulated`` is `false`) a specific night (``day_obs``),
-  or all visits (if ``accumulated`` is ``true``) up to and including a specific night (``day_obs``).
-``maf_metric_sets``
-  defines sets of metrics, following the use of such sets in ``rubin_sim.maf.run_comparison``.
-``maf_summary``
-  is a view that makes it easy to get everything for the summary metrics for one metric set applied to runs with specified tags.
-``maf_healpix_stats``
-  supports recording of statistics of metric values when the metrics return healpix arrays.
+============
+
+The precess used in this demonstration closely follows the bash script used to run prenight simuluations.
+It has three major sections:
+
+1. Prepare the environment.
+2. Run the simulation, saving files to local disk as we go.
+3. Add any date we want to keep to the archive.
+
+Preparing the environment
+=========================
+
+In this demonstration, we will start with the lates tagged LSST stack available from ``cvmfs``.
+(It is tested at the USDF, but should work anywhere ``cvmfs`` is installed.)
+Find the version we want, and activate the ``conda`` environment::
+
+    LATEST_TAGGED_STACK=$(
+        find /cvmfs/sw.lsst.eu/almalinux-x86_64/lsst_distrib \
+            -maxdepth 1 \
+            -regex '.*/v[0-9]+\.[0-9]+\.[0-9]+' \
+            -printf "%f\n" |
+        sort -V |
+        tail -1
+    )
+    source /cvmfs/sw.lsst.eu/almalinux-x86_64/lsst_distrib/${LATEST_TAGGED_STACK}/loadLSST-ext.sh
+
+Next we install specific versions of packages in a separate location so we have full control for just this execution::
+
+    SIM_PACKAGE_DIR=$(mktemp -d --suffix=.opsim_packages)
+    export PYTHONPATH=${SIM_PACKAGE_DIR}:${PYTHONPATH}
+    export PATH=${SIM_PACKAGE_DIR}/bin:${PATH}
+
+Set the actual versions we want. These will usually be tags, but can be any github reference (e.g. tags, branches, commits)::
+
+
+    RUBIN_SIM_REFERENCE="tickets/SP-2167"
+    SCHEDVIEW_REFERENCE="v0.19.0"
+    TS_FBS_UTILS_REFERENCE="v0.17.0"
+    SIMS_SV_SURVEY_REFERENCE="tickets/SP-2167"
+    RUBIN_NIGHTS_REFERENCE="v0.4.0"
+    RUBIN_SCHEDULER_REFERENCE="v3.14.1"
+
+Note that the ``obs_version_at_time`` command provided by ``schedview`` will query the EFD for the latest version being used (for some of these packages).
+You can also use the github API and bash tools to get the highest tag for a repository, for example::
+
+    SOMEREPO_LATEST_REFERENCE=$(
+        curl -s https://api.github.com/repos/lsst/somerepo/tags |
+        jq -r '.[].name' |
+        egrep '^v[0-9]+\.[0-9]+\.[0-9]+$' |
+        sort -V |
+        tail -1
+    )
+
+Now actually do the install of all requested versions.
+Pick up the current version of ``lsst-resources`` along the way.::
+
+    pip install --no-deps --target=${SIM_PACKAGE_DIR} \
+        git+https://github.com/lsst/rubin_sim.git@${RUBIN_SIM_REFERENCE} \
+        git+https://github.com/lsst/schedview.git@${SCHEDVIEW_REFERENCE} \
+        git+https://github.com/lsst-ts/ts_fbs_utils.git@${TS_FBS_UTILS_REFERENCE} \
+        git+https://github.com/lsst-sims/sims_sv_survey.git@${SIMS_SV_SURVEY_REFERENCE} \
+        git+https://github.com/lsst-sims/rubin_nights.git@${RUBIN_NIGHTS_REFERENCE} \
+        git+https://github.com/lsst/rubin_scheduler.git@${RUBIN_SCHEDULER_REFERENCE} \
+        lsst-resources
+
+Running the simulation
+======================
+
+Begin by creating a directory in which to work::
+
+    WORK_DIR=${HOME}/devel/my_sample_opsim
+    mkdir ${WORK_DIR}
+    cd $WORK_DIR
+
+Next we need is the scheduler configuration we're going to use.
+We want the archive to track this, so we want it to be at a URL somewhere that it would be useful for the archive to reference.
+Let's use something from github::
+
+    TS_CONFIG_OCS_REFERENCE="v0.28.33"
+    SCHED_CONFIG_URL="https://raw.githubusercontent.com/lsst-ts/ts_config_ocs/refs/tags/${TS_CONFIG_OCS_REFERENCE}/Scheduler/feature_scheduler/maintel/fbs_config_sv_survey.py"
+    SCHED_CONFIG_FNAME=$(basename "$SCHED_CONFIG_URL")
+    curl -sL ${SCHED_CONFIG_URL} -o ${SCHED_CONFIG_FNAME}
+
+    SUPP_CONFIG_URL="https://raw.githubusercontent.com/lsst-ts/ts_config_ocs/refs/tags/${TS_CONFIG_OCS_REFERENCE}/Scheduler/feature_scheduler/maintel/ddf_sv.dat"
+    SUPP_CONFIG_FNAME=$(basename "${SUPP_CONFIG_URL}")
+    curl -sL ${SUPP_CONFIG_URL} -o ${SUPP_CONFIG_FNAME}
+
+We need to set the ``dayobs`` on which the simulation should start::
+
+    DAYOBS="20260101"
+
+Get the pre-existing visits from consdb::
+
+    USDF_ACCESS_TOKEN_PATH=~/.lsst/usdf_access_token
+    fetch_sv_visits ${DAYOBS} completed_visits.db ${USDF_ACCESS_TOKEN_PATH}
+
+Note that you will need a USDF access token.
+
+Create a pickle of the scheduler to run, with completed visits pre-loaded, and write it to a pickle, ``scheduler.p``::
+
+    make_sv_scheduler scheduler.p --opsim completed_visits.db --config-script=${SCHED_CONFIG_FNAME}
+
+Create a model observatory and write it to pickle file, ``observatory.p``::
+
+    make_model_observatory observatory.p
+
+Run the simulation, writing the result to files in the local directory::
+
+    RESULTS_DIR="."
+    OPSIMRUN="prenight_nominal_$(date --iso=s)"
+    run_sv_sim scheduler.p observatory.p "" ${DAYOBS} 1 "${OPSIMRUN}" --keep_rewards --results ${RESULTS_DIR}
+
+There will now be an assortment of output files in the current working directory.
+
+Adding entries to the visit sequence archive
+============================================
+
+Setting up the environment for the archive
+------------------------------------------
+
+The visit sequence archive has two components: a ``postgresql`` dataabase that tracks metadata, and a resource (directory or S3 bucket) in which the visits and other file content can be saved.
+
+Begin by configuring the environment variables that the tools use to find the metadata database::
+
+    export VSARCHIVE_PGDATABASE="opsim_log"
+    export VSARCHIVE_PGHOST="usdf-maf-visit-seq-archive-tx.sdf.slac.stanford.edu"
+    export VSARCHIVE_PGUSER="tester"
+    export VSARCHIVE_PGSCHEMA="test"
+
+Note that we have set ``VSARCHIVE_PGSCHEMA`` to ``test``, so metadata will be saved in a test schema.
+The production schema is ``vsmd``.
+
+Now, create a root for a demonstration resource in which to save the data itself::
+
+    mkdir ${HOME}/devel/test_visitseq_archive
+    export ARCHIVE_URL="file:///sdf/data/rubin/user/${HOME}/devel/test_visitseq_archive"
+
+Make a simple utility shell function
+------------------------------------
+
+For the demonstration, it will be useful to query the metadata databas, but specifying all the connection parameters will be inconvenient.
+One option would be to set the environment variables ``psql`` uses (``PGDATABASE``, ``PGHOST``, ``PGUSER``), but setting these might confuse other utilities that query different postgresql databases (like ``consdb``), so lets make a utility that just sets them for one command::
+
+    vseq-psql() {
+        PGDATABASE=${VSARCHIVE_PGDATABASE} \
+        PGHOST=${VSARCHIVE_PGHOST} \
+        PGUSER=${VSARCHIVE_PGUSER} \
+        psql "$@"
+    }
+
+This results in a now shell command, ``vseq-psql``, that works just like ``psql``, but where the user does not need to specify connection parameters.
+
+Adding an entry for pre-existing visits to the archive
+------------------------------------------------------
+
+We need to add two entries to the visit sequence archive, one for the pre-existing sequences of visits queried from consdb, and the other for the sequence generated by the simulation.
+
+Begin by creating an entry for the pre-existing visits::
+
+    COMPLETED=$(vseqarchive record-visitseq-metadata \
+        completed \
+        completed_visits.db \
+        "Consdb query through 2025-09-21" \
+        --first_day_obs 20250620 \
+        --last_day_obs 20250921)
+
+The ``COMPLETED`` UUID will now contain a reference for the sequence of visits returned from the consdb.
+This command only adds an entry to the metadata, it does not save the visits themselves in the archive.
+We can skip saving the visits themselves, if we are okay with relying on using consdb to recreate it.
+(If you want to be sure, you can save them in the same way as simulated visits are saved below.)
+
+Adding the simulation
+---------------------
+
+Now create an entry for the simulated visits::
+
+    SIM_UUID=$(vseqarchive record-visitseq-metadata \
+        simulations \
+        opsim.db \
+        "Test pre-night simulation 1" \
+        --first_day_obs 20250928 \
+        --last_day_obs 20250928
+        )
+
+This command only stored the bare minimum of metadata, and did not save the visits or any of the files in the archive.
+We can now add additional metadata to the database::
+
+    vseqarchive update-visitseq-metadata ${SIM_UUID} parent_visitseq_uuid ${COMPLETED}
+    vseqarchive update-visitseq-metadata ${SIM_UUID} parent_last_day_obs 2025-09-21
+
+    SCHEDULER_VERSION=$(python -c "import rubin_scheduler; print(rubin_scheduler.__version__)")
+    vseqarchive update-visitseq-metadata ${SIM_UUID} scheduler_version "${SCHEDULER_VERSION}"
+
+and the visits and rewards to the resource::
+
+    vseqarchive archive-file ${SIM_UUID} opsim.db visits --archive-base ${ARCHIVE_URL}
+    vseqarchive archive-file ${SIM_UUID} rewards.h5 rewards --archive-base ${ARCHIVE_URL}
+
+We can alse add tags and comments to the metadata database::
+
+    vseqarchive tag ${SIM_UUID} test prenight nominal
+    vseqarchive comment ${SIM_UUID} "Just a test prenight"
+
+Another option is to save specification for the ``conda`` environment::
+
+    CONDA_HASH=$(vseqarchive record-conda-env)
+    vseqarchive update-visitseq-metadata ${SIM_UUID} conda_env_sha256 ${CONDA_HASH}
+
+Finaly, we can save statistics.
+For the basic statistics tools currently available, the visits are needed in an HDF5 file, but in the above instructions we just have an sqlite3 file.
+We can get the HDF5 by asking for the visits from the archive and giving it a destination filename with an `.h5` extension::
+
+    vseqarchive get-file ${SIM_UUID} visits visits.h5
+
+and then we can compute the statistics on our columns of interest and add them to the metadata database::
+
+    vseqarchive add-nightly-stats ${SIM_UUID} visits.h5 fieldRA fieldDec azimuth altitude
