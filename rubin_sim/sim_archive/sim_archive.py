@@ -62,12 +62,12 @@ def make_sim_data_dir(
 
     Parameters
     ----------
-    observations : `numpy.recarray`
+    observations : `np.recarray`
         The observations data, in the "obs" format as accepted and
-        created by `rubin_scheduler.scheduler.utils.SchemaConverter`.
-    reward_df : `pandas.DataFrame`, optional
+        created by `SchemaConverter`.
+    reward_df : `pd.DataFrame`, optional
         The reward data, by default None.
-    obs_rewards : `pandas.DataFrame`, optional
+    obs_rewards : `pd.DataFrame`, optional
         The observation rewards data, by default None.
     in_files : `dict`, optional
         Additional input files to be included in the archive,
@@ -79,14 +79,14 @@ def make_sim_data_dir(
         default [].
     label : `str`, optional
         A label to be included in the metadata, by default None.
-    data_path : `str` or `pathlib.Path`, optional
+    data_path : `str` or `Path`, optional
         The path to the simulation archive directory, by default None.
     opsim_metadata : `dict`
         Metadata to be included.
 
     Returns
     -------
-    data_dir : `pathlib.Path` or `tempfile.TemporaryDirectory`
+    data_dir : `Path` or `TemporaryDirectory`
         The temporary directory containing the simulation archive.
     """
     if data_path is None:
@@ -248,28 +248,28 @@ def drive_sim(
     observations : `numpy.recarray`
         The observations produced.
     reward_df : `pandas.DataFrame`, optional
-        The table of rewards. Present if `record_rewards`
-        or `scheduler.keep_rewards` is True.
+        The table of rewards. Present if ``record_rewards``
+        or ``scheduler.keep_rewards`` is True.
     obs_rewards : `pandas.Series`, optional
         The mapping of entries in reward_df to observations. Present if
-        `record_rewards` or `scheduler.keep_rewards` is True.
+        ``record_rewards``` or ``scheduler.keep_rewards`` is True.
     resource_path : `ResourcePath`, optional
         The resource path to the archive of the simulation. Present if
-        `archive_uri` was set.
+        ``archive_uri`` was set.
 
     Notes
     -----
     Additional parameters not described above will be passed into
-    `sim_runner`.
+    ``sim_runner``.
 
-    If the `archive_uri` parameter is not supplied, `sim_runner` is run
-    directly, so that `drive_sim` can act as a drop-in replacement of
-    `sim-runner`.
+    If the ``archive_uri`` parameter is not supplied, ``sim_runner`` is run
+    directly, so that ``drive_sim`` can act as a drop-in replacement of
+    ``sim_runner``.
 
     In a jupyter notebook, the notebook can be saved for the notebook
-    paramater using `%notebook $notebook_fname` (where `notebook_fname`
+    paramater using ``%notebook $notebook_fname`` (where ``notebook_fname``
     is variable holding the filename for the notebook) in the cell prior
-    to calling `drive_sim`.
+    to calling ``drive_sim``.
     """
     if "record_rewards" in kwargs:
         if kwargs["record_rewards"] and not scheduler.keep_rewards:

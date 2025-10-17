@@ -234,7 +234,7 @@ def get_visits(
     query : `str`
         A query in `pandas.DataFrame.query` syntax to select visits
         from the returned sequence. Applied before stackers are run.
-    stackers : `Sequence[BaseStacker]`
+    stackers : `Sequence` [`BaseStacker`]
         A sequence of maf stackers to apply.
 
     Returns
