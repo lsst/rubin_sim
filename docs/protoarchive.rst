@@ -1,6 +1,6 @@
 .. py:currentmodule:: rubin_sim.sim_archive
 
-.. _archive:
+.. _protoarchive:
 
 ========================================================
 The Prototype OpSim Archive for ``schedview`` Dashboards
