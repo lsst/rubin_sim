@@ -1,3 +1,5 @@
+__all__ = ["compute_visits_sha256", "VisitSequenceArchiveMetadata"]
+
 import hashlib
 import json
 import logging
