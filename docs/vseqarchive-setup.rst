@@ -1,6 +1,6 @@
 .. py:currentmodule:: rubin_sim.sim_archive
 
-.. vseqarchive_setup:
+.. vseqarchive-setup:
 
 
 Setting up and administering the visit sequence metadata database
