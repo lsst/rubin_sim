@@ -406,10 +406,10 @@ class VisitSequenceArchiveMetadata:
             be download.
         first_day_obs : `date` or `int` or `str`, optional
             The first night of observations, defined according
-            to SMTN-032 (UTC-12hrs).
+            to SITCOMTN-032 (UTC-12hrs).
         last_day_obs : `date` or `int` or `str`, optional
             The last day of observations, defined according
-            to SMTN-032 (UTC-12hrs).
+            to SITCOMTN-032 (UTC-12hrs).
         creation_time : `Time`, optional
             The time the sequence was created, defaults no now.
 
@@ -608,10 +608,10 @@ class VisitSequenceArchiveMetadata:
             be download.
         first_day_obs : `date` or `int` or `str`, optional
             The first night of observations, defined according
-            to SMTN-032 (UTC-12hrs).
+            to SITCOMTN-032 (UTC-12hrs).
         last_day_obs : `date` or `int` or `str`, optional
             The last day of observations, defined according
-            to SMTN-032 (UTC-12hrs).
+            to SITCOMTN-032 (UTC-12hrs).
         creation_time : `Time`, optional
             The time the sequence was created, defaults to now.
         scheduler_version : `str`, optional
@@ -780,10 +780,10 @@ class VisitSequenceArchiveMetadata:
             be download.
         first_day_obs : `date` or `int` or `str`, optional
             The first night of observations, defined according
-            to SMTN-032 (UTC-12hrs).
+            to SITCOMTN-032 (UTC-12hrs).
         last_day_obs : `date` or `int` or `str`, optional
             The last day of observations, defined according
-            to SMTN-032 (UTC-12hrs).
+            to SITCOMTN-032 (UTC-12hrs).
         creation_time : `Time`, optional
             The time the sequence was created, defaults no now.
         query : `str`, optional
@@ -872,10 +872,10 @@ class VisitSequenceArchiveMetadata:
             Defaults to "simonyi".
         first_day_obs : `date` or `int` or `str` or `None`, optional
             The first night of observations, defined according
-            to SMTN-032 (UTC-12hrs).
+            to SITCOMTN-032 (UTC-12hrs).
         last_day_obs : `date` or `int` or `str` or `None`, optional
             The last day of observations, defined according
-            to SMTN-032 (UTC-12hrs).
+            to SITCOMTN-032 (UTC-12hrs).
         creation_time : `Time` or `None`, optional
             The time the sequence was created, defaults to now.
 
