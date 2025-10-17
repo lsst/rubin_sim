@@ -138,7 +138,7 @@ class VisitSequenceArchiveMetadata:
         A dictionary or other mapping defining the connection
         parameters for connecting to the postgresql database
         that holds the sequence metadata. Keys are passed as keyword
-        arguments to `psycopg2.pool.SimpleConnectionPool`.
+        arguments to ``psycopg2.pool.SimpleConnectionPool``.
         If ``None``, the dictionary is built from the environment
         variables ``VSARCHIVE_PGDATABASE``, ``VSARCHIVE_PGHOST``,
         ``VSARCHIVE_PGUSER``, and ``VSARCHIVE_PGPORT`` (if they
@@ -325,9 +325,9 @@ class VisitSequenceArchiveMetadata:
         ----------
         query_template : `str`
             A query template.
-        sql_params : `list[sql.Composable]`
+        sql_params : `list` [`sql.Composable`]
             Elements that will be substituted into the template (e.g. table or
-            schema identifiers) using `psycopg2.sql.SQL.format`.
+            schema identifiers) using ``psycopg2.sql.SQL.format``.
             To make type checkers happy, you may need to explictly declare
             variables passed as ``list[sql.Composable]``.
         query_params : `tuple`
@@ -337,11 +337,6 @@ class VisitSequenceArchiveMetadata:
         -------
         df : `pd.DataFrame`
             The result set of the query, wrapped in a DataFrame.
-
-        Raises
-        ------
-        psycopg2.Error
-            Propagated if the underlying query fails.
 
         Notes
         -----
@@ -425,8 +420,8 @@ class VisitSequenceArchiveMetadata:
         This method is not normally used externally, but may be
         occasionally needed to add non-standard sequences of visits.
         Standard simulations and completed sets of visits should be
-        registered with the ``record_simulation_metadata` and
-        `record_completed_metadata` methods instead.
+        registered with the ``record_simulation_metadata`` and
+        ``record_completed_metadata`` methods instead.
         """
 
         sha256 = compute_visits_sha256(visits)
@@ -1013,7 +1008,7 @@ class VisitSequenceArchiveMetadata:
 
         Parameters
         ----------
-        visitseq_uuid : `UUID`
+        visitseq_uuid: `uuid.UUID`
             The UUID of the visit sequence to comment on.
         comment : `str`
             The comment to attach.

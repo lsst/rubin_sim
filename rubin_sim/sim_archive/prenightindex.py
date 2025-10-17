@@ -194,7 +194,7 @@ def select_latest_prenight_sim(
     ----------
     prenights: `pd.DataFrame`
         The table of prenights from which to select.
-    tags : `tuple[str]`
+    tags : `tuple` [`str`]
         A tuple of tags to filter simulations by.
         Defaults to ``('ideal', 'nominal')``.
     max_simulation_age : `int`
