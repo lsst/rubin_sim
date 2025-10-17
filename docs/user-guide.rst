@@ -21,7 +21,7 @@ User Guide
 
     Self Calibration <selfcal>
 
-    Simulation archive <archive>
+    Visit Sequence Archive <vseqarchive>
 
     Prenight simulations <prenight>
 
