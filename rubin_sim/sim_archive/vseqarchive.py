@@ -17,6 +17,29 @@ from rubin_sim.maf.stackers import BaseStacker
 from .util import compute_conda_env, dayobs_to_date, hdf5_to_opsimdb, opsimdb_to_hdf5
 from .vseqmetadata import VSARCHIVE_PGSCHEMA, VisitSequenceArchiveMetadata
 
+__all__ = [
+    "compute_nightly_stats",
+    "get_visits",
+    "record_visitseq_metadata",
+    "set_visitseq_url",
+    "get_visitseq_url",
+    "update_visitseq_metadata",
+    "is_tagged",
+    "tag",
+    "untag",
+    "comment",
+    "get_comments",
+    "archive_file",
+    "get_file",
+    "add_nightly_stats",
+    "query_nightly_stats",
+    "record_conda_env",
+    "import_proto",
+    "export_proto",
+    "ARCHIVE_URL",
+    "PRENIGHT_INDEX_URL",
+]
+
 ARCHIVE_URL = "s3://rubin:rubin-scheduler-prenight/opsim/vseq/"
 PRENIGHT_INDEX_URL = "s3://rubin:rubin-scheduler-prenight/opsim/prenight_index/"
 SQLITE_EXTINSIONS = {".db", ".sqlite", ".sqlite3", ".db3"}
