@@ -101,8 +101,9 @@ def nvisitsM5Maps(
             lat_lon_deg=degrees,
             use_cache=False,
         )
-    elif slicer.use_cache:
-        # If there is already a slicer set up which *is* using caching
+    else:
+        # If there is already a slicer set up, ensure we have one for dust
+        # which is NOT using cache.
         slicerDust = copy.deepcopy(slicer)
         slicerDust.use_cache = False
 

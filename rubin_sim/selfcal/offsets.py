@@ -2,7 +2,7 @@ __all__ = ["NoOffset", "OffsetSNR", "BaseOffset"]
 
 import numpy as np
 
-from rubin_sim.maf import m52snr
+from ..maf.utils.astrometry_utils import m52snr
 
 # from lsst.sims.selfcal.clouds.Arma import ArmaSf, Clouds
 

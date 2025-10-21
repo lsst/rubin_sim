@@ -10,12 +10,12 @@ __all__ = (
 import numpy as np
 from astropy import constants as const
 from astropy import units as u
-from rubin_scheduler.utils import Site, gnomonic_project_toxy, point_to_line_distance, survey_start_mjd
+from rubin_scheduler.utils import SURVEY_START_MJD, Site, gnomonic_project_toxy, point_to_line_distance
 from shapely.geometry import LineString, Point
 from skyfield.api import EarthSatellite, load, wgs84
 
 MJDOFFSET = 2400000.5
-mjd0 = survey_start_mjd()
+mjd0 = SURVEY_START_MJD
 
 
 def sun_alt_limits():
@@ -298,7 +298,7 @@ class Constellation:
         self.azimuth_rad = np.array(self.azimuth_rad)
         self.illum = np.array(self.illum)
         # Keep track of the ones that are up and illuminated
-        self.visible = np.where((self.altitudes_rad >= self.alt_limit_rad) & (self.illum == True))[0]
+        self.visible = np.where((self.altitudes_rad >= self.alt_limit_rad) & self.illum)[0]
 
     def paths_array(self, mjds):
         """Calculate and return the RA/Dec/Alt and illumination status
@@ -409,7 +409,7 @@ class Constellation:
         # np.where confuses me when used on a 2d array.
         above_illum_indx = np.where(
             ((sat_alt_1 > self.alt_limit_rad) | (sat_alt_2 > self.alt_limit_rad))
-            & ((sat_illum_1 == True) | (sat_illum_2 == True))
+            & (sat_illum_1 | sat_illum_2)
         )
 
         # point_to_line_distance can take arrays,

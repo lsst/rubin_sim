@@ -1,5 +1,5 @@
 import numpy as np
-from rubin_scheduler.utils import gnomonic_project_tosky, gnomonic_project_toxy
+from rubin_scheduler.utils import gnomonic_project_tosky
 
 # Use the main stack to make a rough array.
 # This code needs an update to work without lsst.sims.
@@ -46,13 +46,13 @@ if __name__ == "__main__":
     chip_names = chip_names.reshape(nside, nside)
     wavefront_names = [
         name
-        for name in np.unique(chip_names[np.where(chip_names != None)])
+        for name in np.unique(chip_names[np.where(chip_names is not None)])
         if ("SW" in name) | ("R44" in name) | ("R00" in name) | ("R04" in name) | ("R40" in name)
     ]
     # If it's on a waverfront sensor, that's false
     for name in wavefront_names:
         result[np.where(chip_names == name)] = False
     # No chipname, that's a false
-    result[np.where(chip_names == None)] = False
+    result[np.where(chip_names is None)] = False
 
     np.savez("fov_map.npz", x=x_one, image=result)

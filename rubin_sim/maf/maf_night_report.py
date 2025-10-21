@@ -1,3 +1,10 @@
+from . import db as db
+from . import metricBundles as metricBundles
+from . import metrics as metrics
+from . import plots as plots
+from . import slicers as slicers
+from .batches import col_map_dict
+
 __all__ = ("make_bundle_list", "maf_night_report")
 
 import argparse
@@ -6,13 +13,6 @@ import matplotlib
 
 # Set matplotlib backend (to create plots where DISPLAY is not set).
 matplotlib.use("Agg")
-from . import db as db
-from . import metricBundles as metricBundles
-from . import metrics as metrics
-from . import plots as plots
-from . import slicers as slicers
-from . import utils as utils
-from .batches import col_map_dict
 
 
 def make_bundle_list(
@@ -36,7 +36,7 @@ def make_bundle_list(
     azCol = "azimuth"
     # Construct sql queries for each filter and all filters
     filters = ["u", "g", "r", "i", "z", "y"]
-    sqls = ['night=%i and filter="%s"' % (night, f) for f in filters]
+    sqls = ["night=%i and filter='%s'" % (night, f) for f in filters]
     sqls.append("night=%i" % night)
 
     bundleList = []
@@ -107,12 +107,12 @@ def make_bundle_list(
 
     # Make plots of the solar system pairs that were taken in the night
     metric = metrics.PairMetric(mjd_col=mjdCol)
-    sql = 'night=%i and (filter ="r" or filter="g" or filter="i")' % night
+    sql = "night=%i and (filter ='r' or filter='g' or filter='i')" % night
     bundle = metricBundles.MetricBundle(metric, reg_slicer, sql)
     bundleList.append(bundle)
 
     metric = metrics.PairMetric(mjd_col=mjdCol, metric_name="z Pairs")
-    sql = 'night=%i and filter="z"' % night
+    sql = "night=%i and filter='z'" % night
     bundle = metricBundles.MetricBundle(metric, reg_slicer, sql)
     bundleList.append(bundle)
 
@@ -127,11 +127,11 @@ def make_bundle_list(
     # stats from the note column
     if notes:
         display_dict = {"group": "Basic Stats", "subgroup": "Percent stats"}
-        metric = metrics.StringCountMetric(col="note", percent=True, metric_name="Percents")
+        metric = metrics.StringCountMetric(col="scheduler_note", percent=True, metric_name="Percents")
         bundle = metricBundles.MetricBundle(metric, unislicer, sql, display_dict=display_dict)
         bundleList.append(bundle)
         display_dict["subgroup"] = "Count Stats"
-        metric = metrics.StringCountMetric(col="note", metric_name="Counts")
+        metric = metrics.StringCountMetric(col="scheduler_note", metric_name="Counts")
         bundle = metricBundles.MetricBundle(metric, unislicer, sql, display_dict=display_dict)
         bundleList.append(bundle)
 

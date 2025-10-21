@@ -12,7 +12,7 @@ class TestGather(unittest.TestCase):
         results_db.update_metric(
             "test_metric_name",
             "test_slicer_name",
-            "temp",
+            "temp1",
             "test_sql_constraint",
             "test_metric_info_label",
             "test_metric_datafile",
@@ -24,7 +24,7 @@ class TestGather(unittest.TestCase):
         results_db.update_metric(
             "test_metric_name",
             "test_slicer_name",
-            "temp",
+            "temp2",
             "test_sql_constraint",
             "test_metric_info_label",
             "test_metric_datafile",

@@ -479,7 +479,7 @@ def radar_limited(
     for filtername in "ugrizy":
         displayDict["caption"] = "Surface brightness limit in %s, no extinction applied." % filtername
         displayDict["order"] = filterorders[f]
-        sql = 'filter="%s"' % filtername
+        sql = "filter='%s'" % filtername
         metric = metrics.SurfaceBrightLimitMetric()
         bundle = mb.MetricBundle(
             metric,
@@ -511,7 +511,7 @@ def radar_limited(
     subgroupCount = 1
 
     displayDict["subgroup"] = f"{subgroupCount}: Static Science"
-    ## Static Science
+    # Static Science
     # Calculate the static science metrics - effective survey area,
     # mean/median coadded depth, stdev of
     # coadded depth and the 3x2ptFoM emulator.
@@ -529,7 +529,7 @@ def radar_limited(
     for yr_cut in yrs:
         ptsrc_lim_mag_i_band = mag_cuts[yr_cut]
         sqlconstraint = "night <= %s" % (yr_cut * 365.25 + 0.5)
-        sqlconstraint += ' and note not like "DD%"'
+        sqlconstraint += " and scheduler_note not like 'DD%'"
         info_label = f"{bandpass} band non-DD year {yr_cut}"
         ThreebyTwoSummary_simple = metrics.StaticProbesFoMEmulatorMetricSimple(
             nside=nside, year=yr_cut, metric_name="3x2ptFoM_simple"
@@ -565,7 +565,7 @@ def radar_limited(
         displayDict["order"] += 1
         bundleList.append(bundle)
 
-    ## LSS Science
+    # LSS Science
     # The only metric we have from LSS is the NGals metric -
     # which is similar to the GalaxyCountsExtended
     # metric, but evaluated only on the depth/dust cuts footprint.
@@ -574,14 +574,14 @@ def radar_limited(
     displayDict["order"] = 0
     plotDict = {"n_ticks": 5}
 
-    ## WL metrics
+    # WL metrics
     # Calculates the number of visits per pointing, after removing
     # parts of the footprint due to dust/depth
     # Count visits in gri bands.
     subgroupCount += 1
     displayDict["subgroup"] = f"{subgroupCount}: WL"
     displayDict["order"] = 0
-    sqlconstraint = 'note not like "DD%" and (filter="g" or filter="r" or filter="i")'
+    sqlconstraint = "scheduler_note not like 'DD%' and (filter='g' or filter='r' or filter='i')"
     info_label = "gri band non-DD"
     minExpTime = 15
     m = metrics.WeakLensingNvisits(
@@ -612,8 +612,8 @@ def radar_limited(
     # Do the weak lensing per year
     for year in [10]:
         sqlconstraint = (
-            'note not like "DD%"'
-            + ' and (filter="g" or filter="r" or filter="i") and night < %i' % (year * 365.25)
+            "scheduler_note not like 'DD%'"
+            + " and (filter='g' or filter='r' or filter='i') and night < %i" % (year * 365.25)
         )
         m = metrics.WeakLensingNvisits(
             lsst_filter=bandpass,
@@ -648,8 +648,8 @@ def radar_limited(
         bundleList.append(bundle)
 
         sqlconstraint = (
-            'note not like "DD%"'
-            + ' and (filter="r" or filter="i" or filter="z") and night < %i' % (year * 365.25)
+            "scheduler_note not like 'DD%'"
+            + " and (filter='r' or filter='i' or filter='z') and night < %i" % (year * 365.25)
         )
         m = metrics.WeakLensingNvisits(
             lsst_filter=bandpass,
@@ -741,7 +741,7 @@ def radar_limited(
     bundle = mb.MetricBundle(
         metric,
         snslicer,
-        "note not like '%DD%'",
+        "scheduler_note not like '%DD%'",
         plot_dict=plotDict,
         display_dict=displayDict,
         info_label="DDF excluded",
@@ -925,7 +925,7 @@ def radar_limited(
     bundle = mb.MetricBundle(
         metric,
         kneslicer,
-        "note not like 'DD%'",
+        "scheduler_note not like 'DD%'",
         run_name=runName,
         info_label="single model",
         summary_metrics=lightcurve_summary(),
@@ -947,7 +947,7 @@ def radar_limited(
     bundle = mb.MetricBundle(
         metric_allkne,
         kneslicer_allkne,
-        "note not like 'DD%'",
+        "scheduler_note not like 'DD%'",
         run_name=runName,
         info_label="all models",
         summary_metrics=lightcurve_summary(),

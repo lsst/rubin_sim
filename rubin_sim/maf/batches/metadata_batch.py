@@ -1,5 +1,4 @@
-"""Some basic physical quantity metrics.
-"""
+"""Some basic physical quantity metrics."""
 
 __all__ = (
     "metadataBasics",
@@ -39,7 +38,7 @@ def metadataBasics(
     Calculates this around the sky (HealpixSlicer),
     makes histograms of all visits (OneDSlicer),
     and calculates statistics on all visits (UniSlicer) for the quantity,
-     in all visits and per filter.
+    in all visits and per filter.
 
     Currently have a hack for HA & normairmass.
 
@@ -47,7 +46,7 @@ def metadataBasics(
     ----------
     value : `str`
         The column name for the quantity to evaluate.
-         (column name in the database or created by a stacker).
+        (column name in the database or created by a stacker).
     colmap : `dict` or None, optional
         A dictionary with a mapping of column names.
     runName : `str`, optional

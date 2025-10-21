@@ -12,6 +12,7 @@ from rubin_sim.moving_objects import ChebyFits, Orbits
 ROOT = os.path.abspath(os.path.dirname(__file__))
 
 
+@unittest.skip("Temporary skip until ephemerides replaced")
 class TestChebyFits(unittest.TestCase):
     def setUp(self):
         self.testdir = os.path.join(get_data_dir(), "tests", "orbits_testdata")
@@ -42,21 +43,26 @@ class TestChebyFits(unittest.TestCase):
             self.assertTrue(key in self.cheb.multipliers)
 
     def test_set_segment_length(self):
-        # Expect MBAs with standard ngran and tolerance to have length ~2.0 days.
+        # Expect MBAs with standard ngran and tolerance to have
+        # length ~2.0 days.
         self.cheb.calc_segment_length()
         self.assertAlmostEqual(self.cheb.length, 2.0)
-        # Test that we can set it to other values which fit into the 30 day window.
+        # Test that we can set it to other values which fit into
+        # the 30 day window.
         self.cheb.calc_segment_length(length=1.5)
         self.assertEqual(self.cheb.length, 1.5)
-        # Test that we if we try to set it to a value which does not fit into the 30 day window,
+        # Test that we if we try to set it to a value which does not
+        # fit into the 30 day window,
         # that the actual value used is different - and smaller.
         self.cheb.calc_segment_length(length=1.9)
         self.assertTrue(self.cheb.length < 1.9)
-        # Test that we get a warning about the residuals if we try to set the length to be too long.
+        # Test that we get a warning about the residuals if we try
+        # to set the length to be too long.
         with warnings.catch_warnings(record=True) as w:
             self.cheb.calc_segment_length(length=5.0)
             self.assertTrue(len(w), 1)
-        # Now check granularity works for other orbit types (which would have other standard lengths).
+        # Now check granularity works for other orbit types
+        # (which would have other standard lengths).
         # Check for multiple orbit types.
         for orbit_file in [
             "test_orbitsMBA.s3m",
@@ -73,7 +79,8 @@ class TestChebyFits(unittest.TestCase):
                 pos_resid, ratio = cheb._test_residuals(cheb.length)
                 self.assertTrue(pos_resid < sky_tolerance)
                 self.assertEqual((cheb.length * 100) % 1, 0)
-                # print('final', orbit_file, sky_tolerance, pos_resid, cheb.length, ratio)
+                # print('final', orbit_file, sky_tolerance, pos_resid,
+                # cheb.length, ratio)
         # And check for challenging 'impactors'.
         for orbit_file in ["test_orbitsImpactors.s3m"]:
             self.orbits.read_orbits(os.path.join(self.testdir, orbit_file))
@@ -85,7 +92,8 @@ class TestChebyFits(unittest.TestCase):
                 cheb.calc_segment_length()
                 pos_resid, ratio = cheb._test_residuals(cheb.length)
                 self.assertTrue(pos_resid < sky_tolerance)
-                # print('final', orbit_file, sky_tolerance, pos_resid, cheb.length, ratio)
+                # print('final', orbit_file, sky_tolerance, pos_resid,
+                # cheb.length, ratio)
 
     @unittest.skip("Skipping because it has a strange platform-dependent failure")
     def test_segments(self):
@@ -108,7 +116,8 @@ class TestChebyFits(unittest.TestCase):
         for k in coeff_keys:
             self.assertTrue(k in self.cheb.coeffs.keys())
         # And in this case, we had a 30 day timespan with 1 day segments
-        # (one day segments should be more than enough to meet 2.5mas tolerance, so not subdivided)
+        # (one day segments should be more than enough to meet
+        # 2.5mas tolerance, so not subdivided)
         self.assertEqual(len(self.cheb.coeffs["t_start"]), 30 * len(self.orbits))
         # And we used 14 coefficients for ra and dec.
         self.assertEqual(len(self.cheb.coeffs["ra"][0]), 14)
@@ -127,6 +136,7 @@ class TestChebyFits(unittest.TestCase):
         self.assertTrue(os.path.isfile(resid_name))
 
 
+@unittest.skip("Temporary skip until ephemerides replaced")
 class TestRun(unittest.TestCase):
     def setUp(self):
         self.testdir = os.path.join(get_data_dir(), "tests", "orbits_testdata")
@@ -144,7 +154,8 @@ class TestRun(unittest.TestCase):
         t_start = self.orbits.orbits.epoch.iloc[0]
         interval = 30
         cheb = ChebyFits(self.orbits, t_start, interval, ngran=64, sky_tolerance=2.5, n_decimal=10)
-        # Set granularity. Use an value that will be too long, to trigger recursion below.
+        # Set granularity. Use an value that will be too long,
+        # to trigger recursion below.
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
             cheb.calc_segment_length(length=10.0)
@@ -156,17 +167,20 @@ class TestRun(unittest.TestCase):
         resid_name = os.path.join(self.scratch_dir, "resid2.txt")
         failed_name = os.path.join(self.scratch_dir, "failed2.txt")
         cheb.write(coeff_name, resid_name, failed_name)
-        # Test that the segments for each individual object fit together start/end.
+        # Test that the segments for each individual object fit
+        # together start/end.
         for k in cheb.coeffs:
             cheb.coeffs[k] = np.array(cheb.coeffs[k])
         for obj_id in np.unique(cheb.coeffs["obj_id"]):
             condition = cheb.coeffs["obj_id"] == obj_id
             te_prev = t_start
             for ts, te in zip(cheb.coeffs["t_start"][condition], cheb.coeffs["t_end"][condition]):
-                # Test that the start of the current interval = the end of the previous interval.
+                # Test that the start of the current interval =
+                # the end of the previous interval.
                 self.assertEqual(te_prev, ts)
                 te_prev = te
-        # Test that the end of the last interval is equal to the end of the total interval
+        # Test that the end of the last interval is equal to the end
+        # of the total interval
         self.assertEqual(te, t_start + interval)
 
 

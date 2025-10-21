@@ -73,7 +73,7 @@ class SNCadenceMetric(metrics.BaseMetric):
     def run(self, data_slice, slice_point=None):
         # Cut down to only include filters in correct wave range.
 
-        good_filters = np.in1d(data_slice["filter"], self.filter_names)
+        good_filters = np.isin(data_slice["filter"], self.filter_names)
         data_slice = data_slice[good_filters]
         if data_slice.size == 0:
             return None

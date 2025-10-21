@@ -44,16 +44,16 @@ class TestSummaryPlots(unittest.TestCase):
 
         styles = ["-" for i in range(self.num_metrics)]
 
-        self.metric_set = pd.DataFrame(
+        self.metric_subset = pd.DataFrame(
             {"mag": False, "invert": False, "metric": self.metrics, "style": styles}
         ).set_index("metric", drop=False)
-        self.metric_set.loc[self.mag_metrics, "mag"] = True
-        self.metric_set.loc[self.inverted_metrics, "invert"] = True
-        self.metric_set.loc["metric3", "style"] = "b--"
+        self.metric_subset.loc[self.mag_metrics, "mag"] = True
+        self.metric_subset.loc[self.inverted_metrics, "invert"] = True
+        self.metric_subset.loc["metric3", "style"] = "b--"
 
     def test_normalize_metric_summaries(self):
         # Test standard normalization with one run
-        norm_values = maf.normalize_metric_summaries(self.baseline, self.metric_values, self.metric_set)
+        norm_values = maf.normalize_metric_summaries(self.baseline, self.metric_values, self.metric_subset)
 
         ref_norm_values = _run_infos_norm_df(
             self.metric_values,
@@ -64,18 +64,18 @@ class TestSummaryPlots(unittest.TestCase):
         np.testing.assert_allclose(norm_values.values, ref_norm_values.values)
 
         # test normalizing against one run, as a list
-        norm_values = maf.normalize_metric_summaries([self.baseline], self.metric_values, self.metric_set)
+        norm_values = maf.normalize_metric_summaries([self.baseline], self.metric_values, self.metric_subset)
         np.testing.assert_allclose(norm_values.values, ref_norm_values.values)
 
         # test similar but pretend that self.baseline is two runs
         norm_values = maf.normalize_metric_summaries(
-            [self.baseline, self.baseline], self.metric_values, self.metric_set
+            [self.baseline, self.baseline], self.metric_values, self.metric_subset
         )
         np.testing.assert_allclose(norm_values.values, ref_norm_values.values)
 
         # test similar but different runs
         norm_values = maf.normalize_metric_summaries(
-            [self.runs[0], self.runs[1]], self.metric_values, self.metric_set
+            [self.runs[0], self.runs[1]], self.metric_values, self.metric_subset
         )
 
     def test_plot_run_metric(self):
@@ -84,7 +84,7 @@ class TestSummaryPlots(unittest.TestCase):
         fig, ax = maf.plot_run_metric(
             self.metric_values,
             baseline_run=self.baseline,
-            metric_set=self.metric_set,
+            metric_subset=self.metric_subset,
         )
 
         fig, ax = maf.plot_run_metric(
@@ -120,7 +120,7 @@ class TestSummaryPlots(unittest.TestCase):
         fig, ax = maf.plot_run_metric_mesh(
             self.metric_values,
             baseline_run=self.baseline,
-            metric_set=self.metric_set,
+            metric_subset=self.metric_subset,
         )
 
         fig, ax = maf.plot_run_metric_mesh(

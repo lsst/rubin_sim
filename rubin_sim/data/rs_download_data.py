@@ -8,7 +8,7 @@ from rubin_scheduler.data import DEFAULT_DATA_URL, download_rubin_data
 from rubin_scheduler.data import get_data_dir as gdd
 
 
-def get_data_dir():
+def get_data_dir() -> str:
     """Wraps rubin_scheduler.data.get_data_dir().
     Provided here for backwards compatibility.
 
@@ -20,7 +20,7 @@ def get_data_dir():
     return gdd()
 
 
-def get_baseline():
+def get_baseline() -> str:
     """Get the path to the baseline cadence simulation sqlite file.
 
     Returns
@@ -34,7 +34,7 @@ def get_baseline():
     return file
 
 
-def data_dict():
+def data_dict() -> dict:
     """
     Dictionary containing expected version information for rubin_sim_data
     data sets, for this version of rubin_sim.
@@ -44,28 +44,28 @@ def data_dict():
     file_dict : `dict`
         Data bucket filenames dictionary with keys:
         ``"name"``
-            Data bucket name (`str`).
+        Data bucket name (`str`).
         ``"version"``
-            Versioned file name (`str`).
+        Versioned file name (`str`).
     """
     # Note for developers:
     # to create tar files and follow any sym links, run: e.g.
     #  ``tar -chvzf maf_may_2021.tgz maf``
     file_dict = {
-        "maf": "maf_2022_08_26.tgz",
+        "maf": "maf_2024_06_13.tgz",
         "maps": "maps_2022_2_28.tgz",
-        "movingObjects": "movingObjects_oct_2021.tgz",
+        "movingObjects": "movingObjects_2025_07_15.tgz",
         "orbits": "orbits_2022_3_1.tgz",
         "orbits_precompute": "orbits_precompute_2023_05_23.tgz",
-        "sim_baseline": "sim_baseline_2023_09_22.tgz",
+        "sim_baseline": "sim_baseline_2025_09_02.tgz",
         "skybrightness": "skybrightness_2023_09_11.tgz",
-        "throughputs": "throughputs_2023_09_22.tgz",
-        "tests": "tests_2022_10_18.tgz",
+        "throughputs": "throughputs_2025_08_25.tgz",
+        "tests": "tests_2024_04_23.tgz",
     }
     return file_dict
 
 
-def rs_download_testing():
+def rs_download_testing() -> None:
     """Convenience function for github actions, to download only a subset
     of data.
 
@@ -89,7 +89,7 @@ def rs_download_testing():
     )
 
 
-def rs_download_data():
+def rs_download_data() -> None:
     """Utility to download necessary data for rubin_sim.
 
     Wrapper around rubin_scheduler.scheduler_download_data,

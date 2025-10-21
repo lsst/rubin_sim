@@ -52,7 +52,7 @@ class TimeIntervalSlicer(BaseSlicer):
         self,
         interval_seconds=90,
         mjd_column_name="observationStartMJD",
-        badval=np.NaN,
+        badval=np.nan,
         verbose=False,
     ):
         super().__init__(verbose=verbose, badval=badval)
@@ -147,8 +147,8 @@ class BlockIntervalSlicer(TimeIntervalSlicer):
         self,
         mjd_column_name="observationStartMJD",
         duration_column_name="visitTime",
-        note_column_name="note",
-        badval=np.NaN,
+        note_column_name="scheduler_note",
+        badval=np.nan,
         verbose=False,
     ):
         super().__init__(verbose=verbose, badval=badval)
@@ -171,7 +171,7 @@ class BlockIntervalSlicer(TimeIntervalSlicer):
             columns={
                 self.mjd_column_name: "mjd",
                 self.duration_column_name: "duration",
-                self.note_column_name: "note",
+                self.note_column_name: "scheduler_note",
             },
             inplace=True,
         )
@@ -179,10 +179,10 @@ class BlockIntervalSlicer(TimeIntervalSlicer):
         visits.sort_values("mjd", inplace=True)
         visits["end_mjd"] = visits.mjd + visits.duration / (60 * 60 * 24.0)
 
-        same_note = visits.note == visits.note.shift(-1)
+        same_note = visits.scheduler_note == visits.scheduler_note.shift(-1)
         adjacent_times = visits.end_mjd + self.gap_tolerance / 24.0 > visits.mjd.shift(-1)
         visits["sid"] = np.logical_not(np.logical_and(same_note, adjacent_times)).cumsum().shift()
-        visits["sid"].fillna(0, inplace=True)
+        visits.fillna({"sid": 0}, inplace=True)
         visits["sid"] = visits["sid"].astype(int)
 
         blocks = visits.groupby("sid").agg(
@@ -242,7 +242,7 @@ class VisitIntervalSlicer(TimeIntervalSlicer):
         mjd_column_name="observationStartMJD",
         duration_column_name="visitTime",
         extra_column_names=tuple(),
-        badval=np.NaN,
+        badval=np.nan,
         verbose=False,
     ):
         super().__init__(verbose=verbose, badval=badval)

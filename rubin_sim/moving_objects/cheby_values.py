@@ -68,7 +68,7 @@ class ChebyValues:
         if not os.path.isfile(cheby_fits_file):
             raise IOError("Could not find cheby_fits_file at %s" % (cheby_fits_file))
         # Read the coefficients file.
-        coeffs = pd.read_table(cheby_fits_file, delim_whitespace=True)
+        coeffs = pd.read_table(cheby_fits_file, sep=r"\s+")
         # The header line provides information on the number of
         # coefficients for each parameter.
         datacols = coeffs.columns.values
@@ -189,7 +189,7 @@ class ChebyValues:
         else:
             if isinstance(obj_ids, str) or isinstance(obj_ids, int):
                 obj_ids = np.array([obj_ids])
-            obj_match = np.in1d(self.coeffs["obj_id"], obj_ids)
+            obj_match = np.isin(self.coeffs["obj_id"], obj_ids)
             ephemerides["obj_id"] = obj_ids
         # Now find ephemeris values.
         ephemerides["time"] = np.zeros((len(ephemerides["obj_id"]), ntimes), float) + times

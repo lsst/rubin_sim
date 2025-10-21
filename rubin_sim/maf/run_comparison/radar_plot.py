@@ -21,28 +21,32 @@ def normalize_for_radar(
     reverse_cols=None,
     mag_cols=[],
 ):
-    """
-    Normalize values in a dataframe to a given run, return output in a dataframe.
+    """Normalize values in a dataframe to a given run,
+    return output in a dataframe.
 
-    This provides a similar functionality as the normalize_metric_summaries method, and returns a similar
-    dataframe. The options for specifying which columns to invert, reverse, or identify as 'magnitudes'
+    This provides a similar functionality as the
+    normalize_metric_summaries method, and returns a similar
+    dataframe. The options for specifying which columns to invert,
+    reverse, or identify as 'magnitudes'
     are slightly different, instead of using a 'metric_set'.
 
     Parameters
     ----------
-    summary : pandas.DataFrame
-        The data frame containing the metric summary stats to normalize (such as from `get_metric_summaries`).
-        Note that this should contain only the runs and metrics to be normalized -- e.g.
+    summary : `pandas.DataFrame`
+        The data frame containing the metric summary stats to normalize
+        (such as from `get_metric_summaries`).
+        Note that this should contain only the runs and metrics to be
+        normalized -- e.g.
         `summary.loc[[list of runs], [list of metrics]]`
         summary should be indexed by the run name.
-    norm_run : str
+    norm_run : `str`
         The name of the run to use to define the normalization.
-    invert_cols : list of str
+    invert_cols : `list` [`str`]
         A list of column names that should be inverted (e.g., columns that
         are uncertainties and are better with a smaller value)
-    reverse_cols : list of str
+    reverse_cols : `list` [`str]
         Columns to reverse (e.g., magnitudes)
-    mag_cols : list of str
+    mag_cols : `list` [`str`]
         Columns that are in magnitudes
     """
     out_df = summary.copy()
@@ -70,7 +74,7 @@ def _radar_factory(num_vars, frame="circle"):
 
     Parameters
     ----------
-    num_vars : int
+    num_vars : `int`
         Number of variables for radar chart.
     frame : {'circle' | 'polygon'}
         Shape of frame surrounding axes.
@@ -78,7 +82,8 @@ def _radar_factory(num_vars, frame="circle"):
     """
     # calculate evenly-spaced axis angles
     theta = np.linspace(0, 2 * np.pi, num_vars, endpoint=False)
-    # rotate theta such that the first axis is at the top, then make sure we don't go past 360
+    # rotate theta such that the first axis is at the top,
+    # then make sure we don't go past 360
     theta += np.pi / 2
     theta = theta % (2.0 * np.pi)
 
@@ -168,9 +173,7 @@ def radar(
     bbox_to_anchor=(1.6, 0.5),
     legend_font_size=None,
 ):
-    """
-    make a radar plot!
-    """
+    """make a radar plot!"""
     theta = _radar_factory(np.size(df.columns), frame="polygon")
     fig, axes = plt.subplots(figsize=figsize, subplot_kw=dict(projection="radar"))
     axes.set_rgrids(rgrids, fontsize="x-large")

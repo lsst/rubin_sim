@@ -39,7 +39,7 @@ class SNNSNMetric(BaseMetric):
     seeing_col : `str`, opt
         seeing column name (default: seeingFwhmEff)
     note_col : `str`, opt
-        note column name (default: note)
+        note column name (default: scheduler_note)
     season : `list`, opt
         list of seasons to process (float)(default: -1 = all seasons)
     coadd : `bool`, opt
@@ -86,7 +86,7 @@ class SNNSNMetric(BaseMetric):
         nexp_col="numExposures",
         vistime_col="visitTime",
         seeing_col="seeingFwhmEff",
-        note_col="note",
+        note_col="scheduler_note",
         season=[-1],
         coadd_night=True,
         zmin=0.1,
@@ -254,7 +254,7 @@ class SNNSNMetric(BaseMetric):
             data_slice[self.m5_col] = new_m5
 
         # select observations filter
-        good_filters = np.in1d(data_slice[self.filter_col], list(self.bands))
+        good_filters = np.isin(data_slice[self.filter_col], list(self.bands))
         data_slice = data_slice[good_filters]
 
         # coaddition per night and per band (if requested by the user)
@@ -558,7 +558,7 @@ class SNNSNMetric(BaseMetric):
         `pd.DataFrame` with season_length, z, T0_min and T0_max cols
 
         """
-        ## IS THIS CALLED FROM ANYWHERE?
+        # IS THIS CALLED FROM ANYWHERE?
         daymin = grp["MJD_min"].values
         daymax = grp["MJD_max"].values
         dur_z = pd.DataFrame(self.zrange, columns=["z"])

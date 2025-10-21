@@ -153,7 +153,7 @@ class TestSlicers(unittest.TestCase):
         data = np.zeros(slicer.nslice, dtype="object")
         for i, ack in enumerate(data):
             n_el = rng.rand(1) * 4  # up to 4 elements
-            data[i] = np.arange(n_el)
+            data[i] = np.arange(n_el[0])
         with TemporaryFile() as filename:
             slicer.write_data(filename, data)
             _ = filename.seek(0)
@@ -166,10 +166,10 @@ class TestSlicers(unittest.TestCase):
     def test_n_d_slicer(self):
         rng = np.random.RandomState(621)
         colnames = ["test1", "test2", "test3"]
-        data = []
+        n = 1000
+        dv = np.zeros(n, dtype=list(zip(colnames, [float] * 3)))
         for c in colnames:
-            data.append(rng.rand(1000))
-        dv = np.core.records.fromarrays(data, names=colnames)
+            dv[c] = rng.rand(n)
         slicer = slicers.NDSlicer(colnames, bins_list=10)
         slicer.setup_slicer(dv)
         with TemporaryFile() as filename:

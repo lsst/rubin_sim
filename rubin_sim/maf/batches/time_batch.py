@@ -1,5 +1,4 @@
-"""Sets of metrics to look at time between visits/pairs, etc.
-"""
+"""Sets of metrics to look at time between visits/pairs, etc."""
 
 __all__ = ("intraNight", "interNight", "timeGaps", "seasons")
 
@@ -74,9 +73,9 @@ def intraNight(
         "order": 0,
     }
     if extraSql is not None and len(extraSql) > 0:
-        sql = '(%s) and (filter="g" or filter="r" or filter="i")' % extraSql
+        sql = "(%s) and (filter='g' or filter='r' or filter='i')" % extraSql
     else:
-        sql = 'filter="g" or filter="r" or filter="i"'
+        sql = "filter='g' or filter='r' or filter='i'"
     md = "gri"
     if info_label is not None:
         md += " " + info_label
@@ -215,11 +214,11 @@ def intraNight(
         bundleList.append(bundle)
     # subsets of adjacent filters
     filtersubsets = {
-        "ug": '(filter = "u" or filter = "g")',
-        "gr": '(filter = "g" or filter = "r")',
-        "ri": '(filter = "r" or filter = "i")',
-        "iz": '(filter = "i" or filter = "z")',
-        "zy": '(filter = "z" or filter = "y")',
+        "ug": "(filter = 'u' or filter = 'g')",
+        "gr": "(filter = 'g' or filter = 'r')",
+        "ri": "(filter = 'r' or filter = 'i')",
+        "iz": "(filter = 'i' or filter = 'z')",
+        "zy": "(filter = 'z' or filter = 'y')",
     }
     sqls = [extraSql]
     if extraSql is not None and len(extraSql) > 0:

@@ -1,7 +1,9 @@
-"""A slicer that uses a Healpix grid to calculate metric values (at the center of each healpixel)."""
+"""A slicer that uses a Healpix grid to calculate metric values
+(at the center of each healpixel)."""
 
 # Requires healpy
-# See more documentation on healpy here http://healpy.readthedocs.org/en/latest/tutorial.html
+# See more documentation on healpy here
+# http://healpy.readthedocs.org/en/latest/tutorial.html
 # Also requires numpy (for histogram and power spectrum plotting)
 
 __all__ = ("HealpixSlicer",)
@@ -20,62 +22,69 @@ class HealpixSlicer(BaseSpatialSlicer):
     """
     A spatial slicer that evaluates pointings on a healpix-based grid.
 
-    Note that a healpix slicer is intended to evaluate the sky on a spatial grid.
-    Usually this grid will be something like RA as the lon_col and Dec as the lat_col.
-    However, it could also be altitude and azimuth, in which case altitude as lat_col,
-    and azimuth as lon_col.
+    Note that a healpix slicer is intended to evaluate the sky
+    on a spatial grid. Usually this grid will be something like RA as
+    the lon_col and Dec as the lat_col.
+    However, it could also be altitude and azimuth,
+    in which case altitude as lat_col, and azimuth as lon_col.
     An additional alternative is to use HA/Dec, with lon_col=HA, lat_col=Dec.
 
-    When plotting with RA/Dec, the default HealpixSkyMap can be used, corresponding to
+    When plotting with RA/Dec, the default HealpixSkyMap can be used,
+    corresponding to
     {'rot': (0, 0, 0), 'flip': 'astro'}.
-    When plotting with alt/az, either the LambertSkyMap can be used (if Basemap is installed)
+    When plotting with alt/az, either the LambertSkyMap can be used
+    (if Basemap is installed)
     or the HealpixSkyMap can be used with a modified plot_dict,
     {'rot': (90, 90, 90), 'flip': 'geo'}.
-    When plotting with HA/Dec, only the HealpixSkyMap can be used, with a modified plot_dict of
+    When plotting with HA/Dec, only the HealpixSkyMap can be used,
+    with a modified plot_dict of
     {'rot': (0, -30, 0), 'flip': 'geo'}.
 
     Parameters
     ----------
     nside : `int`, optional
         The nside parameter of the healpix grid. Must be a power of 2.
-        Default 128.
     lon_col : `str`, optional
-        Name of the longitude (RA equivalent) column to use from the input data.
-        Default fieldRA
+        Name of the longitude (RA equivalent) column to use from the
+        input data.
     lat_col : `str`, optional
-        Name of the latitude (Dec equivalent) column to use from the input data.
-        Default fieldDec
+        Name of the latitude (Dec equivalent) column to use from
+        the input data.
     lat_lon_deg : `bool`, optional
-        Flag indicating whether the lat and lon values in the input data are in
-        degrees (True) or radians (False).
-        Default True.
+        Flag indicating whether the lat and lon values in the input data are
+        in degrees (True) or radians (False).
     verbose : `bool`, optional
-        Flag to indicate whether or not to write additional information to stdout during runtime.
-        Default True.
-    badval : `float`, optional
-        Bad value flag, relevant for plotting. Default the np.nan value (in order to properly flag
-        bad data points for plotting with the healpix plotting routines). This should not be changed.
+        Flag to indicate whether or not to write additional information to
+        stdout during runtime.
     use_cache : `bool`, optional
-        Flag allowing the user to indicate whether or not to cache (and reuse) metric results
-        calculated with the same set of simulated data pointings.
-        This can be safely set to True for slicers not using maps and will result in increased speed.
-        When calculating metric results using maps, the metadata at each individual ra/dec point may
-        influence the metric results and so use_cache should be set to False.
-        Default True.
+        Flag allowing the user to indicate whether or not to cache
+        (and reuse) metric results calculated with the same set of
+        simulated data pointings.
+        This can be safely set to True for slicers not using maps and
+        will result in increased speed.
+        When calculating metric results using maps, the map data at each
+        individual ra/dec point may influence the metric results and so
+        use_cache should be set to False.
     leafsize : `int`, optional
         Leafsize value for kdtree. Default 100.
     radius : `float`, optional
-        Radius for matching in the kdtree. Equivalent to the radius of the FOV. Degrees.
-        Default 2.45.
+        Radius for matching in the kdtree.
+        Equivalent to the radius of the FOV. Degrees.
     use_camera : `bool`, optional
         Flag to indicate whether to use the LSST camera footprint or not.
-        Default True.
+    camera_radius : `float`, optional
+        max_radius for the LsstCameraFootprint (degrees).
     camera_footprint_file : `str`, optional
-        Name of the camera footprint map to use. Can be None, which will use the default.
+        Name of the camera footprint map to use.
+        Can be None, which will use the default footprint map.
     rot_sky_pos_col_name : `str`, optional
-        Name of the rotSkyPos column in the input  data. Only used if use_camera is True.
-        Describes the orientation of the camera orientation compared to the sky.
-        Default rotSkyPos.
+        Name of the rotSkyPos column in the input  data.
+        Only used if use_camera is True.
+        Describes the orientation of the camera orientation
+        compared to the sky.
+    badval: `float`, optional
+        The value to place use in place of bad data values.
+        Use np.nan unless specifically needing other values.
     """
 
     def __init__(
@@ -85,15 +94,15 @@ class HealpixSlicer(BaseSpatialSlicer):
         lat_col="fieldDec",
         lat_lon_deg=True,
         verbose=True,
-        badval=np.nan,
         use_cache=True,
         leafsize=100,
         radius=2.45,
         use_camera=True,
+        camera_radius=1.94,
         camera_footprint_file=None,
         rot_sky_pos_col_name="rotSkyPos",
+        badval=np.nan,
     ):
-        """Instantiate and set up healpix slicer object."""
         super().__init__(
             verbose=verbose,
             lon_col=lon_col,
@@ -102,6 +111,7 @@ class HealpixSlicer(BaseSpatialSlicer):
             radius=radius,
             leafsize=leafsize,
             use_camera=use_camera,
+            camera_radius=camera_radius,
             camera_footprint_file=camera_footprint_file,
             rot_sky_pos_col_name=rot_sky_pos_col_name,
             lat_lon_deg=lat_lon_deg,
@@ -131,7 +141,8 @@ class HealpixSlicer(BaseSpatialSlicer):
         }
         self.use_cache = use_cache
         if use_cache:
-            # use_cache set the size of the cache for the memoize function in sliceMetric.
+            # use_cache set the size of the cache for the memoize function in
+            # sliceMetric.
             bin_res = hp.nside2resol(nside)  # Pixel size in radians
             # Set the cache size to be ~2x the circumference
             self.cache_size = int(np.round(4.0 * np.pi / bin_res))
@@ -166,7 +177,9 @@ class HealpixSlicer(BaseSpatialSlicer):
         return result
 
     def _pix2radec(self, islice):
-        """Given the pixel number / sliceID, return the RA/Dec of the pointing, in radians."""
+        """Given the pixel number / sliceID, return the RA/Dec of the
+        pointing, in radians.
+        """
         # Calculate RA/Dec in RADIANS of pixel in this healpix slicer.
         # Note that ipix could be an array,
         # in which case RA/Dec values will be an array also.

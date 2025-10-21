@@ -1,3 +1,7 @@
+from . import batches as batches
+from . import db as db
+from . import metricBundles as mmB
+
 __all__ = ("scimaf_dir",)
 
 import argparse
@@ -12,10 +16,6 @@ import pandas as pd
 
 matplotlib.use("Agg")
 
-from . import batches as batches
-from . import db as db
-from . import metricBundles as mb
-
 
 def scimaf_dir():
     """Run the science batch on all .db files in a directory."""
@@ -25,7 +25,8 @@ def scimaf_dir():
     parser.add_argument(
         "--no_clobber",
         dest="no_clobber",
-        action="store_false",
+        action="store_true",
+        default=False,
         help="Do not remove existing directory outputs",
     )
     parser.set_defaults(no_long_micro=False)
@@ -50,7 +51,7 @@ def scimaf_dir():
             con.close()
             mjd0 = mjd0_df.values.min()
         # If this fails for any reason (aka schema change)
-        except:
+        except:  # noqa E722
             warnings.warn("Could not find survey start date for Presto KNe, setting mjd0=None.")
             mjd0 = None
         # Clobber output directory if it exists
@@ -70,7 +71,7 @@ def scimaf_dir():
                 mjd0=mjd0,
             )
         # Run them, including generating plots
-        group = mb.MetricBundleGroup(
+        group = mmB.MetricBundleGroup(
             bdict, filename, out_dir=out_dir, results_db=results_db, save_early=False
         )
         group.run_all(clear_memory=True, plot_now=True)

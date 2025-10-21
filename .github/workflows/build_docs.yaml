@@ -18,18 +18,16 @@ jobs:
       - uses: conda-incubator/setup-miniconda@v3
         with:
           auto-update-conda: true
-          python-version: ${{ matrix.python-version }}
-          miniforge-variant: Mambaforge
+          python-version: "3.12"
+          miniforge-version: latest
           channels: conda-forge,defaults
-          use-mamba: true
-          channel-priority: strict
           show-channel-urls: true
 
       - name: configure conda and install requirements
         shell: bash -l {0}
         run: |
-          mamba install --quiet --file=requirements.txt          
-          mamba install --quiet pip
+          conda install --yes pip
+          conda install --yes --file=requirements.txt
           pip install "documenteer[guide]"
 
       - name: install rubin_sim

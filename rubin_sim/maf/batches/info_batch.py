@@ -61,7 +61,7 @@ def info_bundle_dicts(allsky_slicer, wfd_slicer, opsim="opsim", colmap=batches.c
             colmap,
             opsim,
             slicer=allsky_slicer,
-            extraSql='night > 365*3.5 and night < 365*4.5 and note not like "%DD%"',
+            extraSql="night > 365*3.5 and night < 365*4.5 and scheduler_note not like '%DD%'",
             extraInfoLabel="Yr 3-4",
             runLength=1,
         )
@@ -87,7 +87,7 @@ def info_bundle_dicts(allsky_slicer, wfd_slicer, opsim="opsim", colmap=batches.c
             extraInfoLabel="WFD",
         )
     )
-    dd_constraint = "note like '%DD%'"
+    dd_constraint = "scheduler_note like '%DD%'"
     bdict.update(
         batches.nvisitsPerSubset(
             colmap,

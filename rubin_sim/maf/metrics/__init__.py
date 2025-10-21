@@ -6,7 +6,7 @@ from .brown_dwarf_metric import *
 from .cadence_metrics import *
 from .calibration_metrics import *
 from .chip_vendor_metric import *
-from .cosmology_summary_metrics import *
+from .color_slope_metrics import *
 from .coverage_metric import *
 from .crowding_metric import *
 from .cumulative_metric import *
@@ -27,6 +27,7 @@ from .periodic_detect_metric import *
 from .phase_gap_metric import *
 from .qso_number_counts_metric import *
 from .scaling_metrics import *
+from .schedview_metrics import *
 from .season_metrics import *
 from .simple_metrics import *
 from .sky_sat_metric import *

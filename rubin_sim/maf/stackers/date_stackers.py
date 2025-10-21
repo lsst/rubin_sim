@@ -1,11 +1,13 @@
 __all__ = (
     "ObservationStartDatetime64Stacker",
+    "ObservationStartTimestampStacker",
     "DayObsStacker",
     "DayObsMJDStacker",
     "DayObsISOStacker",
 )
 
 import numpy as np
+import pandas as pd
 from astropy.time import Time
 
 from .base_stacker import BaseStacker
@@ -21,6 +23,7 @@ class ObservationStartDatetime64Stacker(BaseStacker):
         mjd_col="observationStartMJD",
     ):
         self.mjd_col = mjd_col
+        self.cols_req = [self.mjd_col]
         self.units = [None]
         self.cols_added_dtypes = ["datetime64[ns]"]
 
@@ -33,6 +36,52 @@ class ObservationStartDatetime64Stacker(BaseStacker):
         sim_data["observationStartDatetime64"] = Time(sim_data[self.mjd_col], format="mjd").datetime64
 
         return sim_data
+
+
+class ObservationStartTimestampStacker(BaseStacker):
+    """Add the observation start time as a pandas.Timestamp."""
+
+    cols_added = ["start_timestamp"]
+
+    def __init__(
+        self,
+        mjd_col="observationStartMJD",
+    ):
+        self.mjd_col = mjd_col
+        self.cols_req = [self.mjd_col]
+        self.units = [None]
+        self.cols_added_dtypes = ["O"]
+
+    def run(self, sim_data, override=False):
+        # Override the run from the base class, not _run,
+        # because the implementation
+        # of _add_stackers_cols in run in the base closs
+        # clobbers the type for the new column,
+        # which we really need.
+
+        visits = sim_data if isinstance(sim_data, pd.DataFrame) else pd.DataFrame(sim_data)
+
+        if "start_timestamp" in visits.columns and not override:
+            return sim_data
+
+        if len(visits[self.mjd_col]) > 0:
+            visits["start_timestamp"] = pd.to_datetime(
+                visits[self.mjd_col] + 2400000.5, origin="julian", unit="D", utc=True
+            )
+        else:
+            # If we are passed an empty series, be sure to return add an empty
+            # series of the correct type back.
+            # This is handy if the result is being passed to bokeh
+            # for plotting.
+            visits["start_timestamp"] = pd.to_datetime(2460000.5, origin="julian", unit="D", utc=True)
+
+        match sim_data:
+            case pd.DataFrame():
+                return visits
+            case dict():
+                return visits.to_dict()
+            case _:
+                return visits.to_records(index=False)
 
 
 def _compute_day_obs_mjd(mjd):
@@ -76,6 +125,7 @@ class DayObsStacker(BaseStacker):
 
     def __init__(self, mjd_col="observationStartMJD"):
         self.mjd_col = mjd_col
+        self.cols_req = [self.mjd_col]
         self.units = ["days"]
         self.cols_added_dtypes = [int]
 
@@ -102,6 +152,7 @@ class DayObsMJDStacker(BaseStacker):
 
     def __init__(self, mjd_col="observationStartMJD"):
         self.mjd_col = mjd_col
+        self.cols_req = [self.mjd_col]
         self.units = ["days"]
         self.cols_added_dtypes = [int]
 
@@ -127,6 +178,7 @@ class DayObsISOStacker(BaseStacker):
 
     def __init__(self, mjd_col="observationStartMJD"):
         self.mjd_col = mjd_col
+        self.cols_req = [self.mjd_col]
         self.units = [None]
         self.cols_added_dtypes = [(str, 10)]
 

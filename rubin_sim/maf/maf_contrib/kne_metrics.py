@@ -5,7 +5,7 @@ import os
 
 import numpy as np
 from rubin_scheduler.data import get_data_dir
-from rubin_scheduler.utils import survey_start_mjd, uniform_sphere
+from rubin_scheduler.utils import SURVEY_START_MJD, uniform_sphere
 
 from rubin_sim.maf.metrics import BaseMetric
 from rubin_sim.maf.slicers import UserPointsSlicer
@@ -24,10 +24,8 @@ def get_kne_filename(inj_params_list=None):
         mass of the dynamical ejecta (mej_dyn), mass of the disk wind ejecta
         (mej_wind), semi opening angle of the cylindrically-symmetric ejecta
         fan ('phi'), and viewing angle ('theta'). For example
-        inj_params_list = [{'mej_dyn': 0.005,
-              'mej_wind': 0.050,
-              'phi': 30,
-              'theta': 25.8}]
+        inj_params_list =
+        [{'mej_dyn': 0.005, 'mej_wind': 0.050, 'phi': 30, 'theta': 25.8}]
     """
     # Get files, model grid developed by M. Bulla
     datadir = get_data_dir()
@@ -147,7 +145,7 @@ class KNePopMetric(BaseMetric):
         night_col="night",
         pts_needed=2,
         file_list=None,
-        mjd0=None,
+        mjd0=SURVEY_START_MJD,
         output_lc=False,
         badval=-666,
         **kwargs,
@@ -162,7 +160,8 @@ class KNePopMetric(BaseMetric):
         self.output_lc = output_lc
 
         self.lightcurves = KnLc(file_list=file_list)
-        self.mjd0 = survey_start_mjd() if mjd0 is None else mjd0
+
+        self.mjd0 = mjd0
 
         dust_properties = DustValues()
         self.ax1 = dust_properties.ax1

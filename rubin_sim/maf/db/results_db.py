@@ -20,7 +20,9 @@ from sqlalchemy.exc import DatabaseError
 from sqlalchemy.orm import backref, declarative_base, relationship, sessionmaker
 from sqlalchemy.sql import text
 
-import rubin_sim.version as rsVersion
+from rubin_sim import __version__
+
+rsVersion = __version__
 
 Base = declarative_base()
 
@@ -220,7 +222,7 @@ class ResultsDb:
 
         # record the version and date MAF was run with/on
         if needs_version:
-            vers = rsVersion.__version__
+            vers = rsVersion
             run_date = datetime.datetime.now().strftime("%Y-%m-%d")
             versioninfo = VersionRow(version=vers, run_date=run_date)
             self.session.add(versioninfo)
@@ -574,7 +576,7 @@ class ResultsDb:
         # np.ndarray with 'name' and 'value' columns.
         self.open()
         tries = 0
-        if isinstance(summary_value, np.ndarray):
+        if isinstance(summary_value, np.ndarray) and summary_value.dtype.names is not None:
             if ("name" in summary_value.dtype.names) and ("value" in summary_value.dtype.names):
                 for value in summary_value:
                     sSuffix = value["name"]

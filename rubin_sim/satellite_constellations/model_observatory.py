@@ -3,7 +3,7 @@ __all__ = ("ModelObservatory",)
 import numpy as np
 from rubin_scheduler.scheduler.model_observatory import ModelObservatory as oMO
 from rubin_scheduler.site_models import Almanac
-from rubin_scheduler.utils import _healbin, survey_start_mjd
+from rubin_scheduler.utils import SURVEY_START_MJD, _healbin
 
 # Take the model observatory from the scheduler and
 # subclass to expand to include satellite constellations
@@ -48,7 +48,7 @@ class ModelObservatory(oMO):
     def __init__(
         self,
         nside=None,
-        mjd_start=None,
+        mjd_start=SURVEY_START_MJD,
         seed=42,
         alt_min=5.0,
         lax_dome=True,
@@ -70,7 +70,8 @@ class ModelObservatory(oMO):
 
         # Need to do a little fiddle with the MJD since
         # self.mjd needs self.night set now.
-        self.mjd_start = survey_start_mjd() if mjd_start is None else mjd_start
+        self.mjd_start = mjd_start
+
         self.almanac = Almanac(mjd_start=self.mjd_start)
         self.night = -1
 

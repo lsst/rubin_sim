@@ -1,16 +1,15 @@
-"""Tools for use of project-generated opsim simulations and analysis.
-"""
+"""Tools for use of project-generated opsim simulations and analysis."""
 
 __all__ = (
+    "get_metric_subsets",
+    "create_metric_subset",
+    "write_metric_subsets",
+    "get_metric_summaries",
     "get_runs",
     "get_family_runs",
     "download_runs",
-    "get_metric_sets",
-    "get_metric_summaries",
     "get_family_descriptions",
     "describe_families",
-    "create_metric_set_df",
-    "write_metric_sets",
 )
 
 
@@ -28,6 +27,8 @@ try:
 except ModuleNotFoundError:
     pass
 
+from rubin_sim.data import get_data_dir
+
 from .summary_plots import plot_run_metric
 
 FAMILY_SOURCE = os.environ.get(
@@ -35,14 +36,9 @@ FAMILY_SOURCE = os.environ.get(
     "https://raw.githubusercontent.com/lsst-pst/survey_strategy/main/fbs_2.0/runs_v2.2.json",
 )
 
-METRIC_SET_SOURCE = os.environ.get(
-    "RUBIN_SIM_METRIC_SET_SOURCE",
-    "https://raw.githubusercontent.com/lsst-pst/survey_strategy/main/fbs_2.0/metric_sets.json",
-)
-
 SUMMARY_SOURCE = os.environ.get(
     "RUBIN_SIM_SUMMARY_SOURCE",
-    "https://raw.githubusercontent.com/lsst-pst/survey_strategy/main/fbs_2.0/summary_2023_01_01.csv",
+    "https://s3df.slac.stanford.edu/data/rubin/sim-data/sims_featureScheduler_runs3.4/maf/summary.h5",
 )
 
 if os.uname().nodename.endswith(".datalab.noao.edu"):
@@ -52,6 +48,241 @@ else:
 OPSIM_DB_DIR = os.environ.get("OPSIM_DB_DIR", DEFAULT_OPSIM_DB_DIR)
 
 BY_RUN_COLS = ["run", "brief", "filepath", "url"]
+
+
+def get_metric_subsets(metric_subset_source=None):
+    """Get metadata on named subsets of related metrics.
+
+    Parameters
+    ----------
+    metric_subset_source : `str` or None
+        File name or URL for the json file from which to load the data.
+        If it is set to `None`, the data is loaded from `metric_subsets.json`
+        in the $rubin_sim_data.maf directory.
+
+    Returns
+    -------
+    metric_subsets : `pandas.DataFrame`
+        ``metric_subset``
+            The 1st level of the index is the name of a subset of metrics
+            (`str`).
+        ``metric``
+            The 2nd level of the index is the full name of the metric
+            (`str`).
+        ``metric``
+            The full name of the metric (`str`).
+        ``short_name``
+            An abbreviated name for the metric (`str`)..
+        ``style``
+            The ``matplotlib`` linestyle suggested for plots of the
+            metric (`str`).
+        ``invert``
+            When normalizing, invert the metric value first? (`bool`)
+        ``mag``
+            Is the value an (astronomical) magnitude? (`bool`)
+    """
+    if metric_subset_source is None:
+        metric_subset_source = os.path.join(get_data_dir(), "maf", "metric_subsets.json")
+    if isinstance(metric_subset_source, pd.DataFrame):
+        metric_subsets = metric_subset_source
+    else:
+        metric_subsets = (
+            pd.read_json(metric_subset_source)
+            .set_index("metric subset")
+            .set_index("metric", append=True, drop=False)
+        )
+    return metric_subsets
+
+
+def create_metric_subset(
+    metric_subset_name,
+    metrics,
+    short_name=None,
+    style="-",
+    invert=False,
+    mag=False,
+):
+    """Create a DataFrame that defines a metric subset.
+
+    Parameters
+    ----------
+    metric_subset_name : `str`
+        The name of the new metric subset.
+    metrics : `list` [`str`]
+        A list of metric names in the subset.
+    short_name : `list` [`str`], optional
+        A list of shorter metric names, by default None
+    style : `list` [`str`], optional
+        The matplotlib line style symbol for lines representing the metric,
+        by default "-"
+    invert : `list` [`bool`], optional
+        Are smaller values of the metric better, such as for errors?,
+         by default False
+    mag : `list` [`bool`], optional
+        Is the metric an astronomical magnitude?, by default False
+
+    Returns
+    -------
+    metric_subset : `pandas.DataFrame`
+        A table of metrics and normalization and plotting flags defining the
+        content of a metric subset.
+    """
+    if short_name is None:
+        short_name = metrics
+
+    metric_subset = (
+        pd.DataFrame(
+            {
+                "metric subset": metric_subset_name,
+                "metric": metrics,
+                "short_name": short_name,
+                "style": style,
+                "invert": invert,
+                "mag": mag,
+            }
+        )
+        .set_index("metric subset")
+        .set_index("metric", append=True, drop=False)
+    )
+
+    return metric_subset
+
+
+def write_metric_subsets(metric_subset_file, metric_subsets):
+    """Write an updated metric_subset dataframe to disk.
+
+    Parameters
+    ----------
+    metric_subset_file : `str`
+        Output file name.
+    metric_subsets : `pandas.DataFrame`
+        Metric_subset dataframe, as defined in get_metric_subsets
+    """
+    tmp = metric_subsets.reset_index("metric subset")
+    tmp.to_json(metric_subset_file, orient="records", indent=2)
+
+
+def get_metric_summaries(
+    run_families=tuple(),
+    metric_subsets=tuple(),
+    runs=tuple(),
+    metrics=tuple(),
+    summary_source=None,
+    runs_source=None,
+    metric_subset_source=None,
+    run_order="family",
+    metric_order="summary",
+):
+    """Get summary metric values for a set of runs and metrics.
+
+    Parameters
+    ----------
+    run_families : iterable [`str`]
+        Families of runs to include in the summary.
+    metric_subsets : iterable [`str`]
+        subsets of metrics to include in the summary.
+    runs : iterable [`str`]
+        Runs to include in the summary (in addition to any that are part
+        of families included in ``run_families``).
+    metrics : iterable [`str`]
+        Metrics to include in the summary (in addition to any that are
+        part of subsets included in ``metric_subsets``).
+    summary_source : `str` or `pandas.DataFrame`
+        File name or URL for the file from which to load the data.
+        If the supplied value is a `pandas.DataFrame`, it the table
+        returned will be a subset of this supplied table.
+    run_source : `pandas.DataFrame` or `str`
+        Either a `pandas.DataFrame` of runs metadata (as returned by
+        `archive.get_runs`), or a file name or URL for the json file
+        from which to load the run metadata.
+        If it is set to `None`, the data is loaded from the URL specified
+        by the `archive.RUNS_SOURCE` constant.
+    metric_subset_source : `pandas.DataFrame` or `str`
+        Either a `pandas.DataFrame` of metric subset specifications
+        (as returned by `archive.get_metric_subsets`) or a
+        file name for the json file from which to load the data.
+    run_order : `str`
+        Sort runs according to family definition ("family") or summary file
+        ("summary") order.
+    metric_order : `str`
+        Sort metrics according to subset definition ("subset") or summary file
+        ("summary") order.
+
+    Returns
+    -------
+    summaries : `pandas.DataFrame`
+        Metric summary values are returned in a `pandas.DataFrame`, with
+        each column providing the metrics for one run, and each row the
+        values for one metric. The metric names constitute the index, and
+        the column names are the canonical run names.
+
+    Note
+    ----
+    The entire summary statistic values for all of the runs and metrics can
+    be downloaded from the default sources first, by simply calling
+
+    .. code-block:: python
+
+        summary = get_metric_summaries()
+
+    Then, you can use `get_metric_summaries` to get a subset without
+    redownloading the whole set by passing `summary_source=summary`. If you are
+    selecting multiple subsets of the summary, this avoids needing
+    to download the summary data multiple times.
+    """
+    summary_source = SUMMARY_SOURCE if summary_source is None else summary_source
+
+    runs = list(runs)
+    metrics = list(metrics)
+
+    if isinstance(run_families, str):
+        run_families = [run_families]
+
+    if isinstance(metric_subsets, str):
+        metric_subsets = [metric_subsets]
+
+    if isinstance(summary_source, pd.DataFrame):
+        all_summaries = summary_source
+    else:
+        try:
+            all_summaries = pd.read_csv(summary_source, index_col=0, low_memory=False)
+        except UnicodeDecodeError:
+            # then this was probably the h5 file instead
+            all_summaries = pd.read_hdf(summary_source)
+        all_summaries.index.name = "OpsimRun"
+
+    if len(run_families) > 0:
+        families = get_family_runs(runs_source)
+        for run_family in run_families:
+            runs.extend(pd.Series(families.loc[run_family, "run"]).tolist())
+
+    if len(metric_subsets) > 0:
+        metric_subset_df = get_metric_subsets(metric_subset_source)
+        for metric_subset in metric_subsets:
+            metrics.extend(list(metric_subset_df.loc[metric_subset, "metric"]))
+
+    if len(runs) == 0:
+        runs = slice(None)
+    else:
+        if run_order == "summary":
+            runs = [r for r in all_summaries.index if r in runs]
+
+    if len(metrics) == 0:
+        metrics = slice(None)
+    else:
+        requested_metrics = copy.copy(metrics)
+        for metric in requested_metrics:
+            if metric not in all_summaries.columns:
+                warnings.warn(f'Metric "{metric}" not in summary, skipping')
+                metrics.remove(metric)
+
+        if metric_order == "summary":
+            metrics = [m for m in all_summaries.columns if m in metrics]
+
+    summaries = all_summaries.loc[runs, metrics]
+    summaries.columns.name = "metric"
+    summaries.index.name = "run"
+    return summaries
 
 
 def get_family_runs(run_source=None):
@@ -223,186 +454,6 @@ def download_runs(runs, dest_dir=None, runs_source=None, clobber=False):
     return dest_fnames
 
 
-def get_metric_sets(metric_set_source=METRIC_SET_SOURCE):
-    """Get metadata on named sets of related metrics.
-
-    Parameters
-    ----------
-    metric_set_source : `str`
-        File name or URL for the json file from which to load the data.
-        If it is set to `None`, the data is loaded from the URL specified
-        by the `archive.METRIC_SET_SOURCE` constant.
-
-    Returns
-    -------
-    metric_sets : `pandas.DataFrame`
-        ``metric_set``
-            The 1st level of the index is the name of a set of metrics (`str`).
-        ``metric``
-            The 2nd level of the index is the full name of the metric (`str`).
-        ``metric``
-            The full name of the metric (`str`).
-        ``short_name``
-            An abbreviated name for the metric (`str`)..
-        ``style``
-            The ``matplotlib`` linestyle suggested for plots of the
-            metric (`str`).
-        ``invert``
-            When normalizing, invert the metric value first? (`bool`)
-        ``mag``
-            Is the value an (astronomical) magnitude? (`bool`)
-    """
-    metric_set_source = METRIC_SET_SOURCE if metric_set_source is None else metric_set_source
-    if isinstance(metric_set_source, pd.DataFrame):
-        metric_sets = metric_set_source
-    else:
-        metric_sets = (
-            pd.read_json(metric_set_source)
-            .set_index("metric set")
-            .set_index("metric", append=True, drop=False)
-        )
-    return metric_sets
-
-
-def write_metric_sets(metric_set_file, metric_sets):
-    """Write an updated metric_set dataframe to disk
-
-    Parameters
-    ----------
-    metric_set_file : `str`
-        Output file name.
-    metric_sets : `pandas.DataFrame`
-        Metric_set dataframe, as defined in get_metric_sets
-    """
-    tmp = metric_sets.reset_index("metric set")
-    tmp.to_json(metric_set_file, orient="records", indent=2)
-
-
-def get_metric_summaries(
-    run_families=tuple(),
-    metric_sets=tuple(),
-    runs=tuple(),
-    metrics=tuple(),
-    summary_source=None,
-    runs_source=None,
-    metric_set_source=None,
-    run_order="family",
-    metric_order="summary",
-):
-    """Get summary metric values for a set of runs and metrics.
-
-    Parameters
-    ----------
-    run_families : iterable [`str`]
-        Families of runs to include in the summary.
-    metric_sets : iterable [`str`]
-        Sets of metrics to include in the summary.
-    runs : iterable [`str`]
-        Runs to include in the summary (in addition to any that are part
-        of families included in ``run_families``).
-    metrics : iterable [`str`]
-        Metrics to include in the summary (in addition to any that are
-        part of sets included in ``metric_sets``).
-    summary_source : `str` or `pandas.DataFrame`
-        File name or URL for the file from which to load the data.
-        If it is set to `None`, the data is loaded from the URL specified
-        by the `archive.METRIC_SET_SOURCE` constant.
-        If the supplied value is a `pandas.DataFrame`, it the table
-        returned will be a subset of this supplied table.
-    run_source : `pandas.DataFrame` or `str`
-        Either a `pandas.DataFrame` of runs metadata (as returned by
-        `archive.get_runs`), or a file name or URL for the json file
-        from which to load the run metadata.
-        If it is set to `None`, the data is loaded from the URL specified
-        by the `archive.RUNS_SOURCE` constant.
-    metric_set_source : `pandas.DataFrame` or `str`
-        Either a `pandas.DataFrame` of metric set specifications
-        (as returned by `archive.get_metric_sets`) or a
-        file name or URL for the json file from which to load the data.
-        If it is set to `None`, the data is loaded from the URL specified
-        by the `archive.SUMMARY_SOURCE` constant.
-    run_order : `str`
-        Sort runs according to family definition ("family") or summary file
-        ("summary") order.
-    metric_order : `str`
-        Sort metrics according to set definition ("set") or summary file
-        ("summary") order.
-
-    Returns
-    -------
-    summaries : `pandas.DataFrame`
-        Metric summary values are returned in a `pandas.DataFrame`, with
-        each column providing the metrics for one run, and each row the
-        values for one metric. The metric names constitute the index, and
-        the column names are the canonical run names.
-
-    Note
-    ----
-    The entire summary statistic values for all of the runs and metrics can
-    be downloaded from the default sources first, by simply calling
-    .. code-block:: python
-        summary = get_metric_summaries()
-
-    Then, you can use `get_metric_summaries` to get a subset without
-    redownloading the whole set by passing `summary_source=summary`. If you are
-    selecting multiple subsets of the summary, this avoids needing
-    to download the summary data multiple times.
-    """
-    summary_source = SUMMARY_SOURCE if summary_source is None else summary_source
-
-    runs = list(runs)
-    metrics = list(metrics)
-
-    if isinstance(run_families, str):
-        run_families = [run_families]
-
-    if isinstance(metric_sets, str):
-        metric_sets = [metric_sets]
-
-    if isinstance(summary_source, pd.DataFrame):
-        all_summaries = summary_source
-    else:
-        try:
-            all_summaries = pd.read_csv(summary_source, index_col=0, low_memory=False)
-        except UnicodeDecodeError:
-            # then this was probably the h5 file instead
-            all_summaries = pd.read_hdf(summary_source)
-        all_summaries.index.name = "OpsimRun"
-
-    if len(run_families) > 0:
-        families = get_family_runs(runs_source)
-        for run_family in run_families:
-            runs.extend(pd.Series(families.loc[run_family, "run"]).tolist())
-
-    if len(metric_sets) > 0:
-        metric_set_df = get_metric_sets(metric_set_source)
-        for metric_set in metric_sets:
-            metrics.extend(list(metric_set_df.loc[metric_set, "metric"]))
-
-    if len(runs) == 0:
-        runs = slice(None)
-    else:
-        if run_order == "summary":
-            runs = [r for r in all_summaries.index if r in runs]
-
-    if len(metrics) == 0:
-        metrics = slice(None)
-    else:
-        requested_metrics = copy.copy(metrics)
-        for metric in requested_metrics:
-            if metric not in all_summaries.columns:
-                warnings.warn(f'Metric "{metric}" not in summary, skipping')
-                metrics.remove(metric)
-
-        if metric_order == "summary":
-            metrics = [m for m in all_summaries.columns if m in metrics]
-
-    summaries = all_summaries.loc[runs, metrics]
-    summaries.columns.name = "metric"
-    summaries.index.name = "run"
-    return summaries
-
-
 def get_family_descriptions(family_source=None):
     """Get description of families or funs.
 
@@ -435,8 +486,8 @@ def get_family_descriptions(family_source=None):
 def describe_families(
     families,
     summary=None,
-    table_metric_set=None,
-    plot_metric_set=None,
+    table_metric_subset=None,
+    plot_metric_subset=None,
     baseline_run=None,
     round_table=2,
 ):
@@ -448,13 +499,13 @@ def describe_families(
         Data family descriptions as returned by get_family_descriptions.
     summary : `pandas.DataFrame`
         Summary metrics for each run, as returned by get_metric_summaries.
-    table_metric_set : `pandas.DataFrame`
+    table_metric_subset : `pandas.DataFrame`
         Metadata on metrics to be included in the table, with columns and
-        index as returned by get_metric_sets. None if no metrics should be
+        index as returned by get_metric_subsets. None if no metrics should be
         included in the table.
-    plot_metric_set : `pandas.DataFrame`
+    plot_metric_subset : `pandas.DataFrame`
         Metadata on metrics to be included in the plot, with columns and
-        index as returned by get_metric_sets. None if no plot should be
+        index as returned by get_metric_subsets. None if no plot should be
         made.
     baseline_run : `str`
         The name of the run to use to normalize metrics in the plot.
@@ -490,9 +541,9 @@ def describe_families(
 
         these_runs = family_runs.loc[[family_name], :]
         if summary is not None:
-            if table_metric_set is not None:
-                table_metric_summary = summary.loc[these_runs["run"], table_metric_set["metric"]]
-                table_metric_summary.rename(table_metric_set["short_name"], axis=1, inplace=True)
+            if table_metric_subset is not None:
+                table_metric_summary = summary.loc[these_runs["run"], table_metric_subset["metric"]]
+                table_metric_summary.rename(table_metric_subset["short_name"], axis=1, inplace=True)
                 if round_table is not None:
                     table_metric_summary = table_metric_summary.round(round_table)
             else:
@@ -514,15 +565,15 @@ def describe_families(
                 print(description)
                 print(these_runs.set_index("run"))
 
-    if plot_metric_set is not None:
+    if plot_metric_subset is not None:
         these_runs = family_runs["run"].values
         if baseline_run is not None and baseline_run not in these_runs:
             these_runs = np.concatenate([[baseline_run], these_runs])
-        these_metrics = [m for m in plot_metric_set["metric"] if m in summary.columns]
+        these_metrics = [m for m in plot_metric_subset["metric"] if m in summary.columns]
         fig, ax = plot_run_metric(  # pylint: disable=invalid-name
             summary.loc[these_runs, these_metrics],
-            metric_set=plot_metric_set,
-            metric_label_map=plot_metric_set["short_name"],
+            metric_subset=plot_metric_subset,
+            metric_label_map=plot_metric_subset["short_name"],
             baseline_run=baseline_run,
             vertical_quantity="value",
             horizontal_quantity="run",
@@ -531,56 +582,3 @@ def describe_families(
         fig, ax = None, None  # pylint: disable=invalid-name
 
     return fig, ax
-
-
-def create_metric_set_df(
-    metric_set,
-    metrics,
-    short_name=None,
-    style="-",
-    invert=False,
-    mag=False,
-):
-    """Create a DataFrame that defines a metric set.
-
-    Parameters
-    ----------
-    metric_set : `str`
-        The name of a metric set.
-    metrics : `list` [`str`]
-        A list of metric names in the set.
-    short_name : `list` [`str`], optional
-        A list of shorter metric names, by default None
-    style : `list` [`str`], optional
-        The matplotlib line style symbol for lines representing the metric,
-        by default "-"
-    invert : `list` [`bool`], optional
-        Are smaller values of the metric better, such as for errors?, by default False
-    mag : `list` [`bool`], optional
-        Is the metric an astronomical magnitude?, by default False
-
-    Returns
-    -------
-    metric_set : `pandas.DataFrame`
-        A table of metrics and normalization and plotting flags defining the
-        content of a metric set.
-    """
-    if short_name is None:
-        short_name = metrics
-
-    metric_set = (
-        pd.DataFrame(
-            {
-                "metric set": metric_set,
-                "metric": metrics,
-                "short_name": short_name,
-                "style": style,
-                "invert": invert,
-                "mag": mag,
-            }
-        )
-        .set_index("metric set")
-        .set_index("metric", append=True, drop=False)
-    )
-
-    return metric_set

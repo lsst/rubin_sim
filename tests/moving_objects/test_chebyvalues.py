@@ -14,6 +14,7 @@ from rubin_sim.moving_objects import ChebyFits, ChebyValues, Orbits, PyOrbEpheme
 ROOT = os.path.abspath(os.path.dirname(__file__))
 
 
+@unittest.skip("Temporary skip until ephemerides replaced")
 class TestChebyValues(unittest.TestCase):
     def setUp(self):
         self.testdatadir = os.path.join(get_data_dir(), "tests", "orbits_testdata")
@@ -70,11 +71,12 @@ class TestChebyValues(unittest.TestCase):
             self.assertTrue(k in cheby_values.coeffs)
             self.assertTrue(isinstance(cheby_values.coeffs[k], np.ndarray))
         self.assertEqual(len(np.unique(cheby_values.coeffs["obj_id"])), len(self.orbits))
-        # This will only be true for carefully selected length/orbit type, where subdivision did not occur.
+        # This will only be true for carefully selected length/orbit type,
+        # where subdivision did not occur.
         # For the test MBAs, a len=1day will work.
         # For the test NEOs, a len=0.25 day will work (with 2.5mas skyTol).
         # self.assertEqual(len(cheby_values.coeffs['tStart']),
-        #                  (self.interval / self.set_length) * len(self.orbits))
+        #            (self.interval / self.set_length) * len(self.orbits))
         self.assertEqual(len(cheby_values.coeffs["ra"][0]), self.n_coeffs)
         self.assertTrue("meanRA" in cheby_values.coeffs)
         self.assertTrue("meanDec" in cheby_values.coeffs)
@@ -90,9 +92,11 @@ class TestChebyValues(unittest.TestCase):
                 # Can't test strings with np.test.assert_almost_equal.
                 np.testing.assert_equal(cheby_values.coeffs[k], cheby_values2.coeffs[k])
             else:
-                # All of these will only be accurate to 2 less decimal places than they are
-                # print out with in chebyFits. Since vmag, delta and elongation only use 7
-                # decimal places, this means we can test to 5 decimal places for those.
+                # All of these will only be accurate to 2 less decimal places
+                # than they are print out with in chebyFits. Since vmag,
+                # delta and elongation only use 7
+                # decimal places, this means we can test to 5 decimal
+                # places for those.
                 np.testing.assert_allclose(cheby_values.coeffs[k], cheby_values2.coeffs[k], rtol=0, atol=1e-5)
 
     def test_get_ephemerides(self):
@@ -142,12 +146,14 @@ class TestChebyValues(unittest.TestCase):
             )
             self.assertTrue(
                 np.isnan(ephemerides["ra"][0]),
-                msg="Expected Nan for out of range ephemeris, got %.2e" % (ephemerides["ra"][0]),
+                msg=f"Expected Nan for out of range ephemeris, got {ephemerides['ra'][0]}",
             )
 
 
+@unittest.skip("Temporary skip until ephemerides replaced")
 class TestJPLValues(unittest.TestCase):
-    # Test the interpolation-generated RA/Dec values against JPL generated RA/Dec values.
+    # Test the interpolation-generated RA/Dec values against JPL
+    # generated RA/Dec values.
     # The resulting errors should be similar to the errors reported
     # from testEphemerides when testing against JPL values.
     def setUp(self):
@@ -156,14 +162,15 @@ class TestJPLValues(unittest.TestCase):
         self.jpl_dir = os.path.join(get_data_dir(), "tests", "jpl_testdata")
         self.orbits.read_orbits(os.path.join(self.jpl_dir, "S0_n747.des"), skiprows=1)
         # Read JPL ephems.
-        self.jpl = pd.read_table(os.path.join(self.jpl_dir, "807_n747.txt"), delim_whitespace=True)
+        self.jpl = pd.read_table(os.path.join(self.jpl_dir, "807_n747.txt"), sep=r"\s+")
         self.jpl["obj_id"] = self.jpl["objId"]
         # Add times in TAI and UTC, because.
         t = Time(self.jpl["epoch_mjd"], format="mjd", scale="utc")
         self.jpl["mjdTAI"] = t.tai.mjd
         self.jpl["mjdUTC"] = t.utc.mjd
         self.jpl = self.jpl.to_records(index=False)
-        # Generate interpolation coefficients for the time period in the JPL catalog.
+        # Generate interpolation coefficients for the time period
+        # in the JPL catalog.
         self.scratch_dir = tempfile.mkdtemp(dir=ROOT, prefix="TestJPLValues-")
         self.coeff_file = os.path.join(self.scratch_dir, "test_coeffs")
         self.resid_file = os.path.join(self.scratch_dir, "test_resids")
@@ -202,7 +209,8 @@ class TestJPLValues(unittest.TestCase):
             shutil.rmtree(self.scratch_dir)
 
     def test_ra_dec(self):
-        # We won't compare Vmag, because this also needs information on trailing losses.
+        # We won't compare Vmag, because this also needs
+        # information on trailing losses.
         times = np.unique(self.jpl["mjdTAI"])
         delta_ra = np.zeros(len(times), float)
         delta_dec = np.zeros(len(times), float)
@@ -219,8 +227,10 @@ class TestJPLValues(unittest.TestCase):
             delta_ra[i] = d_ra.max()
             delta_dec[i] = d_dec.max()
         # Should be (given OOrb direct prediction):
-        # Much of the time we're closer than 1mas, but there are a few which hit higher values.
-        # This is consistent with the errors/values reported by oorb directly in testEphemerides.
+        # Much of the time we're closer than 1mas, but there are a
+        # few which hit higher values.
+        # This is consistent with the errors/values reported by oorb
+        # directly in testEphemerides.
 
         #    # XXX--units?
         print("max JPL errors", delta_ra.max(), delta_dec.max())

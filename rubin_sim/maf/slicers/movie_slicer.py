@@ -29,28 +29,34 @@ class MovieSlicer(BaseSlicer):
         cumulative=True,
         force_no_ffmpeg=False,
     ):
-        """
-        The 'movieSlicer' acts similarly to the OneDSlicer (slices on one data column).
-        However, the data slices from the movieSlicer are intended to be fed to another slicer, which then
-        (together with a set of Metrics) calculates metric values + plots at each slice
-        created by the movieSlicer.
-        The job of the movieSlicer is to track those slices and put them together into a movie.
+        """The 'movieSlicer' acts similarly to the OneDSlicer
+        (slices on one data column).
+        However, the data slices from the movieSlicer are intended to be
+        fed to another slicer, which then
+        (together with a set of Metrics) calculates metric values +
+        plots at each slice created by the movieSlicer.
+        The job of the movieSlicer is to track those slices and
+        put them together into a movie.
 
         'slice_col_name' is the name of the data column to use for slicing.
-        'slice_col_units' lets the user set the units (for plotting purposes) of the slice column.
-        'bins' can be a numpy array with the binpoints for sliceCol or a single integer value
+        'slice_col_units' lets the user set the units (for plotting purposes)
+        of the slice column.
+        'bins' can be a numpy array with the binpoints for sliceCol
+        or a single integer value
         (if a single value, this will be used as the number of bins,
         together with data min/max or bin_min/max),
         as in numpy's histogram function.
-        If 'bin_size' is used, this will override the bins value and will be used
-        together with the data min/max
+        If 'bin_size' is used, this will override the bins value and
+        will be used together with the data min/max
         or bin_min/Max to set the binpoint values.
 
-        Bins work like numpy histogram bins: the last 'bin' value is end value of last bin;
-          all bins except for last bin are half-open ([a, b>), the last one is ([a, b]).
+        Bins work like numpy histogram bins: the last 'bin' value is end
+        value of last bin; all bins except for last bin are half-open
+        ([a, b>), the last one is ([a, b]).
 
-        The movieSlicer stitches individual frames together into a movie using ffmpeg. Thus, on
-        instantiation it checks that ffmpeg is available and will raise and exception if not.
+        The movieSlicer stitches individual frames together into a movie
+        using ffmpeg. Thus, on instantiation it checks that ffmpeg is
+        available and will raise and exception if not.
         This behavior can be overriden using force_no_ffmpeg = True
         (in order to create a movie later perhaps).
         """
@@ -93,7 +99,8 @@ class MovieSlicer(BaseSlicer):
             self.bin_min = slice_col.min()
         if self.bin_max is None:
             self.bin_max = slice_col.max()
-        # Give warning if bin_min = bin_max, and do something at least slightly reasonable.
+        # Give warning if bin_min = bin_max, and do something at
+        # least slightly reasonable.
         if self.bin_min == self.bin_max:
             warnings.warn(
                 "bin_min = bin_max (maybe your data is single-valued?). "
@@ -133,7 +140,8 @@ class MovieSlicer(BaseSlicer):
                     self.bin_size,
                     "float",
                 )
-        # Set shape / nbins to be one less than # of bins because last binvalue is RH edge only
+        # Set shape / nbins to be one less than # of bins because
+        # last binvalue is RH edge only
         self.nslice = len(self.bins) - 1
         self.shape = self.nslice
         # Set slice_point metadata.
@@ -145,7 +153,8 @@ class MovieSlicer(BaseSlicer):
         self.sim_idxs = np.argsort(sim_data[self.slice_col_name])
         simFieldsSorted = np.sort(sim_data[self.slice_col_name])
         # "left" values are location where simdata == bin value
-        # Note that this setup will place any the visits beyond the last bin into the last bin.
+        # Note that this setup will place any the visits beyond
+        # the last bin into the last bin.
         self.left = np.searchsorted(simFieldsSorted, self.bins[:-1], "left")
         self.left = np.concatenate(
             (
@@ -163,9 +172,11 @@ class MovieSlicer(BaseSlicer):
             @wraps(self._slice_sim_data)
             def _slice_sim_data(islice):
                 """
-                Slice sim_data on oneD sliceCol, to return relevant indexes for slice_point.
+                Slice sim_data on oneD sliceCol, to
+                return relevant indexes for slice_point.
                 """
-                # this is the important part. The ids here define the pieces of data that get
+                # this is the important part.
+                # The ids here define the pieces of data that get
                 # passed on to subsequent slicers
                 # cumulative version of 1D slicing
                 idxs = self.sim_idxs[0 : self.left[islice + 1]]
@@ -184,7 +195,8 @@ class MovieSlicer(BaseSlicer):
             @wraps(self._slice_sim_data)
             def _slice_sim_data(islice):
                 """
-                Slice sim_data on oneD sliceCol, to return relevant indexes for slice_point.
+                Slice sim_data on oneD sliceCol,
+                to return relevant indexes for slice_point.
                 """
                 idxs = self.sim_idxs[self.left[islice] : self.left[islice + 1]]
                 return {
@@ -217,8 +229,8 @@ class MovieSlicer(BaseSlicer):
         ips=10.0,
         fps=10.0,
     ):
-        """
-        Takes in metric and slicer metadata and calls ffmpeg to stitch together output files.
+        """Takes in metric and slicer metadata and calls
+        ffmpeg to stitch together output files.
         """
         if not os.path.isdir(out_dir):
             raise Exception("Cannot find output directory %s with movie input files." % (out_dir))

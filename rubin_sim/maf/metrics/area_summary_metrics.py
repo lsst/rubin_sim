@@ -52,7 +52,7 @@ class AreaSummaryMetric(BaseMetric):
 
     def run(self, data_slice, slice_point=None):
         # find out what nside we have
-        nside = hp.npix2nside(data_slice.size)
+        nside = hp.npix2nside(data_slice[self.col].size)
         pix_area = hp.nside2pixarea(nside, degrees=True)
         n_pix_needed = int(np.ceil(self.area / pix_area))
 

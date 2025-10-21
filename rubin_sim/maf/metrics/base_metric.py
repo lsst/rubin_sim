@@ -140,7 +140,7 @@ class BaseMetric(metaclass=MetricRegistry):
     ):
         # Turn cols into numpy array so we know
         # we can iterate over the columns.
-        self.col_name_arr = np.array(col, copy=False, ndmin=1)
+        self.col_name_arr = np.array(col, copy=True, ndmin=1)
         # To support simple metrics operating on a single column,
         # set self.colname
         if len(self.col_name_arr) == 1:

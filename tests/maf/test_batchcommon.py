@@ -16,7 +16,7 @@ class TestCommon(unittest.TestCase):
         filterlist, colors, orders, sqls, info_label = batches.common.filter_list(all=False, extra_sql=None)
         self.assertEqual(len(filterlist), 6)
         self.assertEqual(len(colors), 6)
-        self.assertEqual(sqls["u"], 'filter = "u"')
+        self.assertEqual(sqls["u"], "band = 'u'")
         filterlist, colors, orders, sqls, info_label = batches.common.filter_list(all=True, extra_sql=None)
         self.assertIn("all", filterlist)
         self.assertEqual(sqls["all"], "")
@@ -24,7 +24,7 @@ class TestCommon(unittest.TestCase):
             all=True, extra_sql="night=3"
         )
         self.assertEqual(sqls["all"], "night=3")
-        self.assertEqual(sqls["u"], '(night=3) and (filter = "u")')
+        self.assertEqual(sqls["u"], "(night=3) and (band = 'u')")
         self.assertEqual(info_label["u"], "night=3 u band")
         filterlist, colors, orders, sqls, info_label = batches.common.filter_list(
             all=True, extra_sql="night=3", extra_info_label="night 3"

@@ -78,10 +78,15 @@ import time
 import warnings
 
 import numpy
-import scipy.interpolate as interpolate
+
+try:
+    from numpy import trapezoid as trapezoid
+except ImportError:
+    from numpy import trapz as trapezoid
 from rubin_scheduler.data import get_data_dir
 
 from .physical_parameters import PhysicalParameters
+from .spectral_resampling import spectres
 
 _global_lsst_sed_cache = None
 
@@ -375,7 +380,7 @@ def cache_lsst_seds(wavelen_min=None, wavelen_max=None, cache_dir=None):
 class Sed:
     """ "Hold and use spectral energy distributions (SEDs)"""
 
-    def __init__(self, wavelen=None, flambda=None, fnu=None, badval=numpy.NaN, name=None):
+    def __init__(self, wavelen=None, flambda=None, fnu=None, badval=numpy.nan, name=None):
         """
         Initialize sed object by giving filename or lambda/flambda array.
 
@@ -476,6 +481,7 @@ class Sed:
                 raise ValueError("(No Flambda) - Fnu must be numpy array of same length as Wavelen.")
             # Convert fnu to flambda.
             self.wavelen, self.flambda = self.fnu_toflambda(wavelen, fnu)
+            self.fnu = fnu
         self.name = name
         return
 
@@ -747,6 +753,7 @@ class Sed:
         wavelen_max=None,
         wavelen_step=None,
         force=False,
+        fill=numpy.nan,
     ):
         """
         Resample flux onto grid defined by min/max/step OR
@@ -754,7 +761,7 @@ class Sed:
 
         Give method wavelen/flux OR default to self.wavelen/self.flambda.
         Method either returns wavelen/flambda (if given those arrays) or
-         updates wavelen/flambda in self.
+        updates wavelen/flambda in self.
         If updating self, resets fnu to None.
         Method will first check if resampling needs to be done or not,
         unless 'force' is True.
@@ -795,13 +802,8 @@ class Sed:
                     + " (%.2f to %.2f)" % (wavelen_grid.min(), wavelen_grid.max())
                     + "and sed %s (%.2f to %.2f)" % (self.name, wavelen.min(), wavelen.max())
                 )
-            # Do the interpolation of wavelen/flux onto grid.
-            # (type/len failures will die here).
-            if wavelen[0] > wavelen_grid[0] or wavelen[-1] < wavelen_grid[-1]:
-                f = interpolate.interp1d(wavelen, flux, bounds_error=False, fill_value=numpy.NaN)
-                flux_grid = f(wavelen_grid)
-            else:
-                flux_grid = numpy.interp(wavelen_grid, wavelen, flux)
+            # rebin the spectra. Fill with NaNs if there's non-overlap regions.
+            flux_grid = spectres(wavelen_grid, wavelen, flux, fill=fill, verbose=False)
 
             # Update self values if necessary.
             if update_self:
@@ -1245,7 +1247,7 @@ class Sed:
 
         return -2.5 * numpy.log10(flux) - self.zp
 
-    def calc_ergs(self, bandpass):
+    def calc_ergs(self, bandpass, fill=numpy.nan):
         r"""
         Integrate the SED over a bandpass directly.  If self.flambda
         is in ergs/s/cm^2/nm and bandpass.sb is the unitless probability
@@ -1272,7 +1274,7 @@ class Sed:
         The flux of the current SED through the bandpass in ergs/s/cm^2
         """
         wavelen, flambda = self.resample_sed(
-            wavelen=self.wavelen, flux=self.flambda, wavelen_match=bandpass.wavelen
+            wavelen=self.wavelen, flux=self.flambda, wavelen_match=bandpass.wavelen, fill=fill
         )
 
         dlambda = wavelen[1] - wavelen[0]
@@ -1281,7 +1283,7 @@ class Sed:
         energy = (0.5 * (flambda[1:] * bandpass.sb[1:] + flambda[:-1] * bandpass.sb[:-1]) * dlambda).sum()
         return energy
 
-    def calc_flux(self, bandpass, wavelen=None, fnu=None):
+    def calc_flux(self, bandpass, wavelen=None, fnu=None, fill=numpy.nan):
         """
         Integrate the specific flux density of the object over the normalized
         response curve of a bandpass, giving a flux in Janskys
@@ -1316,15 +1318,15 @@ class Sed:
             wavelen = self.wavelen
             fnu = self.fnu
         # Go on with magnitude calculation.
-        wavelen, fnu = self.resample_sed(wavelen, fnu, wavelen_match=bandpass.wavelen)
+        wavelen, fnu = self.resample_sed(wavelen, fnu, wavelen_match=bandpass.wavelen, fill=fill)
         # Calculate bandpass phi value if required.
         if bandpass.phi is None:
             bandpass.sb_tophi()
         # Calculate flux in bandpass and return this value.
-        flux = numpy.trapz(fnu * bandpass.phi, x=wavelen)
+        flux = trapezoid(fnu * bandpass.phi, x=wavelen)
         return flux
 
-    def calc_mag(self, bandpass, wavelen=None, fnu=None):
+    def calc_mag(self, bandpass, wavelen=None, fnu=None, fill=numpy.nan):
         """
         Calculate the AB magnitude of an object using the normalized system
         response (phi from Section 4.1 of the LSST design document LSE-180).
@@ -1334,13 +1336,13 @@ class Sed:
         wavelen/fnu pair to be on the same grid as bandpass;
         (but only temporary values of these are used).
         """
-        flux = self.calc_flux(bandpass, wavelen=wavelen, fnu=fnu)
+        flux = self.calc_flux(bandpass, wavelen=wavelen, fnu=fnu, fill=fill)
         if flux < 1e-300:
             raise ValueError("This SED has no flux within this bandpass.")
         mag = self.mag_from_flux(flux)
         return mag
 
-    def calc_flux_norm(self, magmatch, bandpass, wavelen=None, fnu=None):
+    def calc_flux_norm(self, magmatch, bandpass, wavelen=None, fnu=None, fill=numpy.nan):
         """
         Calculate the fluxNorm (SED normalization value for a given mag)
         for a sed.
@@ -1359,7 +1361,7 @@ class Sed:
         # (fluxnorm * SED(f_nu) * PHI = mag - 8.9 (AB zeropoint).
         # FluxNorm * SED => correct magnitudes for this object.
         # Calculate fluxnorm.
-        curmag = self.calc_mag(bandpass, wavelen, fnu)
+        curmag = self.calc_mag(bandpass, wavelen, fnu, fill=fill)
         if curmag == self.badval:
             return self.badval
         dmag = magmatch - curmag

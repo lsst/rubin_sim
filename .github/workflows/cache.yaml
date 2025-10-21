@@ -15,24 +15,22 @@ jobs:
       - uses: conda-incubator/setup-miniconda@v3
         with:
           auto-update-conda: true
-          python-version: ${{ matrix.python-version }}
-          miniforge-variant: Mambaforge
+          python-version: "3.12"
+          miniforge-version: latest
           channels: conda-forge,defaults
-          use-mamba: true
-          channel-priority: strict
           show-channel-urls: true
 
       - name: Configure conda and install minimal requirements for cache
         shell: bash -l {0}
         run: |
-          mamba install --quiet rubin-scheduler -c conda-forge
+          conda install --yes rubin-scheduler
 
       - name: Install rubin_sim from git
         shell: bash -l {0}
         run: |
           echo `pwd`
           ls ${{ github.workspace }}
-          python -m pip install -e . --no-deps      
+          python -m pip install -e . --no-deps
 
       - name: Access rubin-sim-data cache
         id: cache-rs

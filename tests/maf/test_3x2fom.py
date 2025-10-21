@@ -8,6 +8,8 @@ from rubin_scheduler.utils.code_utilities import sims_clean_up
 
 import rubin_sim.maf as maf
 
+TEST_DB = "example_v3.4_0yrs.db"
+
 
 class Test3x2(unittest.TestCase):
     @classmethod
@@ -26,7 +28,7 @@ class Test3x2(unittest.TestCase):
         # the output values are valid.
         bundle_list = []
         nside = 64
-        colmap = maf.batches.col_map_dict("fbs")
+        colmap = maf.batches.col_map_dict("fbs_sim")
         nfilters_needed = 6
         lim_ebv = 0.2
         ptsrc_lim_mag_i_band = 25.9
@@ -39,7 +41,7 @@ class Test3x2(unittest.TestCase):
             depth_cut=ptsrc_lim_mag_i_band,
         )
         s = maf.slicers.HealpixSlicer(nside=nside, use_cache=False)
-        sql = 'note not like "DD%" and night < 365'
+        sql = "scheduler_note not like 'DD%' and night < 365"
         threeby_two_summary_simple = maf.metrics.StaticProbesFoMEmulatorMetricSimple(
             nside=nside, metric_name="3x2ptFoM_simple"
         )
@@ -55,7 +57,7 @@ class Test3x2(unittest.TestCase):
             )
         )
 
-        database = os.path.join(get_data_dir(), "tests", "example_dbv1.7_0yrs.db")
+        database = os.path.join(get_data_dir(), "tests", TEST_DB)
         results_db = maf.db.ResultsDb(out_dir=self.out_dir)
         bd = maf.metric_bundles.make_bundles_dict_from_list(bundle_list)
         bg = maf.metric_bundles.MetricBundleGroup(bd, database, out_dir=self.out_dir, results_db=results_db)

@@ -25,8 +25,10 @@ class MafTracking:
     def __init__(self, database=None):
         if database is None:
             database = os.path.join(os.getcwd(), "trackingDb_sqlite.db")
+        self.tracking_db = database
+        self.stamp = os.stat(self.tracking_db).st_mtime
 
-        # Read in the results database.
+        # Read in the tracking database.
         cols = [
             "maf_run_id",
             "run_name",
@@ -40,9 +42,15 @@ class MafTracking:
             "maf_version",
             "maf_date",
         ]
-        self.runs = get_sim_data(database, "", cols, table_name="runs")
+        self.runs = get_sim_data(self.tracking_db, "", cols, table_name="runs")
         self.runs = self.sort_runs(self.runs, order=["maf_run_id", "run_name", "maf_comment"])
         self.runs_page = {}
+
+    def _check_db(self):
+        """Check if the database file has changed"""
+        new_stamp = os.stat(self.tracking_db).st_mtime
+        if new_stamp != self.stamp:
+            self.__init__(database=self.tracking_db)
 
     def run_info(self, run):
         """Get the tracking database information relevant for a given run
@@ -58,17 +66,19 @@ class MafTracking:
         run_info : `OrderedDict`
             Ordered dict version of the numpy structured array.
         """
+        self._check_db()
         runInfo = OrderedDict()
+        maf_dir = os.path.relpath(run["maf_dir"], start=os.path.dirname(self.tracking_db))
         runInfo["Run Name"] = run["run_name"]
         runInfo["Group"] = run["run_group"]
         runInfo["Maf Comment"] = run["maf_comment"]
         runInfo["Run Comment"] = run["run_comment"]
-        runInfo["SQLite File"] = [
+        runInfo["RunDb File"] = [
             os.path.relpath(run["db_file"]),
             os.path.split(run["db_file"])[1],
         ]
-        runInfo["ResultsDb"] = os.path.relpath(os.path.join(run["maf_dir"], "resultsDb_sqlite.db"))
-        runInfo["maf_dir"] = run["maf_dir"]
+        runInfo["ResultsDb"] = os.path.join(maf_dir, "resultsDb_sqlite.db")
+        runInfo["maf_dir"] = maf_dir
         runInfo["sched_version"] = run["run_version"]
         runInfo["sched_date"] = run["run_date"]
         runInfo["maf_version"] = run["maf_version"]
@@ -90,6 +100,7 @@ class MafTracking:
         runs : `numpy.NDarray`
            A sorted numpy array.
         """
+        self._check_db()
         return np.sort(runs, order=order)
 
     def get_run(self, maf_run_id):
@@ -111,6 +122,7 @@ class MafTracking:
            Stored internally in self.runs_page dict, but also passed
            back to the tornado server.
         """
+        self._check_db()
         if not isinstance(maf_run_id, int):
             if isinstance(maf_run_id, dict):
                 maf_run_id = int(maf_run_id["maf_run_id"][0][0])

@@ -34,9 +34,13 @@ class StringCountMetric(BaseMetric):
         Column name that has strings to look at.
     percent : `bool`, opt
         Normalize and return results as percents rather than raw count.
+    clip_end : `bool`
+        Clip if the end of a string if it ends with a comma and number.
     """
 
-    def __init__(self, metric_name="stringCountMetric", col="filter", percent=False, **kwargs):
+    def __init__(
+        self, metric_name="stringCountMetric", col="filter", percent=False, clip_end=False, **kwargs
+    ):
         if percent:
             units = "percent"
         else:
@@ -45,8 +49,25 @@ class StringCountMetric(BaseMetric):
         cols = [col]
         super().__init__(cols, metric_name, units=units, metric_dtype=object, **kwargs)
         self.col = col
+        self.clip_end = clip_end
 
     def run(self, data_slice, slice_point=None):
+
+        # If we need to clip off trailing integer
+        if self.clip_end:
+            replace_col = []
+            for val in data_slice[self.col]:
+                if ", " in val:
+                    chunks = val.split(", ")
+                    if chunks[-1].isdigit():
+                        new_val = ", ".join(chunks[0:-1])
+                        replace_col.append(new_val)
+                    else:
+                        replace_col.append(val)
+                else:
+                    replace_col.append(val)
+            data_slice[self.col] = replace_col
+
         counter = Counter(data_slice[self.col])
         # convert to a numpy array
         lables = list(counter.keys())

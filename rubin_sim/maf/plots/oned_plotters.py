@@ -20,7 +20,7 @@ class OneDBinnedData(BasePlotter):
             "label": None,
             "xlabel": None,
             "ylabel": None,
-            "filled": False,
+            "filled_data": False,
             "alpha": 0.5,
             "linestyle": "-",
             "linewidth": 1,
@@ -53,41 +53,33 @@ class OneDBinnedData(BasePlotter):
         # Plot the histogrammed data.
         leftedge = slicer.slice_points["bins"][:-1]
         width = np.diff(slicer.slice_points["bins"])
-        if plot_dict["filled"]:
-            plt.bar(
-                leftedge,
-                metric_values.filled(),
-                width,
-                label=plot_dict["label"],
-                linewidth=0,
-                alpha=plot_dict["alpha"],
-                log=plot_dict["log_scale"],
-                color=plot_dict["color"],
-            )
+        if plot_dict["filled_data"]:
+            x = np.ravel(list(zip(leftedge, leftedge + width)))
+            y = np.ravel(list(zip(metric_values.filled(), metric_values.filled())))
         else:
             good = np.where(~metric_values.mask)
             x = np.ravel(list(zip(leftedge[good], leftedge[good] + width[good])))
             y = np.ravel(list(zip(metric_values[good], metric_values[good])))
-            if plot_dict["log_scale"]:
-                plt.semilogy(
-                    x,
-                    y,
-                    label=plot_dict["label"],
-                    color=plot_dict["color"],
-                    linestyle=plot_dict["linestyle"],
-                    linewidth=plot_dict["linewidth"],
-                    alpha=plot_dict["alpha"],
-                )
-            else:
-                plt.plot(
-                    x,
-                    y,
-                    label=plot_dict["label"],
-                    color=plot_dict["color"],
-                    linestyle=plot_dict["linestyle"],
-                    linewidth=plot_dict["linewidth"],
-                    alpha=plot_dict["alpha"],
-                )
+        if plot_dict["log_scale"]:
+            plt.semilogy(
+                x,
+                y,
+                label=plot_dict["label"],
+                color=plot_dict["color"],
+                linestyle=plot_dict["linestyle"],
+                linewidth=plot_dict["linewidth"],
+                alpha=plot_dict["alpha"],
+            )
+        else:
+            plt.plot(
+                x,
+                y,
+                label=plot_dict["label"],
+                color=plot_dict["color"],
+                linestyle=plot_dict["linestyle"],
+                linewidth=plot_dict["linewidth"],
+                alpha=plot_dict["alpha"],
+            )
         if "ylabel" in plot_dict:
             plt.ylabel(plot_dict["ylabel"], fontsize=plot_dict["fontsize"])
         if "xlabel" in plot_dict:

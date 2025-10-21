@@ -160,7 +160,7 @@ def generate_sky(
                             mjd1 = dict_of_lists["mjds"][-3]
                             mjd3 = dict_of_lists["mjds"][-1]
                             if (mjd2 > mjd1) & (mjd2 < mjd3):
-                                indx = np.where(last_5_mjds == mjd2)[0]
+                                indx = np.min(np.where(last_5_mjds == mjd2)[0])
                                 # Linear interpolation weights
                                 wterm = (mjd2 - mjd1) / (mjd3 - mjd1)
                                 w1 = 1.0 - wterm
@@ -168,7 +168,7 @@ def generate_sky(
                                 for filter_name in filter_names:
                                     interp_sky = w1 * sky_brightness[filter_name][-3]
                                     interp_sky += w2 * sky_brightness[filter_name][-1]
-                                    diff = np.abs(last_5_mags[int(indx)][filter_name] - interp_sky)
+                                    diff = np.abs(last_5_mags[indx][filter_name] - interp_sky)
                                     if np.size(diff[~np.isnan(diff)]) > 0:
                                         if np.max(diff[~np.isnan(diff)]) > dm:
                                             can_interp = False
@@ -192,6 +192,8 @@ def generate_sky(
     version = rubin_sim.version.__version__
     fingerprint = version
     # Generate a header to save all the kwarg info for this run
+    if outpath is None:
+        outpath = ""
     header = {
         "mjd0": mjd0,
         "mjd_max": mjd_max,
@@ -200,15 +202,7 @@ def generate_sky(
         "outfile": outfile,
         "outpath": outpath,
         "nside": nside,
-        "sunLimit": sunLimit,
-        "airmas_overhead": airmass_overhead,
-        "dm": dm,
-        "airmass_limit": airmass_limit,
-        "alt_limit": alt_limit,
-        "ra": ra,
-        "dec": dec,
         "verbose": verbose,
-        "required_mjds": required_mjds,
         "version": version,
         "fingerprint": fingerprint,
     }
@@ -225,7 +219,7 @@ def generate_sky(
 if __name__ == "__main__":
     # Make a quick small one for speed loading
     print("generating small file")
-    m0 = utils.survey_start_mjd()
+    m0 = utils.SURVEY_START_MJD
     generate_sky(mjd0=m0 - 1, mjd_max=m0 + 31)
 
     nyears = 25.0  # 20  # 13

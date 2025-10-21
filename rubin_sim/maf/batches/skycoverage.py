@@ -1,5 +1,4 @@
-"""Evaluate some bulk properties of the sky coverage
-"""
+"""Evaluate some bulk properties of the sky coverage"""
 
 __all__ = ("meanRADec", "eastWestBias")
 

@@ -509,7 +509,7 @@ def science_radar_batch(
     for filtername in "ugrizy":
         displayDict["caption"] = "Surface brightness limit in %s, no extinction applied." % filtername
         displayDict["order"] = filterorders[f]
-        sql = 'filter="%s"' % filtername
+        sql = "filter='%s'" % filtername
         metric = metrics.SurfaceBrightLimitMetric()
         bundle = mb.MetricBundle(
             metric,
@@ -550,7 +550,7 @@ def science_radar_batch(
     subgroupCount = 1
 
     displayDict["subgroup"] = f"{subgroupCount}: Static Science"
-    ## Static Science
+    # Static Science
     # Calculate the static science metrics - effective survey area,
     # mean/median coadded depth, stdev of coadded depth and
     # the 3x2ptFoM emulator.
@@ -568,11 +568,8 @@ def science_radar_batch(
     for yr_cut in yrs:
         ptsrc_lim_mag_i_band = mag_cuts[yr_cut]
         sqlconstraint = "night <= %s" % (yr_cut * 365.25 + 0.5)
-        sqlconstraint += ' and note not like "DD%"'
+        sqlconstraint += " and scheduler_note not like 'DD%'"
         info_label = f"{bandpass} band non-DD year {yr_cut}"
-        ThreebyTwoSummary_simple = metrics.StaticProbesFoMEmulatorMetricSimple(
-            nside=nside, year=yr_cut, metric_name="3x2ptFoM_simple"
-        )
         ThreebyTwoSummary = maf.StaticProbesFoMEmulatorMetric(nside=nside, metric_name="3x2ptFoM")
 
         m = metrics.ExgalM5WithCuts(
@@ -598,13 +595,14 @@ def science_radar_batch(
             sqlconstraint,
             maps_list=[dustmap],
             info_label=info_label,
-            summary_metrics=summaryMetrics + [ThreebyTwoSummary, ThreebyTwoSummary_simple],
+            summary_metrics=summaryMetrics + [ThreebyTwoSummary],
+            # , ThreebyTwoSummary_simple],
             display_dict=displayDict,
         )
         displayDict["order"] += 1
         bundleList.append(bundle)
 
-    ## LSS Science
+    # LSS Science
     # The only metric we have from LSS is the NGals metric -
     # which is similar to the GalaxyCountsExtended
     # metric, but evaluated only on the depth/dust cuts footprint.
@@ -614,7 +612,7 @@ def science_radar_batch(
     plotDict = {"n_ticks": 5}
     # Have to include all filters in query to check for filter coverage.
     # Galaxy numbers calculated using 'bandpass' images only though.
-    sqlconstraint = 'note not like "DD%"'
+    sqlconstraint = "scheduler_note not like 'DD%'"
     info_label = f"{bandpass} band galaxies non-DD"
     metric = maf.DepthLimitedNumGalMetric(
         nside=nside,
@@ -647,14 +645,14 @@ def science_radar_batch(
     )
     bundleList.append(bundle)
 
-    ## WL metrics
+    # WL metrics
     # Calculates the number of visits per pointing,
     # after removing parts of the footprint due to dust/depth.
     # Count visits in gri bands.
     subgroupCount += 1
     displayDict["subgroup"] = f"{subgroupCount}: WL"
     displayDict["order"] = 0
-    sqlconstraint = 'note not like "DD%" and (filter="g" or filter="r" or filter="i")'
+    sqlconstraint = "scheduler_note not like 'DD%' and (filter='g' or filter='r' or filter='i')"
     info_label = "gri band non-DD"
     minExpTime = 15
     m = metrics.WeakLensingNvisits(
@@ -686,8 +684,8 @@ def science_radar_batch(
     for year in np.arange(1, 10):
         displayDict["order"] = year
         sqlconstraint = (
-            'note not like "DD%"'
-            + ' and (filter="g" or filter="r" or filter="i") and night < %i' % (year * 365.25)
+            "scheduler_note not like 'DD%'"
+            + " and (filter='g' or filter='r' or filter='i') and night < %i" % (year * 365.25)
         )
         m = metrics.WeakLensingNvisits(
             lsst_filter=bandpass,
@@ -722,8 +720,8 @@ def science_radar_batch(
         bundleList.append(bundle)
 
         sqlconstraint = (
-            'note not like "DD%"'
-            + ' and (filter="r" or filter="i" or filter="z") and night < %i' % (year * 365.25)
+            "scheduler_note not like 'DD%'"
+            + " and (filter='r' or filter='i' or filter='z') and night < %i" % (year * 365.25)
         )
         m = metrics.WeakLensingNvisits(
             lsst_filter=bandpass,
@@ -781,8 +779,8 @@ def science_radar_batch(
     # Kuiper per year in gri and riz
     for year in np.arange(1, 10):
         sqlconstraint = (
-            'note not like "DD%"'
-            + ' and (filter="g" or filter="r" or filter="i") and night < %i' % (year * 365.25)
+            "scheduler_note not like 'DD%'"
+            + " and (filter='g' or filter='r' or filter='i') and night < %i" % (year * 365.25)
         )
         metric1 = metrics.KuiperMetric("rotSkyPos", metric_name="Kuiper_rotSkyPos_gri_year%i" % year)
         metric2 = metrics.KuiperMetric("rotTelPos", metric_name="Kuiper_rotTelPos_gri_year%i" % year)
@@ -835,7 +833,7 @@ def science_radar_batch(
     bundle = mb.MetricBundle(
         metric,
         snslicer,
-        "note not like '%DD%'",
+        "scheduler_note not like '%DD%'",
         plot_dict=plotDict,
         display_dict=displayDict,
         info_label="DDF excluded",
@@ -858,7 +856,7 @@ def science_radar_batch(
 
     # Calculate the number of expected QSOs, in each band
     for f in filterlist:
-        sql = filtersqls[f] + ' and note not like "%DD%"'
+        sql = filtersqls[f] + " and scheduler_note not like '%DD%'"
         md = filterinfo_label[f] + " and non-DD"
         summaryMetrics = [metrics.SumMetric(metric_name="Total QSO")]
         zmin = 0.3
@@ -1207,6 +1205,7 @@ def science_radar_batch(
         run_name=runName,
         summary_metrics=lightcurve_summary(),
         display_dict=displayDict,
+        plot_funcs=[plots.HealpixSkyMap()],
     )
     bundleList.append(bundle)
 
@@ -1219,6 +1218,7 @@ def science_radar_batch(
         run_name=runName,
         summary_metrics=lightcurve_summary(),
         display_dict=displayDict,
+        plot_funcs=[plots.HealpixSkyMap()],
     )
     bundleList.append(bundle)
 
@@ -1359,11 +1359,12 @@ def science_radar_batch(
     bundle = mb.MetricBundle(
         metric,
         kneslicer,
-        "note not like 'DD%'",
+        "scheduler_note not like 'DD%'",
         run_name=runName,
         info_label="single model",
         summary_metrics=lightcurve_summary(),
         display_dict=displayDict,
+        plot_funcs=[plots.HealpixSkyMap()],
     )
     bundleList.append(bundle)
 
@@ -1381,11 +1382,12 @@ def science_radar_batch(
     bundle = mb.MetricBundle(
         metric_allkne,
         kneslicer_allkne,
-        "note not like 'DD%'",
+        "scheduler_note not like 'DD%'",
         run_name=runName,
         info_label="all models",
         summary_metrics=lightcurve_summary(),
         display_dict=displayDict,
+        plot_funcs=[plots.HealpixSkyMap()],
     )
     bundleList.append(bundle)
 
@@ -1523,6 +1525,41 @@ def science_radar_batch(
             run_name=runName,
             display_dict=displayDict,
             summary_metrics=summaryMetrics_kne,
+        )
+    )
+
+    # color plus slope metrics
+    displayDict["group"] = "Variables/Transients"
+    displayDict["subgroup"] = "Color and slope"
+    displayDict["caption"] = "Number of times a color and slope are measured in a night"
+    sql = "visitExposureTime > 19"
+    metric = maf.ColorSlopeMetric()
+    summaryMetrics_cs = [maf.SumMetric()]
+    bundleList.append(
+        maf.MetricBundle(
+            metric,
+            healpixslicer,
+            sql,
+            run_name=runName,
+            display_dict=displayDict,
+            summary_metrics=summaryMetrics_cs,
+        )
+    )
+
+    displayDict["group"] = "Variables/Transients"
+    displayDict["subgroup"] = "Color and slope"
+    displayDict["caption"] = "Number of times a color and slope are measured over 2 nights."
+    sql = "visitExposureTime > 19"
+    metric = maf.ColorSlope2NightMetric()
+    summaryMetrics_cs = [maf.SumMetric()]
+    bundleList.append(
+        maf.MetricBundle(
+            metric,
+            healpixslicer,
+            sql,
+            run_name=runName,
+            display_dict=displayDict,
+            summary_metrics=summaryMetrics_cs,
         )
     )
 
@@ -1778,7 +1815,7 @@ def science_radar_batch(
         )
     )
 
-    ## Local Volume Dwarf Satellites
+    # Local Volume Dwarf Satellites
     displayDict["group"] = "Local Volume"
     displayDict["subgroup"] = "LV dwarf satellites"
     displayDict["order"] = 0
@@ -1790,7 +1827,7 @@ def science_radar_batch(
     i_starMap = maf.maps.StellarDensityMap(filtername="i")
     lv_slicer = maf.maf_contrib.generate_known_lv_dwarf_slicer()
     lv_metric = maf.maf_contrib.LVDwarfsMetric()
-    sqlconstraint = '(filter = "i" OR filter = "g")'
+    sqlconstraint = "(filter = 'i' OR filter = 'g')"
     info_label = "gi"
     cutoff = -6.4
     summary_metrics = [
@@ -1837,7 +1874,7 @@ def science_radar_batch(
         "star-galaxy separation), over the southern celestial pole,"
         "to a distance of 0.1 Mpc."
     )
-    sqlconstraint = '(filter = "i" OR filter = "g") and fieldDec < -60'
+    sqlconstraint = "(filter = 'i' OR filter = 'g') and fieldDec < -60"
     info_label = "gi SCP"
     lv_metric3 = maf.maf_contrib.LVDwarfsMetric(distlim=0.1 * u.Mpc)  # for a distance limit, healpix map
     summary_area = maf.metrics.AreaThresholdMetric(lower_threshold=0.0, metric_name="Area M_v>0.0")
@@ -1905,7 +1942,7 @@ def science_radar_batch(
 
     displayDict = {"group": "Scaling Numbers", "subgroup": ""}
     displayDict["subgroup"] = "N gals"
-    sql = 'filter="i"'
+    sql = "filter='i'"
     metric = metrics.NgalScaleMetric()
     # galaxy counting uses dustmap
     slicer = slicers.HealpixSlicer(nside=nside, use_cache=False)

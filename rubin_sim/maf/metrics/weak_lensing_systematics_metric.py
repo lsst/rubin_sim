@@ -8,16 +8,18 @@ from .exgal_m5 import ExgalM5
 
 class ExgalM5WithCuts(BaseMetric):
     """
-    Calculate co-added five-sigma limiting depth, but apply dust extinction and depth cuts.
-    This means that places on the sky that don't meet the dust extinction, coadded depth, or filter coverage
-    cuts will have masked values on those places.
+    Calculate co-added five-sigma limiting depth, but apply dust extinction and
+    depth cuts. This means that places on the sky that don't meet the dust
+    extinction, coadded depth, or filter coverage cuts will have masked values
+    on those places.
 
-    This metric is useful for DESC static science and weak lensing metrics.
-    In particular, it is required as input for the StaticProbesFoMEmulatorMetricSimple
+    This metric is useful for DESC static science and weak lensing metrics. In
+    particular, it is required as input for StaticProbesFoMEmulatorMetricSimple
     (a summary metric to emulate a 3x2pt FOM).
 
-    Note: this metric calculates the depth after dust extinction in band 'lsst_filter', but because
-    it looks for coverage in all bands, there should generally be no filter-constraint on the sql query.
+    Note: this metric calculates the depth after dust extinction in band
+    'lsst_filter', but because it looks for coverage in all bands, there should
+    generally be no filter-constraint on the sql query.
     """
 
     def __init__(
@@ -38,7 +40,8 @@ class ExgalM5WithCuts(BaseMetric):
         self.depth_cut = depth_cut
         self.n_filters = n_filters
         self.lsst_filter = lsst_filter
-        # I thought about inheriting from ExGalM5 instead, but the columns specification is more complicated
+        # I thought about inheriting from ExGalM5 instead, but the columns
+        # specification is more complicated
         self.exgal_m5 = ExgalM5(m5_col=m5_col, units=units)
         super().__init__(
             col=[self.m5_col, self.filter_col],
@@ -53,12 +56,14 @@ class ExgalM5WithCuts(BaseMetric):
         if slice_point["ebv"] > self.extinction_cut:
             return self.badval
 
-        # check to make sure there is at least some coverage in the required number of bands
+        # check to make sure there is at least some coverage in the required
+        # number of bands
         n_filters = len(set(data_slice[self.filter_col]))
         if n_filters < self.n_filters:
             return self.badval
 
-        # if coverage and dust criteria are valid, move forward with only lsstFilter-band visits
+        # if coverage and dust criteria are valid, move forward with only
+        # lsstFilter-band visits
         d_s = data_slice[data_slice[self.filter_col] == self.lsst_filter]
         # calculate the lsstFilter-band coadded depth
         dustdepth = self.exgal_m5.run(d_s, slice_point)
@@ -71,12 +76,13 @@ class ExgalM5WithCuts(BaseMetric):
 
 
 class WeakLensingNvisits(BaseMetric):
-    """A proxy metric for WL systematics. Higher values indicate better systematics mitigation.
+    """A proxy metric for WL systematics. Higher values indicate better
+    systematics mitigation.
 
-    Weak Lensing systematics metric : Computes the average number of visits per point on a HEALPix grid
-    after a maximum E(B-V) cut and a minimum co-added depth cut.
-    Intended to be used to count visits in gri, but can be any filter combination as long as it
-    includes `lsst_filter` band visits.
+    Weak Lensing systematics metric : Computes the average number of visits per
+    point on a HEALPix grid after a maximum E(B-V) cut and a minimum co-added
+    depth cut. Intended to be used to count visits in gri, but can be any
+    filter combination as long as it includes `lsst_filter` band visits.
 
     """
 
@@ -196,7 +202,7 @@ class RIZDetectionCoaddExposureTime(BaseMetric):
         # find all entries where exposure time is long enough and
         # in the detection bands
         exptime_msk = data_slice[self.exp_time_col] > self.min_exp_time
-        filter_msk = np.in1d(data_slice[self.filter_col], self.det_bands)
+        filter_msk = np.isin(data_slice[self.filter_col], self.det_bands)
         tot_msk = exptime_msk & filter_msk
 
         res = np.sum(data_slice[self.exp_time_col][tot_msk])

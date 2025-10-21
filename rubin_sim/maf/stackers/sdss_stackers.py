@@ -4,7 +4,7 @@ __all__ = ("SdssRADecStacker",)
 import numpy as np
 
 from .base_stacker import BaseStacker
-from .dither_stackers import wrap_ra
+from .coord_stackers import wrap_ra
 
 
 class SdssRADecStacker(BaseStacker):
@@ -13,7 +13,8 @@ class SdssRADecStacker(BaseStacker):
     cols_added = ["RA1", "Dec1", "RA2", "Dec2", "RA3", "Dec3", "RA4", "Dec4"]
 
     def __init__(self, pcols=["p1", "p2", "p3", "p4", "p5", "p6", "p7", "p8"]):
-        """The p1,p2 columns represent the corners of chips.  Could generalize this a bit."""
+        """The p1,p2 columns represent the corners of chips.
+        Could generalize this a bit."""
         self.units = ["rad"] * 8
         self.cols_req = pcols
 

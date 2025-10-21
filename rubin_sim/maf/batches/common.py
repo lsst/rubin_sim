@@ -29,7 +29,7 @@ def combine_info_labels(info1, info2):
     return info
 
 
-def filter_list(all=True, extra_sql=None, extra_info_label=None):
+def filter_list(all=True, extra_sql=None, extra_info_label=None, band_col="band"):
     """Return a list of filters, plot colors and orders.
 
     Parameters
@@ -41,6 +41,8 @@ def filter_list(all=True, extra_sql=None, extra_info_label=None):
         Additional sql constraint to add to constraints returned per filter.
     extra_info_label : `str`, optional
         Substitute info_label to add to info_label strings composed per band.
+    band_col : `str`, optional
+        The column name to use for the band (or filter).
 
     Returns
     -------
@@ -51,9 +53,9 @@ def filter_list(all=True, extra_sql=None, extra_info_label=None):
     info_labels : `dict` {`str`: `str}
     """
     if all:
-        filterlist = ("all", "u", "g", "r", "i", "z", "y")
+        bandlist = ("all", "u", "g", "r", "i", "z", "y")
     else:
-        filterlist = ("u", "g", "r", "i", "z", "y")
+        bandlist = ("u", "g", "r", "i", "z", "y")
     colors = {"u": "cyan", "g": "g", "r": "orange", "i": "r", "z": "m", "y": "b"}
     orders = {"u": 1, "g": 2, "r": 3, "i": 4, "z": 5, "y": 6}
     if all:
@@ -68,20 +70,20 @@ def filter_list(all=True, extra_sql=None, extra_info_label=None):
             md = "%s " % extra_sql
     else:
         md = "%s " % extra_info_label
-    for f in filterlist:
-        if f == "all":
-            sqls[f] = ""
-            info_labels[f] = md + "all bands"
+    for b in bandlist:
+        if b == "all":
+            sqls[b] = ""
+            info_labels[b] = md + "all bands"
         else:
-            sqls[f] = 'filter = "%s"' % f
-            info_labels[f] = md + "%s band" % f
+            sqls[b] = f"{band_col} = '{b}'"
+            info_labels[b] = md + f"{b} band"
     if extra_sql is not None and len(extra_sql) > 0:
         for s in sqls:
             if s == "all":
                 sqls[s] = extra_sql
             else:
-                sqls[s] = "(%s) and (%s)" % (extra_sql, sqls[s])
-    return filterlist, colors, orders, sqls, info_labels
+                sqls[s] = f"({extra_sql}) and ({sqls[s]})"
+    return bandlist, colors, orders, sqls, info_labels
 
 
 def standard_summary(with_count=True):

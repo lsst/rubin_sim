@@ -2,20 +2,29 @@ __all__ = ("ddfBatch",)
 
 import healpy as hp
 import numpy as np
-from rubin_scheduler.utils import angular_separation, ddf_locations, hpid2_ra_dec, sample_patch_on_sphere
+from rubin_scheduler.utils import (
+    angular_separation,
+    ddf_locations,
+    ddf_locations_pre3_5,
+    hpid2_ra_dec,
+    sample_patch_on_sphere,
+)
 
 import rubin_sim.maf as maf
 
+from .col_map_dict import col_map_dict
 from .common import lightcurve_summary
 
 
 def ddfBatch(
     run_name="run_name",
     nside=512,
-    radius=2.5,
+    radius=2.1,
     nside_sne=128,
     extra_sql=None,
     extra_info_label=None,
+    old_coords=False,
+    colmap=col_map_dict(),
 ):
     """
     A set of metrics to evaluate DDF fields.
@@ -28,7 +37,7 @@ def ddfBatch(
         The HEALpix nside to run most of the metrics on.
     radius : `float`
         The radius to select around each ddf (degrees).
-        The default value of 2.5 degrees has been chosen to balance
+        The default value of 2.1 degrees has been chosen to balance
         selecting a large enough area to ensure gathering all of the double
         Euclid field or a run with large dithers,
         while not including too much background area (which can
@@ -42,6 +51,9 @@ def ddfBatch(
         necessary sql constraints for each metric.
     extra_info_label : `str`, optional
         Additional description information to add (alongside the extra_sql)
+    old_coords : `bool`
+        Use the default locations for the DDFs from pre-July 2024.
+        Default False.
 
     Returns
     -------
@@ -53,7 +65,10 @@ def ddfBatch(
     # Define the slicer to use for each DDF
     # Get standard DDF locations and reformat information as a dictionary
     ddfs = {}
-    ddfs_rough = ddf_locations()
+    if old_coords:
+        ddfs_rough = ddf_locations_pre3_5()
+    else:
+        ddfs_rough = ddf_locations()
     for ddf in ddfs_rough:
         ddfs[ddf] = {"ra": ddfs_rough[ddf][0], "dec": ddfs_rough[ddf][1]}
     # Combine the Euclid double-field into one - but with two ra/dec values
@@ -94,8 +109,12 @@ def ddfBatch(
     # Now define metrics
 
     # Set up basic all and per filter sql constraints.
+    band_col = colmap["filter"]
     filterlist, colors, orders, sqls, info_labels = maf.filter_list(
-        all=True, extra_sql=extra_sql, extra_info_label=extra_info_label
+        all=True,
+        extra_sql=extra_sql,
+        extra_info_label=extra_info_label,
+        band_col=band_col,
     )
 
     summary_stats = [maf.MeanMetric(), maf.MedianMetric(), maf.SumMetric()]
@@ -154,7 +173,7 @@ def ddfBatch(
         displayDict["subgroup"] = "SL SNe"
         displayDict["caption"] = f"Strongly Lensed SN metric in the {fieldname} DDF."
         displayDict["order"] = order
-        metric = maf.SNSLMetric()
+        metric = maf.SNSLMetric(filter_col=band_col)
         bundle_list.append(
             maf.MetricBundle(
                 metric,
@@ -180,7 +199,7 @@ def ddfBatch(
             np.mean(ddfs[ddf]["ra"]), np.mean(ddfs[ddf]["dec"]), delta, n_kne, seed=1
         )
 
-        metric = maf.KNePopMetric(metric_name="KNePopMetric_%s" % fieldname)
+        metric = maf.KNePopMetric(metric_name="KNePopMetric_%s" % fieldname, filter_col=band_col)
         slicer = maf.generate_kn_pop_slicer(n_events=n_kne, ra=ra, dec=dec)
 
         bundle_list.append(
@@ -191,6 +210,7 @@ def ddfBatch(
                 info_label=" ".join([fieldname]),
                 summary_metrics=lightcurve_summary(),
                 display_dict=displayDict,
+                plot_funcs=[],
             )
         )
 
@@ -200,8 +220,8 @@ def ddfBatch(
         displayDict["caption"] = f"Kuiper metric in the {fieldname} DDF."
 
         sqls_gri = {
-            "gri": "filter='g' or filter='r' or filter='i'",
-            "riz": "filter='r' or filter='i' or filter='z'",
+            "gri": f"{band_col}='g' or {band_col}='r' or {band_col}='i'",
+            "riz": f"{band_col}='r' or {band_col}='i' or {band_col}='z'",
         }
 
         for sql in sqls_gri:
@@ -232,38 +252,24 @@ def ddfBatch(
                 )
 
         # Weak lensing visits
-        # The "magic numbers" here scale the final depth into
-        # approximately consistent visits per year - final depth is
-        # determined by arbitrary definition of 'good sample'
         lim_ebv = 0.2
-        offset = 0.1
-        mag_cuts = {
-            1: 24.75 - offset,
-            2: 25.12 - offset,
-            3: 25.35 - offset,
-            4: 25.5 - offset,
-            5: 25.62 - offset,
-            6: 25.72 - offset,
-            7: 25.8 - offset,
-            8: 25.87 - offset,
-            9: 25.94 - offset,
-            10: 26.0 - offset,
-        }
+        mag_cuts = 26.0
         displayDict["group"] = "Weak Lensing"
         displayDict["subgroup"] = ""
         displayDict["caption"] = f"Weak lensing metric in the {fieldname} DDF."
 
         sqls_gri = {
-            "gri": "filter='g' or filter='r' or filter='i'",
-            "riz": "filter='r' or filter='i' or filter='z'",
+            "gri": f"{band_col}='g' or {band_col}='r' or {band_col}='i'",
+            "riz": f"{band_col}='r' or {band_col}='i' or {band_col}='z'",
         }
 
         for sql in sqls_gri:
             metric = maf.WeakLensingNvisits(
                 lsst_filter="i",
-                depth_cut=mag_cuts[10],
+                depth_cut=mag_cuts,
                 ebvlim=lim_ebv,
                 min_exp_time=20.0,
+                filter_col=band_col,
                 metric_name="WeakLensingNvisits_" + sql,
             )
             bundle_list.append(
@@ -297,12 +303,15 @@ def ddfBatch(
                 sed_model="Richards06",
                 zmin=zmin,
                 zmax=None,
+                filter_col=band_col,
             )
+            stacker_list = [maf.SaturationStacker(filter_col=band_col)]
             bundle_list.append(
                 maf.MetricBundle(
                     metric,
                     ddf_slicers[ddf],
                     sqls[f],
+                    stacker_list=stacker_list,
                     info_label=" ".join([fieldname, info_labels[f]]),
                     plot_dict=plotDict,
                     plot_funcs=plotFuncs,
@@ -317,7 +326,7 @@ def ddfBatch(
         nquist_threshold = 2.2
         lag = 100
         summaryMetrics = [maf.MeanMetric(), maf.MedianMetric(), maf.RmsMetric()]
-        m = maf.AgnTimeLagMetric(threshold=nquist_threshold, lag=lag)
+        m = maf.AgnTimeLagMetric(threshold=nquist_threshold, lag=lag, filter_col=band_col)
         for f in filterlist:
             displayDict["order"] = orders[f]
             displayDict["caption"] = (
@@ -344,7 +353,7 @@ def ddfBatch(
         nquist_threshold = 2.2
         lag = 5
         summaryMetrics = [maf.MeanMetric(), maf.MedianMetric(), maf.RmsMetric()]
-        m = maf.AgnTimeLagMetric(threshold=nquist_threshold, lag=lag)
+        m = maf.AgnTimeLagMetric(threshold=nquist_threshold, lag=lag, filter_col=band_col)
         for f in filterlist:
             displayDict["order"] = orders[f]
             displayDict["caption"] = (
@@ -376,6 +385,7 @@ def ddfBatch(
             metric = maf.SFUncertMetric(
                 mag=agn_mags[f],
                 bins=np.logspace(0, np.log10(3650), 21),
+                filter_col=band_col,
             )
             bundle_list.append(
                 maf.MetricBundle(
@@ -389,14 +399,14 @@ def ddfBatch(
                     display_dict=displayDict,
                 )
             )
-
+        #######
         # Coadded depth per filter, and count per filter
         displayDict["group"] = "Basics"
         for f in "ugrizy":
             displayDict["subgroup"] = "Coadd M5"
             displayDict["order"] = orders[f]
             displayDict["caption"] = f"Coadded m5 in {f} band in the {fieldname} DDF."
-            metric = maf.Coaddm5Metric(metric_name=f"{fieldname} CoaddM5")
+            metric = maf.Coaddm5Metric(metric_name=f"{fieldname} CoaddM5", filter_col=band_col)
             bundle_list.append(
                 maf.MetricBundle(
                     metric,
@@ -464,11 +474,22 @@ def ddfBatch(
             )
         )
 
-        # Now to compute some things at just the center of the DDF
+        # Now to compute some things ~~at just the center of the DDF~~ NOPE
+        # (will compute these "per DDF" not just at the center, since
+        # the dithering pattern is not yet set and that will influence the
+        # result -- once dithering is better determined, could add ptslicer).
         # For these metrics, add a requirement that the 'note' label
         # match the DDF, to avoid WFD visits skewing the results
         # (we want to exclude non-DD visits),
-        ptslicer = maf.UserPointsSlicer(np.mean(ddfs[ddf]["ra"]), np.mean(ddfs[ddf]["dec"]))
+
+        if fieldname == "WFD":
+            ptslicer = maf.UserPointsSlicer(np.mean(ddfs[ddf]["ra"]), np.mean(ddfs[ddf]["dec"]))
+        else:
+            ptslicer = maf.UniSlicer()  # rely on query to remove non-DD visits
+            # Add RA and Dec to slice_point data (for season calculations)
+            # slice_points store ra/dec internally in radians.
+            ptslicer.slice_points["ra"] = np.radians(np.mean(ddfs[ddf]["ra"]))
+            ptslicer.slice_points["dec"] = np.radians(np.mean(ddfs[ddf]["dec"]))
 
         displayDict["group"] = "Cadence"
         displayDict["order"] = order
@@ -478,7 +499,7 @@ def ddfBatch(
             for f in filterlist:
                 fieldsqls[f] = sqls[f]
         else:
-            fieldsql = f"note like '%{fieldname}%'"
+            fieldsql = f"scheduler_note like '%{fieldname}%'"
             for f in filterlist:
                 if len(sqls[f]) > 0:
                     fieldsqls[f] = fieldsql + " and " + sqls[f]
@@ -488,7 +509,7 @@ def ddfBatch(
         displayDict["subgroup"] = "Sequence length"
 
         # Number of observations per night, any filter (sequence length)
-        # Histogram the number of visits per night at the center of the DDF
+        # Histogram the number of visits per night
         countbins = np.arange(0, 200, 5)
         metric = maf.NVisitsPerNightMetric(
             night_col="night",
@@ -496,9 +517,7 @@ def ddfBatch(
             metric_name=f"{fieldname} NVisitsPerNight",
         )
         plotDict = {"bins": countbins, "xlabel": "Number of visits per night"}
-        displayDict["caption"] = (
-            f"Histogram of the number of visits in each night, at the center of {fieldname}."
-        )
+        displayDict["caption"] = "Histogram of the number of visits in each night per DDF."
         plotFunc = maf.SummaryHistogram()
         bundle = maf.MetricBundle(
             metric,
@@ -511,17 +530,49 @@ def ddfBatch(
         )
         bundle_list.append(bundle)
 
+        # Coadded depth of observations per night, each filter
+        # "magic numbers" to fill plot come from baseline v3.4
+        min_coadds = {"u": 22.3, "g": 22.3, "r": 22.9, "i": 23.1, "z": 21.7, "y": 21.5}
+        max_coadds = {"u": 26, "g": 27.2, "r": 27, "i": 26.5, "z": 26.5, "y": 25.1}
+        # Histogram the coadded depth per night, per filter
+        for f in "ugrizy":
+            magbins = np.arange(min_coadds[f], max_coadds[f], 0.05)
+            metric = maf.CoaddM5PerNightMetric(
+                night_col="night",
+                m5_col="fiveSigmaDepth",
+                bins=magbins,
+                metric_name=f"{fieldname} CoaddM5PerNight",
+            )
+            plotDict = {"bins": magbins, "xlabel": "Coadded Depth Per Night"}
+            displayDict["caption"] = f"Histogram of the coadded depth in {f} in each night per DDF."
+            displayDict["order"] = orders[f]
+            plotFunc = maf.SummaryHistogram()
+            bundle = maf.MetricBundle(
+                metric,
+                ptslicer,
+                fieldsqls[f],
+                info_label=info_labels[f],
+                plot_dict=plotDict,
+                display_dict=displayDict,
+                plot_funcs=[plotFunc],
+            )
+            bundle_list.append(bundle)
+
+        # Plot of number of visits per night over time
         if fieldname.endswith("WFD"):
             pass
         else:
             displayDict["caption"] = f"Number of visits per night for {fieldname}."
+            displayDict["order"] = orders[f]
             metric = maf.CountMetric("observationStartMJD", metric_name=f"{fieldname} Nvisits Per Night")
-            slicer = maf.OneDSlicer(slice_col_name="night", bin_size=1)
+            slicer = maf.OneDSlicer(slice_col_name="night", bin_size=1, badval=0)
+            plot_dict = {"filled_data": True}
             bundle = maf.MetricBundle(
                 metric,
                 slicer,
                 fieldsqls["all"],
                 info_label=info_labels["all"],
+                plot_dict=plot_dict,
                 display_dict=displayDict,
                 summary_metrics=[
                     maf.MedianMetric(),
@@ -531,6 +582,32 @@ def ddfBatch(
                 ],
             )
             bundle_list.append(bundle)
+
+        # Likewise, but coadded depth per filter
+        if fieldname.endswith("WFD"):
+            pass
+        else:
+            for f in "ugrizy":
+                displayDict["caption"] = f"Coadded depth per night for {fieldname} in band {f}."
+                displayDict["order"] = orders[f]
+                metric = maf.Coaddm5Metric(metric_name=f"{fieldname} CoaddedM5 Per Night")
+                slicer = maf.OneDSlicer(slice_col_name="night", bin_size=1, badval=min_coadds[f])
+                plot_dict = {"filled_data": True}
+                bundle = maf.MetricBundle(
+                    metric,
+                    slicer,
+                    fieldsqls[f],
+                    info_label=info_labels[f],
+                    plot_dict=plot_dict,
+                    display_dict=displayDict,
+                    summary_metrics=[
+                        maf.MedianMetric(),
+                        maf.PercentileMetric(percentile=80, metric_name="80thPercentile"),
+                        maf.MinMetric(),
+                        maf.MaxMetric(),
+                    ],
+                )
+                bundle_list.append(bundle)
 
         displayDict["subgroup"] = "Sequence gaps"
 
@@ -582,12 +659,13 @@ def ddfBatch(
             # Sometimes number of seasons is 10, sometimes 11
             # (depending on where survey starts/end)
             # so normalize it so there's always 11 values
+            # by adding 0 at the end.
             if len(simdata) < 11:
                 simdata = np.concatenate([simdata, np.array([0], float)])
             return simdata
 
         metric = maf.SeasonLengthMetric(reduce_func=rfunc, metric_dtype="object")
-        plotDict = {"bins": np.arange(0, 12), "xlabel": "Season length (days)"}
+        plotDict = {"bins": np.arange(0, 12), "ylabel": "Season length (days)", "xlabel": "Season"}
         plotFunc = maf.SummaryHistogram()
         displayDict["caption"] = f"Plot of the season length per season in the {fieldname} DDF."
         displayDict["order"] = order

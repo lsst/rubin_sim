@@ -1,5 +1,6 @@
-__all__ = ("ra_dec2_alt_az", "GalacticStacker", "EclipticStacker")
+__all__ = ("ra_dec2_alt_az", "GalacticStacker", "EclipticStacker", "HealpixStacker")
 
+import healpy as hp
 import numpy as np
 from astropy import units as u
 from astropy.coordinates import SkyCoord, get_sun
@@ -7,7 +8,24 @@ from astropy.time import Time
 from rubin_scheduler.utils import calc_lmst
 
 from .base_stacker import BaseStacker
-from .dither_stackers import wrap_ra
+
+
+def wrap_ra(ra):
+    """
+    Wrap only RA values into 0-2pi (using mod).
+
+    Parameters
+    ----------
+    ra : numpy.ndarray
+        RA in radians
+
+    Returns
+    -------
+    numpy.ndarray
+        Wrapped RA values, in radians.
+    """
+    ra = ra % (2.0 * np.pi)
+    return ra
 
 
 def ra_dec2_alt_az(ra, dec, lat, lon, mjd, altonly=False):
@@ -86,7 +104,8 @@ class GalacticStacker(BaseStacker):
     def _run(self, sim_data, cols_present=False):
         # raCol and DecCol in radians, gall/b in radians.
         if cols_present:
-            # Column already present in data; assume it is correct and does not need recalculating.
+            # Column already present in data;
+            # assume it is correct and does not need recalculating.
             return sim_data
         if self.degrees:
             c = SkyCoord(ra=sim_data[self.ra_col] * u.deg, dec=sim_data[self.dec_col] * u.deg).transform_to(
@@ -102,7 +121,9 @@ class GalacticStacker(BaseStacker):
 
 
 class EclipticStacker(BaseStacker):
-    """Add the ecliptic coordinates of each RA/Dec pointing: eclipLat, eclipLon
+    """Add the ecliptic coordinates of each RA/Dec pointing:
+    eclipLat, eclipLon
+
     Optionally subtract off the sun's ecliptic longitude and wrap.
 
     Parameters
@@ -140,7 +161,8 @@ class EclipticStacker(BaseStacker):
 
     def _run(self, sim_data, cols_present=False):
         if cols_present:
-            # Column already present in data; assume it is correct and does not need recalculating.
+            # Column already present in data;
+            # assume it is correct and does not need recalculating.
             return sim_data
         for i in np.arange(sim_data.size):
             if self.degrees:
@@ -164,4 +186,39 @@ class EclipticStacker(BaseStacker):
         if self.degrees:
             sim_data["eclipLon"] = np.degrees(sim_data["eclipLon"])
             sim_data["eclipLat"] = np.degrees(sim_data["eclipLat"])
+        return sim_data
+
+
+class HealpixStacker(BaseStacker):
+    """Add healpix id
+
+    Parameters
+    ----------
+    ra_col : str, optional
+        Name of the RA column. Default fieldRA.
+    dec_col : str, optional
+        Name of the Dec column. Default fieldDec.
+    nside : int
+        nside healpix to use. Default to 128.
+    """
+
+    cols_added = ["ring_healpix", "nest_healpix"]
+
+    def __init__(self, ra_col: str = "fieldRA", dec_col: str = "fieldDec", nside: int = 128):
+        self.cols_req = [ra_col, dec_col]
+        self.ra_col = ra_col
+        self.dec_col = dec_col
+        self.nside = nside
+        self.units = [f"healpix (ring, nside={nside})", f"healpix (nest, nside={nside})"]
+
+    def _run(self, sim_data, cols_present=False):
+        if cols_present:
+            # Column already present in data;
+            # assume it is correct and does not need recalculating.
+            return sim_data
+
+        ra = sim_data[self.ra_col]
+        decl = sim_data[self.dec_col]
+        sim_data["ring_healpix"] = hp.ang2pix(self.nside, ra, decl, nest=False, lonlat=True)
+        sim_data["nest_healpix"] = hp.ang2pix(self.nside, ra, decl, nest=True, lonlat=True)
         return sim_data

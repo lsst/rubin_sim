@@ -388,7 +388,7 @@ class Orbits:
                 "COMPCODE",
             )
             # First use names_com, and then change if required.
-            orbits = pd.read_csv(orbit_file, delim_whitespace=True, header=None, names=names_com)
+            orbits = pd.read_csv(orbit_file, sep=r"\s+", header=None, names=names_com)
 
             if orbits["FORMAT"][0] == "KEP":
                 orbits.columns = names_kep
@@ -397,7 +397,7 @@ class Orbits:
 
         else:
             if delim is None:
-                orbits = pd.read_csv(orbit_file, delim_whitespace=True, skiprows=skiprows, names=names)
+                orbits = pd.read_csv(orbit_file, sep=r"\s+", skiprows=skiprows, names=names)
             else:
                 orbits = pd.read_csv(orbit_file, sep=delim, skiprows=skiprows, names=names)
 

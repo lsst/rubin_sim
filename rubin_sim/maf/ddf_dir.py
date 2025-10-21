@@ -1,8 +1,3 @@
-__all__ = ("ddf_dir",)
-
-import matplotlib
-
-matplotlib.use("Agg")
 import argparse
 import glob
 import os
@@ -11,6 +6,12 @@ import shutil
 import rubin_sim.maf.batches as batches
 import rubin_sim.maf.db as db
 import rubin_sim.maf.metric_bundles as mb
+
+__all__ = ("ddf_dir",)
+
+import matplotlib
+
+matplotlib.use("Agg")
 
 
 def ddf_dir():
@@ -21,6 +22,9 @@ def ddf_dir():
     parser = argparse.ArgumentParser()
     parser.add_argument("--db", type=str, default=None)
     parser.add_argument("--nside", type=int, default=512)
+    parser.add_argument("--old_coords", dest="old_coords", action="store_true")
+    parser.set_defaults(verbose=False)
+
     args = parser.parse_args()
 
     if args.db is None:
@@ -35,7 +39,7 @@ def ddf_dir():
             shutil.rmtree(name + "_ddf")
 
         bdict = {}
-        bdict.update(batches.ddfBatch(run_name=name, nside=args.nside))
+        bdict.update(batches.ddfBatch(run_name=name, nside=args.nside, old_coords=args.old_coords))
         results_db = db.ResultsDb(out_dir=name + "_ddf")
         group = mb.MetricBundleGroup(
             bdict,
