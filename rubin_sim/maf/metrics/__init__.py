@@ -44,8 +44,8 @@ from .technical_metrics import *
 from .tgaps import *
 from .tomography_models import *
 from .transient_metrics import *
-from .use_metrics import *
 from .uniformity_metrics import *
+from .use_metrics import *
 from .vector_metrics import *
 from .visit_groups_metric import *
 from .weak_lensing_systematics_metric import *

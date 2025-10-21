@@ -6,21 +6,20 @@ __all__ = (
 )
 
 import warnings
+from copy import deepcopy
 
 import healpy as hp
 import numpy as np
-from scipy import interpolate
-from scipy.stats import median_abs_deviation
 from astropy import units as u
 from astropy.coordinates import SkyCoord
+from scipy import interpolate
+from scipy.stats import median_abs_deviation
 from sklearn.cluster import KMeans
-from copy import deepcopy
 
 from ..maf_contrib.static_probes_fom_summary_metric import StaticProbesFoMEmulatorMetric
 from .area_summary_metrics import AreaThresholdMetric
 from .base_metric import BaseMetric
-from .simple_metrics import RmsMetric
-
+from .simple_metrics import PercentileMetric, RmsMetric
 
 # Cosmology-related summary metrics.
 # These generally calculate a FoM for various DESC metrics.
@@ -52,14 +51,14 @@ class TotalPowerMetric(BaseMetric):
     """
 
     def __init__(
-            self,
-            lmin=100.0,
-            lmax=300.0,
-            remove_monopole=True,
-            remove_dipole=True,
-            col="metricdata",
-            mask_val=np.nan,
-            **kwargs,
+        self,
+        lmin=100.0,
+        lmax=300.0,
+        remove_monopole=True,
+        remove_dipole=True,
+        col="metricdata",
+        mask_val=np.nan,
+        **kwargs,
     ):
         self.lmin = lmin
         self.lmax = lmax
@@ -226,12 +225,12 @@ class TomographicClusteringSigma8biasMetric(BaseMetric):
     """
 
     def __init__(
-            self,
-            density_tomography_model,
-            power_multiplier=0.1,
-            lmin=10,
-            convert_to_sigma8=True,
-            **kwargs,
+        self,
+        density_tomography_model,
+        power_multiplier=0.1,
+        lmin=10,
+        convert_to_sigma8=True,
+        **kwargs,
     ):
         super().__init__(col="metricdata", **kwargs)
         # Set mask_val, so that we receive metric_values.filled(mask_val)
@@ -264,8 +263,6 @@ class TomographicClusteringSigma8biasMetric(BaseMetric):
         ]
         # should be (nbins, npix)
         data_slice_arr = np.asarray(data_slice_list, dtype=float).T
-        # hp.mollview(data_slice_arr[0])
-        ### data_slice_arr[data_slice_arr == -666] = hp.UNSEEN  ############
         data_slice_arr[~np.isfinite(data_slice_arr)] = (
             hp.UNSEEN
         )  # need to work with TotalPowerMetric and healpix
@@ -286,15 +283,15 @@ class TomographicClusteringSigma8biasMetric(BaseMetric):
             ]
         )  # sky fraction
         spuriousdensitypowers = (
-                np.array(
-                    [
-                        self.totalPowerMetrics[i].run(
-                            np.core.records.fromrecords(x, dtype=[("metricdata", float)])
-                        )
-                        for i, x in enumerate(data_slice_arr)
-                    ]
-                )
-                / fskys
+            np.array(
+                [
+                    self.totalPowerMetrics[i].run(
+                        np.core.records.fromrecords(x, dtype=[("metricdata", float)])
+                    )
+                    for i, x in enumerate(data_slice_arr)
+                ]
+            )
+            / fskys
         )
         print("spuriousdensitypowers:", spuriousdensitypowers)
         print("fskys:", fskys)
@@ -332,7 +329,7 @@ class TomographicClusteringSigma8biasMetric(BaseMetric):
                 totalvar_obs[i, 0] = totalvar_mod[i, 0] + spurious_powers[i] * power_multiplier
 
                 # simple model variance of cell based on Gaussian covariance
-                cells_var = 2 * cells_model ** 2 / (2 * ells + 1) / fskys[i]
+                cells_var = 2 * cells_model**2 / (2 * ells + 1) / fskys[i]
                 totalvar_var[i, 0] = np.sum(cells_var * (2 * ells + 1) ** 2)
 
             # model assumed sigma8 = 0.8
@@ -350,7 +347,7 @@ class TomographicClusteringSigma8biasMetric(BaseMetric):
             FTT = np.sum(transfers[:, 0] * transfers[:, 0] / totalvar_var[:, 0])
             # mean and stddev of multiplicative factor
             sigma8square_fit = FOT / FTT
-            sigma8square_error = FTT ** -0.5
+            sigma8square_error = FTT**-0.5
 
             return sigma8square_fit, sigma8square_error, sigma8square_model
 
@@ -367,14 +364,13 @@ class TomographicClusteringSigma8biasMetric(BaseMetric):
 
             # turn result into bias on sigma8,
             # via change of variable and simple propagation of uncertainty.
-            sigma8_fit = sigma8square_fit ** 0.5
-            sigma8_model = sigma8square_model ** 0.5
+            sigma8_fit = sigma8square_fit**0.5
+            sigma8_model = sigma8square_model**0.5
             sigma8_error = 0.5 * sigma8square_error * sigma8_fit / sigma8square_fit
             results_sigma8_bias = (sigma8_fit - sigma8_model) / sigma8_error
             print(sigma8square_model, sigma8square_fit, sigma8square_error, results_sigma8_square_bias)
             print(sigma8_model, sigma8_fit, sigma8_error, results_sigma8_bias)
             return results_sigma8_bias
-
 
 
 class MultibandMeanzBiasMetric(BaseMetric):
@@ -390,10 +386,10 @@ class MultibandMeanzBiasMetric(BaseMetric):
     meanz_tomograph_model : `dict`
         dictionary containing models calculated for fiducial N(z):
 
-        meanz: numpy.float 
+        meanz: numpy.float
             the meanz within a tomographic bin at a given band
         dz_dm5: numpy.float
-            the absolute value of the derivative of z in a bin as a function 
+            the absolute value of the derivative of z in a bin as a function
             of the depth, m5 magnitude. This is later used to translate fluctuations
             in depth to fluctuations in tomographic redshift
 
@@ -411,28 +407,33 @@ class MultibandMeanzBiasMetric(BaseMetric):
 
     MultibandExgalM5 provides the m5 depth in all LSST bands given a specific slice.
 
-    This summary metric takes those depths and reads the derivatives from the tomogrpahic model, 
+    This summary metric takes those depths and reads the derivatives from the tomogrpahic model,
     computes the bias in shear signal Cl and then computes the ratio of that bias to the Y1 goal and
-    Y10 science requirement. 
+    Y10 science requirement.
     """
 
-    def __init__(self, 
-                 meanz_tomography_model,
-                 filter_list=["u", "g", "r", "i", "z", "y"], 
-                 year=10, n_filters=6, **kwargs):
+    def __init__(
+        self,
+        meanz_tomography_model,
+        filter_list=["u", "g", "r", "i", "z", "y"],
+        year=10,
+        zbins=4,
+        **kwargs,
+    ):
 
         super().__init__(col="metricdata", **kwargs)
         # Set mask_val, so that we receive metric_values.filled(mask_val)
-        self.mask_val = hp.UNSEEN
-        self.badval = hp.UNSEEN
-        self.rmsMetric = RmsMetric()
+        self.mask_val = np.nan
+        self.badval = np.nan
+        self.rms_func = np.nanstd
         self.year = year
         self.filter_list = filter_list
+        self.zbins = zbins
+        self.tomo_model = meanz_tomography_model
 
     def run(self, data_slice, slice_point=None):
 
-        def compute_dzfromdm(zbins, model_z, band_ind, year):
-
+        def compute_dzfromdm(zbins, band_name, year):
             """This computes the dm/dz relationship calibrated from simulations
             by Jeff Newmann and Qianjun Hang, which forms the meanz_tomographic_model.
 
@@ -440,7 +441,7 @@ class MultibandMeanzBiasMetric(BaseMetric):
             ----------
             zbins : `int`
                 The number of tomographic bins considered. For now this is zbins < 5
-            filter : `str`
+            band_name : `str`
                 The assumed filter band
             model_z: dict
                 The meanz_tomographic_model assumed in this work
@@ -453,19 +454,16 @@ class MultibandMeanzBiasMetric(BaseMetric):
                 The meanz in each tomographic bin.
 
             """
-            import pandas as pd
-
-            filter_list = ["u", "g", "r", "i", "z", "y"]
-            meanzinterp=np.zeros(zbins)
-            dzdminterp=np.zeros(zbins)
+            meanzinterp = np.zeros(zbins)
+            dzdminterp = np.zeros(zbins)
 
             for z in range(zbins):
-                meanzinterp[z]=model_z["year%i"%(year+1)]["meanz"][z][filter]
-                dzdminterp[z] =model_z["year%i"%(year+1)]["dz_dm5"][z][filter]
+                meanzinterp[z] = self.tomo_model["year%i" % (year + 1)]["meanz"][z][band_name]
+                dzdminterp[z] = self.tomo_model["year%i" % (year + 1)]["dz_dm5"][z][band_name]
 
             return dzdminterp, meanzinterp
 
-        ## Not entirely sure if we should include these here or in a separate module/file
+        # Not entirely sure if we should include these here or in a separate module/file
         def use_zbins(meanz_vals, figure_9_mean_z=np.array([0.2, 0.4, 0.7, 1.0]), figure_9_width=0.2):
             """This computes which redshift bands are within the range
             specified in https://arxiv.org/pdf/2305.15406.pdf and can safely be used
@@ -516,7 +514,6 @@ class MultibandMeanzBiasMetric(BaseMetric):
             This interpolates from the Figure 9 in https://arxiv.org/pdf/2305.15406.pdf
 
             """
-            import numpy as np
 
             figure_9_mean_z = np.array([0.2, 0.4, 0.7, 1.0])
             figure_9_Clbias = np.array([1e-3, 2e-3, 5e-3, 1.1e-2])
@@ -542,7 +539,7 @@ class MultibandMeanzBiasMetric(BaseMetric):
             clbiasvals = poly_fit_bias(mean_z_values_use)
             return clbiasvals, mean_z_values_use
 
-        result = np.empty(1, dtype=[("name", np.str_, 20), ("y1ratio", float), ("y10ratio", float)])
+        result = np.empty(self.zbins, dtype=[("name", np.str_, 20), ("y1ratio", float), ("y10ratio", float)])
         result["name"][0] = "MultibandMeanzBiasMetric"
 
         # Technically don't need this for now (isn't used in previous one)
@@ -552,27 +549,17 @@ class MultibandMeanzBiasMetric(BaseMetric):
         data_slice_list = [
             badval_arr if isinstance(x, float) else x for x in data_slice["metricdata"].tolist()
         ]
-        lengths = np.array([len(x) for x in data_slice_list])
         # should be (nbins, npix)
         data_slice_arr = np.asarray(data_slice_list, dtype=float).T
-        data_slice_arr[~np.isfinite(data_slice_arr)] = (
-            hp.UNSEEN
-        )  # need to work with TotalPowerMetric and healpix
+        data_slice_arr[~np.isfinite(data_slice_arr)] = np.nan
 
         # measure rms in each bin.
-        # The original metric returns an array at each slice_point (of the
-        # original slicer) -- so there is a bit of "rearrangement" that
-        # has to happen to be able to pass a np.array with right dtype
-        # (i.e. dtype = [("metricdata", float)]) to each call to
-        # the rmsMetric `run` methods.
-        rmsarray = np.array(
-            [
-                self.rmsMetric.run(np.core.records.fromrecords(x, dtype=[("metricdata", float)]))
-                for x in data_slice_arr
-            ]
-        )  # rms values
 
-        totdz = 0
+        # XXX--this is probably meant to be run on
+        # only valid values, so changing to nanstd
+        rmsarray = self.rms_func(data_slice_arr, axis=1)
+
+        # totdz = 0
         avmeanz = 0
         totclbias = 0
 
@@ -582,7 +569,7 @@ class MultibandMeanzBiasMetric(BaseMetric):
 
             clbias, meanz_use = compute_Clbias(meanzinterp, stdz)
 
-            totdz += [float(st ** 2) for st in stdz]
+            # totdz += [float(st**2) for st in stdz]
             totclbias += clbias
             avmeanz += meanzinterp
 
@@ -596,6 +583,7 @@ class MultibandMeanzBiasMetric(BaseMetric):
 
         result["y1ratio"] = y1ratio
         result["y10ratio"] = y10ratio
+        return result
 
 
 # Let's make code that pulls out the northern/southern galactic regions, and gets statistics of the footprint by region.
@@ -673,11 +661,11 @@ class StripinessMetric(BaseMetric):
     """
 
     def __init__(
-            self,
-            year,
-            nside,
-            verbose=True,
-            **kwargs,
+        self,
+        year,
+        nside,
+        verbose=True,
+        **kwargs,
     ):
         self.year = year
         self.mask_val = hp.UNSEEN
@@ -743,11 +731,11 @@ class UniformAreaFoMFractionMetric(BaseMetric):
     """
 
     def __init__(
-            self,
-            year,
-            nside,
-            verbose=True,
-            **kwargs,
+        self,
+        year,
+        nside,
+        verbose=True,
+        **kwargs,
     ):
         self.year = year
         self.mask_val = hp.UNSEEN
@@ -852,16 +840,16 @@ class UniformAreaFoMFractionMetric(BaseMetric):
             my_data = np.zeros((n_unmasked, 3))
             cutval = 0.1 + maskval
             my_data[:, 0] = (
-                    ra[depth_map > cutval]
-                    * (1 - priority_fac)
-                    * np.std(depth_map[depth_map > cutval])
-                    / np.std(ra[depth_map > cutval])
+                ra[depth_map > cutval]
+                * (1 - priority_fac)
+                * np.std(depth_map[depth_map > cutval])
+                / np.std(ra[depth_map > cutval])
             )
             my_data[:, 1] = (
-                    dec[depth_map > cutval]
-                    * (1 - priority_fac)
-                    * np.std(depth_map[depth_map > cutval])
-                    / np.std(dec[depth_map > cutval])
+                dec[depth_map > cutval]
+                * (1 - priority_fac)
+                * np.std(depth_map[depth_map > cutval])
+                / np.std(dec[depth_map > cutval])
             )
             my_data[:, 2] = depth_map[depth_map > cutval]
             return my_data
@@ -933,14 +921,12 @@ class uDropoutsNumbersShallowestDepth(BaseMetric):
 
     """
 
-    def __init__(self,
-                 filter_list=["u", "g", "r", "i", "z", "y"],
-                 **kwargs):
+    def __init__(self, filter_list=["u", "g", "r", "i", "z", "y"], **kwargs):
         super().__init__(col="metricdata", percentile=5, **kwargs)
         # Set mask_val, so that we receive metric_values.filled(mask_val)
         self.mask_val = hp.UNSEEN
         self.badval = hp.UNSEEN
-        self.percentileMetric = PercentileMetric(percentile=5, name='percentile')
+        self.percentileMetric = PercentileMetric(percentile=5, name="percentile")
         self.filter_list = filter_list
 
     def run(self, data_slice, slice_point=None):
@@ -951,7 +937,6 @@ class uDropoutsNumbersShallowestDepth(BaseMetric):
         data_slice_list = [
             badval_arr if isinstance(x, float) else x for x in data_slice["metricdata"].tolist()
         ]
-        lengths = np.array([len(x) for x in data_slice_list])
         # should be (nbins, npix)
         data_slice_arr = np.asarray(data_slice_list, dtype=float).T
         data_slice_arr[~np.isfinite(data_slice_arr)] = (
@@ -971,16 +956,16 @@ class uDropoutsNumbersShallowestDepth(BaseMetric):
             ]
         )  # 6 numbers
 
-        from astropy.modeling.models import Schechter1D
-        from astropy.cosmology import Planck18 as cosmo
         import astropy.units as u
+        from astropy.cosmology import Planck18 as cosmo
+        from astropy.modeling.models import Schechter1D
 
         def schecter_lf(
-                m_grid: np.ndarray,
-                log_phi_star: float = -2.84,
-                M_star: float = -20.91,
-                alpha: float = -1.68,
-                redshift: float = 3,
+            m_grid: np.ndarray,
+            log_phi_star: float = -2.84,
+            M_star: float = -20.91,
+            alpha: float = -1.68,
+            redshift: float = 3,
         ) -> np.ndarray:
             """Schecter Luminosity Function on grid of apparent magnitudes.
 
@@ -1014,15 +999,15 @@ class uDropoutsNumbersShallowestDepth(BaseMetric):
             M_grid = m_grid - 5 * np.log10(DL / 10) + 2.5 * np.log10(1 + redshift)
 
             # Calculate luminosity function in absolute magnitudes
-            schechter = Schechter1D(10 ** log_phi_star, M_star, alpha)
+            schechter = Schechter1D(10**log_phi_star, M_star, alpha)
 
             return schechter(M_grid)
 
         def number_density(
-                m_grid: np.ndarray,
-                LF: np.ndarray,
-                redshift: float = 3,
-                dz: float = 1,
+            m_grid: np.ndarray,
+            LF: np.ndarray,
+            redshift: float = 3,
+            dz: float = 1,
         ) -> float:
             """Calculate number density per deg^2.
 
@@ -1050,18 +1035,18 @@ class uDropoutsNumbersShallowestDepth(BaseMetric):
             dchi = chi_far - chi_near
 
             # Calculate number density (mag^-1 Mpc^-2)
-            n_dm = (LF / u.Mpc ** 3) * dchi
+            n_dm = (LF / u.Mpc**3) * dchi
 
             # Convert to mag^-1 deg^-2
             deg_per_Mpc = cosmo.arcsec_per_kpc_comoving(redshift).to(u.deg / u.Mpc)
-            n_dm /= deg_per_Mpc ** 2
+            n_dm /= deg_per_Mpc**2
 
             # Integrate the luminosity function
             n = np.trapz(n_dm, m_grid)
 
             return n.value
 
-        u5 = percentiles[self.filter_list == 'u']  # uband m5
+        u5 = percentiles[self.filter_list == "u"]  # uband m5
         u3 = u5 + 2.5 * np.log10(5 / 3)  # convert to uband 3-sigma
         g_cut = u3 - 1.5  # cut on g band
         # Calculate LF up to g_cut
@@ -1099,14 +1084,12 @@ class uDropoutsArea(BaseMetric):
 
     """
 
-    def __init__(self,
-                 filter_list=["u", "g", "r", "i", "z", "y"],
-                 **kwargs):
+    def __init__(self, filter_list=["u", "g", "r", "i", "z", "y"], **kwargs):
         super().__init__(col="metricdata", percentile=5, **kwargs)
         # Set mask_val, so that we receive metric_values.filled(mask_val)
         self.mask_val = hp.UNSEEN
         self.badval = hp.UNSEEN
-        self.percentileMetric = PercentileMetric(percentile=5, name='percentile')
+        self.percentileMetric = PercentileMetric(percentile=5, name="percentile")
         self.filter_list = filter_list
 
     def run(self, data_slice, slice_point=None):
@@ -1117,7 +1100,6 @@ class uDropoutsArea(BaseMetric):
         data_slice_list = [
             badval_arr if isinstance(x, float) else x for x in data_slice["metricdata"].tolist()
         ]
-        lengths = np.array([len(x) for x in data_slice_list])
         # should be (nbins, npix)
         data_slice_arr = np.asarray(data_slice_list, dtype=float).T
         data_slice_arr[~np.isfinite(data_slice_arr)] = (
@@ -1136,5 +1118,4 @@ class uDropoutsArea(BaseMetric):
                 for x in data_slice_arr
             ]
         )  # 6 numbers
-
-
+        return percentiles
