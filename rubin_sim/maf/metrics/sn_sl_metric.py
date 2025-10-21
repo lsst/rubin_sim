@@ -73,7 +73,7 @@ class SNSLMetric(metrics.BaseMetric):
         self,
         metric_name="SNSLMetric",
         mjd_col="observationStartMJD",
-        filter_col="filter",
+        filter_col="band",
         night_col="night",
         m5_col="fiveSigmaDepth",
         season=None,

@@ -25,7 +25,7 @@ class DcrPrecisionMetric(BaseMetric):
         m5_col="fiveSigmaDepth",
         ha_col="HA",
         pa_col="paraAngle",
-        filter_col="filter",
+        filter_col="band",
         atm_err=0.01,
         sed_template="flat",
         rmag=20.0,

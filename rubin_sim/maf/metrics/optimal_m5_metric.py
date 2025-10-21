@@ -48,7 +48,7 @@ class OptimalM5Metric(BaseMetric):
         self,
         m5_col="fiveSigmaDepth",
         opt_m5_col="m5Optimal",
-        filter_col="filter",
+        filter_col="band",
         mag_diff=False,
         normalize=False,
         **kwargs,

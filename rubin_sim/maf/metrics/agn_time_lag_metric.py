@@ -16,7 +16,7 @@ class AgnTimeLagMetric(BaseMetric):
         threshold=2.2,
         calc_type="mean",
         mjd_col="observationStartMJD",
-        filter_col="filter",
+        filter_col="band",
         m5_col="fiveSigmaDepth",
         dust=True,
         g_cutoff=22.0,

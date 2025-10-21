@@ -26,7 +26,7 @@ class ExgalM5(BaseMetric):
     """
 
     def __init__(
-        self, m5_col="fiveSigmaDepth", metric_name="ExgalM5", units="mag", filter_col="filter", **kwargs
+        self, m5_col="fiveSigmaDepth", metric_name="ExgalM5", units="mag", filter_col="band", **kwargs
     ):
         # Set the name for the dust map to use.
         # This is gathered into the MetricBundle.

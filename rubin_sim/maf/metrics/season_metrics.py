@@ -220,7 +220,7 @@ class TdcMetric(BaseMetric):
         self,
         mjd_col="observationStartMJD",
         night_col="night",
-        filter_col="filter",
+        filter_col="band",
         m5_col="fiveSigmaDepth",
         mag_cuts=None,
         metric_name="TDC",

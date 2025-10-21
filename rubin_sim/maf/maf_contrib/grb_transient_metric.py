@@ -80,7 +80,7 @@ class GRBTransientMetric(metrics.BaseMetric):
         metric_name="GRBTransientMetric",
         mjd_col="expMJD",
         m5_col="fiveSigmaDepth",
-        filter_col="filter",
+        filter_col="band",
         trans_duration=10.0,
         survey_duration=10.0,
         survey_start=None,

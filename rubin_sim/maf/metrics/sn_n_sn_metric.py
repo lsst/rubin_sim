@@ -78,7 +78,7 @@ class SNNSNMetric(BaseMetric):
         self,
         metric_name="SNNSNMetric",
         mjd_col="observationStartMJD",
-        filter_col="filter",
+        filter_col="band",
         m5_col="fiveSigmaDepth",
         exptime_col="visitExposureTime",
         night_col="night",

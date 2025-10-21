@@ -117,7 +117,7 @@ class BaseMoMetric(BaseMetric):
         dec_col="dec",
         seeing_col="seeingFwhmGeom",
         exp_time_col="visitExposureTime",
-        filter_col="filter",
+        filter_col="band",
     ):
         # Set metric name.
         self.name = metric_name
