@@ -117,7 +117,7 @@ class TeffStacker(BaseStacker):
     def __init__(
         self,
         m5_col="fiveSigmaDepth",
-        filter_col="filter",
+        filter_col="band",
         exptime_col="visitExposureTime",
         fiducial_depth=None,
         fiducial_exptime=None,

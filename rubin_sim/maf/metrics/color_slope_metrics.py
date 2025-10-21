@@ -20,7 +20,7 @@ class CheckColorSlope(object):
     """
 
     def __init__(
-        self, color_length=1.0, slope_length=3.0, filter_col="filter", mjd_col="observationStartMJD"
+        self, color_length=1.0, slope_length=3.0, filter_col="band", mjd_col="observationStartMJD"
     ):
         self.color_length = color_length / 24.0
         self.slope_length = slope_length / 24.0
@@ -89,7 +89,7 @@ class ColorSlopeMetric(BaseMetric):
         self,
         mag=None,
         night_col="night",
-        filter_col="filter",
+        filter_col="band",
         m5_col="fiveSigmaDepth",
         color_length=1.0,
         slope_length=3.0,
@@ -147,7 +147,7 @@ class ColorSlope2NightMetric(ColorSlopeMetric):
         self,
         mag=None,
         night_col="night",
-        filter_col="filter",
+        filter_col="band",
         m5_col="fiveSigmaDepth",
         color_length=1.0,
         slope_length=15.0,

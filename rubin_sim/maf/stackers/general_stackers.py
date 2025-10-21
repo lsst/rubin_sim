@@ -53,7 +53,7 @@ class SaturationStacker(BaseStacker):
         skybrightness_col="skyBrightness",
         exptime_col="visitExposureTime",
         nexp_col="numExposures",
-        filter_col="filter",
+        filter_col="band",
         airmass_col="airmass",
         saturation_e=150e3,
         zeropoints=None,
@@ -168,7 +168,7 @@ class FiveSigmaStacker(BaseStacker):
         airmass_col="airmass",
         seeing_col="seeingFwhmEff",
         skybrightness_col="skyBrightness",
-        filter_col="filter",
+        filter_col="band",
         exptime_col="visitExposureTime",
     ):
         self.units = ["mag"]
@@ -410,7 +410,7 @@ class DcrStacker(BaseStacker):
 
     def __init__(
         self,
-        filter_col="filter",
+        filter_col="band",
         alt_col="altitude",
         degrees=True,
         ra_col="fieldRA",

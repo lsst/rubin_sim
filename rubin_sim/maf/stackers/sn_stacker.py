@@ -38,7 +38,7 @@ class CoaddStacker(BaseStacker):
         ra_col="fieldRA",
         dec_col="fieldDec",
         m5_col="fiveSigmaDepth",
-        filter_col="filter",
+        filter_col="band",
         night_col="night",
         num_exposures_col="numExposures",
         visit_time_col="visitTime",

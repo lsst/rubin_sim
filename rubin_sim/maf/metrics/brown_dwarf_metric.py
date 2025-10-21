@@ -85,7 +85,7 @@ class BDParallaxMetric(BaseMetric):
         self,
         metric_name="bdParallax",
         m5_col="fiveSigmaDepth",
-        filter_col="filter",
+        filter_col="band",
         seeing_col="seeingFwhmGeom",
         badval=0,
         mags=None,

@@ -56,7 +56,7 @@ class PeriodicDetectMetric(BaseMetric):
         amplitudes=0.1,
         m5_col="fiveSigmaDepth",
         metric_name="PeriodicDetectMetric",
-        filter_col="filter",
+        filter_col="band",
         star_mags=20,
         sig_level=0.05,
         sed_template="F",

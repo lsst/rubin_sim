@@ -31,7 +31,7 @@ class QSONumberCountsMetric(BaseMetric):
         m5_col="fiveSigmaDepth",
         units="mag",
         extinction_cut=1.0,
-        filter_col="filter",
+        filter_col="band",
         metric_name="QSONumberCountsMetric",
         qlf_module="Shen20",
         qlf_model="A",

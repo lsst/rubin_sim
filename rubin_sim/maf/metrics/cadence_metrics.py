@@ -18,7 +18,7 @@ from .base_metric import BaseMetric
 class FSMetric(BaseMetric):
     """Calculate the fS value (Nvisit-weighted delta(M5-M5srd))."""
 
-    def __init__(self, filter_col="filter", metric_name="fS", **kwargs):
+    def __init__(self, filter_col="band", metric_name="fS", **kwargs):
         self.filter_col = filter_col
         cols = [self.filter_col]
         super().__init__(cols=cols, metric_name=metric_name, units="fS", **kwargs)

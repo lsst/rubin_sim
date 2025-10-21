@@ -25,7 +25,7 @@ class ExgalM5WithCuts(BaseMetric):
     def __init__(
         self,
         m5_col="fiveSigmaDepth",
-        filter_col="filter",
+        filter_col="band",
         metric_name="Exgalm5WithCuts",
         units="mag",
         lsst_filter="i",
@@ -90,7 +90,7 @@ class WeakLensingNvisits(BaseMetric):
         self,
         m5_col="fiveSigmaDepth",
         exp_time_col="visitExposureTime",
-        filter_col="filter",
+        filter_col="band",
         lsst_filter="i",
         depth_cut=24.5,
         ebvlim=0.2,
@@ -171,7 +171,7 @@ class RIZDetectionCoaddExposureTime(BaseMetric):
     def __init__(
         self,
         exp_time_col="visitExposureTime",
-        filter_col="filter",
+        filter_col="band",
         ebvlim=0.2,
         min_expTime=15,
         det_bands=None,

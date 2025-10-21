@@ -112,7 +112,7 @@ class SurfaceBrightLimitMetric(BaseMetric):
         pixscale=0.2,
         nsigma=3.0,
         tot_area=100.0,
-        filter_col="filter",
+        filter_col="band",
         units="mag/sq arcsec",
         airmass_col="airmass",
         exptime_col="visitExposureTime",

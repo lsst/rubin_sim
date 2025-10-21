@@ -84,7 +84,7 @@ class TransientMetric(BaseMetric):
         metric_name="TransientDetectMetric",
         mjd_col="observationStartMJD",
         m5_col="fiveSigmaDepth",
-        filter_col="filter",
+        filter_col="band",
         trans_duration=10.0,
         peak_time=5.0,
         rise_slope=0.0,

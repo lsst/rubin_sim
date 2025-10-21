@@ -88,7 +88,7 @@ class PeriodicStarModulationMetric(BaseMetric):
         metric_name="PeriodicStarModulationMetric",
         mjd_col="observationStartMJD",
         m5_col="fiveSigmaDepth",
-        filter_col="filter",
+        filter_col="band",
         period=10.0,
         amplitude=0.5,
         phase=2.0,
