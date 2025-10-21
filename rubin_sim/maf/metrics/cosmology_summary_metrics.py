@@ -19,7 +19,7 @@ from sklearn.cluster import KMeans
 from ..maf_contrib.static_probes_fom_summary_metric import StaticProbesFoMEmulatorMetric
 from .area_summary_metrics import AreaThresholdMetric
 from .base_metric import BaseMetric
-from .simple_metrics import PercentileMetric, RmsMetric
+from .simple_metrics import PercentileMetric
 
 # Cosmology-related summary metrics.
 # These generally calculate a FoM for various DESC metrics.
@@ -381,7 +381,8 @@ class MultibandMeanzBiasMetric(BaseMetric):
     ----------
     year : `int`, optional
         The year of the survey to calculate the bias.
-        This is used to derive the dm/dz derivative used to translate m5 rms into dz rms.
+        This is used to derive the dm/dz derivative used to
+        translate m5 rms into dz rms.
 
     meanz_tomograph_model : `dict`
         dictionary containing models calculated for fiducial N(z):
@@ -390,13 +391,15 @@ class MultibandMeanzBiasMetric(BaseMetric):
             the meanz within a tomographic bin at a given band
         dz_dm5: numpy.float
             the absolute value of the derivative of z in a bin as a function
-            of the depth, m5 magnitude. This is later used to translate fluctuations
+            of the depth, m5 magnitude. This is later used to
+            translate fluctuations
             in depth to fluctuations in tomographic redshift
 
     Returns
     -------
     result : `float` array
-        The ratio of this bias to the desired DESC y1 upper bound on the bias, and the ratio
+        The ratio of this bias to the desired DESC y1 upper
+        bound on the bias, and the ratio
         between the clbias and the y10 DESC SRD requirement.
         Desired values are less than 1 by Y10.
 
@@ -405,10 +408,13 @@ class MultibandMeanzBiasMetric(BaseMetric):
     This is a summary metric to be run on the results
     of the MultibandExgalM5.
 
-    MultibandExgalM5 provides the m5 depth in all LSST bands given a specific slice.
+    MultibandExgalM5 provides the m5 depth in all LSST bands
+    given a specific slice.
 
-    This summary metric takes those depths and reads the derivatives from the tomogrpahic model,
-    computes the bias in shear signal Cl and then computes the ratio of that bias to the Y1 goal and
+    This summary metric takes those depths and reads the derivatives
+    from the tomogrpahic model,
+    computes the bias in shear signal Cl and then computes the ratio of
+    that bias to the Y1 goal and
     Y10 science requirement.
     """
 
@@ -435,12 +441,14 @@ class MultibandMeanzBiasMetric(BaseMetric):
 
         def compute_dzfromdm(zbins, band_name, year):
             """This computes the dm/dz relationship calibrated from simulations
-            by Jeff Newmann and Qianjun Hang, which forms the meanz_tomographic_model.
+            by Jeff Newmann and Qianjun Hang, which forms the
+            meanz_tomographic_model.
 
             Parameters
             ----------
             zbins : `int`
-                The number of tomographic bins considered. For now this is zbins < 5
+                The number of tomographic bins considered. For now
+                this is zbins < 5
             band_name : `str`
                 The assumed filter band
             model_z: dict
@@ -463,11 +471,14 @@ class MultibandMeanzBiasMetric(BaseMetric):
 
             return dzdminterp, meanzinterp
 
-        # Not entirely sure if we should include these here or in a separate module/file
+        # Not entirely sure if we should include these
+        # here or in a separate module/file
         def use_zbins(meanz_vals, figure_9_mean_z=np.array([0.2, 0.4, 0.7, 1.0]), figure_9_width=0.2):
             """This computes which redshift bands are within the range
-            specified in https://arxiv.org/pdf/2305.15406.pdf and can safely be used
-            to compute what Cl bias result from z fluctuations caused by rms variations in the m5.
+            specified in https://arxiv.org/pdf/2305.15406.pdf and
+            can safely be used
+            to compute what Cl bias result from z fluctuations
+            caused by rms variations in the m5.
 
 
             Parameters
@@ -507,7 +518,8 @@ class MultibandMeanzBiasMetric(BaseMetric):
                 An array of values of the clbias
 
             mean_z_values_use :  `float` array
-                An array of the meanz values that are within the interpolation range of 2305.15406
+                An array of the meanz values that are within the
+                interpolation range of 2305.15406
 
             Notes
             ------
@@ -577,7 +589,8 @@ class MultibandMeanzBiasMetric(BaseMetric):
         y10_req = 0.003
         y1_goal = 0.013
 
-        # clbiastot = np.max(clbias) # if adding doesn't work over z range -- CHECK
+        # clbiastot = np.max(clbias) # if adding doesn't
+        # work over z range -- CHECK
         y10ratio = totclbias / y10_req
         y1ratio = totclbias / y1_goal
 
@@ -586,7 +599,8 @@ class MultibandMeanzBiasMetric(BaseMetric):
         return result
 
 
-# Let's make code that pulls out the northern/southern galactic regions, and gets statistics of the footprint by region.
+# Let's make code that pulls out the northern/southern galactic regions,
+# and gets statistics of the footprint by region.
 def _is_ngp(ra, dec):
     c = SkyCoord(ra=ra * u.degree, dec=dec * u.degree, frame="icrs")
     lat = c.galactic.b.deg
@@ -620,7 +634,8 @@ def get_stats_by_region(use_map, nside, maskval=0, region="all"):
 
 def stripiness_test_statistic(data_slice, nside):
     """
-    A utility to find whether a particular routine has stripey features in the exposure time map.
+    A utility to find whether a particular routine has stripey
+    features in the exposure time map.
     """
     # Analyze the exposure time map to get MAD, median, std in north/south.
     mad = {}
@@ -638,10 +653,12 @@ class StripinessMetric(BaseMetric):
     """
     Run as summary metric on NestedRIZExptimeExgalM5Metric.
 
-    This metric uses maps of the combined RIZ exposure time to identify stripes or residual rolling features,
+    This metric uses maps of the combined RIZ exposure time
+    to identify stripes or residual rolling features,
     for the UniformAreaFoMFractionMetric.
     The number returned quantifies the stripiness of the field.
-    In UniformAreaFoMFractionMetric it is a test statistic: if it is outside of +-0.7/np.sqrt(year) then
+    In UniformAreaFoMFractionMetric it is a test statistic:
+    if it is outside of +-0.7/np.sqrt(year) then
     the RIZ exposure time map is considered to have stripes.
 
     Points of contact / contributors: Rachel Mandelbaum, Boris Leistedt
@@ -649,11 +666,14 @@ class StripinessMetric(BaseMetric):
     Parameters
     ----------
     year: `int`
-        year of observation, in order to adjust the cut on the depth fluctuations for the stipe detection
+        year of observation, in order to adjust the cut on
+        the depth fluctuations for the stipe detection
     nside: `int`
-        must be the nside at which the base metric NestedRIZExptimeExgalM5Metric is calculated at
+        must be the nside at which the base metric
+        NestedRIZExptimeExgalM5Metric is calculated at
     verbose: bool, optional
-        if true, will display the segmentation maps and the areas and FOMs of the two regions found
+        if true, will display the segmentation maps and the areas and
+        FOMs of the two regions found
     Returns
     -------
     result: `float`
@@ -684,7 +704,8 @@ class StripinessMetric(BaseMetric):
             self.mask_val_arr if isinstance(x, float) else x for x in data_slice["metricdata"].tolist()
         ]
         data_slice_arr = np.asarray(data_slice_list, dtype=self.mask_val_arr.dtype)
-        # a bit of gymnastics to make sure all bad values (nan, -666) are recast as hp.UNSEEN
+        # a bit of gymnastics to make sure all bad values
+        # (nan, -666) are recast as hp.UNSEEN
         ind = data_slice_arr["riz_exptime"] == -666
         ind |= ~np.isfinite(data_slice_arr["riz_exptime"])
         data_slice_arr["riz_exptime"][ind.ravel()] = hp.UNSEEN
@@ -701,15 +722,22 @@ class UniformAreaFoMFractionMetric(BaseMetric):
     """
     Run as summary metric on NestedRIZExptimeExgalM5Metric.
 
-    This metric uses maps of the combined RIZ exposure time and i-band depth maps (with a consistent set of area cuts)
-    to identify potential reductions in cosmological constraining power due to substantial large-scale power
+    This metric uses maps of the combined RIZ exposure time and i-band depth
+    maps (with a consistent set of area cuts)
+    to identify potential reductions in cosmological constraining power due to
+    substantial large-scale power
     in non-uniform coadds at a particular data release.
-    The RIZ exposure time map is used to identify whether there are residual rolling features.
+    The RIZ exposure time map is used to identify whether there
+    are residual rolling features.
     Under the hood, this runs the StripinessMetric.
-    If not, the metric returns 1. If there are such features, then the region is segmented into similar-depth regions
-    and the one with the largest cosmological constraining power is presumed to be used for science.
-    In that case, the metric returns the 3x2pt FoM (StaticProbesFoMEmulatorMetric,
-    quantifying weak lensing and large-scale structure constraining power) for the largest of those regions,
+    If not, the metric returns 1. If there are such features, then the region
+    is segmented into similar-depth regions
+    and the one with the largest cosmological constraining power is presumed to
+    be used for science.
+    In that case, the metric returns the 3x2pt FoM
+    (StaticProbesFoMEmulatorMetric,
+    quantifying weak lensing and large-scale structure constraining power)
+    for the largest of those regions,
     divided by that for the full region if it had been usable.
 
 
@@ -719,11 +747,16 @@ class UniformAreaFoMFractionMetric(BaseMetric):
     Parameters
     ----------
     year: `int`
-        year of observation, in order to adjust the cut on the depth fluctuations for the stipe detection
+        year of observation, in order to adjust the
+        cut on the depth fluctuations
+        for the stipe detection
     nside: `int`
-        must be the nside at which the base metric NestedRIZExptimeExgalM5Metric is calculated at
+        must be the nside at which the base metric
+        NestedRIZExptimeExgalM5Metric
+        is calculated at
     verbose: bool, optional
-        if true, will display the segmentation maps and the areas and FOMs of the two regions found
+        if true, will display the segmentation maps and the areas and FOMs of
+        the two regions found
     Returns
     -------
     result: `float`
@@ -757,7 +790,8 @@ class UniformAreaFoMFractionMetric(BaseMetric):
             self.mask_val_arr if isinstance(x, float) else x for x in data_slice["metricdata"].tolist()
         ]
         data_slice_arr = np.asarray(data_slice_list, dtype=self.mask_val_arr.dtype)
-        # a bit of gymnastics to make sure all bad values (nan, -666) are recast as hp.UNSEEN
+        # a bit of gymnastics to make sure all bad values
+        # (nan, -666) are recast as hp.UNSEEN
         ind = data_slice_arr["riz_exptime"] == -666
         ind |= ~np.isfinite(data_slice_arr["riz_exptime"])
         ind = data_slice_arr["exgal_m5"] == -666
@@ -778,24 +812,29 @@ class UniformAreaFoMFractionMetric(BaseMetric):
             stripes = True
 
         def apply_clustering(clustering_data):
-            # A thin wrapper around sklearn routines (can swap out which one we are using systematically).
-            # We fix parameters like `n_clusters` since realistically we know for rolling that we should expect 2 clusters.
+            # A thin wrapper around sklearn routines
+            # (can swap out which one we are using systematically).
+            # We fix parameters like `n_clusters` since realistically
+            # we know for rolling that we should expect 2 clusters.
             # from sklearn.cluster import SpectralClustering
-            # clustering = SpectralClustering(n_clusters=2, assign_labels='discretize', random_state=0).fit(clustering_data)
+            # clustering = SpectralClustering(n_clusters=2,
+            # assign_labels='discretize', random_state=0).fit(clustering_data)
 
             clustering = KMeans(n_clusters=2, random_state=0, n_init="auto").fit(clustering_data)
             labels = clustering.labels_ + 1
             return labels
 
         def expand_labels(depth_map, labels, maskval=0):
-            # A utility to apply the labels from a masked version of a depth map back to the entire depth map.
+            # A utility to apply the labels from a masked
+            # version of a depth map back to the entire depth map.
             expanded_labels = np.zeros(hp.nside2npix(nside))
             cutval = maskval + 0.1
             expanded_labels[depth_map > cutval] = labels
             return expanded_labels
 
         def get_area_stats(depth_map, labels, maskval=0, n_clusters=2):
-            # A routine to get some statistics of the clustering: area fractions, median map values
+            # A routine to get some statistics of the
+            # clustering: area fractions, median map values
             expanded_labels = expand_labels(depth_map, labels, maskval=maskval)
             cutval = maskval + 0.1
             area_frac = []
@@ -810,7 +849,8 @@ class UniformAreaFoMFractionMetric(BaseMetric):
             return area_frac, med_val
 
         def show_clusters(depth_map, labels, maskval=0, n_clusters=2, min=500, max=3000):
-            # A routine to show the clusters found by the unsupervised clustering algorithm (start with original map then 2 clusters).
+            # A routine to show the clusters found by the unsupervised
+            # clustering algorithm (start with original map then 2 clusters).
             expanded_labels = expand_labels(depth_map, labels, maskval=maskval)
             hp.visufunc.mollview(depth_map, min=min, max=max)
             for i in range(n_clusters):
@@ -820,22 +860,31 @@ class UniformAreaFoMFractionMetric(BaseMetric):
             return get_area_stats(depth_map, labels, maskval=maskval, n_clusters=n_clusters)
 
         def make_clustering_dataset(depth_map, maskval=0, priority_fac=0.9, nside=64):
-            # A utility routine to get a dataset for unsupervised clustering.  Note:
-            # - We want the unmasked regions of the depth map only.
-            # - We assume masked regions are set to `maskval`, and cut 0.1 magnitudes above that.
-            # - We really want it to look at depth fluctuations.  So, we have to rescale the
-            #   RA/dec dimensions to avoid them being prioritized because their values are larger and
-            #   have more variation than depth.  Currently we rescale RA/dec such that their
-            #   standard deviations are 1-priority_fac times the standard deviation of the depth map.
-            #   That's why priority_fac is a tunable parameter; it should be between 0 and 1
+            """
+            A utility routine to get a dataset for unsupervised clustering.
+            Note:
+            - We want the unmasked regions of the depth map only.
+            - We assume masked regions are set to `maskval`,
+              and cut 0.1 magnitudes above that.
+            - We really want it to look at depth fluctuations.
+              So, we have to rescale the
+              RA/dec dimensions to avoid them being prioritized
+              because their values are larger and
+              have more variation than depth.  Currently we rescale RA/dec
+              such that their standard deviations are 1-priority_fac times
+              the standard deviation of the depth map. That's why
+              priority_fac is a tunable parameter; it should be between 0 and 1
+            """
             if priority_fac < 0 or priority_fac >= 1:
                 raise ValueError("priority_fac must lie between 0 and 1")
             theta, phi = hp.pixelfunc.pix2ang(nside, ipix=np.arange(hp.nside2npix(nside)))
-            # theta is 0 at the north pole, pi/2 at equator, pi at south pole; phi maps to RA
+            # theta is 0 at the north pole, pi/2 at equator,
+            # pi at south pole; phi maps to RA
             ra = np.rad2deg(phi)
             dec = np.rad2deg(0.5 * np.pi - theta)
 
-            # Make a 3D numpy array containing the unmasked regions, including a rescaling factor to prioritize the depth
+            # Make a 3D numpy array containing the unmasked regions,
+            # including a rescaling factor to prioritize the depth
             n_unmasked = len(depth_map[depth_map > 0.1])
             my_data = np.zeros((n_unmasked, 3))
             cutval = 0.1 + maskval
@@ -870,8 +919,10 @@ class UniformAreaFoMFractionMetric(BaseMetric):
                 print("Median exposure time values", med_val)
                 print("Median exposure time ratio", np.max(med_val) / np.min(med_val))
                 print("Verbose mode - proceeding with area cuts")
-            # Get the FoM without/with cuts.  We want to check the FoM for each area, if we're doing cuts, and
-            # return the higher one. This will typically be for the larger area, but not necessarily, if the smaller area
+            # Get the FoM without/with cuts.  We want to check the FoM for each
+            # area, if we're doing cuts, and
+            # return the higher one. This will typically be for the
+            # larger area, but not necessarily, if the smaller area
             # is deeper.
             expanded_labels = expand_labels(data_slice_arr["riz_exptime"].ravel(), labels)
             my_hpid_1 = expanded_labels == 1  # np.where(expanded_labels == 1)[0]
@@ -892,7 +943,7 @@ class UniformAreaFoMFractionMetric(BaseMetric):
             return fom / fom_total
 
 
-class uDropoutsNumbersShallowestDepth(BaseMetric):
+class UDropoutsNumbersShallowestDepth(BaseMetric):
     """
     Run as summary metric on MultibandExgalM5.
 
@@ -902,12 +953,14 @@ class uDropoutsNumbersShallowestDepth(BaseMetric):
     ----------
     year : `int`, optional
         The year of the survey to calculate the bias.
-        This is used to derive the dm/dz derivative used to translate m5 rms into dz rms.
+        This is used to derive the dm/dz derivative used to translate
+        m5 rms into dz rms.
 
     Returns
     -------
     result : `float` array
-        The ratio of this bias to the desired DESC y1 upper bound on the bias, and the ratio
+        The ratio of this bias to the desired DESC y1 upper bound on
+        the bias, and the ratio
         between the clbias and the y10 DESC SRD requirement.
         Desired values are less than 1 by Y10.
 
@@ -917,7 +970,8 @@ class uDropoutsNumbersShallowestDepth(BaseMetric):
     This is a summary metric to be run on the results
     of the MultibandExgalM5.
 
-    MultibandExgalM5 provides the m5 depth in all LSST bands given a specific slice.
+    MultibandExgalM5 provides the m5 depth in all LSST
+    bands given a specific slice.
 
     """
 
@@ -957,7 +1011,7 @@ class uDropoutsNumbersShallowestDepth(BaseMetric):
         )  # 6 numbers
 
         import astropy.units as u
-        from astropy.cosmology import Planck18 as cosmo
+        from astropy.cosmology import Planck18
         from astropy.modeling.models import Schechter1D
 
         def schecter_lf(
@@ -995,7 +1049,7 @@ class uDropoutsNumbersShallowestDepth(BaseMetric):
                 Number density in units mag^-1 Mpc^-3
             """
             # Convert observed magnitudes to absolute
-            DL = cosmo.luminosity_distance(redshift).to(u.pc).value  # Lum. Dist. in pc
+            DL = Planck18.luminosity_distance(redshift).to(u.pc).value  # Lum. Dist. in pc
             M_grid = m_grid - 5 * np.log10(DL / 10) + 2.5 * np.log10(1 + redshift)
 
             # Calculate luminosity function in absolute magnitudes
@@ -1030,15 +1084,15 @@ class uDropoutsNumbersShallowestDepth(BaseMetric):
                 The total number density of galaxies in units deg^-2.
             """
             # Calculate comoving depth of redshift bin (Mpc)
-            chi_far = cosmo.comoving_distance(redshift + dz / 2)
-            chi_near = cosmo.comoving_distance(redshift - dz / 2)
+            chi_far = Planck18.comoving_distance(redshift + dz / 2)
+            chi_near = Planck18.comoving_distance(redshift - dz / 2)
             dchi = chi_far - chi_near
 
             # Calculate number density (mag^-1 Mpc^-2)
             n_dm = (LF / u.Mpc**3) * dchi
 
             # Convert to mag^-1 deg^-2
-            deg_per_Mpc = cosmo.arcsec_per_kpc_comoving(redshift).to(u.deg / u.Mpc)
+            deg_per_Mpc = Planck18.arcsec_per_kpc_comoving(redshift).to(u.deg / u.Mpc)
             n_dm /= deg_per_Mpc**2
 
             # Integrate the luminosity function
@@ -1057,7 +1111,7 @@ class uDropoutsNumbersShallowestDepth(BaseMetric):
         return n_deg2
 
 
-class uDropoutsArea(BaseMetric):
+class UDropoutsArea(BaseMetric):
     """
     Run as summary metric on MultibandExgalM5.
 
@@ -1065,12 +1119,14 @@ class uDropoutsArea(BaseMetric):
     ----------
     year : `int`, optional
         The year of the survey to calculate the bias.
-        This is used to derive the dm/dz derivative used to translate m5 rms into dz rms.
+        This is used to derive the dm/dz derivative used to translate m5
+        rms into dz rms.
 
     Returns
     -------
     result : `float` array
-        The ratio of this bias to the desired DESC y1 upper bound on the bias, and the ratio
+        The ratio of this bias to the desired DESC y1 upper bound on
+        the bias, and the ratio
         between the clbias and the y10 DESC SRD requirement.
         Desired values are less than 1 by Y10.
 
@@ -1080,7 +1136,8 @@ class uDropoutsArea(BaseMetric):
     This is a summary metric to be run on the results
     of the MultibandExgalM5.
 
-    MultibandExgalM5 provides the m5 depth in all LSST bands given a specific slice.
+    MultibandExgalM5 provides the m5 depth in all LSST
+    bands given a specific slice.
 
     """
 
