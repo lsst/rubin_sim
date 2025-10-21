@@ -355,9 +355,12 @@ class NestedRIZExptimeExgalM5Metric(BaseMetric):
         types = [float] * 2
         result = np.zeros(1, dtype=list(zip(names, types)))
         result["exgal_m5"] = self.exgalm5_metric.run(data_slice, slice_point)
-        result["riz_exptime"] = self.riz_exptime_metric.run(data_slice[data_slice[self.filter_col] == 'i'], slice_point)
+        result["riz_exptime"] = self.riz_exptime_metric.run(
+            data_slice[data_slice[self.filter_col] == "i"], slice_point
+        )
 
         return result
+
 
 class MultibandExgalM5(BaseMetric):
     """Calculate multiple linear combinations of depths."""
