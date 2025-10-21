@@ -15,6 +15,7 @@ import healpy as hp
 import numpy as np
 from scipy import interpolate
 
+from .area_summary_metrics import AreaThresholdMetric
 from .base_metric import BaseMetric
 
 # Metrics which are primarily intended to be used as summary statistics.
@@ -343,14 +344,18 @@ class StaticProbesFoMEmulatorMetricSimple(BaseMetric):
 class TomographicClusteringSigma8bias(BaseMetric):
     """
     Compute bias on sigma8 due to spurious contamination of density maps.
-    This is a summary metric to be interfaced with NestedLinearMultibandModelMetric.
-    NestedLinearMultibandModelMetric converts 6-band depth maps into a set of maps (e.g tomographic redshift bins)
+    This is a summary metric to be interfaced with
+    NestedLinearMultibandModelMetric.
+    NestedLinearMultibandModelMetric converts 6-band depth maps into a
+    set of maps (e.g tomographic redshift bins)
     which describes spurious density fluctuations in each bin.
     This summary metric multiplies the maps by the parameter power_multiplier,
-    which can be used to describe the fraction of power uncorrected by systematics mitigation schemes,
+    which can be used to describe the fraction of power uncorrected by
+    systematics mitigation schemes,
     computes the total power (via angular power spectra with lmin-lmax limits)
     and then infers sigma8^2 via a model of the angular power spectra.
-    By taking sigma8_obs minus sigma8_model divided by the uncertainty, one derives a bias.
+    By taking sigma8_obs minus sigma8_model divided by the
+    uncertainty, one derives a bias.
     """
 
     def __init__(
@@ -366,7 +371,8 @@ class TomographicClusteringSigma8bias(BaseMetric):
         Parameters
         ----------
         density_tomography_model: dict
-            dictionary containing models calculated for fiducial N(z)s and Cells:
+            dictionary containing models calculated for fiducial N(z)s
+            and Cells:
                 lmax: numpy.array of int, of shape (Nbins, )
                     lmax corresponding to kmax of 0.05
                 poly1d_coefs_loglog: numpy.array of float, of shape (Nbins, )
@@ -374,19 +380,23 @@ class TomographicClusteringSigma8bias(BaseMetric):
                 sigma8square_model (float)
                     value of sigma8^2 used as fiducal model for CCL
         power_multiplier: `float`, optional
-            fraction of power (variance) which is uncorrected and thus biases sigma8
+            fraction of power (variance) which is uncorrected and thus
+            biases sigma8
         lmin: `int`, optional
             lmin for the analysis
         convert_to_sigma8: `str`, optional
-            Convert the bias to sigma8 instead of sigma8^2 (via change of variables for the uncertainty)
+            Convert the bias to sigma8 instead of sigma8^2 (via change
+            of variables for the uncertainty)
         badval: `float`, optional
             value to return for bad pixels (e.g. pixels not passing cuts)
 
         Returns (with the method 'run')
         -------
         result: `float`
-            value of sigma8 bias calculated from this model: (sigma8^2_obs - sigma^2_model) / error on sigma8^2_obs
-            if convert_to_sigma8=Then then it is about sigma8 instead of sigma8^2.
+            value of sigma8 bias calculated from this model:
+            (sigma8^2_obs - sigma^2_model) / error on sigma8^2_obs
+            if convert_to_sigma8=Then then it is about sigma8
+            instead of sigma8^2.
 
         """
         super().__init__(**kwargs)
@@ -397,7 +407,8 @@ class TomographicClusteringSigma8bias(BaseMetric):
         self.power_multiplier = power_multiplier
         self.lmin = lmin
         self.density_tomography_model = density_tomography_model
-        # to compute angular power spectra and total power, initialize an array of metrics, with the right lmin and lmax.
+        # to compute angular power spectra and total power,
+        # initialize an array of metrics, with the right lmin and lmax.
         self.totalPowerMetrics = [
             TotalPowerMetric(
                 col="metricdata", lmin=lmin, lmax=lmax, metric_name="TotalPower_bin", mask_val=hp.UNSEEN
@@ -424,7 +435,8 @@ class TomographicClusteringSigma8bias(BaseMetric):
             hp.UNSEEN
         )  # need to work with TotalPowerMetric and healpix
 
-        # measure valid sky fractions and total power (via angular power spectra) in each bin.
+        # measure valid sky fractions and total power
+        # (via angular power spectra) in each bin.
         fskys = np.array(
             [
                 self.areaThresholdMetric.run(np.core.records.fromrecords(x, dtype=[("metricdata", float)]))
@@ -444,18 +456,24 @@ class TomographicClusteringSigma8bias(BaseMetric):
             / fskys
         )
         # some gymnastics needed to convert each slice into a recarray.
-        # this could probably be avoided if recarrays were returned by the original nested/vector metric,
-        # except that we would need to manipulate the names in various places, which I wanted to avoid,
-        # so for now the main metric returns an array per healpix pixel (not a recarray) and puts together
-        # healpix maps which we need to convert to a recarray to pass to AreaThresholdMetric and TotalPowerMetric
+        # this could probably be avoided if recarrays were returned
+        # by the original nested/vector metric,
+        # except that we would need to manipulate the names in various
+        # places, which I wanted to avoid,
+        # so for now the main metric returns an array per healpix pixel
+        # (not a recarray) and puts together
+        # healpix maps which we need to convert to a recarray to pass to
+        # AreaThresholdMetric and TotalPowerMetric
 
         def solve_for_multiplicative_factor(spurious_powers, model_cells, fskys, lmin, power_multiplier):
             """
-            Infer multiplicative factor sigma8^2 (and uncertainty) from the model Cells and observed total powers
+            Infer multiplicative factor sigma8^2 (and uncertainty) from
+            # the model Cells and observed total powers
             since it os a Gaussian posterior distribution.
             """
             # solve for multiplicative sigma8^2 term between
-            # measured angular power spectra (spurious measured Cells times power_multiplier)
+            # measured angular power spectra (spurious measured
+            # Cells times power_multiplier)
             # and model ones (polynomial model from CCL).
             n_bins = model_cells["lmax"].size
             assert len(spurious_powers) == n_bins
@@ -482,13 +500,15 @@ class TomographicClusteringSigma8bias(BaseMetric):
                 cells_var = 2 * cells_model**2 / (2 * ells + 1) / fskys[i]
                 totalvar_var[i, 0] = np.sum(cells_var * (2 * ells + 1) ** 2)
 
-            # model assumed sigma8 = 0.8 (add CCL cosmology here? or how I obtained them + documentation
-            results_fractional_spurious_power = totalvar_obs / totalvar_mod - 1.0
+            # model assumed sigma8 = 0.8 (add CCL cosmology here?
+            # or how I obtained them + documentation
             transfers = (
                 totalvar_mod / sigma8square_model
             )  # model Cell variance divided by sigma8^2, which is the common normalization
 
-            # model ratio: formula for posterior distribution on unknown multiplicative factor in multivariate Gaussian likelihood
+            # model ratio: formula for posterior distribution
+            # on unknown multiplicative factor in multivariate
+            # Gaussian likelihood
             FOT = np.sum(transfers[:, 0] * totalvar_obs[:, 0] / totalvar_var[:, 0])
             FTT = np.sum(transfers[:, 0] * transfers[:, 0] / totalvar_var[:, 0])
             # mean and stddev of multiplicative factor
@@ -504,7 +524,8 @@ class TomographicClusteringSigma8bias(BaseMetric):
 
         results_sigma8_square_bias = (sigma8square_fit - sigma8square_model) / sigma8square_error
 
-        # turn result into bias on sigma8, via change of variable and simple propagation of uncertainty.
+        # turn result into bias on sigma8, via change of variable
+        # and simple propagation of uncertainty.
         sigma8_fit = sigma8square_fit**0.5
         sigma8_model = sigma8square_model**0.5
         sigma8_error = 0.5 * sigma8square_error * sigma8_fit / sigma8square_fit
