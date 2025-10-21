@@ -5,11 +5,15 @@ __all__ = (
     "IdentityMetric",
     "NormalizeMetric",
     "ZeropointMetric",
+    "StaticProbesFoMEmulatorMetricSimple",
+    "TotalPowerMetric",
 )
 
+import warnings
 
 import healpy as hp
 import numpy as np
+from scipy import interpolate
 
 from .base_metric import BaseMetric
 

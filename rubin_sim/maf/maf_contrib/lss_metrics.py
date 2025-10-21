@@ -6,7 +6,6 @@ import scipy
 
 from rubin_sim.maf.metrics.base_metric import BaseMetric
 from rubin_sim.maf.metrics.exgal_m5 import ExgalM5
-from rubin_sim.maf.metrics.simple_metrics import Coaddm5Metric
 
 
 class GalaxyCountsMetric(BaseMetric):

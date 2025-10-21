@@ -1,7 +1,8 @@
 import numpy as np
 
 """A dictionary of TOMOGRAPHY models for use with the
-cosmology summary metrics (TomographicClusteringSigma8bias, MultibandMeanzBiasMetric).
+cosmology summary metrics (TomographicClusteringSigma8bias,
+MultibandMeanzBiasMetric).
 
 This dictionary is derived from work shown in
 https://github.com/ixkael/ObsStrat/blob/
