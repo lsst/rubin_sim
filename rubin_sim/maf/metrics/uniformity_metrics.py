@@ -1,11 +1,11 @@
 __all__ = ("SingleLinearMultibandModelMetric", "NestedLinearMultibandModelMetric")
 
-import numpy as np
 import healpy as hp
+import numpy as np
 
 from .base_metric import BaseMetric
 from .exgal_m5 import ExgalM5
-from .weak_lensing_systematics_metric import RIZDetectionCoaddExposureTime, ExgalM5WithCuts
+from .weak_lensing_systematics_metric import ExgalM5WithCuts, RIZDetectionCoaddExposureTime
 
 
 class SingleLinearMultibandModelMetric(BaseMetric):
@@ -417,7 +417,8 @@ class MultibandExgalM5(BaseMetric):
 
 class NestedRIZExptimeExgalM5Metric(BaseMetric):
     """
-    This is a simple wrapper metric which returns values of both RIZDetectionCoaddExposureTime and ExgalM5WithCuts
+    This is a simple wrapper metric which returns values of
+    both RIZDetectionCoaddExposureTime and ExgalM5WithCuts
     in a recarray with cvolumns ["exgal_m5", "riz_exptime"]
 
     Points of contact / contributors: Rachel Mandelbaum, Boris Leistedt
@@ -427,7 +428,8 @@ class NestedRIZExptimeExgalM5Metric(BaseMetric):
     extinction_cut : `float`, optional
         E(B-V) cut on extinction (0.2 by default) (for ExgalM5WithCuts).
     n_filters : `int`, optional
-        Cut on the number of filters required (6 by default) (for ExgalM5WithCuts).
+        Cut on the number of filters required (6 by default)
+        for ExgalM5WithCuts).
     lsst_filter : `str`, optional
         The filter choice for ExgalM5WithCuts
     exptime_col: `str`, optional
@@ -443,8 +445,9 @@ class NestedRIZExptimeExgalM5Metric(BaseMetric):
 
     Returns
     -------
-    result : `recarray`, np.array(dtype=[("exgal_m5", float), ("riz_exptime", float)])
-        The values of RIZDetectionCoaddExposureTime and ExgalM5WithCuts
+    result : `recarray`, np.array(dtype=[("exgal_m5", float),
+    ("riz_exptime", float)])
+    The values of RIZDetectionCoaddExposureTime and ExgalM5WithCuts
 
     """
 
