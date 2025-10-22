@@ -941,6 +941,13 @@ def make_prenight_index(
     for column in ("sim_creation_day_obs", "first_day_obs", "last_day_obs", "parent_last_day_obs"):
         prenights[column] = prenights[column].apply(to_str_dayobs)
 
+    # Convert UUID type into something to_json can deal with.
+    prenights.index = prenights.index.map(str)
+    for row in prenights.index:
+        parent_visitseq_uuid = prenights.loc[row, "parent_visitseq_uuid"]
+        if isinstance(parent_visitseq_uuid, UUID):
+            prenights.loc[row, "parent_visitseq_uuid"] = str(parent_visitseq_uuid)
+
     table_json = prenights.to_json(orient="index", date_format="iso", indent=4)
 
     destination_dir_rp = (
