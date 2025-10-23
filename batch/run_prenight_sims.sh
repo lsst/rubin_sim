@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #SBATCH --account=rubin:developers      # Account name
-#SBATCH --job-name=auxtel_prenight_daily   # Job name
+#SBATCH --job-name=prenight_simonyi_daily   # Job name
 #SBATCH --output=/sdf/data/rubin/shared/scheduler/prenight/sbatch/run_prenight_sims_%A_%a.out # Output file (stdout)
 #SBATCH --error=/sdf/data/rubin/shared/scheduler/prenight/sbatch/run_prenight_sims_%A_%a.out  # Error file (stderr)
 #SBATCH --partition=milano              # Partition (queue) names
@@ -23,9 +23,14 @@ if [[ -e ~/.profile.d && -n "$(ls -A ~/.profile.d/)" ]]; then
 fi
 
 date --iso=s
-
-LATEST_TAGGED_STACK=$(find /cvmfs/sw.lsst.eu/almalinux-x86_64/lsst_distrib -maxdepth 1 -regex .*/'v[0-9]+\.[0-9]+\.[0-9]+' -printf "%f\n" | sort -V | tail -1)
-echo "Using stack ${LATEST_TAGGED_STACK}"
+LATEST_TAGGED_STACK=$(
+    find /cvmfs/sw.lsst.eu/almalinux-x86_64/lsst_distrib \
+        -maxdepth 1 \
+        -regex '.*/v[0-9]+\.[0-9]+\.[0-9]+' \
+        -printf "%f\n" |
+    sort -V |
+    tail -1
+)
 source /cvmfs/sw.lsst.eu/almalinux-x86_64/lsst_distrib/${LATEST_TAGGED_STACK}/loadLSST-ext.sh
 
 set -o xtrace
@@ -42,20 +47,26 @@ mkdir ${PACKAGE_DIR}
 export PYTHONPATH=${PACKAGE_DIR}:${PYTHONPATH}
 export PATH=${PACKAGE_DIR}/bin:${PATH}
 
-# Install most of the packages we need, carefully controlling the
-# versions and not installing dependincies, such that versions not
-# explicitly installed or specified come from either the base LSST
-# environment or the pip install of the tagged rubin_scheduler below.
-
-# Cannot get ts_fbs_utils from the EFD, so just guess the highest semantic version tag in the repo.
-# A "reference" can be a tag, hash, or branch.
-TS_FBS_UTILS_REFERENCE=$(curl -s https://api.github.com/repos/lsst-ts/ts_fbs_utils/tags | jq -r '.[].name' | egrep '^v[0-9]+.[0-9]+.[0-9]+$' | sort -V | tail -1)
-RUBIN_SIM_REFERENCE="v2.3.0"
-SCHEDVIEW_REFERENCE="v0.19.0"
-SIMS_SV_SURVEY_REFERENCE="v0.1.1"
-RUBIN_NIGHTS_REFERENCE="v0.4.0"
+if false ; then
+  # Get latest tagged versions of everything
+  RUBIN_SCHEDULER_REFERENCE=$(curl -s https://api.github.com/repos/lsst/rubin_scheduler/tags | jq -r '.[].name' | egrep '^v[0-9]+.[0-9]+.[0-9]+$' | sort -V | tail -1)
+  RUBIN_SIM_REFERENCE=$(curl -s https://api.github.com/repos/lsst/rubin_sim/tags | jq -r '.[].name' | egrep '^v[0-9]+.[0-9]+.[0-9]+$' | sort -V | tail -1)
+  SCHEDVIEW_REFERENCE=$(curl -s https://api.github.com/repos/lsst/schedview/tags | jq -r '.[].name' | egrep '^v[0-9]+.[0-9]+.[0-9]+$' | sort -V | tail -1)
+  TS_FBS_UTILS_REFERENCE=$(curl -s https://api.github.com/repos/lsst-ts/ts_fbs_utils/tags | jq -r '.[].name' | egrep '^v[0-9]+.[0-9]+.[0-9]+$' | sort -V | tail -1)
+  SIMS_SV_SURVEY_REFERENCE=$(curl -s https://api.github.com/repos/lsst-sims/sims_sv_survey/tags | jq -r '.[].name' | egrep '^v[0-9]+.[0-9]+.[0-9]+$' | sort -V | tail -1)
+  RUBIN_NIGHTS_REFERENCE=$(curl -s https://api.github.com/repos/lsst-sims/rubin_nights/tags | jq -r '.[].name' | egrep '^v[0-9]+.[0-9]+.[0-9]+$' | sort -V | tail -1)
+else
+  # alternately, set specific versions
+  RUBIN_SCHEDULER_REFERENCE="v3.14.1"
+  RUBIN_SIM_REFERENCE="tickets/SP-2167"
+  SCHEDVIEW_REFERENCE="tickets/SP-2167"
+  TS_FBS_UTILS_REFERENCE="v0.17.0"
+  SIMS_SV_SURVEY_REFERENCE="tickets/SP-2167"
+  RUBIN_NIGHTS_REFERENCE="v0.6.1"
+fi
 
 pip install --no-deps --target=${PACKAGE_DIR} \
+  git+https://github.com/lsst/rubin_scheduler.git@${RUBIN_SCHEDULER_REFERENCE} \
   git+https://github.com/lsst/rubin_sim.git@${RUBIN_SIM_REFERENCE} \
   git+https://github.com/lsst/schedview.git@${SCHEDVIEW_REFERENCE} \
   git+https://github.com/lsst-ts/ts_fbs_utils.git@${TS_FBS_UTILS_REFERENCE} \
@@ -63,66 +74,125 @@ pip install --no-deps --target=${PACKAGE_DIR} \
   git+https://github.com/lsst-sims/rubin_nights.git@${RUBIN_NIGHTS_REFERENCE} \
   lsst-resources
 
-# Get the scheduler version from the EFD and install it.
-# We have to do this after the others, because we want
-# the version of obs_version_at_time supplied by the
-# version of schedview we specify.
-# Go ahead and install any missing dependencies as well.
-RUBIN_SCHEDULER_REFERENCE=v$(obs_version_at_time rubin_scheduler)
-echo "Using rubin_scheduler $RUBIN_SCHEDULER_REFERENCE"
-pip install --ignore-installed --no-deps --target=${PACKAGE_DIR} git+https://github.com/lsst/rubin_scheduler.git@${RUBIN_SCHEDULER_REFERENCE}
+if false ; then
+  # Get the scheduler version from the EFD and install it.
+  # We have to do this after the others, because we want
+  # the version of obs_version_at_time supplied by the
+  # version of schedview we specify.
+  # Go ahead and install any missing dependencies as well.
+  RUBIN_SCHEDULER_REFERENCE=v$(obs_version_at_time rubin_scheduler)
+  echo "Using rubin_scheduler $RUBIN_SCHEDULER_REFERENCE"
+  pip install --ignore-installed --no-deps --upgrade --target=${PACKAGE_DIR} git+https://github.com/lsst/rubin_scheduler.git@${RUBIN_SCHEDULER_REFERENCE}
+fi
 
 # Get the scheduler configuration script
 # It lives in ts_ocs_config
-TS_CONFIG_OCS_REPO="https://github.com/lsst-ts/ts_config_ocs"
-TS_CONFIG_OCS_REFERENCE=$(obs_version_at_time ts_config_ocs)
+TS_CONFIG_OCS_REFERENCE="v0.28.33"
 echo "Using ts_config_ocs ${TS_CONFIG_OCS_REFERENCE}"
-curl --location --output ts_config_ocs.zip ${TS_CONFIG_OCS_REPO}/archive/${TS_CONFIG_OCS_REFERENCE}.zip
-unzip ts_config_ocs.zip
-mv $(find . -maxdepth 1 -type d -name ts_config_ocs\*) ts_config_ocs
+SCHED_CONFIG_URL="https://raw.githubusercontent.com/lsst-ts/ts_config_ocs/refs/tags/${TS_CONFIG_OCS_REFERENCE}/Scheduler/feature_scheduler/maintel/fbs_config_sv_survey.py"
+SCHED_CONFIG_FNAME=$(basename "$SCHED_CONFIG_URL")
+curl -sL ${SCHED_CONFIG_URL} -o ${SCHED_CONFIG_FNAME}
 
-SCHEDULER_CONFIG_SCRIPT="ts_config_ocs/Scheduler/feature_scheduler/maintel/fbs_config_sv_survey.py"
+# This config script also needs a supporting file:
+SUPP_CONFIG_URL="https://raw.githubusercontent.com/lsst-ts/ts_config_ocs/refs/tags/${TS_CONFIG_OCS_REFERENCE}/Scheduler/feature_scheduler/maintel/ddf_sv.dat"
+SUPP_CONFIG_FNAME=$(basename "${SUPP_CONFIG_URL}")
+curl -sL ${SUPP_CONFIG_URL} -o ${SUPP_CONFIG_FNAME}
 
-export SIM_ARCHIVE_LOG_FILE=${WORK_DIR}/sim_archive_log.txt
-export PRENIGHT_LOG_FILE=${WORK_DIR}/prenight_log.txt
-export DAYOBS="$(date -u +'%Y%m%d')"
-export ARCHIVE="s3://rubin:rubin-scheduler-prenight/opsim/"
+export DAYOBS="$(date -u --date='-12 hours' +'%Y%m%d')"
+export LASTNIGHTISO="$(date --date='-36 hours' -u +'%F')"
+
+export ARCHIVE="s3://rubin:rubin-scheduler-prenight/opsim/vseq/"
+export VSARCHIVE_PGDATABASE="opsim_log"
+export VSARCHIVE_PGHOST="usdf-maf-visit-seq-archive-tx.sdf.slac.stanford.edu"
+export VSARCHIVE_PGUSER="writer"
+export VSARCHIVE_PGSCHEMA="vsmd"
 
 echo "Fetching completed visits"
 date --iso=s
-fetch_sv_visits ${DAYOBS} completed_visits.db ~/.usdf_access_token
+fetch_sv_visits ${DAYOBS} completed_visits.db ~/.lsst/usdf_access_token
+
+# Recording hash of fetched visits
+COMPLETED=$(vseqarchive record-visitseq-metadata \
+    completed \
+    completed_visits.db \
+    "Consdb query through ${LASTNIGHTISO}" \
+    --first_day_obs 20250620 \
+    --last_day_obs ${LASTNIGHTISO})
 
 echo "Creating scheduler pickle"
 date --iso=s
-make_sv_scheduler scheduler.p --opsim completed_visits.db --config-script ${SCHEDULER_CONFIG_SCRIPT}
+make_sv_scheduler scheduler.p --opsim completed_visits.db --config-script ${SCHED_CONFIG_FNAME}
 
 echo "Creating model observatory"
 date --iso=s
 make_model_observatory observatory.p
 
-echo "Creating band scheduler"
-date --iso=s
-make_band_scheduler band_scheduler.p
+# make dir for output
+OPSIM_RESULT_DIR=${WORK_DIR}/opsim_results
+mkdir ${OPSIM_RESULT_DIR}
 
 echo "Running nominal SV simulation"
 OPSIMRUN="prenight_nominal_$(date --iso=s)"
 LABEL="Nominal start and overhead, ideal conditions, run at $(date --iso=s)"
 date --iso=s
-run_sv_sim scheduler.p observatory.p "" ${DAYOBS} 3 "${OPSIMRUN}" \
-  --keep_rewards --label "${LABEL}" --archive ${ARCHIVE} --capture_env \
+run_sv_sim scheduler.p observatory.p "" ${DAYOBS} 1 "${OPSIMRUN}" \
+  --keep_rewards --label "${LABEL}" \
   --delay 0 --anom_overhead_scale 0 \
-  --tags ideal nominal
+  --results ${OPSIM_RESULT_DIR}
 
+echo "Creating entry in metadatdata database"
+date --iso=s
+SIM_UUID=$(vseqarchive record-visitseq-metadata \
+    simulations \
+    ${OPSIM_RESULT_DIR}/opsim.db \
+    "${LABEL}" \
+    --first_day_obs ${DAYOBS} \
+    --last_day_obs ${DAYOBS}
+    )
+vseqarchive update-visitseq-metadata ${SIM_UUID} parent_visitseq_uuid ${COMPLETED}
+vseqarchive update-visitseq-metadata ${SIM_UUID} parent_last_day_obs ${LASTNIGHTISO}
 
-for DELAY in 10 60 ; do
+vseqarchive update-visitseq-metadata ${SIM_UUID} scheduler_version "${RUBIN_SCHEDULER_REFERENCE}"
+vseqarchive archive-file ${SIM_UUID} ${OPSIM_RESULT_DIR}/opsim.db visits --archive-base ${ARCHIVE}
+vseqarchive archive-file ${SIM_UUID} ${OPSIM_RESULT_DIR}/rewards.h5 rewards --archive-base ${ARCHIVE}
+vseqarchive tag ${SIM_UUID} prenight ideal nominal
+
+CONDA_HASH=$(vseqarchive record-conda-env)
+vseqarchive update-visitseq-metadata ${SIM_UUID} conda_env_sha256 ${CONDA_HASH}
+
+vseqarchive get-file ${SIM_UUID} visits visits.h5
+vseqarchive add-nightly-stats ${SIM_UUID} visits.h5 azimuth altitude
+
+rm visits.h5 ${OPSIM_RESULT_DIR}/opsim.db ${OPSIM_RESULT_DIR}/rewards.h5 ${OPSIM_RESULT_DIR}/obs_stats.txt ${OPSIM_RESULT_DIR}/observatory.p ${OPSIM_RESULT_DIR}/scheduler.p ${OPSIM_RESULT_DIR}/sim_metadata.yaml
+
+for DELAY in 60 240 ; do
   echo "Running SV simulation delayed ${DELAY}"
   OPSIMRUN="prenight_delay${DELAY}_$(date --iso=s)"
   LABEL="Start time delayed by ${DELAY} minutes, nominal slew and visit overhead, ideal conditions, run at $(date --iso=s)"
   date --iso=s
-  run_sv_sim scheduler.p observatory.p "" ${DAYOBS} 3 "${OPSIMRUN}" \
-    --label "${LABEL}" --archive ${ARCHIVE} --capture_env \
+  run_sv_sim scheduler.p observatory.p "" ${DAYOBS} 1 "${OPSIMRUN}" \
+    --keep_rewards --label "${LABEL}" \
     --delay ${DELAY} --anom_overhead_scale 0 \
-    --tags ideal delay_${DELAY}
+    --results ${OPSIM_RESULT_DIR}
+
+  SIM_UUID=$(vseqarchive record-visitseq-metadata \
+      simulations \
+      ${OPSIM_RESULT_DIR}/opsim.db \
+      "${LABEL}" \
+      --first_day_obs ${DAYOBS} \
+      --last_day_obs ${DAYOBS}
+      )
+  vseqarchive update-visitseq-metadata ${SIM_UUID} parent_visitseq_uuid ${COMPLETED}
+  vseqarchive update-visitseq-metadata ${SIM_UUID} parent_last_day_obs ${LASTNIGHTISO}
+  vseqarchive update-visitseq-metadata ${SIM_UUID} scheduler_version "${RUBIN_SCHEDULER_REFERENCE}"
+  vseqarchive archive-file ${SIM_UUID} ${OPSIM_RESULT_DIR}/opsim.db visits --archive-base ${ARCHIVE}
+  vseqarchive archive-file ${SIM_UUID} ${OPSIM_RESULT_DIR}/rewards.h5 rewards --archive-base ${ARCHIVE}
+  vseqarchive tag ${SIM_UUID} prenight ideal delay_${DELAY}
+  vseqarchive update-visitseq-metadata ${SIM_UUID} conda_env_sha256 ${CONDA_HASH}
+  vseqarchive get-file ${SIM_UUID} visits visits.h5
+  vseqarchive add-nightly-stats ${SIM_UUID} visits.h5 azimuth altitude
+
+  rm visits.h5 ${OPSIM_RESULT_DIR}/opsim.db ${OPSIM_RESULT_DIR}/rewards.h5 ${OPSIM_RESULT_DIR}/obs_stats.txt ${OPSIM_RESULT_DIR}/observatory.p ${OPSIM_RESULT_DIR}/scheduler.p ${OPSIM_RESULT_DIR}/sim_metadata.yaml
 done
 
 ANOM_SCALE="0.1"
@@ -131,8 +201,31 @@ for ANOM_SEED in 101 102 ; do
   OPSIMRUN="prenight_anom${ANOM_SEED}_$(date --iso=s)"
   LABEL="Anomalous overhead (${ANOM_SEED}, ${ANOM_SCALE}), nominal start, ideal conditions, run at $(date --iso=s)"
   date --iso=s
-  run_sv_sim scheduler.p observatory.p "" ${DAYOBS} 3 "${OPSIMRUN}" \
-    --label "${LABEL}" --archive ${ARCHIVE} --capture_env \
-    --delay 0 --anom_overhead_scale ${ANOM_SCALE} --anom_overhead_seed ${ANOM_SEED} \
-    --tags ideal anomalous_overhead
+  run_sv_sim scheduler.p observatory.p "" ${DAYOBS} 1 "${OPSIMRUN}" \
+    --keep_rewards --label "${LABEL}" \
+    --delay 0 \
+    --anom_overhead_scale ${ANOM_SCALE} \
+    --anom_overhead_seed ${ANOM_SEED} \
+    --results ${OPSIM_RESULT_DIR}
+
+  SIM_UUID=$(vseqarchive record-visitseq-metadata \
+      simulations \
+      ${OPSIM_RESULT_DIR}/opsim.db \
+      "${LABEL}" \
+      --first_day_obs ${DAYOBS} \
+      --last_day_obs ${DAYOBS}
+      )
+  vseqarchive update-visitseq-metadata ${SIM_UUID} parent_visitseq_uuid ${COMPLETED}
+  vseqarchive update-visitseq-metadata ${SIM_UUID} parent_last_day_obs ${LASTNIGHTISO}
+  vseqarchive update-visitseq-metadata ${SIM_UUID} scheduler_version "${RUBIN_SCHEDULER_REFERENCE}"
+  vseqarchive archive-file ${SIM_UUID} ${OPSIM_RESULT_DIR}/opsim.db visits --archive-base ${ARCHIVE}
+  vseqarchive archive-file ${SIM_UUID} ${OPSIM_RESULT_DIR}/rewards.h5 rewards --archive-base ${ARCHIVE}
+  vseqarchive tag ${SIM_UUID} prenight ideal anomalous_overhead
+  vseqarchive update-visitseq-metadata ${SIM_UUID} conda_env_sha256 ${CONDA_HASH}
+  vseqarchive get-file ${SIM_UUID} visits visits.h5
+  vseqarchive add-nightly-stats ${SIM_UUID} visits.h5 azimuth altitude
+
+  rm visits.h5 ${OPSIM_RESULT_DIR}/opsim.db ${OPSIM_RESULT_DIR}/rewards.h5 ${OPSIM_RESULT_DIR}/obs_stats.txt ${OPSIM_RESULT_DIR}/observatory.p ${OPSIM_RESULT_DIR}/scheduler.p ${OPSIM_RESULT_DIR}/sim_metadata.yaml
 done
+
+rm observatory.p scheduler.p

@@ -18,4 +18,5 @@ and providing a framework for analyzing survey strategy progress and outcomes.
     Introduction <introduction>
     Installation <installation>
     User Guide <user-guide>
+    Developer's documenation <developer>
     API <api>
