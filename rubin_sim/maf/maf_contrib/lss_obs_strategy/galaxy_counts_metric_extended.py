@@ -29,7 +29,9 @@ from rubin_sim.maf.maf_contrib.lss_obs_strategy.constants_for_pipeline import (
     power_law_const_a,
     power_law_const_b,
 )
-from rubin_sim.maf.metrics import BaseMetric, Coaddm5Metric, ExgalM5
+from rubin_sim.maf.metrics.base_metric import BaseMetric
+from rubin_sim.maf.metrics.exgal_m5 import ExgalM5
+from rubin_sim.maf.metrics.simple_metrics import Coaddm5Metric
 
 
 class GalaxyCountsMetricExtended(BaseMetric):

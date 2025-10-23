@@ -14,7 +14,9 @@ from astropy.io import ascii, fits
 from rubin_scheduler.data import get_data_dir
 
 from rubin_sim.maf.maf_contrib.lss_obs_strategy import GalaxyCountsMetricExtended
-from rubin_sim.maf.metrics import BaseMetric, ExgalM5, StarDensityMetric
+from rubin_sim.maf.metrics.base_metric import BaseMetric
+from rubin_sim.maf.metrics.exgal_m5 import ExgalM5
+from rubin_sim.maf.metrics.star_density import StarDensityMetric
 from rubin_sim.maf.slicers import UserPointsSlicer
 
 

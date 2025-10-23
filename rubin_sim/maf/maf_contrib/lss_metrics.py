@@ -4,7 +4,8 @@ import healpy as hp
 import numpy as np
 import scipy
 
-from rubin_sim.maf.metrics import BaseMetric, ExgalM5
+from rubin_sim.maf.metrics.base_metric import BaseMetric
+from rubin_sim.maf.metrics.exgal_m5 import ExgalM5
 
 
 class GalaxyCountsMetric(BaseMetric):

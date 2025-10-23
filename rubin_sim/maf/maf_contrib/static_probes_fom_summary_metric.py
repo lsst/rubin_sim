@@ -33,6 +33,8 @@ class StaticProbesFoMEmulatorMetric(BaseMetric):
         super().__init__(col=col, **kwargs)
         if col is None:
             self.col = "metricdata"
+        else:
+            self.col = col
         self.shear_m = shear_m
         self.sigma_z = sigma_z
         self.sig_delta_z = sig_delta_z
