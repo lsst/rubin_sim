@@ -136,7 +136,7 @@ make_model_observatory observatory.p
 
 echo "Creating the band scheduler"
 date --iso=s
-make_band_observatory band_scheduler.p
+make_band_scheduler band_scheduler.p
 
 # make dir for output
 OPSIM_RESULT_DIR=${WORK_DIR}/opsim_results
