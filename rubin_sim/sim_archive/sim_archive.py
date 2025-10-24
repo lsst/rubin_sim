@@ -427,6 +427,8 @@ def fetch_sim_for_nights(
             opsim_rp = ResourcePath(which_sim)
         case dict():
             this_sim = find_latest_prenight_sim_for_nights(first_day_obs, last_day_obs, **which_sim)
+            if len(this_sim) == 0:
+                raise ValueError("No matching simulations found")
             visitseq_url = this_sim["visitseq_url"]
             if visitseq_url is not None:
                 opsim_rp = ResourcePath(visitseq_url)
@@ -436,6 +438,8 @@ def fetch_sim_for_nights(
                 raise ValueError("No visits found")
         case None:
             this_sim = find_latest_prenight_sim_for_nights(first_day_obs, last_day_obs)
+            if len(this_sim) == 0:
+                raise ValueError("No matching simulations found")
             visitseq_url = this_sim["visitseq_url"]
             if visitseq_url is not None:
                 opsim_rp = ResourcePath(visitseq_url)
@@ -518,7 +522,8 @@ def fetch_obsloctap_visits(
     -------
     visits : `pd.DataFrame`
         The visits from the prenight simulation.
-    """  # Start with the first night that starts after the reference time,
+    """
+    # Start with the first night that starts after the reference time,
     # which is the current time by default.
     # So, if the reference time is during a night, it starts with the
     # following night.
