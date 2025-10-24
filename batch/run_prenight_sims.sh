@@ -96,6 +96,7 @@ git checkout FETCH_HEAD
 cd ${WORK_DIR}
 
 export DAYOBS="$(date -u --date='-12 hours' +'%Y%m%d')"
+export LAST_DAYOBS="$(date -u --date='+36 hours' +'%Y%m%d')"
 export LASTNIGHTISO="$(date --date='-36 hours' -u +'%F')"
 
 export ARCHIVE="s3://rubin:rubin-scheduler-prenight/opsim/vseq/"
@@ -148,7 +149,7 @@ SIM_UUID=$(vseqarchive record-visitseq-metadata \
     ${OPSIM_RESULT_DIR}/opsim.db \
     "${LABEL}" \
     --first_day_obs ${DAYOBS} \
-    --last_day_obs ${DAYOBS}
+    --last_day_obs ${LAST_DAYOBS}
     )
 vseqarchive update-visitseq-metadata ${SIM_UUID} parent_visitseq_uuid ${COMPLETED}
 vseqarchive update-visitseq-metadata ${SIM_UUID} parent_last_day_obs ${LASTNIGHTISO}
@@ -181,7 +182,7 @@ for DELAY in 60 240 ; do
       ${OPSIM_RESULT_DIR}/opsim.db \
       "${LABEL}" \
       --first_day_obs ${DAYOBS} \
-      --last_day_obs ${DAYOBS}
+      --last_day_obs ${LAST_DAYOBS}
       )
   vseqarchive update-visitseq-metadata ${SIM_UUID} parent_visitseq_uuid ${COMPLETED}
   vseqarchive update-visitseq-metadata ${SIM_UUID} parent_last_day_obs ${LASTNIGHTISO}
@@ -214,7 +215,7 @@ for ANOM_SEED in 101 102 ; do
       ${OPSIM_RESULT_DIR}/opsim.db \
       "${LABEL}" \
       --first_day_obs ${DAYOBS} \
-      --last_day_obs ${DAYOBS}
+      --last_day_obs ${LAST_DAYOBS}
       )
   vseqarchive update-visitseq-metadata ${SIM_UUID} parent_visitseq_uuid ${COMPLETED}
   vseqarchive update-visitseq-metadata ${SIM_UUID} parent_last_day_obs ${LASTNIGHTISO}
