@@ -86,24 +86,15 @@ if false ; then
 fi
 
 # Get the scheduler configuration script
-# It lives in ts_ocs_config
+# It lives in ts_config_scheduler
 TS_CONFIG_SCHEDULER_REFERENCE="tickets/SP-2692"
-echo "Using ts_config_scheduler ${TS_CONFIG_SCHEDULER_REFERENCE}"
-SCHED_CONFIG_URL="https://raw.githubusercontent.com/lsst-ts/ts_config_scheduler/refs/tags/${TS_CONFIG_SCHEDULER_REFERENCE}/Scheduler/feature_scheduler/maintel/fbs_config_lsst_survey.py"
-SCHED_CONFIG_URL="https://raw.githubusercontent.com/lsst-ts/ts_config_scheduler/refs/heads/${TS_CONFIG_SCHEDULER_REFERENCE}/Scheduler/feature_scheduler/maintel/fbs_config_lsst_survey.py"
-SCHED_CONFIG_FNAME=$(basename "$SCHED_CONFIG_URL")
-curl -sL ${SCHED_CONFIG_URL} -o ${SCHED_CONFIG_FNAME}
-
-# This config script also needs a supporting file:
-SUPP_CONFIG_URL="https://raw.githubusercontent.com/lsst-ts/ts_config_scheduler/refs/tags/${TS_CONFIG_SCHEDULER_REFERENCE}/Scheduler/feature_scheduler/maintel/ddf_sv.dat"
-SUPP_CONFIG_URL="https://raw.githubusercontent.com/lsst-ts/ts_config_scheduler/refs/heads/${TS_CONFIG_SCHEDULER_REFERENCE}/Scheduler/feature_scheduler/maintel/ddf_sv.dat"
-SUPP_CONFIG_FNAME=$(basename "${SUPP_CONFIG_URL}")
-curl -sL ${SUPP_CONFIG_URL} -o ${SUPP_CONFIG_FNAME}
-
-SUPP_CONFIG_URL="https://raw.githubusercontent.com/lsst-ts/ts_config_scheduler/refs/tags/${TS_CONFIG_SCHEDULER_REFERENCE}/Scheduler/feature_scheduler/maintel/lsst_ddf_gen.py"
-SUPP_CONFIG_URL="https://raw.githubusercontent.com/lsst-ts/ts_config_scheduler/refs/heads/${TS_CONFIG_SCHEDULER_REFERENCE}/Scheduler/feature_scheduler/maintel/lsst_ddf_gen.py"
-SUPP_CONFIG_FNAME=$(basename "${SUPP_CONFIG_URL}")
-curl -sL ${SUPP_CONFIG_URL} -o ${SUPP_CONFIG_FNAME}
+SCHED_CONFIG_FNAME="ts_config_scheduler/Scheduler/feature_scheduler/maintel/fbs_config_lsst_survey.py"
+echo "Using ts_config_scheduler ${SCHED_CONFIG_FNAME} from ${TS_CONFIG_SCHEDULER_REFERENCE}"
+git clone --depth 1 https://github.com/lsst-ts/ts_config_scheduler
+cd ts_config_scheduler
+git fetch --depth 1 origin "${TS_CONFIG_SCHEDULER_REFERENCE}"
+git checkout FETCH_HEAD
+cd ${WORK_DIR}
 
 export DAYOBS="$(date -u --date='-12 hours' +'%Y%m%d')"
 export LASTNIGHTISO="$(date --date='-36 hours' -u +'%F')"
