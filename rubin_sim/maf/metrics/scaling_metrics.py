@@ -32,7 +32,7 @@ class NgalScaleMetric(BaseMetric):
         filtername="i",
         a_max=0.2,
         m5min=26.0,
-        filter_col="filter",
+        filter_col="band",
         **kwargs,
     ):
         maps = ["DustMap"]
@@ -100,7 +100,7 @@ class NlcPointsMetric(BaseMetric):
         ndpmin=10,
         mags=21.0,
         m5_col="fiveSigmaDepth",
-        filter_col="filter",
+        filter_col="band",
         metric_name="NlcPoints",
         maps=None,
         nside=128,

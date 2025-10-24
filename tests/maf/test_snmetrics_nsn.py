@@ -46,6 +46,8 @@ class TestSNmetrics(unittest.TestCase):
             bands="grizy",
             gamma_name="gamma_WFD.hdf5",
             verbose=False,
+            # To match old test data
+            filter_col="filter",
         )
 
         # Expected keys and results
@@ -104,6 +106,8 @@ class TestSNmetrics(unittest.TestCase):
             gamma_name="gamma_DDF.hdf5",
             coadd_night=True,
             verbose=False,
+            # Match old test data
+            filter_col="filter",
         )
         for k in ["one_season_wDD"]:
             res = metric.run(self.simdata[k], slice_point=slice_point)

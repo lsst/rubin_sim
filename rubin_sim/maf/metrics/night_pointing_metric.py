@@ -18,7 +18,7 @@ class NightPointingMetric(BaseMetric):
         self,
         alt_col="altitude",
         az_col="azimuth",
-        filter_col="filter",
+        filter_col="band",
         mjd_col="observationStartMJD",
         metric_name="NightPointing",
         telescope="LSST",

@@ -90,7 +90,7 @@ class NYoungStarsMetric(BaseMetric):
         self,
         metric_name="young_stars",
         m5_col="fiveSigmaDepth",
-        filter_col="filter",
+        filter_col="band",
         seeing_col="seeingFwhmGeom",
         mags={"g": 10.32, "r": 9.28, "i": 7.97},
         snrs={"g": 5.0, "r": 5.0, "i": 5.0},

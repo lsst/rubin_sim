@@ -55,7 +55,7 @@ class SFUncertMetric(BaseMetric):
         weight=None,
         metric_name="Structure Function Uncert",
         snr_cut=5,
-        filter_col="filter",
+        filter_col="band",
         dust=True,
         **kwargs,
     ):

@@ -15,7 +15,7 @@ class OldTeffMetric(BaseMetric):
     def __init__(
         self,
         m5_col="fiveSigmaDepth",
-        filter_col="filter",
+        filter_col="band",
         metric_name="tEff",
         fiducial_depth=None,
         teff_base=30.0,
@@ -88,16 +88,16 @@ class TestTechnicalMetrics(unittest.TestCase):
         """
         filters = np.array(["u", "u", "g", "g", "r"])
         visit_times = np.arange(0, filters.size, 1)
-        names = ["observationStartMJD", "filter"]
+        names = ["observationStartMJD", "band"]
         types = [float, "U1"]
         data = np.zeros(filters.size, dtype=list(zip(names, types)))
-        data["filter"] = filters
+        data["band"] = filters
         data["observationStartMJD"] = visit_times
 
         metric = metrics.NChangesMetric()
         result = metric.run(data)
         self.assertEqual(result, 2)
-        data["filter"] = np.array(["u", "g", "u", "g", "r"])
+        data["band"] = np.array(["u", "g", "u", "g", "r"])
         metric = metrics.NChangesMetric()
         result = metric.run(data)
         self.assertEqual(result, 4)
@@ -108,15 +108,15 @@ class TestTechnicalMetrics(unittest.TestCase):
         """
         filters = np.array(["u", "g", "g", "r"])
         visit_times = np.array([0, 5, 6, 7])  # days
-        names = ["observationStartMJD", "filter"]
+        names = ["observationStartMJD", "band"]
         types = [float, "U1"]
         data = np.zeros(filters.size, dtype=list(zip(names, types)))
-        data["filter"] = filters
+        data["band"] = filters
         data["observationStartMJD"] = visit_times
         metric = metrics.MinTimeBetweenStatesMetric()
         result = metric.run(data)  # minutes
         self.assertEqual(result, 2 * 24.0 * 60.0)
-        data["filter"] = np.array(["u", "u", "u", "u"])
+        data["band"] = np.array(["u", "u", "u", "u"])
         result = metric.run(data)
         self.assertEqual(result, metric.badval)
 
@@ -126,10 +126,10 @@ class TestTechnicalMetrics(unittest.TestCase):
         """
         filters = np.array(["u", "g", "g", "r"])
         visit_times = np.array([0, 5, 6, 7])  # days
-        names = ["observationStartMJD", "filter"]
+        names = ["observationStartMJD", "band"]
         types = [float, "U1"]
         data = np.zeros(filters.size, dtype=list(zip(names, types)))
-        data["filter"] = filters
+        data["band"] = filters
         data["observationStartMJD"] = visit_times
         metric = metrics.NStateChangesFasterThanMetric(cutoff=3 * 24 * 60)
         result = metric.run(data)  # minutes
@@ -141,10 +141,10 @@ class TestTechnicalMetrics(unittest.TestCase):
         """
         filters = np.array(["u", "g", "r", "u", "g", "r"])
         visit_times = np.array([0, 1, 1, 4, 6, 7])  # days
-        names = ["observationStartMJD", "filter"]
+        names = ["observationStartMJD", "band"]
         types = [float, "U1"]
         data = np.zeros(filters.size, dtype=list(zip(names, types)))
-        data["filter"] = filters
+        data["band"] = filters
         data["observationStartMJD"] = visit_times
         metric = metrics.MaxStateChangesWithinMetric(timespan=1 * 24 * 60)
         result = metric.run(data)  # minutes
@@ -152,7 +152,7 @@ class TestTechnicalMetrics(unittest.TestCase):
         filters = np.array(["u", "g", "g", "u", "g", "r", "g", "r"])
         visit_times = np.array([0, 1, 1, 4, 4, 7, 8, 8])  # days
         data = np.zeros(filters.size, dtype=list(zip(names, types)))
-        data["filter"] = filters
+        data["band"] = filters
         data["observationStartMJD"] = visit_times
         metric = metrics.MaxStateChangesWithinMetric(timespan=1 * 24 * 60)
         result = metric.run(data)  # minutes
@@ -161,7 +161,7 @@ class TestTechnicalMetrics(unittest.TestCase):
         filters = np.array(["u", "g"])
         visit_times = np.array([0, 1])  # days
         data = np.zeros(filters.size, dtype=list(zip(names, types)))
-        data["filter"] = filters
+        data["band"] = filters
         data["observationStartMJD"] = visit_times
         metric = metrics.MaxStateChangesWithinMetric(timespan=1 * 24 * 60)
         result = metric.run(data)  # minutes
@@ -170,7 +170,7 @@ class TestTechnicalMetrics(unittest.TestCase):
         filters = np.array(["u", "u"])
         visit_times = np.array([0, 1])  # days
         data = np.zeros(filters.size, dtype=list(zip(names, types)))
-        data["filter"] = filters
+        data["band"] = filters
         data["observationStartMJD"] = visit_times
         metric = metrics.MaxStateChangesWithinMetric(timespan=1 * 24 * 60)
         result = metric.run(data)  # minutes
@@ -186,10 +186,10 @@ class TestTechnicalMetrics(unittest.TestCase):
         filters = rng.choice(bands, num_points)
         fiducial_depth = {b: 24 + rng.random() for b in bands}
         exposure_time = np.full(num_points, 30.0, dtype=float)
-        names = ["fiveSigmaDepth", "filter", "visitExposureTime"]
+        names = ["fiveSigmaDepth", "band", "visitExposureTime"]
         types = [float, "U1", float]
         data = np.zeros(filters.size, dtype=list(zip(names, types)))
-        data["filter"] = filters
+        data["band"] = filters
         data["fiveSigmaDepth"] = m5
         data["visitExposureTime"] = exposure_time
         teff_stacker = stackers.TeffStacker(fiducial_depth=fiducial_depth, teff_base=30.0)
@@ -202,7 +202,7 @@ class TestTechnicalMetrics(unittest.TestCase):
         self.assertEqual(result, old_result)
 
         data = np.zeros(filters.size, dtype=list(zip(names, types)))
-        data["filter"] = filters
+        data["band"] = filters
         data["fiveSigmaDepth"] = m5
         data["visitExposureTime"] = exposure_time
         teff_stacker = stackers.TeffStacker(fiducial_depth=fiducial_depth, teff_base=30.0, normed=True)

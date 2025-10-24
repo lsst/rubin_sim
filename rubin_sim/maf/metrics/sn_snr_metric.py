@@ -36,7 +36,7 @@ class SNSNRMetric(metrics.BaseMetric):
         mjd_col="observationStartMJD",
         ra_col="fieldRA",
         dec_col="fieldDec",
-        filter_col="filter",
+        filter_col="band",
         m5_col="fiveSigmaDepth",
         exptime_col="visitExposureTime",
         night_col="night",
