@@ -154,3 +154,5 @@ vseqarchive get-file ${SIM_UUID} visits visits.h5
 vseqarchive add-nightly-stats ${SIM_UUID} visits.h5 azimuth altitude
 
 rm visits.h5 ${OPSIM_RESULT_DIR}/opsim.db ${OPSIM_RESULT_DIR}/rewards.h5 ${OPSIM_RESULT_DIR}/obs_stats.txt ${OPSIM_RESULT_DIR}/observatory.p ${OPSIM_RESULT_DIR}/scheduler.p ${OPSIM_RESULT_DIR}/sim_metadata.yaml
+
+vseqarchive make-prenight-index $DAYOBS auxtel
