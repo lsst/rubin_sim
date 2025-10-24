@@ -74,12 +74,11 @@ pip install --no-deps --target=${PACKAGE_DIR} \
   git+https://github.com/lsst-sims/rubin_nights.git@${RUBIN_NIGHTS_REFERENCE} \
   lsst-resources
 
-if false ; then
+if true ; then
   # Get the scheduler version from the EFD and install it.
   # We have to do this after the others, because we want
   # the version of obs_version_at_time supplied by the
   # version of schedview we specify.
-  # Go ahead and install any missing dependencies as well.
   RUBIN_SCHEDULER_REFERENCE=v$(obs_version_at_time rubin_scheduler)
   echo "Using rubin_scheduler $RUBIN_SCHEDULER_REFERENCE"
   pip install --ignore-installed --no-deps --upgrade --target=${PACKAGE_DIR} git+https://github.com/lsst/rubin_scheduler.git@${RUBIN_SCHEDULER_REFERENCE}
