@@ -17,7 +17,7 @@ class NChangesMetric(BaseMetric):
     (useful for filter changes in particular).
     """
 
-    def __init__(self, col="filter", order_by="observationStartMJD", **kwargs):
+    def __init__(self, col="band", order_by="observationStartMJD", **kwargs):
         self.col = col
         self.order_by = order_by
         super(NChangesMetric, self).__init__(col=[col, order_by], units="#", **kwargs)
@@ -43,7 +43,7 @@ class MinTimeBetweenStatesMetric(BaseMetric):
 
     def __init__(
         self,
-        change_col="filter",
+        change_col="band",
         time_col="observationStartMJD",
         metric_name=None,
         **kwargs,
@@ -92,7 +92,7 @@ class NStateChangesFasterThanMetric(BaseMetric):
 
     def __init__(
         self,
-        change_col="filter",
+        change_col="band",
         time_col="observationStartMJD",
         metric_name=None,
         cutoff=20,
@@ -144,7 +144,7 @@ class MaxStateChangesWithinMetric(BaseMetric):
 
     def __init__(
         self,
-        change_col="filter",
+        change_col="band",
         time_col="observationStartMJD",
         metric_name=None,
         timespan=20,

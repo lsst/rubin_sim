@@ -184,7 +184,7 @@ class TestSimpleMetrics(unittest.TestCase):
             "visitExposureTime",
             "skyBrightness",
             "numExposures",
-            "filter",
+            "band",
         ]
         types = [float] * 4 + ["|U1"]
         data = np.zeros(10, dtype=list(zip(names, types)))
@@ -192,7 +192,7 @@ class TestSimpleMetrics(unittest.TestCase):
         data["visitExposureTime"] = 30.0
         data["skyBrightness"] = 25.0
         data["numExposures"] = 2.0
-        data["filter"] = "r"
+        data["band"] = "r"
         _ = testmetric.run(data, None)
 
 

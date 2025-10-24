@@ -19,9 +19,7 @@ class CheckColorSlope(object):
         same filter be greater than (hours). Default 3 hours.
     """
 
-    def __init__(
-        self, color_length=1.0, slope_length=3.0, filter_col="band", mjd_col="observationStartMJD"
-    ):
+    def __init__(self, color_length=1.0, slope_length=3.0, filter_col="band", mjd_col="observationStartMJD"):
         self.color_length = color_length / 24.0
         self.slope_length = slope_length / 24.0
 

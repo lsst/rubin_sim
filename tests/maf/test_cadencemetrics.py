@@ -297,14 +297,14 @@ class TestCadenceMetrics(unittest.TestCase):
         self.assertEqual(result, 0.5)
 
     def test_transient_metric(self):
-        names = ["observationStartMJD", "fiveSigmaDepth", "filter"]
+        names = ["observationStartMJD", "fiveSigmaDepth", "band"]
         types = [float, float, "<U1"]
 
         ndata = 100
         data_slice = np.zeros(ndata, dtype=list(zip(names, types)))
         data_slice["observationStartMJD"] = np.arange(ndata)
         data_slice["fiveSigmaDepth"] = 25
-        data_slice["filter"] = "g"
+        data_slice["band"] = "g"
 
         metric = metrics.TransientMetric(survey_duration=ndata / 365.25)
 
@@ -333,7 +333,7 @@ class TestCadenceMetrics(unittest.TestCase):
         metric = metrics.TransientMetric(n_filters=2, survey_duration=ndata / 365.25)
         self.assertEqual(metric.run(data_slice), 0.0)
 
-        data_slice["filter"] = ["r", "g"] * 50
+        data_slice["band"] = ["r", "g"] * 50
         self.assertEqual(metric.run(data_slice), 1.0)
 
         # Demad too many observation per light curve

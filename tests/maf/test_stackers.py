@@ -19,13 +19,11 @@ try:
 except ModuleNotFoundError:
     pass
 
-TEST_DB = "example_v3.4_0yrs.db"
-
 
 class TestStackerClasses(unittest.TestCase):
     def setUp(self):
         # get some of the test data
-        test_db = os.path.join(get_data_dir(), "tests", TEST_DB)
+        test_db = os.path.join(get_data_dir(), "sim_baseline", "baseline.db")
         query = "select * from observations limit 1000"
         self.test_data = get_sim_data(test_db, None, [], full_sql_query=query)
 
@@ -275,13 +273,13 @@ class TestStackerClasses(unittest.TestCase):
         num_points = 5
         data = np.zeros(
             num_points,
-            dtype=list(zip(["fiveSigmaDepth", "filter", "visitExposureTime"], [float, (np.str_, 1), float])),
+            dtype=list(zip(["fiveSigmaDepth", "band", "visitExposureTime"], [float, (np.str_, 1), float])),
         )
         data["fiveSigmaDepth"] = 23 + rng.random(num_points)
-        data["filter"] = ["g"] * num_points
+        data["band"] = ["g"] * num_points
         data["visitExposureTime"] = [30] * num_points
 
-        stacker = stackers.TeffStacker("fiveSigmaDepth", "filter", "visitExposureTime")
+        stacker = stackers.TeffStacker("fiveSigmaDepth", "band", "visitExposureTime")
         value = stacker.run(data)
         np.testing.assert_array_equal(value["fiveSigmaDepth"], value["fiveSigmaDepth"])
         assert np.all(0.1 < value["t_eff"]) and np.all(value["t_eff"] < 10)
