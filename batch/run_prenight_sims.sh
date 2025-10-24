@@ -136,7 +136,7 @@ echo "Running nominal LSST simulation"
 OPSIMRUN="prenight_nominal_$(date --iso=s)"
 LABEL="Nominal start and overhead, ideal conditions, run at $(date --iso=s)"
 date --iso=s
-run_lsst_sim scheduler.p observatory.p "" ${DAYOBS} 1 "${OPSIMRUN}" \
+run_lsst_sim scheduler.p observatory.p "" ${DAYOBS} 3 "${OPSIMRUN}" \
   --keep_rewards --label "${LABEL}" \
   --delay 0 --anom_overhead_scale 0 \
   --results ${OPSIM_RESULT_DIR}
@@ -171,7 +171,7 @@ for DELAY in 60 240 ; do
   OPSIMRUN="prenight_delay${DELAY}_$(date --iso=s)"
   LABEL="Start time delayed by ${DELAY} minutes, nominal slew and visit overhead, ideal conditions, run at $(date --iso=s)"
   date --iso=s
-  run_lsst_sim scheduler.p observatory.p "" ${DAYOBS} 1 "${OPSIMRUN}" \
+  run_lsst_sim scheduler.p observatory.p "" ${DAYOBS} 3 "${OPSIMRUN}" \
     --keep_rewards --label "${LABEL}" \
     --delay ${DELAY} --anom_overhead_scale 0 \
     --results ${OPSIM_RESULT_DIR}
@@ -202,7 +202,7 @@ for ANOM_SEED in 101 102 ; do
   OPSIMRUN="prenight_anom${ANOM_SEED}_$(date --iso=s)"
   LABEL="Anomalous overhead (${ANOM_SEED}, ${ANOM_SCALE}), nominal start, ideal conditions, run at $(date --iso=s)"
   date --iso=s
-  run_lsst_sim scheduler.p observatory.p "" ${DAYOBS} 1 "${OPSIMRUN}" \
+  run_lsst_sim scheduler.p observatory.p "" ${DAYOBS} 3 "${OPSIMRUN}" \
     --keep_rewards --label "${LABEL}" \
     --delay 0 \
     --anom_overhead_scale ${ANOM_SCALE} \
