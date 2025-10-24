@@ -74,7 +74,7 @@ pip install --no-deps --target=${PACKAGE_DIR} \
   git+https://github.com/lsst-sims/rubin_nights.git@${RUBIN_NIGHTS_REFERENCE} \
   lsst-resources
 
-if true ; then
+if false ; then
   # Get the scheduler version from the EFD and install it.
   # We have to do this after the others, because we want
   # the version of obs_version_at_time supplied by the
