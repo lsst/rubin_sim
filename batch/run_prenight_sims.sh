@@ -240,3 +240,5 @@ for ANOM_SEED in 101 102 ; do
 done
 
 rm observatory.p scheduler.p
+
+vseqarchive make-prenight-index $DAYOBS simonyi
