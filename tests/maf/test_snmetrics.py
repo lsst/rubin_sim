@@ -30,7 +30,7 @@ def observations_band(day0=59000, daymin=59000, cadence=3.0, season_length=140.0
     types = ["f8"] * len(names)
     names += ["night", "healpixID"]
     types += ["i2", "i2"]
-    names += ["filter"]
+    names += ["band"]
     types += ["O"]
 
     daylast = daymin + season_length
@@ -44,7 +44,7 @@ def observations_band(day0=59000, daymin=59000, cadence=3.0, season_length=140.0
     data["visitExposureTime"] = 30.0
     data["numExposures"] = 1
     data["visitTime"] = 34
-    data["filter"] = band
+    data["band"] = band
     data["seeingFwhmEff"] = 0.8
     data["seeingFwhmGeom"] = 0.8
     data["healpixID"] = 10
@@ -106,7 +106,7 @@ def fake_data(band, season=1):
     types += ["i2"]
     names += ["healpixID"]
     types += ["i2"]
-    names += ["filter"]
+    names += ["band"]
     types += ["O"]
 
     dayobs = [
@@ -135,7 +135,7 @@ def fake_data(band, season=1):
     data["numExposures"] = 2
     data["visitTime"] = 2.0 * 15.0
     data["season"] = season
-    data["filter"] = band
+    data["band"] = band
     data["seeingFwhmEff"] = 0.0
     data["seeingFwhmGeom"] = 0.0
     data["airmass"] = 1.2
@@ -189,7 +189,7 @@ class TestSNmetrics(unittest.TestCase):
             types = ["f8"] * len(names)
             names += ["night"]
             types += ["i2"]
-            names += ["filter"]
+            names += ["band"]
             types += ["O"]
 
             day0 = 59000
@@ -204,7 +204,7 @@ class TestSNmetrics(unittest.TestCase):
             data["visitExposureTime"] = 15.0
             data["numExposures"] = 2
             data["visitTime"] = 2.0 * 15.0
-            data["filter"] = band
+            data["band"] = band
 
             # Run the metric with these fake data
             slice_point = {"nside": 64, "ebv": 0}
@@ -251,7 +251,7 @@ class TestSNmetrics(unittest.TestCase):
             types = ["f8"] * len(names)
             names += ["night"]
             types += ["i2"]
-            names += ["filter"]
+            names += ["band"]
             types += ["O"]
 
             dayobs = [
@@ -281,7 +281,7 @@ class TestSNmetrics(unittest.TestCase):
             data["numExposures"] = 2
             data["visitTime"] = 2.0 * 15.0
             data["season"] = season
-            data["filter"] = band
+            data["band"] = band
 
             # Run the metric with these fake data
             slice_point = {"nside": 64, "ebv": 0.0}

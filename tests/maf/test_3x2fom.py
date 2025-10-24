@@ -8,8 +8,6 @@ from rubin_scheduler.utils.code_utilities import sims_clean_up
 
 import rubin_sim.maf as maf
 
-TEST_DB = "example_v3.4_0yrs.db"
-
 
 class Test3x2(unittest.TestCase):
     @classmethod
@@ -34,7 +32,7 @@ class Test3x2(unittest.TestCase):
         ptsrc_lim_mag_i_band = 25.9
         m = maf.metrics.ExgalM5WithCuts(
             m5_col=colmap["fiveSigmaDepth"],
-            filter_col=colmap["filter"],
+            filter_col="band",
             lsst_filter="i",
             n_filters=nfilters_needed,
             extinction_cut=lim_ebv,
@@ -55,7 +53,7 @@ class Test3x2(unittest.TestCase):
             )
         )
 
-        database = os.path.join(get_data_dir(), "tests", TEST_DB)
+        database = os.path.join(get_data_dir(), "sim_baseline", "baseline.db")
         results_db = maf.db.ResultsDb(out_dir=self.out_dir)
         bd = maf.metric_bundles.make_bundles_dict_from_list(bundle_list)
         bg = maf.metric_bundles.MetricBundleGroup(bd, database, out_dir=self.out_dir, results_db=results_db)
