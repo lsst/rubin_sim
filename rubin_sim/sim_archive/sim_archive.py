@@ -46,6 +46,8 @@ from rubin_scheduler.site_models.almanac import Almanac
 from rubin_sim import maf
 from rubin_sim.maf.utils.opsim_utils import get_sim_data
 
+from .future_vsarch import _fetch_obsloctap_visits as fetch_obsloctap_visits
+
 LOGGER = logging.getLogger(__name__)
 
 try:
@@ -1169,7 +1171,7 @@ def fetch_sim_for_nights(
     return visits_df
 
 
-def fetch_obsloctap_visits(
+def old_fetch_obsloctap_visits(
     day_obs: str | None = None, nights: int = 2, telescope: str = "simonyi"
 ) -> pd.DataFrame:
     """Return visits from latest nominal prenight briefing simulation.
