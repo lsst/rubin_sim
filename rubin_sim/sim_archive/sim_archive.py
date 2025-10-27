@@ -46,7 +46,7 @@ from rubin_scheduler.site_models.almanac import Almanac
 from rubin_sim import maf
 from rubin_sim.maf.utils.opsim_utils import get_sim_data
 
-from .future_vsarch import fetch_obsloctap_visits
+from .future_vsarch import _fetch_obsloctap_visits as fetch_obsloctap_visits
 
 LOGGER = logging.getLogger(__name__)
 

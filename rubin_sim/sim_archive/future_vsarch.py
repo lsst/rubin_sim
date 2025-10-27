@@ -5,6 +5,8 @@
 # It consists of a minimial set of functions from that branch needed
 # to support fetch_obsloctap_visits, collected into one file.
 
+__all__ = ["_fetch_obsloctap_visits"]
+
 import logging
 from datetime import date, datetime, timedelta, timezone
 from tempfile import TemporaryDirectory
@@ -25,7 +27,7 @@ LOGGER = logging.getLogger(__name__)
 PRENIGHT_INDEX_URL = "s3://rubin:rubin-scheduler-prenight/opsim/prenight_index/"
 
 
-def get_visits(
+def _get_visits(
     visits_url: str | ResourcePath,
     query: str = "",
     stackers: Sequence[BaseStacker] = (),
@@ -68,7 +70,7 @@ def get_visits(
     return visits
 
 
-def dayobs_to_date(dayobs: str | date | int | Time) -> date:
+def _dayobs_to_date(dayobs: str | date | int | Time) -> date:
     """Convert dayobs in as a str, date, int, or astropyTime
     to a python datetime.date.
 
@@ -110,7 +112,7 @@ def dayobs_to_date(dayobs: str | date | int | Time) -> date:
     return dayobs
 
 
-def get_prenight_index_from_bucket(
+def _get_prenight_index_from_bucket(
     day_obs: str | int | date,
     telescope: str = "simonyi",
     prenight_index_path: str | ResourcePath = PRENIGHT_INDEX_URL,
@@ -138,7 +140,7 @@ def get_prenight_index_from_bucket(
         all pre‑night entries for the requested night.  The columns match
         those stored in the JSON file.
     """
-    day_obs_date = dayobs_to_date(day_obs)
+    day_obs_date = _dayobs_to_date(day_obs)
     assert isinstance(day_obs_date, date)
 
     prenight_index_path = ResourcePath(prenight_index_path, forceDirectory=True)
@@ -160,7 +162,7 @@ def get_prenight_index_from_bucket(
     return prenights
 
 
-def get_prenight_index(
+def _get_prenight_index(
     day_obs: str | int | date,
     telescope: str = "simonyi",
     prenight_index_path: str | ResourcePath | None = None,
@@ -184,14 +186,14 @@ def get_prenight_index(
     if prenight_index_path is None:
         prenight_index_path = PRENIGHT_INDEX_URL
     try:
-        prenights = get_prenight_index_from_bucket(day_obs, telescope, prenight_index_path)
+        prenights = _get_prenight_index_from_bucket(day_obs, telescope, prenight_index_path)
     except FileNotFoundError:
         prenights = pd.DataFrame()
 
     return prenights
 
 
-def select_latest_prenight_sim(
+def _select_latest_prenight_sim(
     prenights: pd.DataFrame,
     tags: tuple[str, ...] = ("ideal", "nominal"),
     max_simulation_age: int = 2,
@@ -237,7 +239,7 @@ def select_latest_prenight_sim(
     return best_sim
 
 
-def find_latest_prenight_sim_for_nights(
+def _find_latest_prenight_sim_for_nights(
     first_day_obs: str | None = None,
     last_day_obs: str | None = None,
     tags: tuple[str, ...] = ("ideal", "nominal"),
@@ -280,9 +282,9 @@ def find_latest_prenight_sim_for_nights(
         get_prenight_index_kwargs = {}
     assert isinstance(get_prenight_index_kwargs, dict)
 
-    sims_for_first_night = get_prenight_index(first_day_obs, telescope, **get_prenight_index_kwargs)
+    sims_for_first_night = _get_prenight_index(first_day_obs, telescope, **get_prenight_index_kwargs)
     if first_day_obs != last_day_obs:
-        sims_for_last_night = get_prenight_index(last_day_obs, telescope, **get_prenight_index_kwargs)
+        sims_for_last_night = _get_prenight_index(last_day_obs, telescope, **get_prenight_index_kwargs)
         full_range_sims = set(sims_for_first_night.index) & set(sims_for_last_night.index)
     else:
         full_range_sims = set(sims_for_first_night.index)
@@ -290,7 +292,7 @@ def find_latest_prenight_sim_for_nights(
     result: dict = {}
     if full_range_sims:
         candidate_sims = sims_for_first_night.loc[tuple(full_range_sims), :]
-        maybe_result = select_latest_prenight_sim(candidate_sims, tags, max_simulation_age)
+        maybe_result = _select_latest_prenight_sim(candidate_sims, tags, max_simulation_age)
         if maybe_result is not None:
             assert isinstance(maybe_result, pd.Series)
             result = maybe_result.to_dict()
@@ -298,7 +300,7 @@ def find_latest_prenight_sim_for_nights(
     return result
 
 
-def fetch_sim_for_nights(
+def _fetch_sim_for_nights(
     first_day_obs: str | None = None,
     last_day_obs: str | None = None,
     which_sim: ResourcePath | str | dict | None = None,
@@ -345,7 +347,7 @@ def fetch_sim_for_nights(
         case str():
             opsim_rp = ResourcePath(which_sim)
         case dict():
-            this_sim = find_latest_prenight_sim_for_nights(first_day_obs, last_day_obs, **which_sim)
+            this_sim = _find_latest_prenight_sim_for_nights(first_day_obs, last_day_obs, **which_sim)
             if len(this_sim) == 0:
                 raise ValueError("No matching simulations found")
             visitseq_url = this_sim["visitseq_url"]
@@ -356,7 +358,7 @@ def fetch_sim_for_nights(
             else:
                 raise ValueError("No visits found")
         case None:
-            this_sim = find_latest_prenight_sim_for_nights(first_day_obs, last_day_obs)
+            this_sim = _find_latest_prenight_sim_for_nights(first_day_obs, last_day_obs)
             if len(this_sim) == 0:
                 raise ValueError("No matching simulations found")
             visitseq_url = this_sim["visitseq_url"]
@@ -392,7 +394,7 @@ def fetch_sim_for_nights(
         visits_recarray = get_sim_data(opsim_rp, **get_sim_data_kwargs)
         visits = pd.DataFrame(visits_recarray)
     else:
-        visits = get_visits(opsim_rp, stackers=stackers)
+        visits = _get_visits(opsim_rp, stackers=stackers)
 
     LOGGER.debug(f"Loaded {len(visits)} from {opsim_rp}")
     on_requested_dates = (first_day_obs <= visits["day_obs_iso8601"]) & (
@@ -406,7 +408,7 @@ def fetch_sim_for_nights(
     return visits
 
 
-def fetch_obsloctap_visits(
+def _fetch_obsloctap_visits(
     day_obs: str | None = None,
     nights: int = 2,
     telescope: str = "simonyi",
@@ -470,7 +472,7 @@ def fetch_obsloctap_visits(
         "telescope": telescope,
         "max_simulation_age": int(np.ceil(current_mjd - reference_mjd)) + 1,
     }
-    visits = fetch_sim_for_nights(first_day_obs, last_day_obs, which_sim=which_sim)
+    visits = _fetch_sim_for_nights(first_day_obs, last_day_obs, which_sim=which_sim)
     if visits is not None:
         assert isinstance(visits, pd.DataFrame)
         visits = visits.loc[:, list(columns)]
