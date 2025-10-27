@@ -96,7 +96,9 @@ git checkout FETCH_HEAD
 cd ${WORK_DIR}
 
 export DAYOBS="$(date -u --date='-12 hours' +'%Y%m%d')"
+export NEXT_DAYOBS="$(date -u --date='+12 hours' +'%Y%m%d')"
 export LAST_DAYOBS="$(date -u --date='+36 hours' +'%Y%m%d')"
+export DAYOBS_SIMULATED="$DAYOBS $NEXT_DAYOBS $LAST_DAYOBS"
 export LASTNIGHTISO="$(date --date='-36 hours' -u +'%F')"
 
 export ARCHIVE="s3://rubin:rubin-scheduler-prenight/opsim/vseq/"
@@ -232,4 +234,6 @@ done
 
 rm observatory.p scheduler.p
 
-vseqarchive make-prenight-index $DAYOBS simonyi
+for DAYOBS_TO_INDEX in ${DAYOBS_SIMULATED}; do
+  vseqarchive make-prenight-index ${DAYOBS_TO_INDEX} simonyi
+done

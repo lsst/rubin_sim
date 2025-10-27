@@ -96,7 +96,9 @@ unzip ts_config_ocs.zip
 mv $(find . -maxdepth 1 -type d -name ts_config_ocs\*) ts_config_ocs
 
 export DAYOBS="$(date -u --date='-12 hours' +'%Y%m%d')"
+export NEXT_DAYOBS="$(date -u --date='+12 hours' +'%Y%m%d')"
 export LAST_DAYOBS="$(date -u --date='+36 hours' +'%Y%m%d')"
+export DAYOBS_SIMULATED="$DAYOBS $NEXT_DAYOBS $LAST_DAYOBS"
 export LASTNIGHTISO="$(date --date='-36 hours' -u +'%F')"
 
 export ARCHIVE="s3://rubin:rubin-scheduler-prenight/opsim/vseq/"
@@ -155,4 +157,6 @@ vseqarchive add-nightly-stats ${SIM_UUID} visits.h5 azimuth altitude
 
 rm visits.h5 ${OPSIM_RESULT_DIR}/opsim.db ${OPSIM_RESULT_DIR}/rewards.h5 ${OPSIM_RESULT_DIR}/obs_stats.txt ${OPSIM_RESULT_DIR}/observatory.p ${OPSIM_RESULT_DIR}/scheduler.p ${OPSIM_RESULT_DIR}/sim_metadata.yaml
 
-vseqarchive make-prenight-index $DAYOBS auxtel
+for DAYOBS_TO_INDEX in ${DAYOBS_SIMULATED}; do
+  vseqarchive make-prenight-index ${DAYOBS_TO_INDEX} auxtel
+done
