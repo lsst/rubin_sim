@@ -43,11 +43,9 @@ class Test3x2(unittest.TestCase):
         s = maf.slicers.HealpixSlicer(nside=nside, use_cache=False)
         sql = "scheduler_note not like 'DD%' and night < 365"
         threeby_two_summary_simple = maf.metrics.StaticProbesFoMEmulatorMetricSimple(
-            nside=nside, metric_name="3x2ptFoM_simple"
+            metric_name="3x2ptFoM_simple"
         )
-        threeby_two_summary = maf.maf_contrib.StaticProbesFoMEmulatorMetric(
-            nside=nside, metric_name="3x2ptFoM"
-        )
+        threeby_two_summary = maf.maf_contrib.StaticProbesFoMEmulatorMetric(metric_name="3x2ptFoM")
         bundle_list.append(
             maf.metric_bundles.MetricBundle(
                 m,
