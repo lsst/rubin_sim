@@ -1,8 +1,14 @@
 __all__ = (
-    "TotalPowerMetric",
     "StaticProbesFoMEmulatorMetricSimple",
+    "TotalPowerMetric",
     "TomographicClusteringSigma8biasMetric",
     "MultibandMeanzBiasMetric",
+    "get_stats_by_region",
+    "stripiness_test_statistic",
+    "StripinessMetric",
+    "UniformAreaFoMFractionMetric",
+    "UDropoutsNumbersShallowestDepth",
+    "UDropoutsArea",
 )
 
 import warnings
@@ -52,11 +58,11 @@ class TotalPowerMetric(BaseMetric):
 
     def __init__(
         self,
+        col="metricdata",
         lmin=100.0,
         lmax=300.0,
         remove_monopole=True,
         remove_dipole=True,
-        col="metricdata",
         mask_val=np.nan,
         **kwargs,
     ):
@@ -64,7 +70,7 @@ class TotalPowerMetric(BaseMetric):
         self.lmax = lmax
         self.remove_monopole = remove_monopole
         self.remove_dipole = remove_dipole
-        super().__init__(col=col, mask_val=mask_val, **kwargs)
+        super(TotalPowerMetric, self).__init__(col=col, mask_val=mask_val, **kwargs)
 
     def run(self, data_slice, slice_point=None):
         # Calculate the power spectrum.
@@ -72,8 +78,9 @@ class TotalPowerMetric(BaseMetric):
         if self.remove_monopole:
             data = hp.remove_monopole(data, verbose=False, bad=self.mask_val)
         if self.remove_dipole:
-            data = hp.remove_dipole(data, verbose=False, bad=self.mask_val)
-        cl = hp.anafast(data)
+            cl = hp.anafast(hp.remove_dipole(data_slice[self.colname]))
+        else:
+            cl = hp.anafast(data_slice[self.colname])
         ell = np.arange(np.size(cl))
         condition = np.where((ell <= self.lmax) & (ell >= self.lmin))[0]
         totalpower = np.sum(cl[condition] * (2 * ell[condition] + 1))
@@ -81,8 +88,9 @@ class TotalPowerMetric(BaseMetric):
 
 
 class StaticProbesFoMEmulatorMetricSimple(BaseMetric):
-    """Calculate the FoM for the combined static probes
-    (3x2pt, i.e. Weak Lensing, LSS, Clustering).
+    """This calculates the Figure of Merit for the combined
+    static probes (3x2pt, i.e., Weak Lensing, LSS, Clustering).
+    This FoM is purely statistical and does not factor in systematics.
 
     Parameters
     ----------
@@ -110,22 +118,39 @@ class StaticProbesFoMEmulatorMetricSimple(BaseMetric):
     output of Exgalm5_with_cuts.
     """
 
-    def __init__(self, year=10, **kwargs):
+    def __init__(self, year=10, col=None, **kwargs):
+
+        super().__init__(col=col, **kwargs)
+        if col is None:
+            self.col = "metricdata"
         self.year = year
-        super().__init__(col="metricdata", mask_val=-666, **kwargs)
+        # Set a mask_val so that all metric data is passed
+        # for summary calculation, even masked values.
+        self.mask_val = -1
 
     def run(self, data_slice, slice_point=None):
-        # derive nside from length of data slice
+        """
+        Args:
+            data_slice (ndarray): Values passed to metric by the slicer,
+                which the metric will use to calculate metric values
+                at each slice_point.
+            slice_point (Dict): Dictionary of slice_point metadata passed
+                to each metric.
+        Returns:
+             float: Interpolated static-probe statistical Figure-of-Merit.
+        Raises:
+             ValueError: If year is not one of the 4 for which a FoM is
+             calculated
+        """
         nside = hp.npix2nside(len(data_slice))
-        pix_area = hp.nside2pixarea(nside, degrees=True)
-
-        # Chop off any outliers (and also the masked value)
+        # Chop off any outliers
         good_pix = np.where(data_slice[self.col] > 0)[0]
+        if np.size(good_pix) == 0:
+            return self.badval
 
         # Calculate area and med depth from
-        area = pix_area * np.size(good_pix)
+        area = hp.nside2pixarea(nside, degrees=True) * np.size(good_pix)
         median_depth = np.median(data_slice[self.col][good_pix])
-
         # FoM is calculated at the following values
         if self.year == 1:
             areas = [7500, 13000, 16000]
@@ -168,7 +193,7 @@ class StaticProbesFoMEmulatorMetricSimple(BaseMetric):
         # Interpolate FoM to the actual values for this sim
         areas = [[i] * 3 for i in areas]
         depths = [depths] * 3
-        f = interpolate.interp2d(areas, depths, fom_arr, bounds_error=False)
+        f = interpolate.RectBivateateSpline(np.ravel(areas), np.ravel(depths), np.ravel(fom_arr))
         fom = f(area, median_depth)[0]
         return fom
 
@@ -230,12 +255,13 @@ class TomographicClusteringSigma8biasMetric(BaseMetric):
         power_multiplier=0.1,
         lmin=10,
         convert_to_sigma8=True,
+        badval=hp.UNSEEN,
         **kwargs,
     ):
         super().__init__(col="metricdata", **kwargs)
         # Set mask_val, so that we receive metric_values.filled(mask_val)
-        self.mask_val = hp.UNSEEN
-        self.badval = hp.UNSEEN
+        self.mask_val = badval
+        self.badval = badval
 
         self.convert_to_sigma8 = convert_to_sigma8
 
@@ -249,7 +275,9 @@ class TomographicClusteringSigma8biasMetric(BaseMetric):
             for lmax in density_tomography_model["lmax"]
         ]
         self.areaThresholdMetric = AreaThresholdMetric(
-            lower_threshold=hp.UNSEEN,
+            col="metricdata",
+            metric_name="FootprintFraction_bin",
+            lower_threshold=badval,
             upper_threshold=np.inf,
             mask_val=self.mask_val,
         )
@@ -264,7 +292,7 @@ class TomographicClusteringSigma8biasMetric(BaseMetric):
         # should be (nbins, npix)
         data_slice_arr = np.asarray(data_slice_list, dtype=float).T
         data_slice_arr[~np.isfinite(data_slice_arr)] = (
-            hp.UNSEEN
+            self.badval
         )  # need to work with TotalPowerMetric and healpix
 
         # measure valid sky fractions and total power
@@ -293,8 +321,15 @@ class TomographicClusteringSigma8biasMetric(BaseMetric):
             )
             / fskys
         )
-        print("spuriousdensitypowers:", spuriousdensitypowers)
-        print("fskys:", fskys)
+        # some gymnastics needed to convert each slice into a recarray.
+        # this could probably be avoided if recarrays were returned
+        # by the original nested/vector metric,
+        # except that we would need to manipulate the names in various
+        # places, which I wanted to avoid,
+        # so for now the main metric returns an array per healpix pixel
+        # (not a recarray) and puts together
+        # healpix maps which we need to convert to a recarray to pass to
+        # AreaThresholdMetric and TotalPowerMetric
 
         def solve_for_multiplicative_factor(spurious_powers, model_cells, fskys, lmin, power_multiplier):
             """
@@ -334,8 +369,6 @@ class TomographicClusteringSigma8biasMetric(BaseMetric):
 
             # model assumed sigma8 = 0.8
             # (add CCL cosmology here? or how I obtained them + documentation)
-            # results_fractional_spurious_power =
-            # totalvar_obs / totalvar_mod - 1.0
 
             # model Cell variance divided by sigma8^2,
             # which is the common normalization
@@ -343,6 +376,7 @@ class TomographicClusteringSigma8biasMetric(BaseMetric):
 
             # model ratio: formula for posterior distribution on unknown
             # multiplicative factor in multivariate Gaussian likelihood
+            # Gaussian likelihood
             FOT = np.sum(transfers[:, 0] * totalvar_obs[:, 0] / totalvar_var[:, 0])
             FTT = np.sum(transfers[:, 0] * transfers[:, 0] / totalvar_var[:, 0])
             # mean and stddev of multiplicative factor
@@ -357,6 +391,7 @@ class TomographicClusteringSigma8biasMetric(BaseMetric):
         )
 
         results_sigma8_square_bias = (sigma8square_fit - sigma8square_model) / sigma8square_error
+
         if not self.convert_to_sigma8:
             return results_sigma8_square_bias
 
@@ -368,8 +403,6 @@ class TomographicClusteringSigma8biasMetric(BaseMetric):
             sigma8_model = sigma8square_model**0.5
             sigma8_error = 0.5 * sigma8square_error * sigma8_fit / sigma8square_fit
             results_sigma8_bias = (sigma8_fit - sigma8_model) / sigma8_error
-            print(sigma8square_model, sigma8square_fit, sigma8square_error, results_sigma8_square_bias)
-            print(sigma8_model, sigma8_fit, sigma8_error, results_sigma8_bias)
             return results_sigma8_bias
 
 
@@ -523,7 +556,8 @@ class MultibandMeanzBiasMetric(BaseMetric):
 
             Notes
             ------
-            This interpolates from the Figure 9 in https://arxiv.org/pdf/2305.15406.pdf
+            This interpolates from the Figure 9 in
+            https://arxiv.org/pdf/2305.15406.pdf
 
             """
 
@@ -732,8 +766,8 @@ class UniformAreaFoMFractionMetric(BaseMetric):
     Under the hood, this runs the StripinessMetric.
     If not, the metric returns 1. If there are such features, then the region
     is segmented into similar-depth regions
-    and the one with the largest cosmological constraining power is presumed to
-    be used for science.
+    and the one with the largest cosmological constraining power is presumed
+    to be used for science.
     In that case, the metric returns the 3x2pt FoM
     (StaticProbesFoMEmulatorMetric,
     quantifying weak lensing and large-scale structure constraining power)
