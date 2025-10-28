@@ -456,6 +456,9 @@ def nvisitsPerSubset(
             fp_threshold=0.4,
             area_id_name=extraInfoLabel,
             exclude_dd=True,
+            ra_col=colmap["ra"],
+            dec_col=colmap["dec"],
+            note_col=colmap["scheduler_note"],
         )
         metric = metrics.CountSubsetMetric(
             col="area_id", subset=extraInfoLabel, units="#", metric_name="Nvisits"
