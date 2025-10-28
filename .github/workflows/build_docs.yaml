@@ -18,7 +18,7 @@ jobs:
       - uses: conda-incubator/setup-miniconda@v3
         with:
           auto-update-conda: true
-          python-version: "3.12"
+          python-version: "3.13"
           miniforge-version: latest
           channels: conda-forge,defaults
           show-channel-urls: true
