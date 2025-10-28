@@ -31,7 +31,7 @@ class TestBatches(unittest.TestCase):
         cls.example_file = "short_example.db"
         sched = example_scheduler()
         _returned_stuff = run_sched(
-            sched, survey_length=10, filename=cls.example_file, mjd_start=SURVEY_START_MJD
+            sched, survey_length=10, filename=cls.example_file, survey_start_mjd=SURVEY_START_MJD
         )
 
         cls.out_dir = tempfile.mkdtemp(prefix="TMB")
