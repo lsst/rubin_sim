@@ -8,11 +8,14 @@
 __all__ = ["_fetch_obsloctap_visits"]
 
 import logging
+import os
 from datetime import date, datetime, timedelta, timezone
 from tempfile import TemporaryDirectory
 from typing import Sequence
 from zoneinfo import ZoneInfo
 
+import botocore
+import lsst.resources
 import numpy as np
 import pandas as pd
 from astropy.time import Time
@@ -156,6 +159,7 @@ def _get_prenight_index_from_bucket(
         .join(str(month))
         .join(f"{telescope}_prenights_for_{isodate}.json")
     )
+    LOGGER.info(f"Reading prenight index from {prenight_index_resource_path}")
     with prenight_index_resource_path.as_local() as local_resource_path:
         prenights = pd.read_json(local_resource_path.ospath, orient="index")
 
@@ -444,6 +448,17 @@ def _fetch_obsloctap_visits(
     visits : `pd.DataFrame`
         The visits from the prenight simulation.
     """
+    LOGGER.info(
+        "S3_ENDPOINT_URL value in call to fetch_obsloctap_visits:"
+        + f" {os.environ.get('S3_ENDPOINT_URL', 'missing')}"
+    )
+    LOGGER.info(
+        "LSST_DISABLE_BUCKET_VALIDATION in call to fetch_obsloctap_visits:"
+        + f"{os.environ.get('LSST_DISABLE_BUCKET_VALIDATION', 'missing')}"
+    )
+    LOGGER.info(f"lsst.resources.__version__: {lsst.resources.__version__}")
+    LOGGER.info(f"botocore.__version__: {botocore.__version__}")
+
     # Start with the first night that starts after the reference time,
     # which is the current time by default.
     # So, if the reference time is during a night, it starts with the
