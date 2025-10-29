@@ -24,7 +24,7 @@ class HourglassMetric(BaseMetric):
         self,
         telescope="LSST",
         mjd_col="observationStartMJD",
-        filter_col="filter",
+        filter_col="band",
         night_col="night",
         delta_t=60.0,
         **kwargs,

@@ -17,16 +17,16 @@ class TestCalibrationMetrics(unittest.TestCase):
             "fiveSigmaDepth",
             "fieldRA",
             "fieldDec",
-            "filter",
+            "band",
         ]
         types = [float, float, float, float, float, (np.str_, 1)]
         data = np.zeros(700, dtype=list(zip(names, types)))
         slice_point = {"sid": 0}
         data["observationStartMJD"] = np.arange(700) + 56762
         data["finSeeing"] = 0.7
-        data["filter"][0:100] = str("r")
-        data["filter"][100:200] = str("u")
-        data["filter"][200:] = str("g")
+        data["band"][0:100] = str("r")
+        data["band"][100:200] = str("u")
+        data["band"][200:] = str("g")
         data["fiveSigmaDepth"] = 24.0
         stacker = stackers.ParallaxFactorStacker()
         data = stacker.run(data)
@@ -68,7 +68,7 @@ class TestCalibrationMetrics(unittest.TestCase):
             "fiveSigmaDepth",
             "fieldRA",
             "fieldDec",
-            "filter",
+            "band",
         ]
         types = [float, float, float, float, float, (np.str_, 1)]
         data = np.zeros(700, dtype=list(zip(names, types)))
@@ -77,9 +77,9 @@ class TestCalibrationMetrics(unittest.TestCase):
         norm_flags = [False, True]
         data["observationStartMJD"] = np.arange(700) + 56762
         data["finSeeing"] = 0.7
-        data["filter"][0:100] = str("r")
-        data["filter"][100:200] = str("u")
-        data["filter"][200:] = str("g")
+        data["band"][0:100] = str("r")
+        data["band"][100:200] = str("u")
+        data["band"][200:] = str("g")
         data["fiveSigmaDepth"] = 24.0
         data = stacker.run(data)
         for flag in norm_flags:
@@ -127,13 +127,13 @@ class TestCalibrationMetrics(unittest.TestCase):
             "fiveSigmaDepth",
             "fieldRA",
             "fieldDec",
-            "filter",
+            "band",
             "ra_pi_amp",
             "dec_pi_amp",
         ]
         types = [float, float, float, float, float, "<U1", float, float]
         data = np.zeros(100, dtype=list(zip(names, types)))
-        data["filter"] = "r"
+        data["band"] = "r"
         data["fiveSigmaDepth"] = 25.0
         data["ra_pi_amp"] = 1.0
         data["dec_pi_amp"] = 1.0
@@ -175,7 +175,7 @@ class TestCalibrationMetrics(unittest.TestCase):
             "fiveSigmaDepth",
             "fieldRA",
             "fieldDec",
-            "filter",
+            "band",
             "ra_pi_amp",
             "dec_pi_amp",
             "ra_dcr_amp",
@@ -183,7 +183,7 @@ class TestCalibrationMetrics(unittest.TestCase):
         ]
         types = [float, float, float, float, float, "<U1", float, float, float, float]
         data = np.zeros(100, dtype=list(zip(names, types)))
-        data["filter"] = "r"
+        data["band"] = "r"
         data["fiveSigmaDepth"] = 25.0
 
         # Set so ra is perfecly correlated

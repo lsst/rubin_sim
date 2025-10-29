@@ -286,7 +286,7 @@ class XRBPopMetric(BaseMetric):
         metric_name="XRBPopMetric",
         mjd_col="observationStartMJD",
         m5_col="fiveSigmaDepth",
-        filter_col="filter",
+        filter_col="band",
         night_col="night",
         pts_needed=2,
         pts_early=2,

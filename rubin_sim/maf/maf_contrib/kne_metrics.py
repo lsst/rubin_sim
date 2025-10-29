@@ -141,7 +141,7 @@ class KNePopMetric(BaseMetric):
         metric_name="KNePopMetric",
         mjd_col="observationStartMJD",
         m5_col="fiveSigmaDepth",
-        filter_col="filter",
+        filter_col="band",
         night_col="night",
         pts_needed=2,
         file_list=None,

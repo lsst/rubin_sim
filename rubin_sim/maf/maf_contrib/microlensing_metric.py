@@ -279,7 +279,7 @@ class MicrolensingMetric(metrics.BaseMetric):
         metric_calc="detect",
         mjd_col="observationStartMJD",
         m5_col="fiveSigmaDepth",
-        filter_col="filter",
+        filter_col="band",
         night_col="night",
         pts_needed=2,
         mag_dict=None,
