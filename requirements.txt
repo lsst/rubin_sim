@@ -9,6 +9,7 @@ matplotlib-base
 numpy
 numexpr
 pandas
+psycopg2
 pyarrow
 pytables
 rubin-scheduler >=3.8

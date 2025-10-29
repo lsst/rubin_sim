@@ -23,6 +23,7 @@ from tempfile import TemporaryDirectory
 import numpy as np
 from git import Repo
 from rubin_scheduler.scheduler.example import example_scheduler
+from rubin_scheduler.scheduler.model_observatory import ModelObservatory
 from rubin_scheduler.scheduler.schedulers.core_scheduler import CoreScheduler
 from rubin_scheduler.scheduler.utils import SchemaConverter
 
@@ -76,7 +77,7 @@ def get_scheduler_from_config(config_script_path: str | Path) -> typing.Tuple[in
 def get_scheduler_instance_from_repo(
     config_repo: str,
     config_script: str,
-    config_branch: str = "main",
+    config_ref: str = "main",
 ) -> CoreScheduler:
     """Generate a CoreScheduler according to a configuration in git.
 
@@ -86,7 +87,7 @@ def get_scheduler_instance_from_repo(
         The git repository with the configuration.
     config_script : `str`
         The configuration script path (relative to the repository root).
-    config_branch : `str`, optional
+    config_ref : `str`, optional
         The branch of the repository to use, by default "main"
 
     Returns
@@ -101,7 +102,8 @@ def get_scheduler_instance_from_repo(
     """
 
     with TemporaryDirectory() as local_config_repo_parent:
-        repo: Repo = Repo.clone_from(config_repo, local_config_repo_parent, branch=config_branch)
+        repo: Repo = Repo.clone_from(config_repo, local_config_repo_parent)
+        repo.git.checkout(config_ref)
         full_config_script_path: Path = Path(repo.working_dir).joinpath(config_script)
         scheduler = get_scheduler_from_config(full_config_script_path)[1]
 
@@ -111,7 +113,7 @@ def get_scheduler_instance_from_repo(
 def get_scheduler(
     config_repo: str | None = None,
     config_script: str | None = None,
-    config_branch: str = "main",
+    config_ref: str = "main",
     visits_db: str | None = None,
 ) -> CoreScheduler:
     """Generate a CoreScheduler according to a configuration.
@@ -122,7 +124,7 @@ def get_scheduler(
         The git repository with the configuration.
     config_script : `str`
         The configuration script path (relative to the repository root).
-    config_branch : `str`, optional
+    config_ref : `str`, optional
         The branch of the repository to use, by default "main"
     visits_db : `str` or `None`
         Database from which to load pre-existing visits
@@ -141,10 +143,10 @@ def get_scheduler(
         if config_script is None:
             raise ValueError("If the config repo is set, the script must be as well.")
         logging.info(
-            f"Instantiating scheduler form {config_script} on the {config_branch} branch of {config_repo}"
+            f"Instantiating scheduler form {config_script} on the {config_ref} branch of {config_repo}"
         )
         scheduler = get_scheduler_instance_from_repo(
-            config_repo=config_repo, config_script=config_script, config_branch=config_branch
+            config_repo=config_repo, config_script=config_script, config_ref=config_ref
         )
     elif config_script is not None:
         logging.info(f"Reading scheduler from {config_script}")
@@ -203,7 +205,10 @@ def add_make_scheduler_snapshot_args(parser: argparse.ArgumentParser) -> None:
         "--script", type=str, default=None, help="The path to the config script (relative to the repo root)."
     )
     parser.add_argument(
-        "--branch", type=str, default="main", help="The branch of the repo from which to get the script"
+        "--ref",
+        type=str,
+        default="main",
+        help="The git reference (tag/commit/branch) of the repo from which to get the script",
     )
     parser.add_argument(
         "--visits", type=str, default="", help="Opsim database from which to load previous visits."
@@ -221,9 +226,29 @@ def make_scheduler_snapshot_cli(cli_args: list = []) -> None:
         datefmt="%Y-%m-%dT%H:%M:%S",
     )
 
-    scheduler: CoreScheduler = get_scheduler(args.repo, args.script, args.branch, args.visits)
+    scheduler: CoreScheduler = get_scheduler(args.repo, args.script, args.ref, args.visits)
 
     save_scheduler(scheduler, args.scheduler_fname)
+
+
+def make_ideal_model_observatory_cli(cli_args: list = []) -> None:
+    parser = argparse.ArgumentParser(description="Create an ideal model observatory pickle")
+    parser.add_argument("scheduler", type=str, help="Scheduler pickle file to read.")
+    parser.add_argument("model_observatory", type=str, help="Model observatory pickle file to write.")
+    args: argparse.Namespace = parser.parse_args() if len(cli_args) == 0 else parser.parse_args(cli_args)
+
+    with open(args.scheduler, "rb") as scheduler_io:
+        scheduler = pickle.load(scheduler_io)
+
+    observatory = ModelObservatory(
+        nside=scheduler.nside,
+        cloud_data="ideal",
+        seeing_data="ideal",
+        downtimes="ideal",
+    )
+
+    with open(args.model_observatory, "wb") as observatory_io:
+        pickle.dump(observatory, observatory_io)
 
 
 if __name__ == "__main__":
