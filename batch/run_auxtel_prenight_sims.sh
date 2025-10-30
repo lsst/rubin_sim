@@ -58,11 +58,11 @@ if false ; then
 else
   # alternately, set specific versions
   RUBIN_SCHEDULER_REFERENCE="v3.18.1"
-  RUBIN_SIM_REFERENCE="tickets/SP-2167"
+  RUBIN_SIM_REFERENCE="tickets/SP-2709"
   SCHEDVIEW_REFERENCE="tickets/SP-2167"
   TS_FBS_UTILS_REFERENCE=$(curl -s https://api.github.com/repos/lsst-ts/ts_fbs_utils/tags | jq -r '.[].name' | egrep '^v[0-9]+.[0-9]+.[0-9]+$' | sort -V | tail -1)
   LSST_SURVEY_SIM_REFERENCE="tickets/SP-2709a"
-  RUBIN_NIGHTS_REFERENCE="v0.6.1"
+  RUBIN_NIGHTS_REFERENCE="v0.7.0"
 fi
 
 pip install --no-deps --target=${PACKAGE_DIR} \
