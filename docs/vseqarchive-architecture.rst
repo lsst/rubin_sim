@@ -19,24 +19,6 @@ For example:
 
 The visit sequence archive is a service for storing and retrieving sequences of visits and ancilliary files associated with sequences of visits (e.g. tables of rewards), tracking metadata describing the sequences of visits, and searching for available sequences of visits based on this metadata.
 
-Prototype
-~~~~~~~~~
-
-An initial prototype (described in :doc:`protoarchive`) used for pre-night simulations and reports saved both data and metadata in an S3 bucket.
-This prototype saved the visits themselves as ``sqlite3`` database files as produced by ``rubin_scheduler``, and metadata in ``yaml`` files for each sequence.
-A python function provided by the prototype configured simulations, executed them (by calling ``rubin_scheduler.scheduler.sim_runner``), wrote metadata to a yaml file, and added of results (including the opsim database output, metadata file, and ancilliary files) to the S3 bucket. and wrapped this in a command line call to run the simulation from with a shell script submitter as a batch job.
-Other functions supported searching metadata in the yaml files for pre-night simulations for a given night and retrieving the corresponding visit tables and other files.
-
-The prototype had two significant problems:
-
-1. Saving metadata for each simulation in its own yaml file meant that searching for simulations according to metadata required retrieving the metadata yaml files for all simulations in the archive from the S3 bucket, which is not scalable. This was partially addressed through creation of an index file in the same S3 bucket which combined metadata from all simulations up to some date, but this was just a stop-gap measure.
-2. The bundling of insertion of data into the archive with driving the execution of the simulation made the archive itself inflexible, making it awkward to modify either how the simulation were driven or data were archived separately.
-
-The visit sequence archive addresses these concerns by:
-
-1. Keeping the metadata in a separate ``postgresql`` database.
-2. Separating the archiving API from the simulation driver: commands that add data to the archive are independent of how the visit data are generated.
-
 Top-level components
 ~~~~~~~~~~~~~~~~~~~~
 
