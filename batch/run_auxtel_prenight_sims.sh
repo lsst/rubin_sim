@@ -61,7 +61,7 @@ else
   RUBIN_SIM_REFERENCE="tickets/SP-2709"
   SCHEDVIEW_REFERENCE="tickets/SP-2167"
   TS_FBS_UTILS_REFERENCE=$(curl -s https://api.github.com/repos/lsst-ts/ts_fbs_utils/tags | jq -r '.[].name' | egrep '^v[0-9]+.[0-9]+.[0-9]+$' | sort -V | tail -1)
-  LSST_SURVEY_SIM_REFERENCE="tickets/SP-2709a"
+  LSST_SURVEY_SIM_REFERENCE="tickets/SP-2733"
   RUBIN_NIGHTS_REFERENCE="v0.7.0"
 fi
 
@@ -108,13 +108,17 @@ export VSARCHIVE_PGHOST="usdf-maf-visit-seq-archive-tx.sdf.slac.stanford.edu"
 export VSARCHIVE_PGUSER="writer"
 export VSARCHIVE_PGSCHEMA="vsmd"
 
+export ARCHIVE="file:////sdf/data/rubin/user/neilsen/devel/test_visitseq_archive"
+export VSARCHIVE_PGUSER="tester"
+export VSARCHIVE_PGSCHEMA="test"
+
 # Get an empty set of completed visits so we have something
 # to pass make_lsst_scheduler
 fetch_lsst_visits 20000101 completed_visits.db ~/.lsst/usdf_access_token
 
 echo "Creating scheduler pickle"
 date --iso=s
-make_lsst_scheduler scheduler.p --opsim completed_visits.db --config-script ${SCHED_CONFIG_FNAME}
+make_lsst_scheduler scheduler.p --opsim completed_visits.db --config_script ${SCHED_CONFIG_FNAME}
 
 echo "Creating model observatory"
 date --iso=s

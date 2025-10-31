@@ -61,7 +61,7 @@ else
   RUBIN_SIM_REFERENCE="tickets/SP-2709"
   SCHEDVIEW_REFERENCE="tickets/SP-2167"
   TS_FBS_UTILS_REFERENCE="v0.18.0"
-  LSST_SURVEY_SIM_REFERENCE="v0.2.0"
+  LSST_SURVEY_SIM_REFERENCE="tickets/SP-2733"
   RUBIN_NIGHTS_REFERENCE="v0.7.0"
 fi
 
@@ -88,6 +88,7 @@ fi
 # It lives in ts_config_scheduler
 TS_CONFIG_SCHEDULER_REFERENCE="develop"
 SCHED_CONFIG_FNAME="ts_config_scheduler/Scheduler/feature_scheduler/maintel/fbs_config_lsst_survey.py"
+CONFIG_DDF_SCRIPT_PATH="ts_config_scheduler/Scheduler/ddf_gen/lsst_ddf_gen_block_407.py"
 echo "Using ts_config_scheduler ${SCHED_CONFIG_FNAME} from ${TS_CONFIG_SCHEDULER_REFERENCE}"
 git clone --depth 1 https://github.com/lsst-ts/ts_config_scheduler
 cd ts_config_scheduler
@@ -107,6 +108,11 @@ export VSARCHIVE_PGHOST="usdf-maf-visit-seq-archive-tx.sdf.slac.stanford.edu"
 export VSARCHIVE_PGUSER="writer"
 export VSARCHIVE_PGSCHEMA="vsmd"
 
+export ARCHIVE="file:////sdf/data/rubin/user/neilsen/devel/test_visitseq_archive"
+export VSARCHIVE_PGUSER="tester"
+export VSARCHIVE_PGSCHEMA="test"
+
+
 echo "Fetching completed visits"
 date --iso=s
 fetch_lsst_visits ${DAYOBS} completed_visits.db ~/.lsst/usdf_access_token
@@ -121,7 +127,7 @@ COMPLETED=$(vseqarchive record-visitseq-metadata \
 
 echo "Creating scheduler pickle"
 date --iso=s
-make_lsst_scheduler scheduler.p --opsim completed_visits.db --config-script ${SCHED_CONFIG_FNAME}
+make_lsst_scheduler scheduler.p --opsim completed_visits.db --config_script ${SCHED_CONFIG_FNAME} --config_ddf_script ${CONFIG_DDF_SCRIPT_PATH}
 
 echo "Creating model observatory"
 date --iso=s
