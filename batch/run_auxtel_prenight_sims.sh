@@ -86,14 +86,15 @@ if false ; then
 fi
 
 # Get the scheduler configuration script
-# It lives in ts_ocs_config
-TS_CONFIG_OCS_REPO="https://github.com/lsst-ts/ts_config_ocs"
-TS_CONFIG_OCS_REFERENCE=$(obs_version_at_time ts_config_ocs)
-SCHED_CONFIG_SCRIPT="ts_config_ocs/"$(scheduler_config_at_time auxtel | sed 's![^/]*/!!')
-echo "Using ts_config_ocs ${TS_CONFIG_OCS_REFERENCE}"
-curl --location --output ts_config_ocs.zip ${TS_CONFIG_OCS_REPO}/archive/${TS_CONFIG_OCS_REFERENCE}.zip
-unzip ts_config_ocs.zip
-mv $(find . -maxdepth 1 -type d -name ts_config_ocs\*) ts_config_ocs
+# It lives in ts_config_scheduler
+TS_CONFIG_SCHEDULER_REFERENCE="develop"
+SCHED_CONFIG_FNAME="ts_config_scheduler/Scheduler/feature_scheduler/auxtel/fbs_spec_flex_survey.py"
+echo "Using ts_config_scheduler ${SCHED_CONFIG_FNAME} from ${TS_CONFIG_SCHEDULER_REFERENCE}"
+git clone --depth 1 https://github.com/lsst-ts/ts_config_scheduler
+cd ts_config_scheduler
+git fetch --depth 1 origin "${TS_CONFIG_SCHEDULER_REFERENCE}"
+git checkout FETCH_HEAD
+cd ${WORK_DIR}
 
 export DAYOBS="$(date -u --date='-12 hours' +'%Y%m%d')"
 export NEXT_DAYOBS="$(date -u --date='+12 hours' +'%Y%m%d')"
@@ -113,7 +114,7 @@ fetch_lsst_visits 20000101 completed_visits.db ~/.lsst/usdf_access_token
 
 echo "Creating scheduler pickle"
 date --iso=s
-make_lsst_scheduler scheduler.p --opsim completed_visits.db --config-script ${SCHED_CONFIG_SCRIPT}
+make_lsst_scheduler scheduler.p --opsim completed_visits.db --config-script ${SCHED_CONFIG_FNAME}
 
 echo "Creating model observatory"
 date --iso=s
