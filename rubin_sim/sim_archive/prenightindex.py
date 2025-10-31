@@ -120,7 +120,7 @@ def get_prenight_index_from_bucket(
 
     year = day_obs_date.year
     month = day_obs_date.month
-    isodate = str(day_obs)
+    isodate = day_obs_date.isoformat()
 
     prenight_index_resource_path = (
         prenight_index_path.join(telescope)

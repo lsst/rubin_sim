@@ -42,12 +42,12 @@ Next we install specific versions of packages in a separate location so we have 
 Set the actual versions we want. These will usually be tags, but can be any github reference (e.g. tags, branches, commits)::
 
 
-    RUBIN_SIM_REFERENCE="tickets/SP-2167"
-    SCHEDVIEW_REFERENCE="v0.19.0"
-    TS_FBS_UTILS_REFERENCE="v0.17.0"
-    SIMS_SV_SURVEY_REFERENCE="tickets/SP-2167"
-    RUBIN_NIGHTS_REFERENCE="v0.4.0"
-    RUBIN_SCHEDULER_REFERENCE="v3.14.1"
+    RUBIN_SCHEDULER_REFERENCE="v3.18.1"
+    RUBIN_SIM_REFERENCE="tickets/SP-2709"
+    SCHEDVIEW_REFERENCE="tickets/SP-2167"
+    TS_FBS_UTILS_REFERENCE="v0.18.0"
+    LSST_SURVEY_SIM_REFERENCE="v0.2.0"
+    RUBIN_NIGHTS_REFERENCE="v0.7.0"
 
 Note that the ``obs_version_at_time`` command provided by ``schedview`` will query the EFD for the latest version being used (for some of these packages).
 You can also use the github API and bash tools to get the highest tag for a repository, for example::
@@ -67,7 +67,7 @@ Pick up the current version of ``lsst-resources`` along the way.::
         git+https://github.com/lsst/rubin_sim.git@${RUBIN_SIM_REFERENCE} \
         git+https://github.com/lsst/schedview.git@${SCHEDVIEW_REFERENCE} \
         git+https://github.com/lsst-ts/ts_fbs_utils.git@${TS_FBS_UTILS_REFERENCE} \
-        git+https://github.com/lsst-sims/sims_sv_survey.git@${SIMS_SV_SURVEY_REFERENCE} \
+        git+https://github.com/lsst-sims/lsst_survey_sim.git@${LSST_SURVEY_SIM_REFERENCE} \
         git+https://github.com/lsst-sims/rubin_nights.git@${RUBIN_NIGHTS_REFERENCE} \
         git+https://github.com/lsst/rubin_scheduler.git@${RUBIN_SCHEDULER_REFERENCE} \
         lsst-resources
@@ -85,14 +85,13 @@ Next we need is the scheduler configuration we're going to use.
 We want the archive to track this, so we want it to be at a URL somewhere that it would be useful for the archive to reference.
 Let's use something from github::
 
-    TS_CONFIG_OCS_REFERENCE="v0.28.33"
-    SCHED_CONFIG_URL="https://raw.githubusercontent.com/lsst-ts/ts_config_ocs/refs/tags/${TS_CONFIG_OCS_REFERENCE}/Scheduler/feature_scheduler/maintel/fbs_config_sv_survey.py"
-    SCHED_CONFIG_FNAME=$(basename "$SCHED_CONFIG_URL")
-    curl -sL ${SCHED_CONFIG_URL} -o ${SCHED_CONFIG_FNAME}
-
-    SUPP_CONFIG_URL="https://raw.githubusercontent.com/lsst-ts/ts_config_ocs/refs/tags/${TS_CONFIG_OCS_REFERENCE}/Scheduler/feature_scheduler/maintel/ddf_sv.dat"
-    SUPP_CONFIG_FNAME=$(basename "${SUPP_CONFIG_URL}")
-    curl -sL ${SUPP_CONFIG_URL} -o ${SUPP_CONFIG_FNAME}
+    TS_CONFIG_SCHEDULER_REFERENCE="develop"
+    SCHED_CONFIG_FNAME="ts_config_scheduler/Scheduler/feature_scheduler/maintel/fbs_config_lsst_survey.py"
+    echo "Using ts_config_scheduler ${SCHED_CONFIG_FNAME} from ${TS_CONFIG_SCHEDULER_REFERENCE}"
+    git clone https://github.com/lsst-ts/ts_config_scheduler
+    cd ts_config_scheduler
+    git checkout "${TS_CONFIG_SCHEDULER_REFERENCE}"
+    cd ${WORK_DIR}
 
 We need to set the ``dayobs`` on which the simulation should start::
 
@@ -101,13 +100,13 @@ We need to set the ``dayobs`` on which the simulation should start::
 Get the pre-existing visits from consdb::
 
     USDF_ACCESS_TOKEN_PATH=~/.lsst/usdf_access_token
-    fetch_sv_visits ${DAYOBS} completed_visits.db ${USDF_ACCESS_TOKEN_PATH}
+    fetch_lsst_visits ${DAYOBS} completed_visits.db ${USDF_ACCESS_TOKEN_PATH}
 
 Note that you will need a USDF access token.
 
 Create a pickle of the scheduler to run, with completed visits pre-loaded, and write it to a pickle, ``scheduler.p``::
 
-    make_sv_scheduler scheduler.p --opsim completed_visits.db --config-script=${SCHED_CONFIG_FNAME}
+    make_lsst_scheduler scheduler.p --opsim completed_visits.db --config-script ${SCHED_CONFIG_FNAME}
 
 Create a model observatory and write it to pickle file, ``observatory.p``::
 
@@ -117,7 +116,7 @@ Run the simulation, writing the result to files in the local directory::
 
     RESULTS_DIR="."
     OPSIMRUN="prenight_nominal_$(date --iso=s)"
-    run_sv_sim scheduler.p observatory.p "" ${DAYOBS} 1 "${OPSIMRUN}" --keep_rewards --results ${RESULTS_DIR}
+    run_lsst_sim scheduler.p observatory.p "" ${DAYOBS} 1 "${OPSIMRUN}" --keep_rewards --results ${RESULTS_DIR}
 
 There will now be an assortment of output files in the current working directory.
 
@@ -142,7 +141,7 @@ The production schema is ``vsmd``.
 Now, create a root for a demonstration resource in which to save the data itself::
 
     mkdir ${HOME}/devel/test_visitseq_archive
-    export ARCHIVE_URL="file:///sdf/data/rubin/user/${HOME}/devel/test_visitseq_archive"
+    export ARCHIVE_URL="file:///${HOME}/devel/test_visitseq_archive"
 
 Make a simple utility shell function
 ------------------------------------
@@ -169,9 +168,9 @@ Begin by creating an entry for the pre-existing visits::
     COMPLETED=$(vseqarchive record-visitseq-metadata \
         completed \
         completed_visits.db \
-        "Consdb query through 2025-09-21" \
+        "Consdb query through 2025-10-31" \
         --first_day_obs 20250620 \
-        --last_day_obs 20250921)
+        --last_day_obs 20251031)
 
 The ``COMPLETED`` UUID will now contain a reference for the sequence of visits returned from the consdb.
 This command only adds an entry to the metadata, it does not save the visits themselves in the archive.
@@ -187,15 +186,15 @@ Now create an entry for the simulated visits::
         simulations \
         opsim.db \
         "Test pre-night simulation 1" \
-        --first_day_obs 20250928 \
-        --last_day_obs 20250928
+        --first_day_obs 20261201 \
+        --last_day_obs 20261202
         )
 
 This command only stored the bare minimum of metadata, and did not save the visits or any of the files in the archive.
 We can now add additional metadata to the database::
 
     vseqarchive update-visitseq-metadata ${SIM_UUID} parent_visitseq_uuid ${COMPLETED}
-    vseqarchive update-visitseq-metadata ${SIM_UUID} parent_last_day_obs 2025-09-21
+    vseqarchive update-visitseq-metadata ${SIM_UUID} parent_last_day_obs 2025-12-31
 
     SCHEDULER_VERSION=$(python -c "import rubin_scheduler; print(rubin_scheduler.__version__)")
     vseqarchive update-visitseq-metadata ${SIM_UUID} scheduler_version "${SCHEDULER_VERSION}"

@@ -53,16 +53,16 @@ if false ; then
   RUBIN_SIM_REFERENCE=$(curl -s https://api.github.com/repos/lsst/rubin_sim/tags | jq -r '.[].name' | egrep '^v[0-9]+.[0-9]+.[0-9]+$' | sort -V | tail -1)
   SCHEDVIEW_REFERENCE=$(curl -s https://api.github.com/repos/lsst/schedview/tags | jq -r '.[].name' | egrep '^v[0-9]+.[0-9]+.[0-9]+$' | sort -V | tail -1)
   TS_FBS_UTILS_REFERENCE=$(curl -s https://api.github.com/repos/lsst-ts/ts_fbs_utils/tags | jq -r '.[].name' | egrep '^v[0-9]+.[0-9]+.[0-9]+$' | sort -V | tail -1)
-  SIMS_SV_SURVEY_REFERENCE=$(curl -s https://api.github.com/repos/lsst-sims/sims_sv_survey/tags | jq -r '.[].name' | egrep '^v[0-9]+.[0-9]+.[0-9]+$' | sort -V | tail -1)
+  LSST_SURVEY_SIM_REFERENCE=$(curl -s https://api.github.com/repos/lsst-sims/lsst_survey_sim/tags | jq -r '.[].name' | egrep '^v[0-9]+.[0-9]+.[0-9]+$' | sort -V | tail -1)
   RUBIN_NIGHTS_REFERENCE=$(curl -s https://api.github.com/repos/lsst-sims/rubin_nights/tags | jq -r '.[].name' | egrep '^v[0-9]+.[0-9]+.[0-9]+$' | sort -V | tail -1)
 else
   # alternately, set specific versions
-  RUBIN_SCHEDULER_REFERENCE="v3.14.1"
-  RUBIN_SIM_REFERENCE="tickets/SP-2167"
+  RUBIN_SCHEDULER_REFERENCE="v3.18.1"
+  RUBIN_SIM_REFERENCE="tickets/SP-2709"
   SCHEDVIEW_REFERENCE="tickets/SP-2167"
-  TS_FBS_UTILS_REFERENCE="v0.17.0"
-  SIMS_SV_SURVEY_REFERENCE="tickets/SP-2167"
-  RUBIN_NIGHTS_REFERENCE="v0.6.1"
+  TS_FBS_UTILS_REFERENCE="v0.18.0"
+  LSST_SURVEY_SIM_REFERENCE="v0.2.0"
+  RUBIN_NIGHTS_REFERENCE="v0.7.0"
 fi
 
 pip install --no-deps --target=${PACKAGE_DIR} \
@@ -70,7 +70,7 @@ pip install --no-deps --target=${PACKAGE_DIR} \
   git+https://github.com/lsst/rubin_sim.git@${RUBIN_SIM_REFERENCE} \
   git+https://github.com/lsst/schedview.git@${SCHEDVIEW_REFERENCE} \
   git+https://github.com/lsst-ts/ts_fbs_utils.git@${TS_FBS_UTILS_REFERENCE} \
-  git+https://github.com/lsst-sims/sims_sv_survey.git@${SIMS_SV_SURVEY_REFERENCE} \
+  git+https://github.com/lsst-sims/lsst_survey_sim.git@${LSST_SURVEY_SIM_REFERENCE} \
   git+https://github.com/lsst-sims/rubin_nights.git@${RUBIN_NIGHTS_REFERENCE} \
   lsst-resources
 
@@ -79,26 +79,26 @@ if false ; then
   # We have to do this after the others, because we want
   # the version of obs_version_at_time supplied by the
   # version of schedview we specify.
-  # Go ahead and install any missing dependencies as well.
   RUBIN_SCHEDULER_REFERENCE=v$(obs_version_at_time rubin_scheduler)
   echo "Using rubin_scheduler $RUBIN_SCHEDULER_REFERENCE"
   pip install --ignore-installed --no-deps --upgrade --target=${PACKAGE_DIR} git+https://github.com/lsst/rubin_scheduler.git@${RUBIN_SCHEDULER_REFERENCE}
 fi
 
 # Get the scheduler configuration script
-# It lives in ts_ocs_config
-TS_CONFIG_OCS_REFERENCE="v0.28.33"
-echo "Using ts_config_ocs ${TS_CONFIG_OCS_REFERENCE}"
-SCHED_CONFIG_URL="https://raw.githubusercontent.com/lsst-ts/ts_config_ocs/refs/tags/${TS_CONFIG_OCS_REFERENCE}/Scheduler/feature_scheduler/maintel/fbs_config_sv_survey.py"
-SCHED_CONFIG_FNAME=$(basename "$SCHED_CONFIG_URL")
-curl -sL ${SCHED_CONFIG_URL} -o ${SCHED_CONFIG_FNAME}
-
-# This config script also needs a supporting file:
-SUPP_CONFIG_URL="https://raw.githubusercontent.com/lsst-ts/ts_config_ocs/refs/tags/${TS_CONFIG_OCS_REFERENCE}/Scheduler/feature_scheduler/maintel/ddf_sv.dat"
-SUPP_CONFIG_FNAME=$(basename "${SUPP_CONFIG_URL}")
-curl -sL ${SUPP_CONFIG_URL} -o ${SUPP_CONFIG_FNAME}
+# It lives in ts_config_scheduler
+TS_CONFIG_SCHEDULER_REFERENCE="develop"
+SCHED_CONFIG_FNAME="ts_config_scheduler/Scheduler/feature_scheduler/maintel/fbs_config_lsst_survey.py"
+echo "Using ts_config_scheduler ${SCHED_CONFIG_FNAME} from ${TS_CONFIG_SCHEDULER_REFERENCE}"
+git clone --depth 1 https://github.com/lsst-ts/ts_config_scheduler
+cd ts_config_scheduler
+git fetch --depth 1 origin "${TS_CONFIG_SCHEDULER_REFERENCE}"
+git checkout FETCH_HEAD
+cd ${WORK_DIR}
 
 export DAYOBS="$(date -u --date='-12 hours' +'%Y%m%d')"
+export NEXT_DAYOBS="$(date -u --date='+12 hours' +'%Y%m%d')"
+export LAST_DAYOBS="$(date -u --date='+36 hours' +'%Y%m%d')"
+export DAYOBS_SIMULATED="$DAYOBS $NEXT_DAYOBS $LAST_DAYOBS"
 export LASTNIGHTISO="$(date --date='-36 hours' -u +'%F')"
 
 export ARCHIVE="s3://rubin:rubin-scheduler-prenight/opsim/vseq/"
@@ -109,7 +109,7 @@ export VSARCHIVE_PGSCHEMA="vsmd"
 
 echo "Fetching completed visits"
 date --iso=s
-fetch_sv_visits ${DAYOBS} completed_visits.db ~/.lsst/usdf_access_token
+fetch_lsst_visits ${DAYOBS} completed_visits.db ~/.lsst/usdf_access_token
 
 # Recording hash of fetched visits
 COMPLETED=$(vseqarchive record-visitseq-metadata \
@@ -121,21 +121,25 @@ COMPLETED=$(vseqarchive record-visitseq-metadata \
 
 echo "Creating scheduler pickle"
 date --iso=s
-make_sv_scheduler scheduler.p --opsim completed_visits.db --config-script ${SCHED_CONFIG_FNAME}
+make_lsst_scheduler scheduler.p --opsim completed_visits.db --config-script ${SCHED_CONFIG_FNAME}
 
 echo "Creating model observatory"
 date --iso=s
 make_model_observatory observatory.p
 
+echo "Creating the band scheduler"
+date --iso=s
+make_band_scheduler band_scheduler.p
+
 # make dir for output
 OPSIM_RESULT_DIR=${WORK_DIR}/opsim_results
 mkdir ${OPSIM_RESULT_DIR}
 
-echo "Running nominal SV simulation"
+echo "Running nominal LSST simulation"
 OPSIMRUN="prenight_nominal_$(date --iso=s)"
 LABEL="Nominal start and overhead, ideal conditions, run at $(date --iso=s)"
 date --iso=s
-run_sv_sim scheduler.p observatory.p "" ${DAYOBS} 1 "${OPSIMRUN}" \
+run_lsst_sim scheduler.p observatory.p "" ${DAYOBS} 3 "${OPSIMRUN}" \
   --keep_rewards --label "${LABEL}" \
   --delay 0 --anom_overhead_scale 0 \
   --results ${OPSIM_RESULT_DIR}
@@ -147,7 +151,7 @@ SIM_UUID=$(vseqarchive record-visitseq-metadata \
     ${OPSIM_RESULT_DIR}/opsim.db \
     "${LABEL}" \
     --first_day_obs ${DAYOBS} \
-    --last_day_obs ${DAYOBS}
+    --last_day_obs ${LAST_DAYOBS}
     )
 vseqarchive update-visitseq-metadata ${SIM_UUID} parent_visitseq_uuid ${COMPLETED}
 vseqarchive update-visitseq-metadata ${SIM_UUID} parent_last_day_obs ${LASTNIGHTISO}
@@ -170,7 +174,7 @@ for DELAY in 60 240 ; do
   OPSIMRUN="prenight_delay${DELAY}_$(date --iso=s)"
   LABEL="Start time delayed by ${DELAY} minutes, nominal slew and visit overhead, ideal conditions, run at $(date --iso=s)"
   date --iso=s
-  run_sv_sim scheduler.p observatory.p "" ${DAYOBS} 1 "${OPSIMRUN}" \
+  run_lsst_sim scheduler.p observatory.p "" ${DAYOBS} 3 "${OPSIMRUN}" \
     --keep_rewards --label "${LABEL}" \
     --delay ${DELAY} --anom_overhead_scale 0 \
     --results ${OPSIM_RESULT_DIR}
@@ -180,7 +184,7 @@ for DELAY in 60 240 ; do
       ${OPSIM_RESULT_DIR}/opsim.db \
       "${LABEL}" \
       --first_day_obs ${DAYOBS} \
-      --last_day_obs ${DAYOBS}
+      --last_day_obs ${LAST_DAYOBS}
       )
   vseqarchive update-visitseq-metadata ${SIM_UUID} parent_visitseq_uuid ${COMPLETED}
   vseqarchive update-visitseq-metadata ${SIM_UUID} parent_last_day_obs ${LASTNIGHTISO}
@@ -201,7 +205,7 @@ for ANOM_SEED in 101 102 ; do
   OPSIMRUN="prenight_anom${ANOM_SEED}_$(date --iso=s)"
   LABEL="Anomalous overhead (${ANOM_SEED}, ${ANOM_SCALE}), nominal start, ideal conditions, run at $(date --iso=s)"
   date --iso=s
-  run_sv_sim scheduler.p observatory.p "" ${DAYOBS} 1 "${OPSIMRUN}" \
+  run_lsst_sim scheduler.p observatory.p "" ${DAYOBS} 3 "${OPSIMRUN}" \
     --keep_rewards --label "${LABEL}" \
     --delay 0 \
     --anom_overhead_scale ${ANOM_SCALE} \
@@ -213,7 +217,7 @@ for ANOM_SEED in 101 102 ; do
       ${OPSIM_RESULT_DIR}/opsim.db \
       "${LABEL}" \
       --first_day_obs ${DAYOBS} \
-      --last_day_obs ${DAYOBS}
+      --last_day_obs ${LAST_DAYOBS}
       )
   vseqarchive update-visitseq-metadata ${SIM_UUID} parent_visitseq_uuid ${COMPLETED}
   vseqarchive update-visitseq-metadata ${SIM_UUID} parent_last_day_obs ${LASTNIGHTISO}
@@ -229,3 +233,7 @@ for ANOM_SEED in 101 102 ; do
 done
 
 rm observatory.p scheduler.p
+
+for DAYOBS_TO_INDEX in ${DAYOBS_SIMULATED}; do
+  vseqarchive make-prenight-index ${DAYOBS_TO_INDEX} simonyi
+done
