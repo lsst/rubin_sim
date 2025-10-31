@@ -86,12 +86,11 @@ We want the archive to track this, so we want it to be at a URL somewhere that i
 Let's use something from github::
 
     TS_CONFIG_SCHEDULER_REFERENCE="develop"
-    "ffaec66f55de153de90ee9a5cb885b26862b1c74"
     SCHED_CONFIG_FNAME="ts_config_scheduler/Scheduler/feature_scheduler/maintel/fbs_config_lsst_survey.py"
     echo "Using ts_config_scheduler ${SCHED_CONFIG_FNAME} from ${TS_CONFIG_SCHEDULER_REFERENCE}"
     git clone https://github.com/lsst-ts/ts_config_scheduler
     cd ts_config_scheduler
-    git checktout "${TS_CONFIG_SCHEDULER_REFERENCE}"
+    git checkout "${TS_CONFIG_SCHEDULER_REFERENCE}"
     cd ${WORK_DIR}
 
 We need to set the ``dayobs`` on which the simulation should start::
@@ -142,7 +141,7 @@ The production schema is ``vsmd``.
 Now, create a root for a demonstration resource in which to save the data itself::
 
     mkdir ${HOME}/devel/test_visitseq_archive
-    export ARCHIVE_URL="file:///sdf/data/rubin/user/${HOME}/devel/test_visitseq_archive"
+    export ARCHIVE_URL="file:///${HOME}/devel/test_visitseq_archive"
 
 Make a simple utility shell function
 ------------------------------------
@@ -169,9 +168,9 @@ Begin by creating an entry for the pre-existing visits::
     COMPLETED=$(vseqarchive record-visitseq-metadata \
         completed \
         completed_visits.db \
-        "Consdb query through 2025-09-21" \
+        "Consdb query through 2025-10-31" \
         --first_day_obs 20250620 \
-        --last_day_obs 20250921)
+        --last_day_obs 20251031)
 
 The ``COMPLETED`` UUID will now contain a reference for the sequence of visits returned from the consdb.
 This command only adds an entry to the metadata, it does not save the visits themselves in the archive.
@@ -187,15 +186,15 @@ Now create an entry for the simulated visits::
         simulations \
         opsim.db \
         "Test pre-night simulation 1" \
-        --first_day_obs 20250928 \
-        --last_day_obs 20250928
+        --first_day_obs 20261201 \
+        --last_day_obs 20261202
         )
 
 This command only stored the bare minimum of metadata, and did not save the visits or any of the files in the archive.
 We can now add additional metadata to the database::
 
     vseqarchive update-visitseq-metadata ${SIM_UUID} parent_visitseq_uuid ${COMPLETED}
-    vseqarchive update-visitseq-metadata ${SIM_UUID} parent_last_day_obs 2025-09-21
+    vseqarchive update-visitseq-metadata ${SIM_UUID} parent_last_day_obs 2025-12-31
 
     SCHEDULER_VERSION=$(python -c "import rubin_scheduler; print(rubin_scheduler.__version__)")
     vseqarchive update-visitseq-metadata ${SIM_UUID} scheduler_version "${SCHEDULER_VERSION}"
