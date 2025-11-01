@@ -69,11 +69,12 @@ def rs_download_testing() -> None:
     """Convenience function for github actions, to download only a subset
     of data.
 
-    Contains maf,maps,movingObjects,skybrightness,throughputs and tests.
+    Contains maf, maps, movingObjects, sim_baseline, skybrightness,
+    throughputs and tests.
     For users who don't care about moving objects, this is likely sufficient.
     """
     all_files = data_dict()
-    keys = ["maf", "maps", "movingObjects", "skybrightness", "throughputs", "tests"]
+    keys = ["maf", "maps", "movingObjects", "sim_baseline", "skybrightness", "throughputs", "tests"]
     subset = {}
     for k in keys:
         subset[k] = all_files[k]
