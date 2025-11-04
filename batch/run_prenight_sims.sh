@@ -57,10 +57,10 @@ if false ; then
   RUBIN_NIGHTS_REFERENCE=$(curl -s https://api.github.com/repos/lsst-sims/rubin_nights/tags | jq -r '.[].name' | egrep '^v[0-9]+.[0-9]+.[0-9]+$' | sort -V | tail -1)
 else
   # alternately, set specific versions
-  RUBIN_SCHEDULER_REFERENCE="v3.18.1"
-  RUBIN_SIM_REFERENCE="tickets/SP-2709"
-  SCHEDVIEW_REFERENCE="tickets/SP-2167"
-  TS_FBS_UTILS_REFERENCE="v0.18.0"
+  RUBIN_SCHEDULER_REFERENCE="v3.19.0"
+  RUBIN_SIM_REFERENCE="v2.6.1.dev1"
+  SCHEDVIEW_REFERENCE="v0.20.0.dev1"
+  TS_FBS_UTILS_REFERENCE="v0.19.0"
   LSST_SURVEY_SIM_REFERENCE="v0.2.0"
   RUBIN_NIGHTS_REFERENCE="v0.7.0"
 fi
