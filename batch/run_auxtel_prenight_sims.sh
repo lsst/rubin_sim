@@ -48,30 +48,15 @@ export PYTHONPATH=${PACKAGE_DIR}:${PYTHONPATH}
 export PATH=${PACKAGE_DIR}/bin:${PATH}
 
 if false ; then
-  # Get latest tagged versions of everything
-  RUBIN_SCHEDULER_REFERENCE=$(curl -s https://api.github.com/repos/lsst/rubin_scheduler/tags | jq -r '.[].name' | egrep '^v[0-9]+.[0-9]+.[0-9]+$' | sort -V | tail -1)
-  RUBIN_SIM_REFERENCE=$(curl -s https://api.github.com/repos/lsst/rubin_sim/tags | jq -r '.[].name' | egrep '^v[0-9]+.[0-9]+.[0-9]+$' | sort -V | tail -1)
-  SCHEDVIEW_REFERENCE=$(curl -s https://api.github.com/repos/lsst/schedview/tags | jq -r '.[].name' | egrep '^v[0-9]+.[0-9]+.[0-9]+$' | sort -V | tail -1)
-  TS_FBS_UTILS_REFERENCE=$(curl -s https://api.github.com/repos/lsst-ts/ts_fbs_utils/tags | jq -r '.[].name' | egrep '^v[0-9]+.[0-9]+.[0-9]+$' | sort -V | tail -1)
-  SIMS_SV_SURVEY_REFERENCE=$(curl -s https://api.github.com/repos/lsst-sims/sims_sv_survey/tags | jq -r '.[].name' | egrep '^v[0-9]+.[0-9]+.[0-9]+$' | sort -V | tail -1)
-  RUBIN_NIGHTS_REFERENCE=$(curl -s https://api.github.com/repos/lsst-sims/rubin_nights/tags | jq -r '.[].name' | egrep '^v[0-9]+.[0-9]+.[0-9]+$' | sort -V | tail -1)
+  # Get latest tagged version lsst_survey_sim (and its dependencies)
+  LSST_SURVEY_SIM_REFERENCE=$(curl -s https://api.github.com/repos/lsst-sims/lsst_survey_sim/tags | jq -r '.[].name' | egrep '^v[0-9]+.[0-9]+.[0-9]+$' | sort -V | tail -1)
 else
-  # alternately, set specific versions
-  RUBIN_SCHEDULER_REFERENCE="v3.18.1"
-  RUBIN_SIM_REFERENCE="tickets/SP-2709"
-  SCHEDVIEW_REFERENCE="tickets/SP-2167"
-  TS_FBS_UTILS_REFERENCE=$(curl -s https://api.github.com/repos/lsst-ts/ts_fbs_utils/tags | jq -r '.[].name' | egrep '^v[0-9]+.[0-9]+.[0-9]+$' | sort -V | tail -1)
-  LSST_SURVEY_SIM_REFERENCE="tickets/SP-2709a"
-  RUBIN_NIGHTS_REFERENCE="v0.7.0"
+  # alternately, use the HEAD of main
+  LSST_SURVEY_SIM_REFERENCE="main"
 fi
 
-pip install --no-deps --target=${PACKAGE_DIR} \
-  git+https://github.com/lsst/rubin_scheduler.git@${RUBIN_SCHEDULER_REFERENCE} \
-  git+https://github.com/lsst/rubin_sim.git@${RUBIN_SIM_REFERENCE} \
-  git+https://github.com/lsst/schedview.git@${SCHEDVIEW_REFERENCE} \
-  git+https://github.com/lsst-ts/ts_fbs_utils.git@${TS_FBS_UTILS_REFERENCE} \
+pip install --target=${PACKAGE_DIR} \
   git+https://github.com/lsst-sims/lsst_survey_sim.git@${LSST_SURVEY_SIM_REFERENCE} \
-  git+https://github.com/lsst-sims/rubin_nights.git@${RUBIN_NIGHTS_REFERENCE} \
   lsst-resources
 
 if false ; then
