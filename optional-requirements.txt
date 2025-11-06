@@ -1,6 +1,10 @@
+botocore
+boto3
+click
 conda
 openorb
 openorb-data-de405
+psycopg2
 george
 jinja2
 tornado
