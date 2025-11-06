@@ -23,29 +23,25 @@ if [[ -e ~/.profile.d && -n "$(ls -A ~/.profile.d/)" ]]; then
 fi
 
 date --iso=s
-LATEST_TAGGED_STACK=$(
-    find /cvmfs/sw.lsst.eu/almalinux-x86_64/lsst_distrib \
-        -maxdepth 1 \
-        -regex '.*/v[0-9]+\.[0-9]+\.[0-9]+' \
-        -printf "%f\n" |
-    sort -V |
-    tail -1
-)
-source /cvmfs/sw.lsst.eu/almalinux-x86_64/lsst_distrib/${LATEST_TAGGED_STACK}/loadLSST-ext.sh
 
 set -o xtrace
 
 export AWS_PROFILE=prenight
-WORK_DIR=$(date '+/sdf/data/rubin/shared/scheduler/prenight/work/run_prenight_sims/%Y-%m-%dT%H%M%S' --utc)
+WORK_DATE=$(date '+%Y-%m-%dT%H%M%S' --utc)
+WORK_DIR="/sdf/data/rubin/shared/scheduler/prenight/work/run_prenight_sims/${WORK_DATE}"
 echo "Working in $WORK_DIR"
 mkdir ${WORK_DIR}
 cd ${WORK_DIR}
 
-# Install required python packages
-PACKAGE_DIR=$(readlink -f ${WORK_DIR}/packages)
-mkdir ${PACKAGE_DIR}
-export PYTHONPATH=${PACKAGE_DIR}:${PYTHONPATH}
-export PATH=${PACKAGE_DIR}/bin:${PATH}
+# Install required python packages in a new venv
+# The true environment is from the venv created below,
+# but we need a python in the path to create the
+# venv to begin with, so we source loadLSST.sh.
+source /sdf/group/rubin/sw/w_latest/loadLSST.sh
+PRENIGHT_VENV=$(mktemp -d /sdf/scratch/users/n/${USER}/prenight_venvs/prenight-${WORK_DATE}-XXXXXX)
+python -m venv "${PRENIGHT_VENV}"
+ln -s "${PRENIGHT_VENV}" "${WORK_DIR}/venv"
+source "${PRENIGHT_VENV}/bin/activate"
 
 if false ; then
   # Get latest tagged version lsst_survey_sim (and its dependencies)
@@ -57,6 +53,10 @@ fi
 
 pip install --target=${PACKAGE_DIR} \
   git+https://github.com/lsst-sims/lsst_survey_sim.git@${LSST_SURVEY_SIM_REFERENCE} \
+  click \
+  psycopg2 \
+  botocore \
+  boto3 \
   lsst-resources
 
 # Get the scheduler configuration script
