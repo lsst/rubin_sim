@@ -96,7 +96,7 @@ COMPLETED=$(vseqarchive record-visitseq-metadata \
 
 echo "Creating scheduler pickle"
 date --iso=s
-make_lsst_scheduler scheduler.p --opsim completed_visits.db --config-script ${SCHED_CONFIG_FNAME}
+make_lsst_scheduler scheduler.p --opsim completed_visits.db --config_script ${SCHED_CONFIG_FNAME}
 
 echo "Creating model observatory"
 date --iso=s
