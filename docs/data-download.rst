@@ -52,7 +52,7 @@ to the directories originating from `rubin_scheduler <https://rubin-scheduler.ls
 * sim_baseline (containing the current baseline simulation output)
 * skybrightness (containing information needed for the skybrightness module)
 * throughputs (current baseline throughput information)
-* test (containing data for unit tests)
+* tests (containing data for unit tests)
 
 
 Note that the data will only be downloaded for the directories which do
