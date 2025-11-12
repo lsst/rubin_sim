@@ -75,7 +75,7 @@ class GalaxyCountsMetricExtended(BaseMetric):
     def __init__(
         self,
         m5_col="fiveSigmaDepth",
-        filter_col="filter",
+        filter_col="band",
         nside=128,
         metric_name="GalaxyCountsMetricExtended",
         units="Galaxy Counts",
