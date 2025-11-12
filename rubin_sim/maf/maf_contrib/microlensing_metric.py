@@ -65,7 +65,9 @@ def microlensing_amplification_fsfb(t, impact_parameter=1, crossing_time=1825.0,
     """
 
     lightcurve_u = np.sqrt(impact_parameter**2 + ((t - peak_time) ** 2 / crossing_time**2))
-    amplified_mag = -2.5*np.log10((lightcurve_u**2 + 2) / (lightcurve_u * np.sqrt(lightcurve_u**2 + 4)) * fs + fb)
+    amplified_mag = -2.5 * np.log10(
+        (lightcurve_u**2 + 2) / (lightcurve_u * np.sqrt(lightcurve_u**2 + 4)) * fs + fb
+    )
 
     return amplified_mag
 
@@ -366,8 +368,8 @@ class MicrolensingMetric(metrics.BaseMetric):
             infilt = np.where(data_slice[self.filter_col] == filtername)[0]
 
             if individual_mags is True:
-                fs = 10**(-0.4*slice_point["apparent_m_no_blend_{}".format(filtername)])
-                fb = 10**(-0.4*slice_point["apparent_m_{}".format(filtername)]) - fs
+                fs = 10 ** (-0.4 * slice_point["apparent_m_no_blend_{}".format(filtername)])
+                fb = 10 ** (-0.4 * slice_point["apparent_m_{}".format(filtername)]) - fs
                 amplitudes = microlensing_amplification_fsfb(
                     t,
                     impact_parameter=slice_point["impact_parameter"],
