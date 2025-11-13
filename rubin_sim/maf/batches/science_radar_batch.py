@@ -509,7 +509,7 @@ def science_radar_batch(
     for filtername in "ugrizy":
         displayDict["caption"] = "Surface brightness limit in %s, no extinction applied." % filtername
         displayDict["order"] = filterorders[f]
-        sql = "filter='%s'" % filtername
+        sql = "band='%s'" % filtername
         metric = metrics.SurfaceBrightLimitMetric()
         bundle = mb.MetricBundle(
             metric,
@@ -652,7 +652,7 @@ def science_radar_batch(
     subgroupCount += 1
     displayDict["subgroup"] = f"{subgroupCount}: WL"
     displayDict["order"] = 0
-    sqlconstraint = "scheduler_note not like 'DD%' and (filter='g' or filter='r' or filter='i')"
+    sqlconstraint = "scheduler_note not like 'DD%' and (band='g' or band='r' or band='i')"
     info_label = "gri band non-DD"
     minExpTime = 15
     m = metrics.WeakLensingNvisits(
@@ -685,7 +685,7 @@ def science_radar_batch(
         displayDict["order"] = year
         sqlconstraint = (
             "scheduler_note not like 'DD%'"
-            + " and (filter='g' or filter='r' or filter='i') and night < %i" % (year * 365.25)
+            + " and (band='g' or band='r' or band='i') and night < %i" % (year * 365.25)
         )
         m = metrics.WeakLensingNvisits(
             lsst_filter=bandpass,
@@ -721,7 +721,7 @@ def science_radar_batch(
 
         sqlconstraint = (
             "scheduler_note not like 'DD%'"
-            + " and (filter='r' or filter='i' or filter='z') and night < %i" % (year * 365.25)
+            + " and (band='r' or band='i' or band='z') and night < %i" % (year * 365.25)
         )
         m = metrics.WeakLensingNvisits(
             lsst_filter=bandpass,
@@ -780,7 +780,7 @@ def science_radar_batch(
     for year in np.arange(1, 10):
         sqlconstraint = (
             "scheduler_note not like 'DD%'"
-            + " and (filter='g' or filter='r' or filter='i') and night < %i" % (year * 365.25)
+            + " and (band='g' or band='r' or band='i') and night < %i" % (year * 365.25)
         )
         metric1 = metrics.KuiperMetric("rotSkyPos", metric_name="Kuiper_rotSkyPos_gri_year%i" % year)
         metric2 = metrics.KuiperMetric("rotTelPos", metric_name="Kuiper_rotTelPos_gri_year%i" % year)
@@ -1821,7 +1821,7 @@ def science_radar_batch(
     slicer = slicers.HealpixSlicer(nside=nside)
     for i, cuttoff in enumerate(night_cuttoffs):
         for filtername in "ugrizy":
-            sql = "night<%i and filter='%s'" % (cuttoff, filtername)
+            sql = "night<%i and band='%s'" % (cuttoff, filtername)
             metric = metrics.Coaddm5Metric(metric_name="coadd %s, year<%i" % (filtername, i + 1))
             displayDict = {"group": "Per year", "subgroup": "Coadds"}
             bundle = mb.MetricBundle(
@@ -1861,7 +1861,7 @@ def science_radar_batch(
 
     displayDict = {"group": "Scaling Numbers", "subgroup": ""}
     displayDict["subgroup"] = "N gals"
-    sql = "filter='i'"
+    sql = "band='i'"
     metric = metrics.NgalScaleMetric()
     # galaxy counting uses dustmap
     slicer = slicers.HealpixSlicer(nside=nside, use_cache=False)

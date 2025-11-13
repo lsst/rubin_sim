@@ -73,9 +73,9 @@ def intraNight(
         "order": 0,
     }
     if extraSql is not None and len(extraSql) > 0:
-        sql = "(%s) and (filter='g' or filter='r' or filter='i')" % extraSql
+        sql = "(%s) and (band='g' or band='r' or band='i')" % extraSql
     else:
-        sql = "filter='g' or filter='r' or filter='i'"
+        sql = "band='g' or band='r' or band='i'"
     md = "gri"
     if info_label is not None:
         md += " " + info_label

@@ -349,7 +349,7 @@ def glanceBatch(
     displayDict["caption"] = "Fraction of observations that are in pairs"
     displayDict["subgroup"] = "Solar System"
 
-    sql = "%s (filter='g' or filter='r' or filter='i')" % sqlC
+    sql = "%s (band='g' or band='r' or band='i')" % sqlC
     pairSlicer = slicers.HealpixSlicer(
         nside=pairnside,
         lat_col=colmap["dec"],
@@ -510,7 +510,7 @@ def glanceBatch(
     sky = EuclidOverlapFootprint(nside=nside_foot, smc_radius=4, lmc_radius=6)
     footprints_hp_array, labels = sky.return_maps()
     for filtername in filternames:
-        sql = "filter='%s' and night < 365" % filtername
+        sql = "band='%s' and night < 365" % filtername
         metric = metrics.CountMetric(col="night", metric_name="N year 1")
         summary_stat = metrics.FootprintFractionMetric(
             footprint=footprints_hp_array[filtername],
@@ -536,7 +536,7 @@ def glanceBatch(
         lat_lon_deg=colmap["raDecDeg"],
     )
     for filtername in filternames:
-        sql = "filter='%s' and scheduler_note like 'ToO%%'" % filtername
+        sql = "band='%s' and scheduler_note like 'ToO%%'" % filtername
         metric = metrics.CountMetric(col=colmap["mjd"], metric_name="N ToO")
         bundle = metric_bundles.MetricBundle(
             metric,
