@@ -58,6 +58,12 @@ extras = [
     "george",
     "pyoorb",
 ]
+vseqarchive = [
+    "click",
+    "psycopg2",
+    "botocore",
+    "boto3",
+]
 
 [project.scripts]
 rs_download_data = "rubin_sim.data.rs_download_data:rs_download_data"
