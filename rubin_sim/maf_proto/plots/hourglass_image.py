@@ -126,7 +126,7 @@ class PlotHourglassImage(BasePlot):
         data_slice.sort(order=self.mjd_col)
         unights, uindx = np.unique(data_slice[self.night_col], return_index=True)
 
-        mjds = np.arange(np.min(data_slice[self.mjd_col]), np.max(data_slice[self.mjd_col]) + 1, 0.5)
+        mjds = np.arange(np.min(data_slice[self.mjd_col]), np.max(data_slice[self.mjd_col]) + 2, 0.5)
 
         # Look up things from almanac
         sunsets = self.almanac.get_sunset_info(mjds)
