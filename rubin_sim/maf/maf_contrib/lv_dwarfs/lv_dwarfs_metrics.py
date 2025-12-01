@@ -249,11 +249,13 @@ class LVDwarfsMetric(BaseMetric):
         nsigma=10.0,
         metric_name="LVDwarfs",
         seed=505,
+        filter_col="band",
+        m5_col="fiveSigmaDepth",
         **kwargs,
     ):
         self.radius = radius
-        self.filter_col = "filter"
-        self.m5_col = "fiveSigmaDepth"
+        self.filter_col = filter_col
+        self.m5_col = m5_col
         self.cmd_frac = cmd_frac
         self.stargal_contamination = stargal_contamination
         self.nsigma = nsigma
@@ -286,7 +288,8 @@ class LVDwarfsMetric(BaseMetric):
         self.star_density_metric = StarDensityMetric(filtername="i")
         # The galaxy counts metric calculates the number of galaxies in i band
         self.galaxy_counts_metric = GalaxyCountsMetricExtended(
-            m5_col=self.m5_col, filter_band="i", include_dust_extinction=True
+            m5_col=self.m5_col, filter_band="i", include_dust_extinction=True,
+            filter_col=self.filter_col,
         )
         # Set the scale for the GalaxyCountMetric_extended to 1, so it returns
         # galaxies per sq deg, not n galaxies per healpixel

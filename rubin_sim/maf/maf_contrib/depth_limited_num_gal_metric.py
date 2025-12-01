@@ -81,6 +81,7 @@ class DepthLimitedNumGalMetric(metrics.BaseMetric):
             redshift_bin=redshift_bin,
             cfht_ls_counts=False,
             normalized_mock_catalog_counts=True,
+            filter_col=self.filter_col,
         )
         # set up the metric for extragalactic footprint
         self.eg_metric = metrics.ExgalM5WithCuts(
