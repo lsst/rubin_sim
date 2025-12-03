@@ -90,7 +90,9 @@ def generate_sky(
     # Switch the indexing to opsim field ID if requested
 
     # Look at the mjds and toss ones where the sun is up
-    mjds = np.arange(mjd0, mjd_max + timestep, timestep)
+    # Plus 1 to ensure we don't end before the filename thinks
+    # we end.
+    mjds = np.arange(mjd0 - 1, mjd_max + timestep + 1, timestep)
     sunAlts = np.zeros(mjds.size, dtype=float)
 
     if outfile is None:
@@ -187,7 +189,7 @@ def generate_sky(
     for key in sky_brightness:
         final_sky_mags[key] = sky_brightness[key]
 
-    import rubin_sim
+    import rubin_sim.version
 
     version = rubin_sim.version.__version__
     fingerprint = version
@@ -220,7 +222,7 @@ if __name__ == "__main__":
     # Make a quick small one for speed loading
     print("generating small file")
     m0 = utils.SURVEY_START_MJD
-    generate_sky(mjd0=m0 - 1, mjd_max=m0 + 31)
+    generate_sky(mjd0=np.floor(m0 - 1), mjd_max=np.ceil(m0 + 30))
 
     nyears = 25.0  # 20  # 13
     day_pad = 30
@@ -239,5 +241,5 @@ if __name__ == "__main__":
         print("Generating file %i" % count)
         # generate_sky(mjd0=mjd1, mjd_max=mjd2+day_pad,
         # outpath='opsimFields', fieldID=True)
-        generate_sky(mjd0=mjd1, mjd_max=mjd2 + day_pad)
+        generate_sky(mjd0=np.floor(mjd1), mjd_max=np.ceil(mjd2) + day_pad)
         count += 1
