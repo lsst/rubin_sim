@@ -485,7 +485,7 @@ class PlotLambert(BasePlot):
             self.info = {}
         else:
             self.info = info
-        self.generated_plot_dict = self._gen_default_labels(info)
+        self.generated_plot_dict = self._gen_default_labels(self.info)
 
     def _gen_default_labels(self, info):
         result = {}
