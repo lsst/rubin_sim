@@ -481,20 +481,22 @@ class PlotLambert(BasePlot):
     """Make a Lambertian projection"""
 
     def __init__(self, info=None):
-        self.info = info
+        if info is None:
+            self.info = {}
+        else:
+            self.info = info
         self.generated_plot_dict = self._gen_default_labels(info)
 
     def _gen_default_labels(self, info):
         result = {}
         result["title"] = ""
         result["xlabel"] = ""
-        if info is not None:
-            if "run_name" in info.keys():
-                result["title"] = info["run_name"]
-            else:
-                result["title"] = ""
-            if "observations_subset" in info.keys():
-                result["title"] += "\n" + info["observations_subset"]
+        if "run_name" in info.keys():
+            result["title"] = info["run_name"]
+        else:
+            result["title"] = ""
+        if "observations_subset" in info.keys():
+            result["title"] += "\n" + info["observations_subset"]
 
         return result
 
