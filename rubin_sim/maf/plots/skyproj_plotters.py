@@ -13,7 +13,7 @@ import numpy.ma as ma
 import pandas as pd
 import skyproj
 from astropy.coordinates import SkyCoord
-from rubin_scheduler.utils import _healbin
+from rubin_scheduler.utils import _healbin, calc_lmst
 
 from .plot_handler import BasePlotter, apply_zp_norm
 from .spatial_plotters import set_color_lims, set_color_map
@@ -88,6 +88,7 @@ class SkyprojPlotter(BasePlotter, abc.ABC):
     # weak keys so that the figure can be cleaned up by the garbage collector,
     # and when it is entry in the dictionary automatically deleted.
     skyproj_instances = WeakKeyDictionary()
+    zd_limit = 60.0
 
     default_decorations = ["ecliptic", "galactic_plane"]
 
@@ -104,6 +105,10 @@ class SkyprojPlotter(BasePlotter, abc.ABC):
     sun_kwargs = {"color": "yellow"}
     moon_kwargs = {"color": "orange"}
     horizon_kwargs = {"edgecolor": "black", "linewidth": 3}
+    morning_west_kwargs = {"color": "red", "linestyle": "dotted"}
+    evening_east_kwargs = {"color": "red", "linestyle": "dotted"}
+    morning_east_kwargs = {"color": "red", "linestyle": "dashed"}
+    evening_west_kwargs = {"color": "red", "linestyle": "dashed"}
 
     def __init__(self):
         super().__init__()
@@ -240,6 +245,52 @@ class SkyprojPlotter(BasePlotter, abc.ABC):
         latitude = model_observatory.location.lat.deg
         self.draw_circle(lmst, latitude, zd, **kwargs)
 
+    def draw_zd_at_sun_n12(self, event="rising", zd=90, start_bear=0, end_bear=360, **kwargs):
+        """Draw a partial circle at a given zenith distance
+        at 12 degree twilight.
+
+        Parameters
+        ----------
+        event : `str`
+            Which event: "rising" or "setting"?
+            Defaults to "rising".
+        zd : `float`
+            The zenith distance to draw, in degrees.
+            Defaults to 90.
+        start_bear : `float`
+            The bearing of the start of the arc, deg.
+            Defaults to 0 deg.
+        end_bear: `float`
+            The bearing of the end of the arc, deg.
+            Defaults to 0 deg.
+        **kwargs
+            Keyword arguments passed to
+            `skyproj.ax.plot`.
+
+        Notes
+        -----
+        This method relies on the site location and time (as an mjd) set in
+        the ``model_observatory`` element of the ``plot_dict``, which
+        should be of the class
+        `rubin_scheduler.scheduler.model_observatory.ModelObservatory`.
+        """
+        if "model_observatory" not in self.plot_dict or self.plot_dict["model_observatory"] is None:
+            warnings.warn("plot_dict['model_observatory'] must be set to plot a zenith distance circle")
+            return
+
+        model_observatory = self.plot_dict["model_observatory"]
+        conditions = model_observatory.return_conditions()
+        if event == "rising":
+            event_mjd = conditions.sun_n12_rising
+        elif event == "setting":
+            event_mjd = conditions.sun_n12_setting
+        else:
+            raise ValueError('event must be "rising" or "setting".')
+        lmst = calc_lmst(event_mjd, conditions.site.longitude_rad) * 360 / 24
+        latitude = model_observatory.location.lat.deg
+        points = compute_circle_points(lmst, latitude, zd, start_bear, end_bear)
+        self.skyproj.ax.plot(points.ra, points.decl, **kwargs)
+
     def draw_body(self, body="sun", **kwargs):
         """Mark the sun or moon.
 
@@ -300,6 +351,24 @@ class SkyprojPlotter(BasePlotter, abc.ABC):
 
         if "horizon" in decorations:
             self.draw_zd(**self.horizon_kwargs)
+
+        if "morning_west" in decorations:
+            self.draw_zd_at_sun_n12(
+                "rising",
+                self.zd_limit,
+                180,
+                360,
+                **self.morning_west_kwargs,
+            )
+
+        if "morning_east" in decorations:
+            self.draw_zd_at_sun_n12("rising", self.zd_limit, 0, 180, **self.morning_east_kwargs)
+
+        if "evening_west" in decorations:
+            self.draw_zd_at_sun_n12("setting", self.zd_limit, 180, 360, **self.evening_west_kwargs)
+
+        if "evening_east" in decorations:
+            self.draw_zd_at_sun_n12("setting", self.zd_limit, 0, 180, **self.evening_east_kwargs)
 
     @abc.abstractmethod
     def draw(self, metric_values, slicer):
