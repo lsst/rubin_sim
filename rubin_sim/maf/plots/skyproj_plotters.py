@@ -1,7 +1,10 @@
 import abc
 import warnings
 from collections import defaultdict
+from collections.abc import Mapping, MutableMapping
 from numbers import Integral
+from types import FunctionType
+from typing import Any, Literal, Sequence
 from weakref import WeakKeyDictionary
 
 import astropy.units as u
@@ -13,20 +16,26 @@ import numpy.ma as ma
 import pandas as pd
 import skyproj
 from astropy.coordinates import SkyCoord
+from matplotlib.figure import Figure
 from rubin_scheduler.utils import _healbin, calc_lmst
+
+from rubin_sim import maf
 
 from .plot_handler import BasePlotter, apply_zp_norm
 from .spatial_plotters import set_color_lims, set_color_map
 
+SunEvent = Literal["rising", "setting"]
+SolarSystemBody = Literal["sun", "moon"]
+
 
 def compute_circle_points(
-    center_ra,
-    center_decl,
-    radius=90.0,
-    start_bear=0,
-    end_bear=360,
-    step=1,
-):
+    center_ra: float,
+    center_decl: float,
+    radius: float = 90.0,
+    start_bear: float = 0.0,
+    end_bear: float = 360.0,
+    step: float = 1.0,
+) -> pd.DataFrame:
     """Create points along a circle or arc on a sphere
 
     Parameters
@@ -49,8 +58,9 @@ def compute_circle_points(
     circle : `pandas.DataFrame`
         DataFrame with points in the circle.
     """
-    ras = []
-    decls = []
+    bearings: list[float | np.floating] = []
+    ras: list[float | np.floating] = []
+    decls: list[float | np.floating] = []
 
     bearing_angles = np.arange(start_bear, end_bear + step, step) * u.deg
     center_coords = SkyCoord(center_ra * u.deg, center_decl * u.deg)
@@ -87,7 +97,7 @@ class SkyprojPlotter(BasePlotter, abc.ABC):
     # Store a mapping between figures and existing SkyprojPlotters, but use
     # weak keys so that the figure can be cleaned up by the garbage collector,
     # and when it is entry in the dictionary automatically deleted.
-    skyproj_instances = WeakKeyDictionary()
+    skyproj_instances: WeakKeyDictionary = WeakKeyDictionary()
     zd_limit = 60.0
 
     default_decorations = ["ecliptic", "galactic_plane"]
@@ -110,12 +120,12 @@ class SkyprojPlotter(BasePlotter, abc.ABC):
     morning_east_kwargs = {"color": "red", "linestyle": "dashed"}
     evening_west_kwargs = {"color": "red", "linestyle": "dashed"}
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
         # Customize our plotters members for our new plot
 
-        self.plot_type = "Skyproj"
-        self.default_plot_dict = {}
+        self.plot_type: str = "Skyproj"
+        self.default_plot_dict: MutableMapping = {}
         self.default_plot_dict.update(
             {
                 "subplot": 111,
@@ -131,22 +141,22 @@ class SkyprojPlotter(BasePlotter, abc.ABC):
             }
         )
         self._initialize_plot_dict({})
-        self.figure = None
+        self.figure: Figure | None = None
 
-    def _initialize_plot_dict(self, user_plot_dict):
+    def _initialize_plot_dict(self, user_plot_dict: Mapping) -> None:
         # Use a defaultdict so that everything not explicitly set return None.
-        def return_none():
+        def return_none() -> None:
             return None
 
-        self.plot_dict = defaultdict(return_none)
+        self.plot_dict: MutableMapping = defaultdict(return_none)
         self.plot_dict.update(self.default_plot_dict)
         self.plot_dict.update(user_plot_dict)
 
-    def _prepare_skyproj(self, fig=None):
+    def _prepare_skyproj(self, fig: Figure | None = None) -> None:
         # Exctract elemens of plot_dict that need to be passed to plt.figure
         fig_kwargs = {k: v for k, v in self.plot_dict.items() if k in ["figsize"]}
 
-        self.figure = plt.figure(**fig_kwargs) if fig is None else fig
+        self.figure: Figure | None = plt.figure(**fig_kwargs) if fig is None else fig
 
         # Normalize subplot specification,
         # so that it can be set in either (single) integer form or tuple form.
@@ -175,7 +185,7 @@ class SkyprojPlotter(BasePlotter, abc.ABC):
             self.skyproj = self.plot_dict["skyproj"](ax=ax, **self.plot_dict["skyproj_kwargs"])
             self.skyproj_instances[self.figure][subplot] = self.skyproj
 
-    def draw_circle(self, center_ra, center_decl, radius=90, **kwargs):
+    def draw_circle(self, center_ra: float, center_decl: float, radius: float = 90, **kwargs: Any) -> None:
         """Draw a circle on the sphere.
 
         Parameters
@@ -193,7 +203,7 @@ class SkyprojPlotter(BasePlotter, abc.ABC):
         points = compute_circle_points(center_ra, center_decl, radius)
         self.skyproj.draw_polygon(points.ra, points.decl, **kwargs)
 
-    def draw_ecliptic(self):
+    def draw_ecliptic(self) -> None:
         """Draw the ecliptic the sphere.
 
         Parameters
@@ -205,7 +215,7 @@ class SkyprojPlotter(BasePlotter, abc.ABC):
         ecliptic_pole = SkyCoord(lon=0 * u.degree, lat=90 * u.degree, frame="geocentricmeanecliptic").icrs
         self.draw_circle(ecliptic_pole.ra.deg, ecliptic_pole.dec.deg, **self.ecliptic_kwargs)
 
-    def draw_galactic_plane(self):
+    def draw_galactic_plane(self) -> None:
         """Draw the galactic plane the sphere.
 
         Parameters
@@ -217,7 +227,7 @@ class SkyprojPlotter(BasePlotter, abc.ABC):
         galactic_pole = SkyCoord(l=0 * u.degree, b=90 * u.degree, frame="galactic").icrs
         self.draw_circle(galactic_pole.ra.deg, galactic_pole.dec.deg, **self.galactic_plane_kwargs)
 
-    def draw_zd(self, zd=90, **kwargs):
+    def draw_zd(self, zd: float = 90, **kwargs: Any) -> None:
         """Draw a circle at a given zenith distance.
 
         Parameters
@@ -245,7 +255,14 @@ class SkyprojPlotter(BasePlotter, abc.ABC):
         latitude = model_observatory.location.lat.deg
         self.draw_circle(lmst, latitude, zd, **kwargs)
 
-    def draw_zd_at_sun_n12(self, event="rising", zd=90, start_bear=0, end_bear=360, **kwargs):
+    def draw_zd_at_sun_n12(
+        self,
+        event: SunEvent = "rising",
+        zd: float = 90.0,
+        start_bear: float = 0.0,
+        end_bear: float = 360.0,
+        **kwargs: Any,
+    ) -> None:
         """Draw a partial circle at a given zenith distance
         at 12 degree twilight.
 
@@ -291,7 +308,7 @@ class SkyprojPlotter(BasePlotter, abc.ABC):
         points = compute_circle_points(lmst, latitude, zd, start_bear, end_bear)
         self.skyproj.ax.plot(points.ra, points.decl, **kwargs)
 
-    def draw_body(self, body="sun", **kwargs):
+    def draw_body(self, body: SolarSystemBody = "sun", **kwargs: Any) -> None:
         """Mark the sun or moon.
 
         Parameters
@@ -321,7 +338,7 @@ class SkyprojPlotter(BasePlotter, abc.ABC):
         decl = np.degrees(sun_moon_positions[f"{body}_dec"].item())
         self.skyproj.scatter(ra, decl, **kwargs)
 
-    def decorate(self):
+    def decorate(self) -> None:
         """Add decorations/annotations to the sky plot.
 
         Notes
@@ -335,7 +352,9 @@ class SkyprojPlotter(BasePlotter, abc.ABC):
         Other decorations (e.g., the ecliptic and galactic plane) can
         be shown even when ``model_observatory`` is not set.
         """
-        decorations = self.plot_dict["decorations"]
+        decorations: Sequence[str] = []
+        if self.plot_dict["decorations"] is not None:
+            decorations = self.plot_dict["decorations"]
 
         if "ecliptic" in decorations:
             self.draw_ecliptic()
@@ -371,10 +390,16 @@ class SkyprojPlotter(BasePlotter, abc.ABC):
             self.draw_zd_at_sun_n12("setting", self.zd_limit, 0, 180, **self.evening_east_kwargs)
 
     @abc.abstractmethod
-    def draw(self, metric_values, slicer):
+    def draw(self, metric_values: np.ma.MaskedArray, slicer: maf.BaseSlicer) -> None:
         raise NotImplementedError()
 
-    def __call__(self, metric_values, slicer, user_plot_dict, fig=None):
+    def __call__(
+        self,
+        metric_values: np.ma.MaskedArray,
+        slicer: maf.BaseSlicer,
+        user_plot_dict: dict,
+        fig: Figure | None = None,
+    ) -> None:
         """Make a plot.
 
         Parameters
@@ -399,6 +424,7 @@ class SkyprojPlotter(BasePlotter, abc.ABC):
         self._prepare_skyproj(fig)
         self.draw(metric_values, slicer)
         self.decorate()
+        assert isinstance(fig, Figure)
 
         # Do not show axis labels unless they are set explicitly
         # or specified as decorators.
@@ -434,12 +460,12 @@ class SkyprojPlotter(BasePlotter, abc.ABC):
 class HpxmapPlotter(SkyprojPlotter):
     default_hpixmap_kwargs = {"zoom": False}
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
         self.default_plot_dict["colorbar"] = True
         self.object_plotter = False
 
-    def draw_colorbar(self):
+    def draw_colorbar(self) -> None:
         """Add a color bar."""
         plot_dict = self.plot_dict
 
@@ -480,14 +506,17 @@ class HpxmapPlotter(SkyprojPlotter):
         if "cbar_edge" in self.plot_dict and self.plot_dict["cbar_edge"]:
             colorbar.solids.set_edgecolor("face")
 
-    def decorate(self):
+    def decorate(self) -> None:
         super().decorate()
 
         if self.plot_dict["colorbar"]:
             self.draw_colorbar()
 
-    def _transform_to_healpix(self, metric_value_in, slicer):
+    def _transform_to_healpix(
+        self, metric_value_in: np.ma.MaskedArray, slicer: maf.BaseSlicer
+    ) -> np.ma.MaskedArray:
         # Bin the values up on a healpix grid.
+        assert isinstance(self.plot_dict["nside"], int)
         metric_value = _healbin(
             slicer.slice_points["ra"],
             slicer.slice_points["dec"],
@@ -502,12 +531,12 @@ class HpxmapPlotter(SkyprojPlotter):
         metric_value = ma.array(metric_value, mask=mask)
         return metric_value
 
-    def _compatible_color_limits(self, norm, clims):
+    def _compatible_color_limits(self, norm: str, clims: Sequence[float, float]) -> bool:
         # Log can't be 0
         compatible = (norm != "log") or (clims[0] < 0 and clims[1] < 0) or (clims[0] > 0 and clims[1] > 0)
         return compatible
 
-    def draw(self, metric_values_in, slicer):
+    def draw(self, metric_values_in: np.ma.MaskedArray, slicer: maf.BaseSlicer) -> None:
         """Draw the healpix map.
 
         Parameters
@@ -529,6 +558,7 @@ class HpxmapPlotter(SkyprojPlotter):
         hpix_map = apply_zp_norm(hpix_map, self.plot_dict)
 
         if "draw_hpxmap_kwargs" in self.plot_dict:
+            assert isinstance(self.plot_dict["draw_hpxmap_kwargs"], dict)
             kwargs.update(self.plot_dict["draw_hpxmap_kwargs"])
 
         try:
@@ -543,6 +573,7 @@ class HpxmapPlotter(SkyprojPlotter):
             kwargs["norm"] = "log"
 
         clims = set_color_lims(hpix_map, self.plot_dict)
+        assert isinstance(kwargs["norm"], str)
         if "norm" not in kwargs or self._compatible_color_limits(kwargs["norm"], clims):
             kwargs["vmin"] = clims[0]
             kwargs["vmax"] = clims[1]
@@ -574,12 +605,12 @@ class VisitPerimeterPlotter(SkyprojPlotter):
         "linewidth": 0.2,
     }
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
         self.plot_type = "SkyprojVisitPerimeter"
         self.object_plotter = True
 
-    def draw(self, metric_values, slicer):
+    def draw(self, metric_values: np.ma.MaskedArray, slicer: maf.BaseSlicer) -> None:
         """Draw the perimeters of visits.
 
         Parameters
@@ -600,9 +631,11 @@ class VisitPerimeterPlotter(SkyprojPlotter):
         visits = metric_values[0]
 
         if "draw_polygon_kwargs" in self.plot_dict:
+            assert isinstance(self.plot_dict["draw_polygon_kwargs"], dict)
             kwargs.update(self.plot_dict["draw_polygon_kwargs"])
 
         camera_perimeter_func = self.plot_dict["camera_perimeter_func"]
+        assert isinstance(camera_perimeter_func, FunctionType)
 
         ras, decls = camera_perimeter_func(visits["fieldRA"], visits["fieldDec"], visits["rotSkyPos"])
         for visit_ras, visit_decls in zip(ras, decls):
