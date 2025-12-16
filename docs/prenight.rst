@@ -75,6 +75,48 @@ and to stop the ``run_auxtel_prenight_sims.sh`` cron job owned by user ``neilsen
 The logs of the cron jobs (and any other executions of these scripts submitted using ``sbatch``) can be found in ``/sdf/data/rubin/shared/scheduler/prenight/sbatch/run_prenight_sims_%A_%a.out``,
 where ``%A`` is the slurm "Job array's master job allocation number" and ``%a`` is the slum "Job array ID (index) number".
 
+Updating the versions of the scripts
+====================================
+
+The batch jobs run versions of ``lsst_survey_sim/batch/run_prenight_sims.sh`` and ``lsst_survey_sim/run_auxtel_prenight_sims.sh`` installed in ``/sdf/data/rubin/shared/scheduler/packages``.
+Versions of ``lsst_survey_sim`` installed in ``/sdf/data/rubin/shared/scheduler/packages`` can be updated as follows.
+
+First, if one does not exist already, tag ``lsst_survey_sim`` at the commit you want.
+To find the next available tag::
+
+  curl -s https://api.github.com/repos/lsst-sims/lsst_survey_sims/tags \
+      | jq -r '.[].name' \
+      | egrep '^v[0-9]+.[0-9]+.[0-9]+.*$' \
+      | sort -V
+
+Make and push a new tag (with the base of the repository at the commit you want as the current working directory)::
+
+  NEWVERSION="0.1.0.dev2"
+  NEWTAG=v${NEWVERSION}
+  echo "New version is ${NEWVERSION} with tag ${NEWTAG}"
+  echo ""
+  git tag ${NEWTAG}
+  git push origin tag ${NEWTAG}
+
+Then install it in ``/sdf/data/rubin/shared/scheduler/packages``::
+
+  PACKAGEDIR="/sdf/data/rubin/shared/scheduler/packages"
+  TARGETDIR="${PACKAGEDIR}/lsst_survey_sim-${NEWVERSION}"
+  PIPORIGIN="git+https://github.com/lsst-sims/lsst_survey_sim.git@${NEWTAG}"
+  echo "Installing from ${PIPORIGIN} to ${TARGETDIR}"
+  echo ""
+  pip install \
+      --no-deps \
+      --target=${TARGETDIR} \
+      ${PIPORIGIN}
+
+If you want to make it the default version, replace the link::
+
+  if test -L ${PACKAGEDIR}/lsst_survey_sim ; then
+    rm ${PACKAGEDIR}/lsst_survey_sim
+  fi
+  ln -s ${TARGETDIR} ${PACKAGEDIR}/lsst_survey_sim
+
 Custom runs of prenight simulations
 ===================================
 
