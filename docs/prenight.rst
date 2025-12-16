@@ -41,7 +41,14 @@ At the USDF, there is an installation of ``lsst_survey_sim`` at ``/sdf/data/rubi
     /sdf/data/rubin/shared/scheduler/packages/lsst_survey_sim/batch/run_prenight_sims.sh
 
 
-These batch jobs will record their output in:
+These scripts build python environments in the USDF scratch disks of the user running the script, in directories of the form::
+
+  /sdf/scratch/users/${USER:0:1}/${USER}/prenight_venvs/prenight-YYYY-MM-DDTHHMMSS-XXXXXX
+
+Where ``${USER:0:1}`` is the first letter of a username, and the ``XXXXXX`` is replaced by random characters.
+For example, a recent environment created was: ``/sdf/scratch/users/n/neilsen/prenight_venvs/prenight-2025-12-16T141515-gCnXfu``.
+
+These batch jobs will record their logs (stderr and stdout) in:
 
 * ``/sdf/data/rubin/shared/scheduler/prenight/sbatch/run_prenight_sims_%A_%a.out`` and
 * ``/sdf/data/rubin/shared/scheduler/prenight/sbatch/run_prenight_sims_%A_%a.err``
@@ -64,6 +71,9 @@ when started by a cron job owned by a different user by removing ``/sdf/data/rub
 
 So, to stop the ``run_prenight_sims.sh`` cron job owned by user ``neilsen``, remove the file ``/sdf/data/rubin/shared/scheduler/cron_gates/run_prenight_sims/neilsen``,
 and to stop the ``run_auxtel_prenight_sims.sh`` cron job owned by user ``neilsen``, remove the file ``/sdf/data/rubin/shared/scheduler/cron_gates/run_auxtel_prenight_sims/neilsen``,
+
+The logs of the cron jobs (and any other executions of these scripts submitted using ``sbatch``) can be found in ``/sdf/data/rubin/shared/scheduler/prenight/sbatch/run_prenight_sims_%A_%a.out``,
+where ``%A`` is the slurm "Job array's master job allocation number" and ``%a`` is the slum "Job array ID (index) number".
 
 Custom runs of prenight simulations
 ===================================
