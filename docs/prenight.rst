@@ -22,6 +22,9 @@ Running a standard set of pre-night simulations
 ===============================================
 
 The standard set of pre-night simulations can be run by calling the ``batch/run_prenight_sims.sh`` shell (for SV) or ``batch/run_auxtel_prenight_sims.sh`` (for auxtel) scripts.
+These scripts are "protected" by gate files: for user ``${USER}`` to run ``batch/run_prenight_sims.sh``, the file ``/sdf/data/rubin/shared/scheduler/cron_gates/run_prenight_sims/${USER}`` must exist,
+and for that user to run ``batch/run_auxtel_prenight_sims.sh``, the file ``/sdf/data/rubin/shared/scheduler/cron_gates/run_auxtel_prenight_sims/${USER}`` must exist.
+(This was done so that any user with write access to ``/sdf/data/rubin/shared/scheduler/cron_gates/${SCRIPT}`` can stop a cron job that runs the corresponding script from doing anything, even if that cron job is not owned by that user.)
 
 If ``LSST_SURVEY_SIM_DIR`` is the ``lsst_survey_sim`` root directory, it can be called thus::
 
@@ -53,6 +56,14 @@ The ``crontab`` entries are::
 
     15 6 * * * /opt/slurm/slurm-curr/bin/sbatch /sdf/data/rubin/shared/scheduler/packages/lsst_survey_sim/batch/run_auxtel_prenight_sims.sh 2>&1 >> /sdf/data/rubin/shared/scheduler/prenight/daily/daily_auxtel_cr on.out
     55 6 * * * /opt/slurm/slurm-curr/bin/sbatch /sdf/data/rubin/shared/scheduler/packages/lsst_survey_sim/batch/run_prenight_sims.sh 2>&1 >> /sdf/data/rubin/shared/scheduler/prenight/daily/daily_simonyi_cron.out
+
+If necessary, these cron jobs can be stopped from doing anything, even a user that does not own the cron job, if they have write access to ``/sdf/data/rubin/shared/scheduler/cron_gates/${SCRIPT}``.
+This is accomplished using gate files: early in each script, the script checks for the existence of a file with name ``/sdf/data/rubin/shared/scheduler/cron_gates/${SCRIPT_NAME}/${USER}`` and aborts if it does not exist.
+Any user with write access to ``/sdf/data/rubin/shared/scheduler/cron_gates/${SCRIPT_NAME}`` can create or remove files in that directory, so a user can cause these scripts to immediately abort
+when started by a cron job owned by a different user by removing ``/sdf/data/rubin/shared/scheduler/cron_gates/${SCRIPT_NAME}/${CRON_JOB_USER}``.
+
+So, to stop the ``run_prenight_sims.sh`` cron job owned by user ``neilsen``, remove the file ``/sdf/data/rubin/shared/scheduler/cron_gates/run_prenight_sims/neilsen``,
+and to stop the ``run_auxtel_prenight_sims.sh`` cron job owned by user ``neilsen``, remove the file ``/sdf/data/rubin/shared/scheduler/cron_gates/run_auxtel_prenight_sims/neilsen``,
 
 Custom runs of prenight simulations
 ===================================
