@@ -288,7 +288,9 @@ class LVDwarfsMetric(BaseMetric):
         self.star_density_metric = StarDensityMetric(filtername="i")
         # The galaxy counts metric calculates the number of galaxies in i band
         self.galaxy_counts_metric = GalaxyCountsMetricExtended(
-            m5_col=self.m5_col, filter_band="i", include_dust_extinction=True,
+            m5_col=self.m5_col,
+            filter_band="i",
+            include_dust_extinction=True,
             filter_col=self.filter_col,
         )
         # Set the scale for the GalaxyCountMetric_extended to 1, so it returns
