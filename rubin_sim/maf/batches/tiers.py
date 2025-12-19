@@ -40,7 +40,7 @@ if __name__ == "__main__":
         "all": np.arange(visits_array.size),
     }
 
-    fig_saver = maf.FigSaver(close_figs=False, results_file=run_name + "_tiers/maf_results.db", png_dpi=None)
+    fig_saver = maf.FigSaver(results_file=run_name + "_tiers/maf_results.db")
 
     for key in data_selections:
         info = {"run_name": run_name}
@@ -66,9 +66,7 @@ if __name__ == "__main__":
         # Hourglass plots for select times
         if key == "Roman":
             indx = np.where(
-                (data_selections[key])
-                & (visits_array["night"] > roman_range[0])
-                & (visits_array["night"] < roman_range[1])
+                (data_selections[key]) & (visits_array["night"] > roman_range[0]) & (visits_array["night"] < roman_range[1])
             )[0]
             info = {
                 "run_name": run_name,
