@@ -1,4 +1,5 @@
-import argparse
+__all__ = ("tiers_plots",)
+
 import sqlite3
 from os.path import basename
 
@@ -7,18 +8,16 @@ import pandas as pd
 
 import rubin_sim.maf_proto as maf
 
-if __name__ == "__main__":
 
-    roman_range = [900, 3000]
-    hour_max = 730
-    altaz_nside = 64
-
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--db", type=str, default=None)
-    args = parser.parse_args()
-
+def tiers_plots(
+    db_file,
+    roman_range=[900, 3000],
+    hour_max=730,
+    altaz_nside=64,
+    close_figs=False,
+    results_root="_tiers/maf_results.db",
+):
     # Read in the database
-    db_file = args.db
     run_name = basename(db_file).replace(".db", "")
     con = sqlite3.connect(db_file)
     df = pd.read_sql("select * from observations;", con)
@@ -40,7 +39,7 @@ if __name__ == "__main__":
         "all": np.arange(visits_array.size),
     }
 
-    fig_saver = maf.FigSaver(results_file=run_name + "_tiers/maf_results.db")
+    fig_saver = maf.FigSaver(results_file=run_name + results_root, close_figs=close_figs)
 
     for key in data_selections:
         info = {"run_name": run_name}
@@ -66,7 +65,9 @@ if __name__ == "__main__":
         # Hourglass plots for select times
         if key == "Roman":
             indx = np.where(
-                (data_selections[key]) & (visits_array["night"] > roman_range[0]) & (visits_array["night"] < roman_range[1])
+                (data_selections[key])
+                & (visits_array["night"] > roman_range[0])
+                & (visits_array["night"] < roman_range[1])
             )[0]
             info = {
                 "run_name": run_name,
