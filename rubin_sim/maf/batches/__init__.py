@@ -14,5 +14,6 @@ from .science_radar_batch import *
 from .skycoverage import *
 from .slew_batch import *
 from .srd_batch import *
+from .tiers import *
 from .time_batch import *
 from .visitdepth_batch import *
