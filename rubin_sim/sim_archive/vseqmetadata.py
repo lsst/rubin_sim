@@ -1,4 +1,11 @@
-__all__ = ["compute_visits_sha256", "VisitSequenceArchiveMetadata"]
+__all__ = [
+    "compute_visits_sha256",
+    "VisitSequenceArchiveMetadata",
+    "VSARCHIVE_PGDATABASE",
+    "VSARCHIVE_PGHOST",
+    "VSARCHIVE_PGUSER",
+    "VSARCHIVE_PGSCHEMA",
+]
 
 import hashlib
 import json
@@ -1523,6 +1530,7 @@ class VisitSequenceArchiveMetadata:
                         TO_JSONB(ns) - 'value_name' - 'visitseq_uuid' - 'day_obs'
                     ) AS stats
                 FROM {}.nightly_stats AS ns
+                WHERE ns.day_obs = %s
                 GROUP BY ns.visitseq_uuid
             )
             SELECT s.*, ns.stats
@@ -1533,7 +1541,7 @@ class VisitSequenceArchiveMetadata:
                 AND tags @> %s::JSONB
                 AND creation_time >= NOW() - INTERVAL '%s days'
             """
-            query_params: Tuple = (day_obs, telescope, tags_json, max_simulation_age)
+            query_params: Tuple = (day_obs, day_obs, telescope, tags_json, max_simulation_age)
         else:
             query_template = """
             WITH aggstats AS (
@@ -1544,6 +1552,7 @@ class VisitSequenceArchiveMetadata:
                         TO_JSONB(ns) - 'value_name' - 'visitseq_uuid' - 'day_obs'
                     ) AS stats
                 FROM {}.nightly_stats AS ns
+                WHERE ns.day_obs = %s
                 GROUP BY ns.visitseq_uuid
             )
             SELECT s.*, ns.stats
@@ -1553,7 +1562,7 @@ class VisitSequenceArchiveMetadata:
                 AND telescope = %
                 AND creation_time >= NOW() - INTERVAL '%s days'
             """
-            query_params = (day_obs, telescope, max_simulation_age)
+            query_params = (day_obs, day_obs, telescope, max_simulation_age)
 
         vseqs = self.pd_read_sql(
             query_template,
