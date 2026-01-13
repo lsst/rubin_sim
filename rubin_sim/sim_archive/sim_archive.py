@@ -7,6 +7,7 @@ __all__ = [
     "fetch_sim_for_nights",
     "fetch_obsloctap_visits",
     "fetch_sim_stats_for_night",
+    "NoMatchingSimulationsFoundError",
 ]
 
 import hashlib
@@ -45,6 +46,10 @@ from rubin_sim.sim_archive.vseqarchive import compute_nightly_stats, get_visits
 from rubin_sim.sim_archive.vseqmetadata import VisitSequenceArchiveMetadata
 
 LOGGER = logging.getLogger(__name__)
+
+
+class NoMatchingSimulationsFoundError(Exception):
+    """Raised when no simulations match requested criteria."""
 
 
 def make_sim_data_dir(
@@ -351,6 +356,11 @@ def find_latest_prenight_sim_for_nights(
     -------
     sim_metadata : `dict`
         A dictionary with metadata for the simulation.
+
+    Raises
+    ------
+    NoMatchingSimulationsFoundError
+        If no prenight simulations match the requested criteria.
     """
     if first_day_obs is None:
         first_day_obs = datetime.now(ZoneInfo("Etc/GMT+12")).date().isoformat()
@@ -375,6 +385,9 @@ def find_latest_prenight_sim_for_nights(
         if maybe_result is not None:
             assert isinstance(maybe_result, pd.Series)
             result = maybe_result.to_dict()
+
+    if not result:
+        raise NoMatchingSimulationsFoundError("No simulations match the requested criteria.")
 
     return result
 
