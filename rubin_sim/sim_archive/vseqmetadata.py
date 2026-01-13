@@ -183,26 +183,27 @@ class VisitSequenceArchiveMetadata:
             metadata_db_kwargs = {} if metadata_db_kwargs is None else dict(metadata_db_kwargs)
         assert isinstance(metadata_db_kwargs, dict)
 
-        if "database" not in metadata_db_kwargs:
+        if "database" not in metadata_db_kwargs or metadata_db_kwargs["database"] is None:
             if "VSARCHIVE_PGDATABASE" in os.environ:
                 metadata_db_kwargs["database"] = os.environ["VSARCHIVE_PGDATABASE"]
             else:
                 metadata_db_kwargs["database"] = VSARCHIVE_PGDATABASE
 
-        if "host" not in metadata_db_kwargs:
+        if "host" not in metadata_db_kwargs or metadata_db_kwargs["host"] is None:
             if "VSARCHIVE_PGHOST" in os.environ:
                 metadata_db_kwargs["host"] = os.environ["VSARCHIVE_PGHOST"]
             else:
                 metadata_db_kwargs["host"] = VSARCHIVE_PGHOST
 
-        if "user" not in metadata_db_kwargs:
+        if "user" not in metadata_db_kwargs or metadata_db_kwargs["user"] is None:
             if "VSARCHIVE_PGUSER" in os.environ:
                 metadata_db_kwargs["user"] = os.environ["VSARCHIVE_PGUSER"]
             else:
                 metadata_db_kwargs["user"] = VSARCHIVE_PGUSER
 
-        if "port" not in metadata_db_kwargs and "VSARCHIVE_PGPORT" in os.environ:
-            metadata_db_kwargs["port"] = os.environ["VSARCHIVE_PGPORT"]
+        if "port" not in metadata_db_kwargs or metadata_db_kwargs["port"] is None:
+            if "VSARCHIVE_PGPORT" in os.environ:
+                metadata_db_kwargs["port"] = os.environ["VSARCHIVE_PGPORT"]
 
         self.pg_pool = psycopg2.pool.SimpleConnectionPool(1, 5, **metadata_db_kwargs)
         # On some operations, pandas does not
