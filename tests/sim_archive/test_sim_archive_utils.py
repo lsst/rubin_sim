@@ -11,6 +11,7 @@ from lsst.resources import ResourcePath
 import rubin_sim.sim_archive.prenightindex
 from rubin_sim.sim_archive import vseqarchive, vseqmetadata
 from rubin_sim.sim_archive.sim_archive import (
+    NoMatchingSimulationsFoundError,
     fetch_obsloctap_visits,
     fetch_sim_for_nights,
     fetch_sim_stats_for_night,
@@ -141,6 +142,10 @@ class TestSimArchiveUtils(unittest.TestCase):
         visits = fetch_sim_for_nights("2026-12-01", "2026-12-01")
         self.assertIsInstance(visits, pd.DataFrame)
         self.assertEqual(len(visits), 3)
+
+    def test_throws_no_sim_exception(self) -> None:
+        # Throw the informative exception when no simulations are found.
+        self.assertRaises(NoMatchingSimulationsFoundError, fetch_sim_for_nights, "2045-12-01", "2045-12-01")
 
     def test_fetch_sim_for_nights_with_dict(self) -> None:
         # Test with a dict that selects the second (auxtel) simulation
