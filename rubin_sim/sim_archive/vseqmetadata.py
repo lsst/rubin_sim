@@ -34,6 +34,7 @@ from .util import compute_conda_env, dayobs_to_date, opsimdb_to_hdf5
 VSARCHIVE_PGDATABASE = "opsim_log"
 VSARCHIVE_PGHOST = "usdf-maf-visit-seq-archive-tx-ro.sdf.slac.stanford.edu"
 VSARCHIVE_PGUSER = "reader"
+VSARCHIVE_PGPORT = None
 VSARCHIVE_PGSCHEMA = "vsmd"
 
 JSON_DUMP_LIMIT = 4096
@@ -204,6 +205,8 @@ class VisitSequenceArchiveMetadata:
         if "port" not in metadata_db_kwargs or metadata_db_kwargs["port"] is None:
             if "VSARCHIVE_PGPORT" in os.environ:
                 metadata_db_kwargs["port"] = os.environ["VSARCHIVE_PGPORT"]
+            elif VSARCHIVE_PGPORT is not None:
+                metadata_db_kwargs["port"] = VSARCHIVE_PGPORT
 
         self.pg_pool = psycopg2.pool.SimpleConnectionPool(1, 5, **metadata_db_kwargs)
         # On some operations, pandas does not
