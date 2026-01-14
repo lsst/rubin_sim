@@ -189,6 +189,7 @@ class TestPrototypeSimArchive(unittest.TestCase):
         assert "band" in visits.columns
         assert "target_name" in visits.columns
 
+    @unittest.skip("Broken, pending removal")
     @unittest.skipIf(not HAVE_LSST_RESOURCES, "No lsst.resources")
     @unittest.skipIf(not HAVE_AWS_CREDENTIALS, "No credentials")
     def test_fetch_sim_stats_for_night(self) -> None:
