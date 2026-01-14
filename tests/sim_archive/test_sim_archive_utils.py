@@ -8,6 +8,7 @@ import pandas as pd
 import testing.postgresql
 from lsst.resources import ResourcePath
 
+import rubin_sim.sim_archive.prenightindex
 from rubin_sim.sim_archive import vseqarchive, vseqmetadata
 from rubin_sim.sim_archive.sim_archive import (
     fetch_obsloctap_visits,
@@ -21,11 +22,11 @@ TEST_VISITS = pd.read_csv(
     StringIO(
         """
 observationStartMJD fieldRA   fieldDec   band rotSkyPos  visitExposureTime night target_name
-61374.271368        51.536172 -12.851173 r    122.606347 29.2              1     target1
-61374.271816        52.370715 -9.768649  r    124.357953 29.2              1     target2
-61374.272265        55.094497 -9.088026  r    130.639271 29.2              1     target3
-61375.272712        54.314320 -12.171543 r    130.159006 29.2              1     target4
-61375.273163        57.080518 -11.470472 r    136.801494 29.2              1     target5
+61376.271368        51.536172 -12.851173 r    122.606347 29.2              1     target1
+61376.271816        52.370715 -9.768649  r    124.357953 29.2              1     target2
+61376.272265        55.094497 -9.088026  r    130.639271 29.2              1     target3
+61377.272712        54.314320 -12.171543 r    130.159006 29.2              1     target4
+61377.273163        57.080518 -11.470472 r    136.801494 29.2              1     target5
 """
     ),
     sep=r"\s+",
@@ -39,6 +40,7 @@ class TestSimArchiveUtils(unittest.TestCase):
     test_archive_url: ClassVar[str]
     test_archive: ClassVar[ResourcePath]
     test_database: ClassVar[LocalOnlyPostgresql]
+    metadata_db_kwargs: ClassVar[dict]
     vsarch: ClassVar[vseqmetadata.VisitSequenceArchiveMetadata]
 
     @classmethod
@@ -53,11 +55,20 @@ class TestSimArchiveUtils(unittest.TestCase):
         cls.test_archive = ResourcePath(cls.test_archive_url)
 
         cls.test_database = LocalOnlyPostgresql(base_dir=cls.temp_dir.name)
+
         cls.vsarch = vseqmetadata.VisitSequenceArchiveMetadata(
             metadata_db_kwargs=cls.test_database.psycopg2_dsn(),
             metadata_db_schema=TEST_METADATA_DB_SCHEMA,
         )
         cls.vsarch.create_schema_in_database()
+
+        # Update module-level variables in vseqmetadata to point to
+        # the test database.
+        vseqmetadata.VSARCHIVE_PGDATABASE = cls.test_database.psycopg2_dsn()["database"]
+        vseqmetadata.VSARCHIVE_PGHOST = cls.test_database.psycopg2_dsn()["host"]
+        vseqmetadata.VSARCHIVE_PGUSER = cls.test_database.psycopg2_dsn()["user"]
+        vseqmetadata.VSARCHIVE_PGPORT = cls.test_database.psycopg2_dsn()["port"]
+        vseqmetadata.VSARCHIVE_PGSCHEMA = TEST_METADATA_DB_SCHEMA
 
         # Create two simple simulations using TEST_VISITS data
 
@@ -129,7 +140,7 @@ class TestSimArchiveUtils(unittest.TestCase):
         # Test with default which_sim (should use the simonyi sim)
         visits = fetch_sim_for_nights("2026-12-01", "2026-12-01")
         self.assertIsInstance(visits, pd.DataFrame)
-        self.assertEqual(len(visits), len(TEST_VISITS))
+        self.assertEqual(len(visits), 3)
 
     def test_fetch_sim_for_nights_with_dict(self) -> None:
         # Test with a dict that selects the second (auxtel) simulation
@@ -137,11 +148,11 @@ class TestSimArchiveUtils(unittest.TestCase):
             "2026-12-01", "2026-12-01", which_sim={"tags": ("prenight",), "telescope": "auxtel"}
         )
         self.assertIsInstance(visits, pd.DataFrame)
-        self.assertEqual(len(visits), len(TEST_VISITS))
+        self.assertEqual(len(visits), 3)
 
     def test_fetch_obsloctap_visits(self) -> None:
         # Test fetching visits for a specific night
-        visits = fetch_obsloctap_visits("2026-12-01", nights=1)
+        visits = fetch_obsloctap_visits("2026-12-01", nights=1, max_simulation_age=365000)
         self.assertIsInstance(visits, pd.DataFrame)
         # Should have the expected columns
         expected_columns = (
@@ -161,7 +172,8 @@ class TestSimArchiveUtils(unittest.TestCase):
 
     def test_fetch_sim_stats_for_night(self) -> None:
         # Test fetching stats for a night
-        stats = fetch_sim_stats_for_night("2025-12-01")
+        rubin_sim.sim_archive.prenightindex.MAX_AGE = 365000
+        stats = fetch_sim_stats_for_night("2026-12-01")
         self.assertIsInstance(stats, dict)
         # Should contain at least the nominal_visits key
         self.assertIn("nominal_visits", stats)
