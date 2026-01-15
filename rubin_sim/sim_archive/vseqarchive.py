@@ -70,7 +70,7 @@ def compute_nightly_stats(
     stats_df = (
         visits.groupby("day_obs")[list(columns)]
         .describe(percentiles=[0.05, 0.25, 0.5, 0.75, 0.95])
-        .stack(level=0)
+        .stack(level=0, future_stack=True)
         .reset_index()
         .rename(
             columns={

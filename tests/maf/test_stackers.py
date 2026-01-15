@@ -309,7 +309,7 @@ class TestStackerClasses(unittest.TestCase):
         stacker = stackers.ObservationStartTimestampStacker("observationStartMJD")
         value = stacker.run(data)
         np.testing.assert_almost_equal(
-            data.observationStartMJD, Time(data.start_timestamp.dt.to_pydatetime()).mjd
+            data.observationStartMJD, Time(data.start_timestamp.to_numpy(dtype="datetime64[ns]")).mjd
         )
         assert value.start_timestamp.dtype == "datetime64[ns, UTC]"
         assert isinstance(value.start_timestamp[0], pd.Timestamp)
@@ -321,7 +321,7 @@ class TestStackerClasses(unittest.TestCase):
         raw_value = stacker.run(data)
         value = pd.DataFrame(raw_value)
         np.testing.assert_almost_equal(
-            data["observationStartMJD"], Time(value.start_timestamp.dt.to_pydatetime()).mjd
+            data["observationStartMJD"], Time(value.start_timestamp.to_numpy(dtype="datetime64[ns]")).mjd
         )
         assert value.start_timestamp.dtype == "datetime64[ns, UTC]"
         assert isinstance(value.start_timestamp[0], pd.Timestamp)
@@ -331,7 +331,7 @@ class TestStackerClasses(unittest.TestCase):
         raw_value = stacker.run(data)
         value = pd.DataFrame(raw_value)
         np.testing.assert_almost_equal(
-            data["observationStartMJD"], Time(value.start_timestamp.dt.to_pydatetime()).mjd
+            data["observationStartMJD"], Time(value.start_timestamp.to_numpy(dtype="datetime64[ns]")).mjd
         )
         assert value.start_timestamp.dtype == "datetime64[ns, UTC]"
         assert isinstance(value.start_timestamp[0], pd.Timestamp)
