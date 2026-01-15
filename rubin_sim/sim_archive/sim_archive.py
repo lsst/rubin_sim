@@ -37,7 +37,7 @@ from rubin_scheduler.scheduler.utils import SchemaConverter
 from rubin_scheduler.site_models.almanac import Almanac
 
 from rubin_sim import maf
-from rubin_sim.maf.stackers import BaseStacker
+from rubin_sim.maf.stackers import BaseStacker, DayObsISOStacker
 from rubin_sim.maf.utils.opsim_utils import get_sim_data
 from rubin_sim.sim_archive.prenightindex import get_prenight_index, select_latest_prenight_sim
 from rubin_sim.sim_archive.util import dayobs_to_date
@@ -653,7 +653,8 @@ def fetch_sim_stats_for_night(
         visits = get_visits(sim["visitseq_url"])
         columns = [c for c in visits.columns if is_numeric_dtype(visits[c])]
         stats_df = compute_nightly_stats(visits, columns=tuple(columns))
-        stats_maybe = stats_df.set_index("value_name").to_dict(orient="index")
+        dayobs_stats_df = stats_df.set_index("day_obs").loc[date.fromisoformat(day_obs), :]
+        stats_maybe = dayobs_stats_df.set_index("value_name").to_dict(orient="index")
         stats = cast(dict[str, Any], stats_maybe) if isinstance(stats_maybe, dict) else {}
 
     # We need to report number of nominal visits.
@@ -668,13 +669,15 @@ def fetch_sim_stats_for_night(
             value_stats = stats[value_name]
             if isinstance(value_stats, dict):
                 if "count" in stats[value_name]:
-                    stats["nominal_visits"] = stats[value_name]["count"]
+                    stats["nominal_visits"] = int(stats[value_name]["count"])
                 break
 
-        # If we still do not have a count of visits, get
-        # the actual visits and count them
+    # If we still do not have a count of visits, get
+    # the actual visits and count them
+    if "nominal_visits" not in stats:
         if isinstance(sim["visitseq_url"], str):
-            visits = get_visits(sim["visitseq_url"])
+            visits = get_visits(sim["visitseq_url"], stackers=[DayObsISOStacker()])
+            visits = visits.loc[visits.day_obs_iso8601 == day_obs, :]
             stats["nominal_visits"] = len(visits)
 
     return stats
