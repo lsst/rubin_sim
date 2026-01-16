@@ -135,4 +135,4 @@ class QSONumberCountsMetric(BaseMetric):
         n22 = self.nqso_cumulative(self.zmax, mlim5)
 
         nqso = (n22 - n21 - n12 + n11) * pix_area
-        return nqso
+        return np.asarray(nqso).item()
