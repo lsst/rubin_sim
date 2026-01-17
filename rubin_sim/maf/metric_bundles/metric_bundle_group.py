@@ -517,6 +517,7 @@ class MetricBundleGroup:
                             )
                         except BaseException as e:
                             print(f"Failed at slice_point {slice_i}, sid {i}")
+                            print(f"Problematic metric bundle {b.metric.name} {b.constraint}")
                             raise e
         # Mask data where metrics could not be computed
         # (according to metric bad value).
