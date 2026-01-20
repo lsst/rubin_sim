@@ -53,6 +53,7 @@ class TestPrototypeSimArchive(unittest.TestCase):
                 if os.environ[key] != self.start_environ[key]:
                     os.environ[key] = self.start_environ[key]
 
+    @unittest.skip("Pending removal")
     @unittest.skipIf(not HAVE_LSST_RESOURCES, "No lsst.resources")
     def test_sim_archive(self) -> None:
         # Begin by running a short simulation
@@ -120,6 +121,7 @@ class TestPrototypeSimArchive(unittest.TestCase):
         read_archived_sim_metadata(test_resource_uri, compilation_resource=test_compiled_metadata_uri)
         verify_compiled_sim_metadata(test_resource_uri, test_compiled_metadata_uri)
 
+    @unittest.skip("Pending removal")
     @unittest.skipIf(not HAVE_LSST_RESOURCES, "No lsst.resources")
     @unittest.skipIf(importlib.util.find_spec("schedview") is None, "No schedview")
     def test_cli(self) -> None:
@@ -146,6 +148,7 @@ class TestPrototypeSimArchive(unittest.TestCase):
                 test_archive_uri,
             )
 
+    @unittest.skip("Pending removal")
     @unittest.skipIf(not HAVE_LSST_RESOURCES, "No lsst.resources")
     @unittest.skipIf(not HAVE_AWS_CREDENTIALS, "No credentials")
     def test_find_latest_prenight_sim_for_night(self) -> None:
@@ -154,6 +157,7 @@ class TestPrototypeSimArchive(unittest.TestCase):
         sim_metadata = find_latest_prenight_sim_for_nights(day_obs, max_simulation_age=max_simulation_age)
         assert sim_metadata["simulated_dates"]["first"] <= day_obs <= sim_metadata["simulated_dates"]["last"]
 
+    @unittest.skip("Pending removal")
     @unittest.skipIf(not HAVE_LSST_RESOURCES, "No lsst.resources")
     @unittest.skipIf(not HAVE_AWS_CREDENTIALS, "No credentials")
     def test_fetch_sim_for_nights(self) -> None:
@@ -162,6 +166,7 @@ class TestPrototypeSimArchive(unittest.TestCase):
         visits = fetch_sim_for_nights(day_obs, which_sim={"max_simulation_age": max_simulation_age})
         assert len(visits) > 0
 
+    @unittest.skip("Pending removal")
     @unittest.skipIf(not HAVE_LSST_RESOURCES, "No lsst.resources")
     @unittest.skipIf(not HAVE_AWS_CREDENTIALS, "No credentials")
     def test_fetch_obsloctap_visits(self) -> None:
