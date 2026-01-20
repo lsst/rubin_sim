@@ -22,6 +22,7 @@ import datetime
 import hashlib
 import logging
 import os
+import warnings
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from typing import Any
@@ -96,6 +97,12 @@ def transfer_archive_dir(
         The destination resource.
     """
 
+    warnings.warn(
+        "Tools for using the prototype simulation archive database are deprecated, and will be removed.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+
     LOGGER.debug(f"Beginning copy of {archive_dir} to {archive_base_uri}.")
     metadata_fname = Path(archive_dir).joinpath("sim_metadata.yaml")
     with open(metadata_fname, "r") as metadata_io:
@@ -134,6 +141,12 @@ def check_opsim_archive_resource(archive_uri: str) -> dict:
     validity: `dict`
         A dictionary of files checked, and their validity.
     """
+    warnings.warn(
+        "Tools for using the prototype simulation archive database are deprecated, and will be removed.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+
     LOGGER.debug(f"Starting to check file hashes in opsim sim archive {archive_uri}.")
     metadata_path = ResourcePath(archive_uri).join("sim_metadata.yaml")
     with metadata_path.open(mode="r") as metadata_io:
@@ -214,6 +227,12 @@ def read_archived_sim_metadata(
     sim_metadata: `dict`
         A dictionary of metadata for simulations in the date range.
     """
+    warnings.warn(
+        "Tools for using the prototype simulation archive database are deprecated, and will be removed.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+
     latest_mjd = int(Time.now().mjd if latest is None else Time(latest).mjd)
     earliest_mjd = int(latest_mjd - (num_nights - 1))
     LOGGER.debug(
@@ -298,6 +317,12 @@ def read_archived_sim_metadata(
 
 
 def make_sim_archive_cli(*args: Any) -> str:
+    warnings.warn(
+        "Tools for using the prototype simulation archive database are deprecated, and will be removed.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+
     parser = argparse.ArgumentParser(description="Add files to sim archive")
     parser.add_argument(
         "label",
@@ -410,6 +435,12 @@ def compile_sim_metadata(
     compilation_fname : `ResourcePath`
         The resource to which the hdf5 file was written.
     """
+    warnings.warn(
+        "Tools for using the prototype simulation archive database are deprecated, and will be removed.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+
     LOGGER.debug("Starting compile_sim_metadata.")
 
     if append:
@@ -483,6 +514,11 @@ def read_sim_metadata_from_hdf(compilation_resource: str | ResourcePath) -> dict
     sim_archive_metadata: `dict`
         A nested dictionary with the simulation metadata.
     """
+    warnings.warn(
+        "Tools for using the prototype simulation archive database are deprecated, and will be removed.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
 
     if isinstance(compilation_resource, str):
         compilation_resource = ResourcePath(compilation_resource)
@@ -573,6 +609,11 @@ def verify_compiled_sim_metadata(
         A list of dicts describing differences. If they match, it will return
         and empty list.
     """
+    warnings.warn(
+        "Tools for using the prototype simulation archive database are deprecated, and will be removed.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
 
     direct_sim_metadata = read_archived_sim_metadata(archive_uri, num_nights=num_nights)
 
@@ -641,6 +682,12 @@ def verify_compiled_sim_metadata(
 
 
 def compile_sim_archive_metadata_cli(*args: Any) -> None:
+    warnings.warn(
+        "Tools for using the prototype simulation archive database are deprecated, and will be removed.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+
     parser = argparse.ArgumentParser(description="Create a metadata compilation HDF5 file at a URI")
     parser.add_argument(
         "--compilation_uri",
@@ -724,6 +771,11 @@ def find_latest_prenight_sim_for_nights(
     sim_metadata : `dict`
         A dictionary with metadata for the simulation.
     """
+    warnings.warn(
+        "Tools for using the prototype simulation archive database are deprecated, and will be removed.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
 
     if first_day_obs is None:
         first_day_obs = Time(Time.now().mjd - 0.5, format="mjd").iso[:10]
@@ -802,6 +854,11 @@ def fetch_sim_for_nights(
     visits : `pd.DataFrame`
         A pandas DataFrame containing visit parameters.
     """
+    warnings.warn(
+        "Tools for using the prototype simulation archive database are deprecated, and will be removed.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
 
     if first_day_obs is None:
         first_day_obs = Time(Time.now().mjd - 0.5, format="mjd").iso[:10]
@@ -884,6 +941,11 @@ def fetch_obsloctap_visits(
         "night",
         "target_name",
     ]
+    warnings.warn(
+        "Tools for using the prototype simulation archive database are deprecated, and will be removed.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
 
     # Start with the first night that starts after the reference time,
     # which is the current time by default.
@@ -934,6 +996,11 @@ def fetch_sim_stats_for_night(day_obs: str | int | None = None) -> dict:
         Presently, it has one key: `nominal_visits`, the number of visits
         in the latest nominal simulation.
     """
+    warnings.warn(
+        "Tools for using the prototype simulation archive database are deprecated, and will be removed.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
 
     # Maybe we should move schedview.DayObs into rubin_sim so we can use it
     # here without introducing a schedview dependency.
@@ -993,6 +1060,11 @@ def export_sim_to_prototype_sim_archive(
         ResourcePath pointing to the root of the newly created
         prototype archive entry.
     """
+    warnings.warn(
+        "Tools for using the prototype simulation archive database are deprecated, and will be removed.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
 
     insert_date, new_id, proto_sim_rpath = _next_sim_date_and_index(proto_sim_archive_url)
     metadata = yaml.safe_load(archive_metadata.sim_metadata_yaml(sim_uuid))
