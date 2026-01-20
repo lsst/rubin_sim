@@ -7,6 +7,7 @@ __all__ = [
     "fetch_sim_for_nights",
     "fetch_obsloctap_visits",
     "fetch_sim_stats_for_night",
+    "NoMatchingSimulationsFoundError",
 ]
 
 import hashlib
@@ -25,6 +26,7 @@ from zoneinfo import ZoneInfo
 
 import numpy as np
 import pandas as pd
+import psycopg2
 import rubin_scheduler
 import yaml
 from astropy.time import Time
@@ -45,6 +47,10 @@ from rubin_sim.sim_archive.vseqarchive import compute_nightly_stats, get_visits
 from rubin_sim.sim_archive.vseqmetadata import VisitSequenceArchiveMetadata
 
 LOGGER = logging.getLogger(__name__)
+
+
+class NoMatchingSimulationsFoundError(Exception):
+    """Raised when no simulations match requested criteria."""
 
 
 def make_sim_data_dir(
@@ -351,6 +357,11 @@ def find_latest_prenight_sim_for_nights(
     -------
     sim_metadata : `dict`
         A dictionary with metadata for the simulation.
+
+    Raises
+    ------
+    NoMatchingSimulationsFoundError
+        If no prenight simulations match the requested criteria.
     """
     if first_day_obs is None:
         first_day_obs = datetime.now(ZoneInfo("Etc/GMT+12")).date().isoformat()
@@ -375,6 +386,9 @@ def find_latest_prenight_sim_for_nights(
         if maybe_result is not None:
             assert isinstance(maybe_result, pd.Series)
             result = maybe_result.to_dict()
+
+    if not result:
+        raise NoMatchingSimulationsFoundError("No simulations match the requested criteria.")
 
     return result
 
@@ -501,6 +515,7 @@ def fetch_obsloctap_visits(
         "night",
         "target_name",
     ),
+    max_simulation_age: Optional[int] = None,
 ) -> pd.DataFrame | None:
     """Return visits from latest nominal prenight briefing simulation.
 
@@ -515,8 +530,10 @@ def fetch_obsloctap_visits(
     telescope : `str`
         The telescope to get visits for: "simonyi" or "auxtel".
         Defaults to "simonyi".
-    colums : `Sequence`
+    columns : `Sequence`
         A sequence of columns from the simulation to include.
+    max_simulation_age : `int` or `None`
+        Age of oldest simulation to consider.
 
     Returns
     -------
@@ -551,6 +568,9 @@ def fetch_obsloctap_visits(
         "telescope": telescope,
         "max_simulation_age": int(np.ceil(current_mjd - reference_mjd)) + 1,
     }
+    if max_simulation_age is not None:
+        which_sim["max_simulation_age"] = max_simulation_age
+
     visits = fetch_sim_for_nights(first_day_obs, last_day_obs, which_sim=which_sim)
     if visits is not None:
         assert isinstance(visits, pd.DataFrame)
@@ -628,20 +648,33 @@ def fetch_sim_stats_for_night(
     else:
         LOGGER.info(
             f"Querying the metadata database (host {host}, user {user}, schema {schema})"
-            "for stats on {day_obs}"
+            f" for stats on {day_obs}"
         )
-        vseq_metadata = VisitSequenceArchiveMetadata(
-            metadata_db_kwargs={"host": host, "user": user, "database": database}, metadata_db_schema=schema
-        )
-        sims_with_stats = vseq_metadata.sims_on_night_with_stats(
-            day_obs, tags=tags, telescope=telescope, max_simulation_age=max_simulation_age
-        ).set_index("visitseq_uuid")
+
+        metadata_db_kwargs = {}
+        if host is not None:
+            metadata_db_kwargs["host"] = host
+        if user is not None:
+            metadata_db_kwargs["user"] = user
+        if database is not None:
+            metadata_db_kwargs["database"] = database
+
         try:
-            stats_maybe = sims_with_stats.loc[sim["visitseq_uuid"], "stats"]
-        except KeyError:
+            vseq_metadata = VisitSequenceArchiveMetadata(
+                metadata_db_kwargs=metadata_db_kwargs, metadata_db_schema=schema
+            )
+            sims_with_stats = vseq_metadata.sims_on_night_with_stats(
+                day_obs, tags=tags, telescope=telescope, max_simulation_age=max_simulation_age
+            ).set_index("visitseq_uuid")
+            try:
+                stats_maybe = sims_with_stats.loc[sim["visitseq_uuid"], "stats"]
+            except KeyError:
+                stats_maybe = None
+            if stats_maybe is None:
+                LOGGER.info("Stats not found in metadata database.")
+        except psycopg2.OperationalError:
+            LOGGER.info("Cannot connect to metadata database.")
             stats_maybe = None
-        if stats_maybe is None:
-            LOGGER.info("Stats not found in metadata database.")
 
     stats = cast(dict[str, Any], stats_maybe) if isinstance(stats_maybe, dict) else {}
 

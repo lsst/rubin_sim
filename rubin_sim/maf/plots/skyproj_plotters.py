@@ -268,7 +268,7 @@ class SkyprojPlotter(BasePlotter, abc.ABC):
         sun_moon_positions = model_observatory.almanac.get_sun_moon_positions(mjd)
         ra = np.degrees(sun_moon_positions[f"{body}_RA"].item())
         decl = np.degrees(sun_moon_positions[f"{body}_dec"].item())
-        self.skyproj.scatter(ra, decl, **kwargs)
+        self.skyproj.ax.scatter(ra, decl, **kwargs)
 
     def decorate(self):
         """Add decorations/annotations to the sky plot.
