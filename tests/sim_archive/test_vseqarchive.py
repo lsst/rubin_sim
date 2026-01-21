@@ -29,16 +29,14 @@ TEST_METADATA_DB_SCHEMA = "test"
 
 # Test visits using consdb column names
 TEST_VISITS = pd.read_csv(
-    StringIO(
-        """
+    StringIO("""
 obs_start_mjd       s_ra      s_dec band  sky_rotation exp_time   altitude     azimuth
 64632.271368  51.536172 -12.851173    r    122.606347     29.2  67.439834  317.602598
 64632.271816  52.370715  -9.768649    r    124.357953     29.2  65.262546  323.291472
 64632.272265  55.094497  -9.088026    r    130.639271     29.2  65.900938  329.433578
 64633.272712  54.314320 -12.171543    r    130.159006     29.2  67.624221  321.348869
 64633.273163  57.080518 -11.470472    r    136.801494    29.2.  68.327156  328.146833
-"""
-    ),
+"""),
     sep=r"\s+",
 )
 
@@ -855,13 +853,11 @@ class TestVisitSequenceArchive(unittest.TestCase):
         hash_hex = output.strip()
         hash_sha256 = bytes.fromhex(hash_hex)
 
-        query = sql.SQL(
-            """
+        query = sql.SQL("""
             SELECT package_version
             FROM {}.conda_packages
             WHERE conda_env_hash={} AND package_name='numpy'
-        """
-        ).format(sql.Identifier(TEST_METADATA_DB_SCHEMA), sql.Placeholder("hash_sha256"))
+        """).format(sql.Identifier(TEST_METADATA_DB_SCHEMA), sql.Placeholder("hash_sha256"))
         data = {"hash_sha256": hash_sha256}
         found_versions = self.vsarch.query(query, data)
         assert len(found_versions) == 1
@@ -884,13 +880,11 @@ class TestVisitSequenceArchive(unittest.TestCase):
         ]
         self.run_click_command(update_sim_conda_env_command)
 
-        query = sql.SQL(
-            """
+        query = sql.SQL("""
             SELECT package_version
             FROM {}.simulation_packages
             WHERE package_name='numpy' AND visitseq_uuid={}
-        """
-        ).format(
+        """).format(
             sql.Identifier(TEST_METADATA_DB_SCHEMA),
             sql.Placeholder("visitseq_uuid"),
         )

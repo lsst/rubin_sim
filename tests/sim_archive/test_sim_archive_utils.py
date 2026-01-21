@@ -20,16 +20,14 @@ from rubin_sim.sim_archive.sim_archive import (
 from rubin_sim.sim_archive.tempdb import LocalOnlyPostgresql
 
 TEST_VISITS = pd.read_csv(
-    StringIO(
-        """
+    StringIO("""
 observationStartMJD fieldRA   fieldDec   band rotSkyPos  visitExposureTime night target_name
 61376.271368        51.536172 -12.851173 r    122.606347 29.2              1     target1
 61376.271816        52.370715 -9.768649  r    124.357953 29.2              1     target2
 61376.272265        55.094497 -9.088026  r    130.639271 29.2              1     target3
 61377.272712        54.314320 -12.171543 r    130.159006 29.2              1     target4
 61377.273163        57.080518 -11.470472 r    136.801494 29.2              1     target5
-"""
-    ),
+"""),
     sep=r"\s+",
 )
 

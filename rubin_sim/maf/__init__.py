@@ -20,6 +20,7 @@
 # see <http://www.lsstcorp.org/LegalNotices/>.
 #
 """Python interface to the metrics analysis framework."""
+
 from .batches import *
 from .db import *
 from .maf_contrib import *
