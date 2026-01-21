@@ -76,11 +76,8 @@ def surface_brightness_limit_approx(
     d3 = np.min(np.abs(mu_rn_lim - mu_source_lim))
 
     if np.min([d1, d2, d3]) < mag_diff_warn:
-        warnings.warn(
-            "Limiting magnitudes in different cases are within %.3f mags, \
-            result may be too optimistic by up 0.38 mags/sq arcsec."
-            % mag_diff_warn
-        )
+        warnings.warn("Limiting magnitudes in different cases are within %.3f mags, \
+            result may be too optimistic by up 0.38 mags/sq arcsec." % mag_diff_warn)
 
     result = np.vstack([mu_sky_lim, mu_source_lim, mu_rn_lim])
     result = np.min(result, axis=0)

@@ -903,15 +903,13 @@ class VisitSequenceArchiveMetadata:
             creation_time=creation_time,
         )
 
-        update_query = sql.SQL(
-            """UPDATE {}.mixedvisitseq
+        update_query = sql.SQL("""UPDATE {}.mixedvisitseq
                    SET last_early_day_obs={},
                        first_late_day_obs={},
                        early_parent_uuid={},
                        late_parent_uuid={}\
                    WHERE visitseq_uuid={} RETURNING *
-                """
-        ).format(
+                """).format(
             sql.Identifier(self.metadata_db_schema),
             sql.Placeholder("last_early_day_obs"),
             sql.Placeholder("first_late_day_obs"),

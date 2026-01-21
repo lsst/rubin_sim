@@ -1,12 +1,7 @@
-name: Ruff and iSort
+name: Lint
 on:
-  # Trigger the workflow on push (to main) or pull request
   push:
-    branches:
-      - main
   pull_request:
-    branches:
-      - main
   workflow_dispatch:
 
 jobs:
@@ -22,3 +17,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/ruff-action@v3
+  black:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: psf/black@stable
+        with:
+          options: "--check --verbose"
+          version: "~= 26.1"
+
