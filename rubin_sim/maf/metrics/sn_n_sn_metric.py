@@ -457,9 +457,9 @@ class SNNSNMetric(BaseMetric):
         sn_effis["effi_err"] = np.sqrt(sn_effis["nsel"] * (1.0 - sn_effis["effi"])) / sn_effis["ntot"]
 
         # prevent NaNs, set effi to 0 where there is 0 ntot
-        zero = np.where(sn_effis["ntot"] == 0)
-        sn_effis["effi"].values[zero] = 0
-        sn_effis["effi_err"].values[zero] = 0
+        zero = np.where(sn_effis["ntot"] == 0)[0]
+        sn_effis.loc[zero, "effi"] = 0
+        sn_effis.loc[zero, "effi_err"] = 0
 
         if self.verbose:
             for season in sn_effis["season"].unique():
@@ -712,13 +712,7 @@ class SNNSNMetric(BaseMetric):
         flagph = phases <= 0.0
         resdf["nepochs_bef"] = self.get_epochs(nights, flag, flagph)
 
-        # replace NaN by 0
-        # solution from: https://stackoverflow.com/
-        # questions/77900971/
-        # pandas-futurewarning-downcasting-
-        # object-dtype-arrays-on-fillna-ffill-bfill
-        with pd.option_context("future.no_silent_downcasting", True):
-            resdf = resdf.fillna(0).infer_objects(copy=False)
+        resdf = resdf.fillna(0).infer_objects()
 
         # get selection efficiencies
         effis = self.efficiencies(resdf)
