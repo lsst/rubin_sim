@@ -568,6 +568,4 @@ class ApplyMappingMetric(BaseMetric):
         assert len(self.col_name_arr) == 1, "Exactly one columns must be provided to a ApplyMappingMetric"
 
     def run(self, data_slice: np.typing.ArrayLike, slice_point: dict | None = None) -> Any:
-        return (
-            data_slice[self.colname] if self.mapping is None else self.mapping[self.data_slice[self.colname]]
-        )
+        return data_slice[self.colname] if self.mapping is None else self.mapping[data_slice[self.colname]]
