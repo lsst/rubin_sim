@@ -195,6 +195,20 @@ class TestSimpleMetrics(unittest.TestCase):
         data["band"] = "r"
         _ = testmetric.run(data, None)
 
+    def test_apply_mapping_metric(self):
+        """Test ApplyMappingMetric."""
+        # Test with no mapping (should return data as-is)
+        testmetric = metrics.ApplyMappingMetric("testdata")
+        result = testmetric.run(self.dv)
+        np.testing.assert_array_equal(result, self.dv["testdata"])
+
+        # Test with a mapping
+        mapping = {0: 10, 1: 20, 2: 30, 3: 40, 4: 50}
+        testmetric = metrics.ApplyMappingMetric("testdata", mapping=mapping)
+        result = testmetric.run(self.dv)
+        expected = np.array([10, 20, 30, 40, 50, 10, 20, 30, 40, 50, 10, 20, 30, 40, 50, 10, 20, 30, 40, 50])
+        np.testing.assert_array_equal(result, expected)
+
 
 if __name__ == "__main__":
     unittest.main()
