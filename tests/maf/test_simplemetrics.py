@@ -203,10 +203,10 @@ class TestSimpleMetrics(unittest.TestCase):
         np.testing.assert_array_equal(result, self.dv["testdata"])
 
         # Test with a mapping
-        mapping = {0: 10, 1: 20, 2: 30, 3: 40, 4: 50}
+        mapping = {k: 10 * k for k in np.unique(self.dv["testdata"])}
         testmetric = metrics.ApplyMappingMetric("testdata", mapping=mapping)
         result = testmetric.run(self.dv)
-        expected = np.array([10, 20, 30, 40, 50, 10, 20, 30, 40, 50, 10, 20, 30, 40, 50, 10, 20, 30, 40, 50])
+        expected = 10 * self.dv["testdata"]
         np.testing.assert_array_equal(result, expected)
 
 
