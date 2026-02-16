@@ -32,7 +32,10 @@ __all__ = (
     "CountExplimMetric",
     "AngularSpreadMetric",
     "RealMeanMetric",
+    "ApplyMappingMetric",
 )
+
+from typing import Any, Mapping
 
 import numpy as np
 
@@ -544,3 +547,32 @@ class RealMeanMetric(BaseMetric):
 
     def run(self, data_slice, slice_point=None):
         return np.mean(data_slice[self.colname][np.isfinite(data_slice[self.colname])])
+
+
+class ApplyMappingMetric(BaseMetric):
+    """Pass one column from a dataslice back to the MetricBundle,
+    with an optional Mapping applied.
+
+    Parameters
+    ----------
+    mapping : `None` or `types.Mapping`
+        A python mapping (e.g. a dict) to apply to each value
+    metric_dtype : `str`
+        Name of datatype returned by the metric. Defaults to ``"object"``.
+    """
+
+    def __init__(self, *args, mapping: Mapping | None = None, metric_dtype: str = "object", **kwargs):
+        self.mapping = mapping
+        kwargs["metric_dtype"] = metric_dtype
+        super().__init__(*args, **kwargs)
+        assert len(self.col_name_arr) == 1, "Exactly one columns must be provided to a ApplyMappingMetric"
+
+    def run(self, data_slice: np.typing.ArrayLike, slice_point: dict | None = None) -> Any:
+        value = data_slice[self.colname]
+        if self.mapping is not None:
+            if isinstance(value, np.ndarray):
+                value = np.vectorize(self.mapping.get, otypes=[self.metric_dtype])(value)
+            else:
+                value = self.mapping[value]
+
+        return value
