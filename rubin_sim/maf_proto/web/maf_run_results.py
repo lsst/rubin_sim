@@ -10,8 +10,7 @@ import sqlite3
 
 
 def read_stat_table(db_file):
-    """Read the stats table
-    """
+    """Read the stats table"""
     con = sqlite3.connect(db_file)
     result = pd.read_sql("select * from stats;", con)
     con.close()
@@ -26,15 +25,14 @@ def read_plot_table(db_file):
 
 
 def crop_df(df_in):
-    """Crop down a dataframe for display
-    """
+    """Crop down a dataframe for display"""
     # All have the same subset
     if np.size(np.unique(df_in["observations_subset"])) == 1:
         out_df = pd.DataFrame()
         out_df["cols"] = df_in["summary_name"] + " " + df_in["metric: unit"]
         # Put the data subset as the row title
         out_df[np.unique(df_in["observations_subset"])[0]] = df_in["value"]
-        out_df.set_index('cols', inplace=True)
+        out_df.set_index("cols", inplace=True)
         out_df = out_df.transpose()
 
     else:
@@ -44,7 +42,9 @@ def crop_df(df_in):
 
             bunches = np.unique(to_bunch).tolist()
         except:
-            import pdb ; pdb.set_trace()
+            import pdb
+
+            pdb.set_trace()
 
         for bunch in bunches:
             out_df = pd.DataFrame()
@@ -60,8 +60,7 @@ def crop_df(df_in):
 
 
 def chop_stat_table(df_in):
-    """Divide up a stat table for each one to be displayed
-    """
+    """Divide up a stat table for each one to be displayed"""
 
     # Replace any None values
     keys = ["group", "subgroup", "observations_subset", "metric: name"]
@@ -120,8 +119,12 @@ class MafRunResults:
         for group in group_list:
             indx1 = np.where(self.stats["group"] == group)[0]
             indx2 = np.where(self.plots["group"] == group)[0]
-            self.groups[group] = list(set(self.stats["subgroup"].values[indx1].tolist() +
-                                          self.plots["subgroup"].values[indx2].tolist()))
+            self.groups[group] = list(
+                set(
+                    self.stats["subgroup"].values[indx1].tolist()
+                    + self.plots["subgroup"].values[indx2].tolist()
+                )
+            )
 
         self.summary_stat_order = [
             "Id",
@@ -148,7 +151,6 @@ class MafRunResults:
         """
         return os.path.join(self.out_dir, "resultsDb_sqlite.db")
 
-
     def metrics_with_plot_type(self, plot_type="SkyMap", metrics=None):
         """
         Return an array of metrics with plot=plot_type
@@ -173,7 +175,6 @@ class MafRunResults:
         # using the subset info.
         metrics = self.metric_ids_to_metrics(plot_match["metric_id"], metrics)
         return metrics
-
 
     def plot_dict(self, plots=None):
         """
@@ -358,16 +359,14 @@ class MafRunResults:
         return namelist
 
     def summary_table(self, group, subgroup):
-        indx = np.where((self.stats["group"].values == group) & (self.stats["subgroup"].values == subgroup))[0]
+        indx = np.where((self.stats["group"].values == group) & (self.stats["subgroup"].values == subgroup))[
+            0
+        ]
 
         # if the observation subset is the same, no need to have that as a column
 
-
-
-
     def all_stat_names(self, subgroup):
-        """
-        """
+        """ """
         indx = np.where(self.stats["subgroup"] == subgroup)
 
         names = self.stats["summary_name"].values[indx].tolist()

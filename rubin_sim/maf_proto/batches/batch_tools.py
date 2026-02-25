@@ -11,7 +11,7 @@ from rubin_sim.data import get_baseline
 class DoNothing:
     def __call__(*args, **kwargs):
         pass
-        
+
     def save_stats(*args, **kwargs):
         pass
 

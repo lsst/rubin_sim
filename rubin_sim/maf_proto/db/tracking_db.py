@@ -7,7 +7,6 @@ from sqlalchemy.engine import url
 from sqlalchemy.exc import DatabaseError
 from sqlalchemy.orm import declarative_base, sessionmaker
 
-
 Base = declarative_base()
 
 
@@ -285,7 +284,7 @@ def add_run_to_database(
     if not os.path.isdir(maf_dir):
         raise ValueError("There is no directory containing MAF outputs at %s." % (maf_dir))
 
-    # XXX--maybe put some info table stuff here? 
+    # XXX--maybe put some info table stuff here?
 
     print("Adding to tracking database at %s:" % (tracking_db_file))
     print(" Maf_dir = %s" % (maf_dir))
