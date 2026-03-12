@@ -6,7 +6,7 @@ from os.path import basename
 import numpy as np
 import pandas as pd
 
-import rubin_sim.maf_proto as maf
+import rubin_sim.splat as maf
 
 
 def tiers_plots(
