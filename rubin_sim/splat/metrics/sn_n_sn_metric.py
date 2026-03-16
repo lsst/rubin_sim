@@ -7,10 +7,10 @@ import numpy.lib.recfunctions as nlr
 import pandas as pd
 from scipy.interpolate import interp1d
 
+from rubin_sim.phot_utils import DustValues
 from rubin_sim.splat.metrics import BaseMetric
 from rubin_sim.splat.utils import eb_v_hp
 from rubin_sim.splat.utils.sn_n_sn_utils import LcfastNew, SnRate, load_sne_cached
-from rubin_sim.phot_utils import DustValues
 
 
 class SNNSNMetric(BaseMetric):

@@ -8,8 +8,8 @@ import numpy as np
 from rubin_scheduler.data import get_data_dir
 from rubin_scheduler.utils import SURVEY_START_MJD, uniform_sphere
 
-from rubin_sim.splat.utils import eb_v_hp, m52snr
 from rubin_sim.phot_utils import DustValues
+from rubin_sim.splat.utils import eb_v_hp, m52snr
 
 from .metrics import BaseMetric
 

@@ -15,8 +15,8 @@ from functools import cache
 
 import numpy as np
 
-from rubin_sim.splat.utils import eb_v_hp
 from rubin_sim.phot_utils import DustValues
+from rubin_sim.splat.utils import eb_v_hp
 
 # XXX--How do we want to track units?
 UNIT_LOOKUP_DICT = {"night": "Days", "fiveSigmaDepth": "mag", "airmass": "airmass"}

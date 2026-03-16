@@ -2,11 +2,11 @@ __all__ = ("MafRunResults", "read_stat_table", "read_plot_table", "crop_df", "ch
 
 import os
 import re
+import sqlite3
 from collections import OrderedDict
 
 import numpy as np
 import pandas as pd
-import sqlite3
 
 
 def read_stat_table(db_file):

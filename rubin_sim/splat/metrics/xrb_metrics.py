@@ -6,8 +6,8 @@ from rubin_scheduler.utils import SURVEY_START_MJD
 from scipy.stats import loguniform
 
 from rubin_sim.maf.utils import m52snr
-from rubin_sim.splat.utils import eb_v_hp
 from rubin_sim.phot_utils import DustValues
+from rubin_sim.splat.utils import eb_v_hp
 
 from .metrics import BaseMetric
 
