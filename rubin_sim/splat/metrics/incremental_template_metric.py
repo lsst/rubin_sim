@@ -230,22 +230,8 @@ class TemplateTime(BaseMetric):
         result["template_m5"] = template_m5
         result["template_seeing"] = template_seeing
         result["total_alerts"] = np.sum(n_alerts_per_diffim[where_template])
-        # result["template_input_m5s"] = data_slice[self.m5_col][idx_template_inputs]
-        # result["template_input_seeing"] = data_slice[self.seeing_col][idx_template_inputs]
         result["fraction_better_template_seeing"] = np.sum(
             (data_slice[self.seeing_col][where_template] > template_seeing)
         ) / np.sum(where_template)
-
-        # result["diffim_lc"] = {
-        #    "mjd": data_slice[self.mjd_col][where_template],
-        #    "night": data_slice[self.night_col][where_template],
-        #    "band": data_slice[self.band_col][where_template],
-        #    "diff_m5": diff_m5s[where_template],
-        #    "science_m5": data_slice[self.m5_col][where_template],
-        #    "template_m5": template_m5 * np.ones(np.sum(where_template)),
-        #    "science_seeing": data_slice[self.seeing_col][where_template],
-        #    "template_seeing": template_seeing * np.ones(np.sum(where_template)),
-        #    "n_alerts": n_alerts_per_diffim[where_template],
-        # }
 
         return result

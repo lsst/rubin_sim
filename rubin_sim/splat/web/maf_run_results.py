@@ -38,13 +38,7 @@ def crop_df(df_in):
     else:
         rows = []
         to_bunch = df_in["observations_subset"] + " " + df_in["metric: name"]
-        try:
-
-            bunches = np.unique(to_bunch).tolist()
-        except:
-            import pdb
-
-            pdb.set_trace()
+        bunches = np.unique(to_bunch).tolist()
 
         for bunch in bunches:
             out_df = pd.DataFrame()
@@ -65,7 +59,7 @@ def chop_stat_table(df_in):
     # Replace any None values
     keys = ["group", "subgroup", "observations_subset", "metric: name"]
     for key in keys:
-        indx = np.where(df_in[key].values == None)[0]
+        indx = np.where(df_in[key].values is None)[0]
         df_in.loc[indx, key] = ""
 
     g_p_sg = df_in["group"] + "," + df_in["subgroup"]
@@ -357,13 +351,6 @@ class MafRunResults:
         for remaining in names:
             namelist.append(remaining)
         return namelist
-
-    def summary_table(self, group, subgroup):
-        indx = np.where((self.stats["group"].values == group) & (self.stats["subgroup"].values == subgroup))[
-            0
-        ]
-
-        # if the observation subset is the same, no need to have that as a column
 
     def all_stat_names(self, subgroup):
         """ """
