@@ -483,10 +483,10 @@ class DcrStacker(BaseStacker):
 
 class Dcr2Stacker(BaseStacker):
     """
-    
+
     NEEDS UPDATE FOR SECOND MOMENT CALCULATION
     Adapted from the original DcrStacker in rubin_sim.maf.stackers.dcrStacker
-    
+
     Add columns representing the expected RA/Dec image spread contribution (variance) expected for
     an object due to differential chromatic refraction across the band, per visit.
 
@@ -520,12 +520,12 @@ class Dcr2Stacker(BaseStacker):
         Defaults u=0.0240, g=0.0308, r=0.0058, i=0.0015, z=0.0004, y=0.0003
         (all values should be in arcseconds^2).
     ra_and_dec : bool, optional
-        Whether to break the DCR offset into RA and Dec components (True) 
-        or just add a single ellipticity value in the direction toward zenith in a column 'dcr_var' (False, default). 
+        Whether to break the DCR offset into RA and Dec components (True)
+        or just add a single ellipticity value in the direction toward zenith in a column 'dcr_var' (False, default).
         If True, adds three columns: 'ra_dcr_var', 'dec_dcr_var', and 'ra_dec_dcr_cov'
-        which can be thought of as shape moments. 
+        which can be thought of as shape moments.
         Notes for review: maybe this should not be an option because if false, the other columns are still added but with 0s
-    
+
 
     Returns
     -------
@@ -548,15 +548,15 @@ class Dcr2Stacker(BaseStacker):
         site="LSST",
         mjd_col="observationStartMJD",
         dcr2_magnitudes=None,
-        ra_and_dec=False, #If False, just adds a single ellipticity value column implied to be in the direction toward zenith
-                         #If True, adds two columns with the ellipticity broken into ra and dec components
+        ra_and_dec=False,  # If False, just adds a single ellipticity value column implied to be in the direction toward zenith
+        # If True, adds two columns with the ellipticity broken into ra and dec components
     ):
         self.units = ["arcsec", "arcsec"]
 
-        #Calculated using a flat SED in wavelength space, units are arcseconds squared
+        # Calculated using a flat SED in wavelength space, units are arcseconds squared
         if dcr2_magnitudes is None:
             self.dcr2_magnitudes = {
-                "u": 0.02404978, #FILL THIS IN WITH THE VALUES CALCULATED FOR A FLAT SED 
+                "u": 0.02404978,  # FILL THIS IN WITH THE VALUES CALCULATED FOR A FLAT SED
                 "g": 0.03084951,
                 "r": 0.00578543,
                 "i": 0.0015424,
@@ -565,7 +565,6 @@ class Dcr2Stacker(BaseStacker):
             }
         else:
             self.dcr2_magnitudes = dcr2_magnitudes
-
 
         self.zd_col = "zenithDistance"
         self.pa_col = "PA"
@@ -595,7 +594,7 @@ class Dcr2Stacker(BaseStacker):
             # Column already present in data; assume it is correct and does not
             # need recalculating.
             return sim_data
-            
+
         # Need to make sure the Zenith stacker gets run first Call _run method
         # because already added these columns due to 'colsAdded' line.
         sim_data = self.zstacker.run(sim_data)
@@ -607,8 +606,7 @@ class Dcr2Stacker(BaseStacker):
         # else:
         #     zenith_ang = np.rad2deg(sim_data[self.zd_col])
         #     # parallactic_angle = sim_data[self.pa_col]
-        
-        
+
         if self.degrees:
             zenith_tan = np.tan(np.radians(sim_data[self.zd_col]))
             parallactic_angle = np.radians(sim_data[self.pa_col])
@@ -617,28 +615,30 @@ class Dcr2Stacker(BaseStacker):
             parallactic_angle = sim_data[self.pa_col]
 
         dcr_var = zenith_tan**2
-        dcr_moment_rara = dcr_var * np.sin(parallactic_angle)**2 # shape moment along ra
-        dcr_moment_decdec = dcr_var * np.cos(parallactic_angle)**2 # shape moment along dec
-        dcr_moment_radec = dcr_var * np.sin(parallactic_angle) * np.cos(parallactic_angle) #covariance moment between ra and dec
-        
+        dcr_moment_rara = dcr_var * np.sin(parallactic_angle) ** 2  # shape moment along ra
+        dcr_moment_decdec = dcr_var * np.cos(parallactic_angle) ** 2  # shape moment along dec
+        dcr_moment_radec = (
+            dcr_var * np.sin(parallactic_angle) * np.cos(parallactic_angle)
+        )  # covariance moment between ra and dec
+
         for filtername in np.unique(sim_data[self.filter_col]):
             fmatch = np.where(sim_data[self.filter_col] == filtername)
             dcr_var[fmatch] = self.dcr2_magnitudes[filtername] * dcr_var[fmatch]
 
             if self.ra_and_dec:
-                dcr_moment_rara[fmatch] = self.dcr2_magnitudes[filtername] * dcr_moment_rara[fmatch] 
-                dcr_moment_decdec[fmatch] = self.dcr2_magnitudes[filtername] * dcr_moment_decdec[fmatch] 
-                dcr_moment_radec[fmatch] = self.dcr2_magnitudes[filtername] * dcr_moment_radec[fmatch] 
-            
+                dcr_moment_rara[fmatch] = self.dcr2_magnitudes[filtername] * dcr_moment_rara[fmatch]
+                dcr_moment_decdec[fmatch] = self.dcr2_magnitudes[filtername] * dcr_moment_decdec[fmatch]
+                dcr_moment_radec[fmatch] = self.dcr2_magnitudes[filtername] * dcr_moment_radec[fmatch]
+
         sim_data["dcr_var"] = dcr_var
-        
+
         if self.ra_and_dec:
             sim_data["ra_dcr_var"] = dcr_moment_rara
             sim_data["dec_dcr_var"] = dcr_moment_decdec
             sim_data["ra_dec_dcr_cov"] = dcr_moment_radec
-            
+
         return sim_data
-    
+
 
 class HourAngleStacker(BaseStacker):
     """Add the Hour Angle (in decimal hours) for each observation.
