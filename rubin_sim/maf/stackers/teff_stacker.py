@@ -6,16 +6,8 @@ import numpy as np
 
 from .base_stacker import BaseStacker
 
-# From reference von Karman 500nm zenith seeing of 0.69"
-# median zenith dark seeing from sims_skybrightness_pre
-# airmass = 1
-# 2 "snaps" of 15 seconds each
-# m5_flat_sed sysEngVals from rubin_sim
-#   commit 6d03bd49550972e48648503ed60784a4e6775b82 (2021-05-18)
-# These include constants from:
-#   https://github.com/lsst-pst/syseng_throughputs/blob/master/notebooks/generate_sims_values.ipynb
-#   commit 7abb90951fcbc70d9c4d0c805c55a67224f9069f (2021-05-05)
-# See https://github.com/lsst-sims/smtn-002/blob/master/notebooks/teff_fiducial.ipynb
+# TEFF_FIDUCIAL_DEPTH from SMTN-002 as of 2025-07-16,
+# matching obs_lsst/config/lsstCam/fiducialMagLim.py:6
 
 # If we do not recognize the filter, return a nan. The np.array(np.nan).item
 # is a hack to define a function that retruns a nan without defining a useless
@@ -23,12 +15,12 @@ from .base_stacker import BaseStacker
 TEFF_FIDUCIAL_DEPTH = defaultdict(
     np.array(np.nan).item,
     {
-        "u": 23.71,
-        "g": 24.67,
-        "r": 24.24,
-        "i": 23.82,
-        "z": 23.21,
-        "y": 22.40,
+        "u": 23.70,
+        "g": 24.97,
+        "r": 24.52,
+        "i": 24.13,
+        "z": 23.56,
+        "y": 22.55,
     }.items(),
 )
 
