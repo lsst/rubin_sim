@@ -9,7 +9,7 @@ from astroplan import Observer
 from astropy import units as u
 from astropy.coordinates import AltAz, EarthLocation, get_body, get_sun
 from astropy.time import Time
-from rubin_scheduler.utils import SURVEY_START_MJD, Site
+from rubin_scheduler.utils import SURVEY_START_MJD, Site, bright_filter_colors
 
 from .plots import BasePlot
 
@@ -64,17 +64,6 @@ class PlotHourglass(BasePlot):
 
         return result
 
-    def _filter_to_color(self):
-        filter2color = {
-            "u": "purple",
-            "g": "blue",
-            "r": "green",
-            "i": "cyan",
-            "z": "orange",
-            "y": "red",
-        }
-        return filter2color
-
     def __call__(
         self,
         data_slice,
@@ -94,7 +83,7 @@ class PlotHourglass(BasePlot):
             return fig
 
         if filter2color is None:
-            filter2color = self._filter_to_color()
+            filter2color = bright_filter_colors()
 
         plot_dict = copy.copy(self.generated_plot_dict)
         overrides = {"title": title, "xlabel": xlabel, "ylabel": ylabel}
