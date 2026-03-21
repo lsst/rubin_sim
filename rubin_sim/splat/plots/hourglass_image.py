@@ -8,21 +8,15 @@ import numpy as np
 from matplotlib import colors as mcolors
 from matplotlib.colors import ListedColormap
 from rubin_scheduler.site_models import Almanac
-from rubin_scheduler.utils import SURVEY_START_MJD
+from rubin_scheduler.utils import SURVEY_START_MJD, bright_filter_colors
 
 from .plots import BasePlot
 
 
-def rubin_cm():
+def rubin_cm(filter2color=None):
     """Handy rubin colormap"""
-    filter2color = {
-        "u": "purple",
-        "g": "blue",
-        "r": "green",
-        "i": "cyan",
-        "z": "orange",
-        "y": "red",
-    }
+    if filter2color is None:
+        filter2color = bright_filter_colors()
     viridis = plt.colormaps.get_cmap("viridis")
     newcolors = viridis(np.linspace(0, 1, 256))
     newcolors[0] = [0, 0, 0, 0]
@@ -83,17 +77,6 @@ class PlotHourglassImage(BasePlot):
 
         return result
 
-    def _filter_to_color(self):
-        filter2color = {
-            "u": "purple",
-            "g": "blue",
-            "r": "green",
-            "i": "cyan",
-            "z": "orange",
-            "y": "red",
-        }
-        return filter2color
-
     def __call__(
         self,
         data_slice,
@@ -115,7 +98,7 @@ class PlotHourglassImage(BasePlot):
             return fig
 
         if filter2color is None:
-            filter2color = self._filter_to_color()
+            filter2color = bright_filter_colors()
 
         plot_dict = copy.copy(self.generated_plot_dict)
         overrides = {"title": title, "xlabel": xlabel, "ylabel": ylabel}
@@ -169,7 +152,7 @@ class PlotHourglassImage(BasePlot):
 
         ax.imshow(
             image.T,
-            cmap=rubin_cm(),
+            cmap=rubin_cm(filter2color=filter2color),
             vmin=0,
             vmax=256,
             origin="upper",
