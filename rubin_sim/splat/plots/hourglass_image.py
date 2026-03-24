@@ -8,9 +8,9 @@ import numpy as np
 from matplotlib import colors as mcolors
 from matplotlib.colors import ListedColormap
 from rubin_scheduler.site_models import Almanac
-from rubin_scheduler.utils import SURVEY_START_MJD, bright_filter_colors
-
+from rubin_scheduler.utils import SURVEY_START_MJD
 from .plots import BasePlot
+from .plot_utils import bright_filter_colors
 
 
 def rubin_cm(filter2color=None):
