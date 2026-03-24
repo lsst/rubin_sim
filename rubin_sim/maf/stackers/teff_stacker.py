@@ -8,6 +8,7 @@ from .base_stacker import BaseStacker
 
 # TEFF_FIDUCIAL_DEPTH from SMTN-002 as of 2025-07-16,
 # matching obs_lsst/config/lsstCam/fiducialMagLim.py:6
+# https://github.com/lsst/obs_lsst/blob/tickets/DM-51841/config/lsstCam/fiducialMagLim.py
 
 # If we do not recognize the filter, return a nan. The np.array(np.nan).item
 # is a hack to define a function that retruns a nan without defining a useless
