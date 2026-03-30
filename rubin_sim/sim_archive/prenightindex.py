@@ -131,6 +131,8 @@ def get_prenight_index_from_bucket(
     with prenight_index_resource_path.as_local() as local_resource_path:
         prenights = pd.read_json(local_resource_path.ospath, orient="index")
 
+    prenights.index.name = "visitseq_uuid"
+
     return prenights
 
 
