@@ -30,11 +30,10 @@ class BaseMetric(object):
         self.dtype = float
         self.col = col
         self.name = name
+        self.unit = unit
         if unit is None:
             if self.col in UNIT_LOOKUP_DICT.keys():
                 self.unit = UNIT_LOOKUP_DICT[self.col]
-        else:
-            self.unit = unit
 
     def add_info(self, info):
         info["metric: name"] = self.name
