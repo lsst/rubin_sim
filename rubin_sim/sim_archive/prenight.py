@@ -116,7 +116,9 @@ class AnomalousOverheadFunc:
 
         self.min_overhead: float = min_overhead
 
-    def __call__(self, visittime: float | np.ndarray, slewtime: float | np.ndarray) -> float:
+    def __call__(
+        self, visittime: float | np.ndarray, slewtime: float | np.ndarray, exptime: float | np.ndarray = 30.0
+    ) -> float:
         """Return a randomized offset for the visit overhead.
 
         Parameters
@@ -125,11 +127,19 @@ class AnomalousOverheadFunc:
             The visit time (seconds).
         slewtime : `float`
             The slew time (seconds).
+        exptime : `float`
+            Exposure time (seconds).
 
         Returns
         -------
         offset: `float`
-            Random offset (seconds).
+            The offset (in seconds) between the modeled overhead
+            between exposures and the overhead to be applied.
+            "Overhead" is the difference in start times between
+            succesive expusures, minus the exposure times:
+            ``overhead = exp_start_2 - exp_start_1 - exptime_1``.
+            So, the ``offset`` here is time to be added to
+            the modeled start of an exposure.
         """
         if isinstance(visittime, np.ndarray):
             assert visittime.shape == (1,)
@@ -141,25 +151,43 @@ class AnomalousOverheadFunc:
             slewtime = float(slewtime.item())
         assert isinstance(slewtime, float)
 
-        slew_overhead: float = slewtime * self.rng.normal(self.slew_loc, self.slew_scale)
+        if isinstance(exptime, np.ndarray):
+            assert exptime.shape == (1,)
+            exptime = float(exptime.item())
+        assert isinstance(exptime, float)
+
+        slew_overhead_offset: float = slewtime * self.rng.normal(self.slew_loc, self.slew_scale)
 
         # Slew might be faster that expected, but it will never take negative
         # time.
-        if (slewtime + slew_overhead) < 0:
-            slew_overhead = 0.0
+        if (slewtime + slew_overhead_offset) < 0:
+            slew_overhead_offset = 0.0
 
-        visit_overhead: float = visittime * self.rng.normal(self.visit_loc, self.visit_scale)
+        # visit overhead includes shutter and readout time
+        visit_overhead: float = visittime - exptime
+        visit_overhead_offset: float = visit_overhead * self.rng.normal(self.visit_loc, self.visit_scale)
         # There might be anomalous overhead that makes visits take longer,
         # but faster is unlikely.
-        if visit_overhead < 0:
-            visit_overhead = 0.0
+        if visit_overhead_offset < 0:
+            visit_overhead_offset = 0.0
 
-        scatter: float = self.scatter_dist_func(**self.scatter_kwargs)
-        overhead: float = max(
-            slew_overhead + visit_overhead + scatter, self.min_overhead - slewtime - visittime
+        scatter_offset: float = self.scatter_dist_func(**self.scatter_kwargs)
+
+        # Likely distributions (e.g. normal) for scatter_offest
+        # can have infinite negative tails, resulting in negative
+        # overhead, which is not physical.
+        # Make sure the total offset does not result in a total
+        # overhead that is less than min_overhead. If it would,
+        # return an offset that results in min_overhead as the
+        # overhead, once the slew and visit overhead are added
+        # back in.
+        expected_overhead: float = slewtime + visit_overhead
+        min_overhead_offset: float = self.min_overhead - expected_overhead
+        overhead_offset: float = max(
+            slew_overhead_offset + visit_overhead_offset + scatter_offset, min_overhead_offset
         )
 
-        return overhead
+        return overhead_offset
 
 
 def compute_sim_start_and_end(day_obs: int, sim_nights: int, delay: float = 0) -> tuple[float, float]:
