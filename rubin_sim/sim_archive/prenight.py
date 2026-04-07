@@ -9,9 +9,10 @@ import warnings
 from copy import deepcopy
 from datetime import date
 from pathlib import Path
-from typing import Callable
+from typing import Any, Callable, Mapping, Protocol
 
 import numpy as np
+import scipy.stats
 from matplotlib.pylab import Generator
 from rubin_scheduler.scheduler import sim_runner
 from rubin_scheduler.site_models import Almanac
@@ -21,6 +22,16 @@ from rubin_sim.sim_archive import make_sim_data_dir
 from .util import dayobs_to_date
 
 LOGGER = logging.getLogger(__name__)
+
+
+# Type hint to match scipy.stats style distribution classes
+class ContinuousDistribution(Protocol):
+    def rvs(
+        self,
+        size: int | tuple[int, ...] | None = None,
+        random_state: np.random.RandomState | np.random.Generator | int | None = None,
+    ) -> float:
+        ...
 
 
 class AnomalousOverheadFunc:
@@ -73,7 +84,7 @@ class AnomalousOverheadFunc:
 
     """
 
-    default_overhead_scatter_dist = "normal"
+    default_overhead_scatter_dist: ContinuousDistribution = scipy.stats.halfnorm
     default_overhead_scatter_kwargs = {"scale": 0.0, "loc": 0.0}
 
     def __init__(
@@ -84,7 +95,7 @@ class AnomalousOverheadFunc:
         slew_loc: float = 0.0,
         visit_loc: float = 0.0,
         min_overhead: float = 0.0,
-        scatter_distribution: str | None = None,
+        scatter_distribution: str | ContinuousDistribution | None = None,
         scatter_kwargs: dict | None = None,
     ) -> None:
         self.rng: Generator = np.random.default_rng(seed)
@@ -93,42 +104,67 @@ class AnomalousOverheadFunc:
         self.slew_loc: float = slew_loc
         self.slew_scale: float = slew_scale
 
-        if scatter_distribution is None:
-            scatter_distribution = self.default_overhead_scatter_dist
-        assert isinstance(scatter_distribution, str)
-        try:
-            maybe_scatter_dist_func = getattr(self.rng, scatter_distribution)
-            # If scatter_distribution is a plain attribute rather than a true
-            # method, it won't work for us, and confuses the type checker.
-        except AttributeError as exc:
-            raise AttributeError(
-                "'scatter_distribution' must be valid NumPy random Generator method, "
-                f"and '{scatter_distribution}' is not."
-            ) from exc
-        assert callable(maybe_scatter_dist_func), "'scatter_distribution' must be callable"
-        self.scatter_dist_func: Callable = maybe_scatter_dist_func
-
         if scatter_kwargs is None:
             scatter_kwargs = self.default_overhead_scatter_kwargs
-
         assert isinstance(scatter_kwargs, dict)
         self.scatter_kwargs = deepcopy(scatter_kwargs)
 
+        self.scatter_dist_func: Callable
+        if scatter_distribution is None:
+            scatter_distribution = self.default_overhead_scatter_dist
+
+        if isinstance(scatter_distribution, str):
+            # If scatter_distribution is a string, interpret it
+            # as a numpy random number distribution.
+            try:
+                maybe_scatter_dist_func = getattr(self.rng, scatter_distribution)
+                # If scatter_distribution is a plain attribute
+                # rather than a true
+                # method, it won't work for us, and confuses the type checker.
+            except AttributeError as exc:
+                raise AttributeError(
+                    "'scatter_distribution' must be valid NumPy random Generator method, "
+                    f"and '{scatter_distribution}' is not."
+                ) from exc
+            assert callable(maybe_scatter_dist_func), "'scatter_distribution' must be callable"
+            self.scatter_dist_func = maybe_scatter_dist_func
+        else:
+            maybe_scatter_dist_func = getattr(scatter_distribution, "rvs", None)
+            assert callable(
+                maybe_scatter_dist_func
+            ), f"Cannot use scatter distribution of type {str(scatter_distribution.__class__.__name__)}"
+
+            if "random_state" not in self.scatter_kwargs:
+                self.scatter_kwargs["random_state"] = self.rng
+
+            self.scatter_dist_func = maybe_scatter_dist_func
+
         self.min_overhead: float = min_overhead
 
+        if self.visit_scale > 0:
+            raise NotImplementedError("Visit scale scatter is no longer implemented.")
+
     def __call__(
-        self, visittime: float | np.ndarray, slewtime: float | np.ndarray, exptime: float | np.ndarray = 30.0
+        self,
+        visittime: float | np.ndarray | None = None,
+        slewtime: float | np.ndarray | None = None,
+        obs: Mapping[str, Any] | None = None,
     ) -> float:
         """Return a randomized offset for the visit overhead.
 
         Parameters
         ----------
-        visittime : `float`
-            The visit time (seconds).
-        slewtime : `float`
-            The slew time (seconds).
-        exptime : `float`
-            Exposure time (seconds).
+        visittime : `float` or `None`
+            The visit time (seconds). No longer does anything,
+            and will be removed.
+        slewtime : `float` or `None`
+            The slew time (seconds). If the ``slew_scale`` attribute
+            is greater than zero, either ``slewtime`` must not be
+            ``None`` or ``obs`` (below) must have a ``slewtime`` key.
+            The use of ``slewtime`` is deprecated in favor of using
+            ``obs``.
+        obs : `Mapping[str, Any]`
+            Observation record.
 
         Returns
         -------
@@ -141,51 +177,49 @@ class AnomalousOverheadFunc:
             So, the ``offset`` here is time to be added to
             the modeled start of an exposure.
         """
-        if isinstance(visittime, np.ndarray):
-            assert visittime.shape == (1,)
-            visittime = float(visittime.item())
-        assert isinstance(visittime, float)
+        if visittime is not None:
+            warnings.warn(
+                "The visittime argument is deprecated and does nothing.", DeprecationWarning, stacklevel=2
+            )
 
-        if isinstance(slewtime, np.ndarray):
-            assert slewtime.shape == (1,)
-            slewtime = float(slewtime.item())
-        assert isinstance(slewtime, float)
+        slew_overhead_offset: float
+        if self.slew_scale > 0 or self.slew_loc > 0:
+            # we are actually using slew time scattering, so
+            # get the model slewtime.
+            if slewtime is not None:
+                if isinstance(slewtime, np.ndarray):
+                    assert slewtime.shape == (1,)
+                    slewtime = float(slewtime.item())
+                assert isinstance(slewtime, float)
+                warnings.warn(
+                    "The visittime argument is deprecated and unused", DeprecationWarning, stacklevel=2
+                )
+            else:
+                assert isinstance(obs, Mapping)
+                assert isinstance(obs["slewtime"], float)
+                slewtime = obs["slewtime"]
 
-        if isinstance(exptime, np.ndarray):
-            assert exptime.shape == (1,)
-            exptime = float(exptime.item())
-        assert isinstance(exptime, float)
-
-        slew_overhead_offset: float = slewtime * self.rng.normal(self.slew_loc, self.slew_scale)
-
-        # Slew might be faster that expected, but it will never take negative
-        # time.
-        if (slewtime + slew_overhead_offset) < 0:
+            slew_overhead_offset = slewtime * self.rng.normal(self.slew_loc, self.slew_scale)
+            # Slew might be faster than expected,
+            # but it will never take negative time.
+            if (slewtime + slew_overhead_offset) < 0:
+                slew_overhead_offset = -1 * slewtime
+        else:
             slew_overhead_offset = 0.0
-
-        # visit overhead includes shutter and readout time
-        visit_overhead: float = visittime - exptime
-        visit_overhead_offset: float = visit_overhead * self.rng.normal(self.visit_loc, self.visit_scale)
-        # There might be anomalous overhead that makes visits take longer,
-        # but faster is unlikely.
-        if visit_overhead_offset < 0:
-            visit_overhead_offset = 0.0
 
         scatter_offset: float = self.scatter_dist_func(**self.scatter_kwargs)
 
-        # Likely distributions (e.g. normal) for scatter_offest
-        # can have infinite negative tails, resulting in negative
-        # overhead, which is not physical.
-        # Make sure the total offset does not result in a total
-        # overhead that is less than min_overhead. If it would,
-        # return an offset that results in min_overhead as the
-        # overhead, once the slew and visit overhead are added
-        # back in.
-        expected_overhead: float = slewtime + visit_overhead
-        min_overhead_offset: float = self.min_overhead - expected_overhead
-        overhead_offset: float = max(
-            slew_overhead_offset + visit_overhead_offset + scatter_offset, min_overhead_offset
-        )
+        overhead_offset: float = slew_overhead_offset + scatter_offset
+
+        # If we have the available parameters, make sure the final overhead
+        # is more than min_overhead
+        if obs is not None and "visittime" in obs and "exptime" in obs and "slewtime" in obs:
+            model_overhead = obs["slewtime"] + obs["visittime"] - obs["exptime"]
+            after_offset_overhead = model_overhead + overhead_offset
+            if after_offset_overhead < self.min_overhead:
+                overhead_offset = self.min_overhead - model_overhead
+        else:
+            warnings.warn("Could not verify that the overhead was greater than the minimum.")
 
         return overhead_offset
 
