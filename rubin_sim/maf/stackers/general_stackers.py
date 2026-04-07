@@ -559,8 +559,8 @@ class Dcr2Stacker(BaseStacker):
         site="LSST",
         mjd_col="observationStartMJD",
         dcr2_magnitudes=None,
-        zstacker = None,
-        pastacker = None,
+        zstacker=None,
+        pastacker=None,
     ):
         self.units = ["arcsec", "arcsec"]
 
@@ -617,7 +617,6 @@ class Dcr2Stacker(BaseStacker):
         # because already added these columns due to 'colsAdded' line.
         sim_data = self.zstacker.run(sim_data)
         sim_data = self.pastacker.run(sim_data)
-
 
         if self.degrees:
             zenith_tan = np.tan(np.radians(sim_data[self.zd_col]))
