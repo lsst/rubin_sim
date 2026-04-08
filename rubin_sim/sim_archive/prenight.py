@@ -44,15 +44,16 @@ class AnomalousOverheadFunc:
         The scale for the scatter in the slew offest (seconds).
         Defaults to 0.0.
     visit_scale : `float`, optional
-        The scale for the scatter in the visit overhead offset (seconds).
+        The paramater no longer does anything, and will be
+        removed in future versions.
         Defaults to 0.0.
     slew_loc : `float`, optional
         The location of the scatter in the slew offest (seconds).
         It is unlikely that this should ever be non-zero.
         Defaults to 0.0.
     visit_loc : `float`, optional
-        The location of the scatter in the visit offset (seconds).
-        It is unlikely that this should ever be non-zero.
+        The paramater no longer does anything, and will be
+        removed in future versions.
         Defaults to 0.0.
     scatter_distribution: `str` or `None`, optional
         The distribution from which the scatter should be taken.
@@ -73,10 +74,8 @@ class AnomalousOverheadFunc:
       proportional to the slew time following a normal distribution.
       A non-zero ``slew_loc`` will sysetmatically move the center of
       the distribution.
-    - The ``visit_scale`` and ``visit_loc`` parameters introduce an offset
-      proportional to the visit time following a normal distribution.
-      A non-zero ``visit_loc`` will sysetmatically move the center of
-      the distribution.
+    - The ``visit_scale`` and ``visit_loc`` parameters are no longer
+      functional, and persist only to support backward compatibility.
     - The ``scatter_distribution`` and ``scatter_kwargs`` introduce an
       offset independent of the modeled slew and visit times, and support
       any distribution offered by `numpy.random.Generator`.
