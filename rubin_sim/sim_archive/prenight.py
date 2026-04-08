@@ -16,6 +16,7 @@ import scipy.stats
 from matplotlib.pylab import Generator
 from rubin_scheduler.scheduler import sim_runner
 from rubin_scheduler.site_models import Almanac
+from rubin_scheduler.scheduler.utils.observation_array import ObservationArray
 
 from rubin_sim.sim_archive import make_sim_data_dir
 
@@ -146,7 +147,7 @@ class AnomalousOverheadFunc:
         self,
         visittime: float | np.ndarray | None = None,
         slewtime: float | np.ndarray | None = None,
-        obs: Mapping[str, Any] | None = None,
+        obs: Mapping[str, Any] | ObservationArray | None = None,
     ) -> float:
         """Return a randomized offset for the visit overhead.
 
@@ -211,12 +212,21 @@ class AnomalousOverheadFunc:
 
         # If we have the available parameters, make sure the final overhead
         # is more than min_overhead
-        if obs is not None and "visittime" in obs and "exptime" in obs and "slewtime" in obs:
-            model_overhead = obs["slewtime"] + obs["visittime"] - obs["exptime"]
-            after_offset_overhead = model_overhead + overhead_offset
-            if after_offset_overhead < self.min_overhead:
-                overhead_offset = self.min_overhead - model_overhead
-        else:
+        overhead_checked : bool = False
+        if obs is not None:
+            needed_data_found : bool = False
+            try:
+                model_overhead = obs["slewtime"] + obs["visittime"] - obs["exptime"]
+                needed_data_found = True
+            except (KeyError, ValueError):
+                pass
+            if needed_data_found:
+                after_offset_overhead = model_overhead + overhead_offset
+                if after_offset_overhead < self.min_overhead:
+                    overhead_offset = self.min_overhead - model_overhead
+                overhead_checked = True
+    
+        if not overhead_checked:
             warnings.warn("Could not verify that the overhead was greater than the minimum.")
 
         return overhead_offset
