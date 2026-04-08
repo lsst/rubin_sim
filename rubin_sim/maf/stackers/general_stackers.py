@@ -481,6 +481,172 @@ class DcrStacker(BaseStacker):
         return sim_data
 
 
+class Dcr2Stacker(BaseStacker):
+    """Add columns representing the expected RA/Dec chromatic spread
+    in an image (the variance of the distribution) due to the
+    second-moment effect  of differential chromatic refraction (DCR)
+    across the band, per visit.
+
+    For DCR calculation, we also need zenithDistance, HA, and PA -- but these
+    will be explicitly handled within this stacker so that setup is consistent
+    and they run in order. If those values have already been calculated
+    elsewhere, they will not be overwritten.
+
+
+    Parameters
+    ----------
+    band_col : `str`, optional
+        The name of the column with band names. Default 'band'.
+    altCol : `str`, optional
+        Name of the column with altitude info. Default 'altitude'.
+    ra_col : `str`, optional
+        Name of the column with RA. Default 'fieldRA'.
+    dec_col : `str`, optional
+        Name of the column with Dec. Default 'fieldDec'.
+    lstCol : `str`, optional
+        Name of the column with local sidereal time. Default
+        'observationStartLST'.
+    site : `str` or `rubin_scheduler.utils.Site`, optional
+        Name of the observory or a rubin_scheduler.utils.Site object.
+        Default 'LSST'.
+    mjdCol : `str`, optional
+        Name of column with modified julian date.
+        Default 'observationStartMJD'
+    dcr2_magnitudes : dict, optional
+        Magnitude of the DCR 2nd moment for each band at an
+        altitude/zenith distance of 45 degrees.
+        Defaults u=0.0240, g=0.0308, r=0.0058, i=0.0015, z=0.0004, y=0.0003
+        (all values should be in arcseconds^2).
+        These default values are calculated by simulating the
+        second-moment effect due to DCR for a point source with
+        a flat SED in wavelength space, viewed at 45 degrees.
+    zstacker : ZenithDistStacker, optional
+        Stacker to run to add zenith distance column "zenithDistance".
+        Default ZenithDistStacker(alt_col=alt_col, degrees=self.degrees)
+    pastacker : ParallacticAngleStacker, optional
+        Stacker to run to add parallactic angle column "PA".
+        Default ParallacticAngleStacker(
+            ra_col=ra_col,
+            dec_col=dec_col,
+            mjd_col=mjd_col,
+            degrees=self.degrees,
+            lst_col=lst_col,
+            site=site,
+        )
+
+
+
+    Returns
+    -------
+    data : `numpy.array`
+        Returns array with additional columns 'ra_dcr_var', 'dec_dcr_var',
+        'ra_dec_dcr_cov' (the shape moment components along RA and Dec),
+        and 'dcr_var' (the total shape moment component, along zenith)
+        with the DCR second-moments for each observation.
+        Also runs ZenithDistStacker and ParallacticAngleStacker.
+    """
+
+    cols_added = ["dcr_var", "ra_dcr_var", "dec_dcr_var", "ra_dec_dcr_cov"]  # zenithDist, HA, PA
+
+    def __init__(
+        self,
+        band_col="band",
+        alt_col="altitude",
+        degrees=True,
+        ra_col="fieldRA",
+        dec_col="fieldDec",
+        lst_col="observationStartLST",
+        site="LSST",
+        mjd_col="observationStartMJD",
+        dcr2_magnitudes=None,
+        zstacker=None,
+        pastacker=None,
+    ):
+        self.units = ["arcsec", "arcsec"]
+
+        # Calculated using a flat SED, units are arcseconds^2
+        if dcr2_magnitudes is None:
+            self.dcr2_magnitudes = {
+                "u": 0.02404978,
+                "g": 0.03084951,
+                "r": 0.00578543,
+                "i": 0.0015424,
+                "z": 0.00043015,
+                "y": 0.00026005,
+            }
+        else:
+            self.dcr2_magnitudes = dcr2_magnitudes
+
+        self.zd_col = "zenithDistance"
+        self.pa_col = "PA"
+        self.band_col = band_col
+        self.ra_col = ra_col
+        self.dec_col = dec_col
+        self.degrees = degrees
+        self.cols_req = [band_col, ra_col, dec_col, alt_col, lst_col]
+        #  'zenithDist', 'PA', 'HA' are additional columns required, coming
+        #  from other stackers which must also be configured -- so we handle
+        #  this explicitly here.
+        if zstacker is None:
+            self.zstacker = ZenithDistStacker(alt_col=alt_col, degrees=self.degrees)
+        else:
+            self.ztacker = zstacker
+
+        if pastacker is None:
+            self.pastacker = ParallacticAngleStacker(
+                ra_col=ra_col,
+                dec_col=dec_col,
+                mjd_col=mjd_col,
+                degrees=self.degrees,
+                lst_col=lst_col,
+                site=site,
+            )
+        else:
+            self.pastacker = pastacker
+
+        # Note that RA/Dec could be coming from a dither stacker!
+        # But we will assume that coord stackers will be handled separately.
+
+    def _run(self, sim_data, cols_present=False):
+        if cols_present:
+            # Column already present in data; assume it is correct and does not
+            # need recalculating.
+            return sim_data
+
+        # Need to make sure the Zenith stacker gets run first Call _run method
+        # because already added these columns due to 'colsAdded' line.
+        sim_data = self.zstacker.run(sim_data)
+        sim_data = self.pastacker.run(sim_data)
+
+        if self.degrees:
+            zenith_tan = np.tan(np.radians(sim_data[self.zd_col]))
+            parallactic_angle = np.radians(sim_data[self.pa_col])
+        else:
+            zenith_tan = np.tan(sim_data[self.zd_col])
+            parallactic_angle = sim_data[self.pa_col]
+
+        dcr_var = zenith_tan**2
+        dcr_moment_rara = dcr_var * np.sin(parallactic_angle) ** 2  # shape moment along ra
+        dcr_moment_decdec = dcr_var * np.cos(parallactic_angle) ** 2  # shape moment along dec
+        dcr_moment_radec = (
+            dcr_var * np.sin(parallactic_angle) * np.cos(parallactic_angle)
+        )  # covariance moment between ra and dec
+
+        for bandname in np.unique(sim_data[self.band_col]):
+            fmatch = np.where(sim_data[self.band_col] == bandname)
+            dcr_var[fmatch] = self.dcr2_magnitudes[bandname] * dcr_var[fmatch]
+            dcr_moment_rara[fmatch] = self.dcr2_magnitudes[bandname] * dcr_moment_rara[fmatch]
+            dcr_moment_decdec[fmatch] = self.dcr2_magnitudes[bandname] * dcr_moment_decdec[fmatch]
+            dcr_moment_radec[fmatch] = self.dcr2_magnitudes[bandname] * dcr_moment_radec[fmatch]
+
+        sim_data["dcr_var"] = dcr_var
+        sim_data["ra_dcr_var"] = dcr_moment_rara
+        sim_data["dec_dcr_var"] = dcr_moment_decdec
+        sim_data["ra_dec_dcr_cov"] = dcr_moment_radec
+
+        return sim_data
+
+
 class HourAngleStacker(BaseStacker):
     """Add the Hour Angle (in decimal hours) for each observation.
 
