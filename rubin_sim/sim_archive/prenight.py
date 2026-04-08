@@ -30,8 +30,7 @@ class ContinuousDistribution(Protocol):
         self,
         size: int | tuple[int, ...] | None = None,
         random_state: np.random.RandomState | np.random.Generator | int | None = None,
-    ) -> float:
-        ...
+    ) -> float: ...
 
 
 class AnomalousOverheadFunc:
