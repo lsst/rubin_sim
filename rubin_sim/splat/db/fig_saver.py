@@ -115,14 +115,14 @@ class FigSaver:
             pdf_filename = filename + ".pdf"
             output_file = os.path.join(self.outdir, pdf_filename)
             fig.savefig(output_file, dpi=self.pdf_dpi, bbox_inches=self.bbox_inches)
-            row["filename"] = pdf_filename
+            row["plot_filename"] = pdf_filename
             row.to_sql("plots", self.conn, index=False, if_exists="append")
 
         if self.png_dpi is not None:
             png_filename = "thumb_" + filename + ".png"
             output_filename = os.path.join(self.outdir, png_filename)
             fig.savefig(output_filename, dpi=self.png_dpi, bbox_inches=self.bbox_inches)
-            row["filename"] = png_filename
+            row["plot_filename"] = png_filename
             row.to_sql("plots", self.conn, index=False, if_exists="append")
 
         if self.close_figs:

@@ -33,9 +33,12 @@ def empty_info(as_df_row=False, **kwargs):
     result["slicer: nside"] = 0
     result["summary_name"] = ""
     result["value"] = 0.0
+    result["table_name"] = ""
     result["caption"] = ""
     result["group"] = ""
     result["subgroup"] = ""
+    result["plot_filename"] = ""
+    result["data_filename"] = ""
 
     if as_df_row:
         result = pd.Series(result).to_frame().T
