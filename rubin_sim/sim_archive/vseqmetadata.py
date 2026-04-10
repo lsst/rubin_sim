@@ -15,7 +15,7 @@ import warnings
 from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from typing import Any, Dict, Mapping, Tuple
+from typing import Any, Dict, Mapping, Sequence, Tuple
 from uuid import UUID
 
 import numpy as np
@@ -1730,3 +1730,18 @@ class VisitSequenceArchiveMetadata:
 
         metadata_yaml = yaml.dump(metadata)
         return metadata_yaml
+
+    def get_software_versions_for_sim(
+        self, visitseq_uuid: UUID, packages: Sequence[str] | None = None
+    ) -> pd.DataFrame:
+
+        query_template = "SELECT * FROM {}.simulation_packages WHERE visitseq_uuid=%s"
+        sql_params: list[sql.Composable] = [sql.Identifier(self.metadata_db_schema)]
+        query_params = (visitseq_uuid,)
+        sw_versions = self.pd_read_sql(query_template, sql_params, query_params).set_index("package_name")
+
+        if packages is not None:
+            present_packages = [p for p in packages if p in sw_versions.index]
+            sw_versions = sw_versions.loc[present_packages, :]
+
+        return sw_versions
