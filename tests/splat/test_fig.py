@@ -3,6 +3,7 @@ import shutil
 import unittest
 
 import matplotlib.pylab as plt
+import pandas as pd
 
 import rubin_sim.splat as maf
 
@@ -35,6 +36,17 @@ class TestFig(unittest.TestCase):
         # Check that we wrote to the default tracking file
         f3 = glob.glob("maf_figs/*.db")
         assert len(f3) > 0
+
+        stats = {"value": [12, 12], "run_name": ["test_name", "ack"]}
+        stats = pd.DataFrame.from_dict(stats)
+
+        fs.save_stats(stats)
+
+        # If we have a single row, use from_records
+        stats = {"value": 12, "run_name": "test_name"}
+        stats = pd.DataFrame.from_records([stats])
+
+        fs.save_stats(stats)
 
 
 if __name__ == "__main__":
