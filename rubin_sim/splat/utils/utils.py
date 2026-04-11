@@ -9,11 +9,12 @@ __all__ = (
     "fO_time_calcs",
 )
 
-import copy
 import warnings
 
 import healpy as hp
 import numpy as np
+
+from rubin_sim.splat.db import empty_info
 
 
 def percentile_clipping(data, percentile=95.0):
@@ -98,10 +99,12 @@ def osf_visit_array(in_array):
 
 
 def gen_summary_row(info, summary_name, value):
-    summary = copy.copy(info)
-    summary["summary_name"] = summary_name
-    summary["value"] = value
-    return summary
+    result = empty_info()
+    for key in info:
+        result[key] = info[key]
+    result["summary_name"] = summary_name
+    result["value"] = value
+    return result
 
 
 def optimal_bins(datain, binmin=None, binmax=None, nbin_max=200, nbin_min=1, verbose=False):

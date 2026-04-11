@@ -5,7 +5,6 @@ import sqlite3
 from pathlib import Path
 
 import matplotlib.pylab as plt
-import pandas as pd
 
 from .schemas import empty_info
 
@@ -41,11 +40,18 @@ class FigSaver:
     ):
         self.outdir = os.path.dirname(results_file)
         Path(self.outdir).mkdir(parents=True, exist_ok=True)
-        self.conn = sqlite3.connect(results_file)
+        self.results_file = results_file
+
         self.close_figs = close_figs
         self.pdf_dpi = pdf_dpi
         self.png_dpi = png_dpi
         self.bbox_inches = bbox_inches
+
+    def _open_conn(self):
+        self.conn = sqlite3.connect(self.results_file)
+
+    def _close_conn(self):
+        self.conn.close()
 
     def _construct_fileroot(self, info):
         """Construct a reasonable filename from the info dict
@@ -82,9 +88,17 @@ class FigSaver:
         return filename
 
     def save_stats(self, stats):
-        """Save summary statistics to the output DB."""
-        df = pd.DataFrame(stats)
-        df.to_sql("stats", self.conn, index=False, if_exists="append")
+        """Save summary statistics to the output DB.
+
+        Parameters
+        ----------
+        stats : pandas.DataFrame
+            The stats in a dataframe
+        """
+        self._open_conn()
+        stats.to_sql("stats", self.conn, index=False, if_exists="append")
+
+        self._close_conn()
 
     def __call__(self, fig, info, filename=None):
         """Save a figure
@@ -101,6 +115,7 @@ class FigSaver:
             Base filename for the output. Default of None will
             result in auto-generated filename.
         """
+        self._open_conn()
 
         row = empty_info(as_df_row=True)
 
@@ -127,3 +142,4 @@ class FigSaver:
 
         if self.close_figs:
             plt.close(fig)
+        self._close_conn()
