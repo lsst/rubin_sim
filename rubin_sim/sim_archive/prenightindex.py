@@ -190,7 +190,33 @@ def get_prenight_index(
 
 
 def get_sim_uuid(day_obs: int | date | str, sim_date: date, daily_id: int | str, **kwargs: Any) -> UUID:
+    """Get the UUID of a simulation given its observation night, creation date,
+    and daily ID.
 
+    Parameters
+    ----------
+    day_obs : `int` or `str` or `date`
+        The observation night for which to search for the simulation. Can be a
+        date string, YYYYMMDD encoded into an integer, or a
+        `datetime.date` object. The date rollover follows SITCOMTN-032
+        (-12hr timezone).
+    sim_date : `date`
+        The creation date of the simulation to find.
+    daily_id : `int` or `str`
+        The daily ID of the simulation to find.
+    **kwargs
+        Additional keyword arguments passed to :func:`get_prenight_index`.
+
+    Returns
+    -------
+    uuid : `uuid.UUID`
+        The UUID of the matching simulation.
+
+    Raises
+    ------
+    ValueError
+        If no simulation is found matching the specified criteria.
+    """
     day_obs = int(
         f"{day_obs.year:04d}{day_obs.month:02d}{day_obs.day:02d}" if isinstance(day_obs, date) else day_obs
     )
@@ -216,6 +242,32 @@ def get_sim_uuid(day_obs: int | date | str, sim_date: date, daily_id: int | str,
 
 
 def get_sim_index_info(day_obs: int | date | str, visitseq_uuid: UUID | str, **kwargs: Any) -> pd.Series:
+    """Get metadata for a simulation given its observation night and UUID.
+
+    Parameters
+    ----------
+    day_obs : `int` or `str` or `date`
+        The observation night for which to search for the simulation. Can be a
+        date string, YYYYMMDD encoded into an integer, or a
+        :class:`datetime.date` object. The date rollover follows SITCOMTN-032
+        (-12hr timezone).
+    visitseq_uuid : `uuid.UUID` or `str`
+        The UUID of the simulation to retrieve information for.
+    **kwargs
+        Additional keyword arguments passed to :func:`get_prenight_index`.
+
+    Returns
+    -------
+    info : `pandas.Series`
+        A Series containing the index information for the simulation.
+
+    Raises
+    ------
+    ValueError
+        If no simulation with the given UUID is found, or if multiple
+        simulations are found with the same UUID (indicating a problem in the
+        metadata database).
+    """
     day_obs = int(
         f"{day_obs.year:04d}{day_obs.month:02d}{day_obs.day:02d}" if isinstance(day_obs, date) else day_obs
     )
