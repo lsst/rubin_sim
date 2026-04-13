@@ -217,6 +217,10 @@ def get_sim_uuid(day_obs: int | date | str, sim_date: date, daily_id: int | str,
     ValueError
         If no simulation is found matching the specified criteria.
     """
+    # Accept ISO style string for day_obs
+    if isinstance(day_obs, str):
+        day_obs = day_obs.replace("-", "")
+
     day_obs = int(
         f"{day_obs.year:04d}{day_obs.month:02d}{day_obs.day:02d}" if isinstance(day_obs, date) else day_obs
     )
