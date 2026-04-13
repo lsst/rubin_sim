@@ -290,11 +290,12 @@ def get_sim_index_info(day_obs: int | date | str, visitseq_uuid: UUID | str, **k
     maybe_sim_index_info: None | pd.Series | pd.DataFrame = None
     for telescope in TELESCOPES:
         prenight_index = get_prenight_index(day_obs, telescope, **kwargs)
-        if not isinstance(prenight_index.index[0], str):
+        if len(prenight_index) > 0 and not isinstance(prenight_index.index[0], str):
             prenight_index.index = prenight_index.index.map(str)
         if visitseq_uuid_str in prenight_index.index:
             maybe_sim_index_info = prenight_index.loc[visitseq_uuid_str, :]
             maybe_sim_index_info[prenight_index.index.name] = visitseq_uuid
+            break
 
     if isinstance(maybe_sim_index_info, pd.DataFrame):
         raise ValueError(
