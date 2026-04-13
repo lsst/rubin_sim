@@ -12,6 +12,7 @@ from lsst.resources import ResourcePath
 
 from rubin_sim.sim_archive import vseqarchive, vseqmetadata
 from rubin_sim.sim_archive.prenightindex import (
+    get_prenight_index_from_bucket,
     get_prenight_index_from_database,
     get_sim_index_info,
     get_sim_uuid,
@@ -197,3 +198,103 @@ class TestPrenightIndex(unittest.TestCase):
         # Test that it raises ValueError for non-existent UUID
         with self.assertRaises(ValueError):
             get_sim_index_info(20261201, UUID("12345678-1234-1234-1234-123456789012"))
+
+    def test_get_prenight_index_from_bucket(self) -> None:
+        # Test the get_prenight_index_from_bucket function
+        # Create a temporary directory to simulate a bucket
+        with TemporaryDirectory() as temp_dir:
+            # Create a mock prenight index JSON file similar to the sample data
+            mock_index_data = {
+                "6c242afb-edd1-4cea-9f8c-80e0a18b4b75": {
+                    "sim_creation_day_obs": "2026-04-11",
+                    "daily_id": 2,
+                    "visitseq_label": "Nominal start and overhead, ideal conditions",
+                    "telescope": "simonyi",
+                    "first_day_obs": "2026-04-11",
+                    "last_day_obs": "2026-04-13",
+                    "creation_time": "2026-04-11T14:13:55.024Z",
+                    "scheduler_version": "3.21.1",
+                    "sim_runner_kwargs": None,
+                    "conda_env_sha256": "48bcf84e41a741ee67fe644b1ed8d5858d81a7ecfe012473fe2e2f0f3fc05095",
+                    "parent_visitseq_uuid": "94fd43ff-5034-43cd-ac48-6461cdca7979",
+                    "parent_last_day_obs": "2026-04-10",
+                    "tags": ["ideal", "nominal", "prenight"],
+                    "comments": {},
+                    "files": {},
+                },
+                "b9405aaf-dfe8-4508-ad90-cb37527dbc27": {
+                    "sim_creation_day_obs": "2026-04-11",
+                    "daily_id": 3,
+                    "visitseq_label": "Nominal start and overhead, ideal conditions 2",
+                    "telescope": "simonyi",
+                    "first_day_obs": "2026-04-11",
+                    "last_day_obs": "2026-04-13",
+                    "creation_time": "2026-04-11T14:21:27.332Z",
+                    "scheduler_version": "3.21.1",
+                    "sim_runner_kwargs": None,
+                    "conda_env_sha256": "48bcf84e41a741ee67fe644b1ed8d5858d81a7ecfe012473fe2e2f0f3fc05095",
+                    "parent_visitseq_uuid": "94fd43ff-5034-43cd-ac48-6461cdca7979",
+                    "parent_last_day_obs": "2026-04-10",
+                    "tags": ["ideal", "nominal", "prenight", "rewards"],
+                    "comments": {},
+                    "files": {},
+                },
+            }
+
+            # Create a mock bucket structure
+            prenight_index_path = ResourcePath(temp_dir)
+            year = "2026"
+            month = "4"
+            telescope = "simonyi"
+            isodate = "2026-04-11"
+
+            # Create the directory structure
+            mock_bucket_path = (
+                prenight_index_path.join(telescope)
+                .join(year)
+                .join(month)
+                .join(f"{telescope}_prenights_for_{isodate}.json")
+            )
+
+            # Create the directory structure manually
+            import os
+
+            os.makedirs(os.path.dirname(mock_bucket_path.ospath), exist_ok=True)
+
+            # Write the mock data to a JSON file
+            import json
+
+            with open(mock_bucket_path.ospath, "w") as f:
+                json.dump(mock_index_data, f)
+
+            # Test the function
+            result = get_prenight_index_from_bucket(
+                "2026-04-11", telescope="simonyi", prenight_index_path=temp_dir
+            )
+
+            # Should return a DataFrame
+            self.assertIsInstance(result, pd.DataFrame)
+
+            # Should have the expected number of rows (2 from our mock data)
+            self.assertEqual(len(result), 2)
+
+            # Should have the expected UUIDs in the index
+            expected_uuids = ["6c242afb-edd1-4cea-9f8c-80e0a18b4b75", "b9405aaf-dfe8-4508-ad90-cb37527dbc27"]
+            for uuid in expected_uuids:
+                self.assertIn(uuid, result.index)
+
+            # Check that the first row has expected data
+            first_row = result.loc["6c242afb-edd1-4cea-9f8c-80e0a18b4b75"]
+            self.assertEqual(first_row["sim_creation_day_obs"], "2026-04-11")
+            self.assertEqual(first_row["daily_id"], 2)
+            self.assertIn("ideal", first_row["tags"])
+            self.assertIn("nominal", first_row["tags"])
+            self.assertIn("prenight", first_row["tags"])
+
+            # Check that the second row has expected data
+            second_row = result.loc["b9405aaf-dfe8-4508-ad90-cb37527dbc27"]
+            self.assertEqual(second_row["sim_creation_day_obs"], "2026-04-11")
+            self.assertEqual(second_row["daily_id"], 3)
+            self.assertIn("ideal", second_row["tags"])
+            self.assertIn("nominal", second_row["tags"])
+            self.assertIn("prenight", second_row["tags"])
