@@ -4,6 +4,7 @@ from datetime import date
 from io import StringIO
 from tempfile import TemporaryDirectory
 from typing import ClassVar
+from unittest.mock import patch
 from uuid import UUID
 
 import pandas as pd
@@ -12,6 +13,7 @@ from lsst.resources import ResourcePath
 
 from rubin_sim.sim_archive import vseqarchive, vseqmetadata
 from rubin_sim.sim_archive.prenightindex import (
+    get_prenight_index,
     get_prenight_index_from_bucket,
     get_prenight_index_from_database,
     get_sim_index_info,
@@ -298,3 +300,82 @@ class TestPrenightIndex(unittest.TestCase):
             self.assertIn("ideal", second_row["tags"])
             self.assertIn("nominal", second_row["tags"])
             self.assertIn("prenight", second_row["tags"])
+
+    def test_get_prenight_index(self) -> None:
+        # Test the get_prenight_index function
+        # Mock the database function to return a DataFrame
+        sample_uuid = "6c242afb-edd1-4cea-9f8c-80e0a18b4b75"
+        mock_result = pd.DataFrame(
+            {
+                "sim_creation_day_obs": ["2026-04-11"],
+                "daily_id": [1],
+                "visitseq_label": ["Test simulation"],
+                "telescope": ["simonyi"],
+                "first_day_obs": ["2026-04-11"],
+                "last_day_obs": ["2026-04-13"],
+                "creation_time": ["2026-04-11T14:13:55.024Z"],
+                "scheduler_version": ["3.21.1"],
+                "sim_runner_kwargs": [None],
+                "conda_env_sha256": ["48bcf84e41a741ee67fe644b1ed8d5858d81a7ecfe012473fe2e2f0f3fc05095"],
+                "parent_visitseq_uuid": ["94fd43ff-5034-43cd-ac48-6461cdca7979"],
+                "parent_last_day_obs": ["2026-04-10"],
+                "tags": [["ideal", "nominal", "prenight"]],
+                "comments": [{}],
+                "files": [{}],
+            },
+            index=[sample_uuid],
+        )
+
+        with patch(
+            "rubin_sim.sim_archive.prenightindex.get_prenight_index_from_database", return_value=mock_result
+        ):
+            with patch(
+                "rubin_sim.sim_archive.prenightindex.get_prenight_index_from_bucket",
+                return_value=pd.DataFrame(),
+            ) as mock_bucket:
+                result = get_prenight_index("2026-04-11", telescope="simonyi")
+
+                # Should return a DataFrame
+                self.assertIsInstance(result, pd.DataFrame)
+
+                # Should contain the data from the database
+                self.assertEqual(len(result), 1)
+                self.assertIn(sample_uuid, result.index)
+
+                # Verify that get_prenight_index_from_bucket was not called
+                mock_bucket.assert_not_called()
+
+        # Test fallback behavior when database fails
+        # Modify mock results so they are distinguishable
+        mock_result.loc[sample_uuid, "scheduler_version"] = "3.2.1"
+        with patch(
+            "rubin_sim.sim_archive.prenightindex.get_prenight_index_from_database",
+            side_effect=Exception("Database error"),
+        ):
+            with patch(
+                "rubin_sim.sim_archive.prenightindex.get_prenight_index_from_bucket", return_value=mock_result
+            ):
+                result = get_prenight_index("2026-04-11", telescope="simonyi")
+
+                # Should return a DataFrame
+                self.assertIsInstance(result, pd.DataFrame)
+
+                # Should contain the data from the bucket (fallback)
+                self.assertEqual(len(result), 1)
+                self.assertIn(sample_uuid, result.index)
+                self.assertEqual(result.loc[sample_uuid, "scheduler_version"], "3.2.1")
+
+        # Test behavior when both database and bucket fail
+        with patch(
+            "rubin_sim.sim_archive.prenightindex.get_prenight_index_from_database",
+            side_effect=Exception("Database error"),
+        ):
+            with patch(
+                "rubin_sim.sim_archive.prenightindex.get_prenight_index_from_bucket",
+                side_effect=FileNotFoundError("Bucket not found"),
+            ):
+                result = get_prenight_index("2026-04-11", telescope="simonyi")
+
+                # Should return an empty DataFrame
+                self.assertIsInstance(result, pd.DataFrame)
+                self.assertEqual(len(result), 0)
