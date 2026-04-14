@@ -1,9 +1,12 @@
-__all__ = ["get_prenight_index", "select_latest_prenight_sim"]
+__all__ = ["get_prenight_index", "select_latest_prenight_sim", "get_sim_uuid", "get_sim_index_info"]
 
 import logging
 import os
 from datetime import date
+from typing import Any
+from uuid import UUID
 
+import numpy as np
 import pandas as pd
 from lsst.resources import ResourcePath
 
@@ -18,6 +21,7 @@ from .util import dayobs_to_date
 
 MAX_AGE = 365
 LOGGER = logging.getLogger(__name__)
+TELESCOPES = ("simonyi", "auxtel")
 
 
 def get_prenight_index_from_database(
@@ -183,6 +187,126 @@ def get_prenight_index(
             prenights = pd.DataFrame()
 
     return prenights
+
+
+def get_sim_uuid(day_obs: int | date | str, sim_date: date, daily_id: int | str, **kwargs: Any) -> UUID:
+    """Get the UUID of a simulation given its observation night, creation date,
+    and daily ID.
+
+    Parameters
+    ----------
+    day_obs : `int` or `str` or `date`
+        The observation night for which to search for the simulation. Can be a
+        date string, YYYYMMDD encoded into an integer, or a
+        `datetime.date` object. The date rollover follows SITCOMTN-032
+        (-12hr timezone).
+    sim_date : `date`
+        The creation date of the simulation to find.
+    daily_id : `int` or `str`
+        The daily ID of the simulation to find.
+    **kwargs
+        Additional keyword arguments passed to :func:`get_prenight_index`.
+
+    Returns
+    -------
+    uuid : `uuid.UUID`
+        The UUID of the matching simulation.
+
+    Raises
+    ------
+    ValueError
+        If no simulation is found matching the specified criteria.
+    """
+    # Accept ISO style string for day_obs
+    if isinstance(day_obs, str):
+        day_obs = day_obs.replace("-", "")
+
+    day_obs = int(
+        f"{day_obs.year:04d}{day_obs.month:02d}{day_obs.day:02d}" if isinstance(day_obs, date) else day_obs
+    )
+    assert isinstance(day_obs, int)
+
+    maybe_uuid: UUID | None = None
+
+    for telescope in TELESCOPES:
+        prenight_index = get_prenight_index(day_obs, telescope, **kwargs)
+        matching_sims = (prenight_index.sim_creation_day_obs == sim_date) & (
+            prenight_index.daily_id == int(daily_id)
+        )
+        if np.any(matching_sims):
+            matching_uuids = prenight_index.index[matching_sims].values
+            assert matching_uuids.shape == (1,)
+            maybe_uuid = UUID(str(matching_uuids.item()))
+
+    if maybe_uuid is None:
+        raise ValueError(f"No simulation found for {sim_date}, {daily_id}")
+
+    assert isinstance(maybe_uuid, UUID)
+    return maybe_uuid
+
+
+def get_sim_index_info(day_obs: int | date | str, visitseq_uuid: UUID | str, **kwargs: Any) -> pd.Series:
+    """Get metadata for a simulation given its observation night and UUID.
+
+    Parameters
+    ----------
+    day_obs : `int` or `str` or `date`
+        The observation night for which to search for the simulation. Can be a
+        date string, YYYYMMDD encoded into an integer, or a
+        :class:`datetime.date` object. The date rollover follows SITCOMTN-032
+        (-12hr timezone).
+    visitseq_uuid : `uuid.UUID` or `str`
+        The UUID of the simulation to retrieve information for.
+    **kwargs
+        Additional keyword arguments passed to :func:`get_prenight_index`.
+
+    Returns
+    -------
+    info : `pandas.Series`
+        A Series containing the index information for the simulation.
+
+    Raises
+    ------
+    ValueError
+        If no simulation with the given UUID is found, or if multiple
+        simulations are found with the same UUID (indicating a problem in the
+        metadata database).
+    """
+    day_obs = int(
+        f"{day_obs.year:04d}{day_obs.month:02d}{day_obs.day:02d}" if isinstance(day_obs, date) else day_obs
+    )
+
+    visitseq_uuid_str: str | None = None
+    if isinstance(visitseq_uuid, str):
+        assert isinstance(visitseq_uuid, str)
+        visitseq_uuid_str = visitseq_uuid
+        visitseq_uuid = UUID(visitseq_uuid)
+    else:
+        visitseq_uuid_str = str(visitseq_uuid)
+
+    assert isinstance(visitseq_uuid_str, str)
+    assert isinstance(visitseq_uuid, UUID)
+
+    maybe_sim_index_info: None | pd.Series | pd.DataFrame = None
+    for telescope in TELESCOPES:
+        prenight_index = get_prenight_index(day_obs, telescope, **kwargs)
+        if len(prenight_index) > 0 and not isinstance(prenight_index.index[0], str):
+            prenight_index.index = prenight_index.index.map(str)
+        if visitseq_uuid_str in prenight_index.index:
+            maybe_sim_index_info = prenight_index.loc[visitseq_uuid_str, :]
+            maybe_sim_index_info[prenight_index.index.name] = visitseq_uuid
+            break
+
+    if isinstance(maybe_sim_index_info, pd.DataFrame):
+        raise ValueError(
+            f"Multiple sims for UUID {visitseq_uuid}: there is a problem in the sim metadata database!"
+        )
+
+    if maybe_sim_index_info is None:
+        raise ValueError(f"No sim with UUID {visitseq_uuid} found")
+
+    assert isinstance(maybe_sim_index_info, pd.Series)
+    return maybe_sim_index_info
 
 
 def select_latest_prenight_sim(
