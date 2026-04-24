@@ -15,7 +15,7 @@ class TestSimple(unittest.TestCase):
         # Same as default, but limit to night < 30
         query = (
             "SELECT observationId, observationStartMJD as observationStartMJD_TAI, "
-            "visitTime, visitExposureTime, filter, seeingFwhmGeom as seeingFwhmGeom_arcsec, "
+            "visitTime, visitExposureTime, band as filter, seeingFwhmGeom as seeingFwhmGeom_arcsec, "
             "seeingFwhmEff as seeingFwhmEff_arcsec, fiveSigmaDepth as fieldFiveSigmaDepth_mag , "
             "fieldRA as fieldRA_deg, fieldDec as fieldDec_deg, rotSkyPos as "
             "fieldRotSkyPos_deg FROM observations where night < 30 order by observationId"
