@@ -1,4 +1,4 @@
-__all__ = ["get_prenight_index", "select_latest_prenight_sim", "get_sim_uuid", "get_sim_index_info"]
+__all__ = ["get_prenight_index", "select_latest_prenight_sim", "get_sim_uuid", "get_sim_metadata"]
 
 import logging
 import os
@@ -189,7 +189,65 @@ def get_prenight_index(
     return prenights
 
 
-def get_sim_uuid(day_obs: int | date | str, sim_date: date, daily_id: int | str, **kwargs: Any) -> UUID:
+def get_sim_uuid(
+    sim_date: date,
+    daily_id: int | str,
+    day_obs: int | date | str | None = None,
+    vsmd: VisitSequenceArchiveMetadata | None = None,
+    **kwargs: Any,
+) -> UUID:
+    """Get the UUID of a simulation given its observation night, creation date,
+    and daily ID.
+
+    Parameters
+    ----------
+    sim_date : `date`
+        The creation date of the simulation to find.
+    daily_id : `int` or `str`
+        The daily ID of the simulation to find. The daily ID is an
+        index of simulations in the metadata added at a given sim_date:
+        A simulation with ``sim_date`` of 2026-04-28 and ``daily_id`` of 4
+        is the 4th simulation added to the metadata database with a creation
+        date of 2026-04-28. The combination ``sim_date`` and ``daily_id``
+        uniquely identifies a simulation in a given metadata database, but
+        unlike UUID is not guaranteed to be unique across different
+        metadata databases.
+    day_obs : `int` or `str` or `date` or `None`
+        The dayobs of a night simulated by the simulation. Can be a
+        date string, YYYYMMDD encoded into an integer, or a
+        `datetime.date` object. The date rollover follows SITCOMTN-032
+        (-12hr timezone). If ``None``, the metadata database must
+        be used.
+    vsmd : `VisitSequenceArchiveMetadata` or `None`
+        The interface to the visit sequence metadata database to query.
+    **kwargs
+        Additional keyword arguments passed to :func:`get_prenight_index`.
+
+    Returns
+    -------
+    uuid : `uuid.UUID`
+        The UUID of the matching simulation.
+
+    Raises
+    ------
+    ValueError
+        If no simulation is found matching the specified criteria.
+    """
+    if day_obs is None or vsmd is not None:
+        if vsmd is None:
+            # If an instance of VisitSequenceArchiveMetada is not
+            # provided, make one with default configuration.
+            vsmd = VisitSequenceArchiveMetadata()
+        sim_uuid = vsmd.get_sim_uuid(sim_date, daily_id)
+    else:
+        sim_uuid = _get_sim_uuid_from_metadata_index(day_obs, sim_date, daily_id, **kwargs)
+
+    return sim_uuid
+
+
+def _get_sim_uuid_from_metadata_index(
+    day_obs: int | date | str, sim_date: date, daily_id: int | str, **kwargs: Any
+) -> UUID:
     """Get the UUID of a simulation given its observation night, creation date,
     and daily ID.
 
@@ -245,7 +303,54 @@ def get_sim_uuid(day_obs: int | date | str, sim_date: date, daily_id: int | str,
     return maybe_uuid
 
 
-def get_sim_index_info(day_obs: int | date | str, visitseq_uuid: UUID | str, **kwargs: Any) -> pd.Series:
+def get_sim_metadata(
+    visitseq_uuid: UUID | str,
+    day_obs: int | date | str | None = None,
+    vsmd: VisitSequenceArchiveMetadata | None = None,
+    **kwargs: Any,
+) -> pd.Series:
+    """Get metadata for a simulation given its observation night and UUID.
+
+    Parameters
+    ----------
+    visitseq_uuid : `uuid.UUID` or `str`
+        The UUID of the simulation to retrieve information for.
+    day_obs : `int` or `str` or `date` or `None`
+        The observation night for which to search for the simulation. Can be a
+        date string, YYYYMMDD encoded into an integer, or a
+        :class:`datetime.date` object. The date rollover follows SITCOMTN-032
+        (-12hr timezone).
+    **kwargs
+        Additional keyword arguments passed to :func:`get_prenight_index`.
+
+    Returns
+    -------
+    info : `pandas.Series`
+        A Series containing the index information for the simulation.
+
+    Raises
+    ------
+    ValueError
+        If no simulation with the given UUID is found, or if multiple
+        simulations are found with the same UUID (indicating a problem in the
+        metadata database).
+    """
+    sim_metadata: pd.Series
+    if day_obs is None:
+        if vsmd is None:
+            # If an instance of VisitSequenceArchiveMetada is not
+            # provided, make one with default configuration.
+            vsmd = VisitSequenceArchiveMetadata()
+        sim_metadata = vsmd.get_visitseq_metadata(visitseq_uuid, "simulations_extra")
+    else:
+        sim_metadata = _get_sim_metadata_from_metadata_index(day_obs, visitseq_uuid, **kwargs)
+
+    return sim_metadata
+
+
+def _get_sim_metadata_from_metadata_index(
+    day_obs: int | date | str, visitseq_uuid: UUID | str, **kwargs: Any
+) -> pd.Series:
     """Get metadata for a simulation given its observation night and UUID.
 
     Parameters

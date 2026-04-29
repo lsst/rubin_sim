@@ -16,7 +16,7 @@ from rubin_sim.sim_archive.prenightindex import (
     get_prenight_index,
     get_prenight_index_from_bucket,
     get_prenight_index_from_database,
-    get_sim_index_info,
+    get_sim_metadata,
     get_sim_uuid,
 )
 from rubin_sim.sim_archive.tempdb import LocalOnlyPostgresql
@@ -152,7 +152,7 @@ class TestPrenightIndex(unittest.TestCase):
         # We should be able to find our test simulation
         # Using today's date as requested
         today = date.today()
-        result = get_sim_uuid(20261201, today, 1)
+        result = get_sim_uuid(today, 1, 20261201)
 
         # Should return a UUID
         self.assertIsInstance(result, UUID)
@@ -161,36 +161,40 @@ class TestPrenightIndex(unittest.TestCase):
         self.assertEqual(result, self.sim_uuid)
 
         # Test with date object for day_obs
-        result2 = get_sim_uuid(date(2026, 12, 1), today, 1)
+        result2 = get_sim_uuid(
+            today,
+            1,
+            date(2026, 12, 1),
+        )
         self.assertEqual(result2, self.sim_uuid)
 
         # Test with str for day_obs
-        result3 = get_sim_uuid("20261201", today, 1)
+        result3 = get_sim_uuid(today, 1, "20261201")
         self.assertEqual(result3, self.sim_uuid)
 
         # Test with iso str for day_obs
-        result4 = get_sim_uuid("2026-12-01", today, 1)
+        result4 = get_sim_uuid(today, 1, "2026-12-01")
         self.assertEqual(result4, self.sim_uuid)
 
         # Test that it raises ValueError for non-existent simulation
         # (wrong date)
         with self.assertRaises(ValueError):
-            get_sim_uuid(20261201, date(2022, 12, 2), 1)
+            get_sim_uuid(date(2022, 12, 2), 1, 20261201)
 
         # Test that it raises ValueError for non-existent daily_id
         with self.assertRaises(ValueError):
-            get_sim_uuid(20261201, today, 2)
+            get_sim_uuid(today, 2, 20261201)
 
-    def test_get_sim_index_info(self) -> None:
+    def test_get_sim_metadata(self) -> None:
         # Test the get_sim_index_info function
         # Get the index information for our test simulation
-        result = get_sim_index_info(20261201, self.sim_uuid)
+        result = get_sim_metadata(self.sim_uuid, 20261201)
 
         # Should return a pandas Series
         self.assertIsInstance(result, pd.Series)
 
         # Should contain the expected UUID
-        self.assertEqual(str(result.name), str(self.sim_uuid))
+        self.assertEqual(str(self.sim_uuid), str(result.name))
 
         # Should have the expected tags
         self.assertIn("prenight", result["tags"])
@@ -199,7 +203,7 @@ class TestPrenightIndex(unittest.TestCase):
 
         # Test that it raises ValueError for non-existent UUID
         with self.assertRaises(ValueError):
-            get_sim_index_info(20261201, UUID("12345678-1234-1234-1234-123456789012"))
+            get_sim_metadata(UUID("12345678-1234-1234-1234-123456789012"), 20261201)
 
     def test_get_prenight_index_from_bucket(self) -> None:
         # Test the get_prenight_index_from_bucket function
