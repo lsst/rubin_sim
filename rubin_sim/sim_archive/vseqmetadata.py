@@ -1745,3 +1745,44 @@ class VisitSequenceArchiveMetadata:
             sw_versions = sw_versions.loc[present_packages, :]
 
         return sw_versions
+
+    def get_sim_uuid(self, sim_date: str | date | int, daily_id: int | str) -> UUID:
+        """Retrieve metadata for a visit sequence.
+
+        Parameters
+        ----------
+        sim_date : `date` on `str` or `int`
+            The creation date of the simulation to find, as a dayobs
+            (utc-12 hour timezone)
+        daily_id : `int` or `str`
+            The daily ID of the simulation to find. The daily ID is an
+            index of simulations in the metadata added at a given sim_date:
+            A simulation with ``sim_date`` of 2026-04-28 and ``daily_id`` of 4
+            is the 4th simulation added to the metadata database with a
+            creation date of 2026-04-28. The combination ``sim_date``
+            and ``daily_id`` uniquely identifies a simulation in a
+            given metadata database, but unlike UUID is not guaranteed
+            to be unique across different metadata databases.
+
+        Returns
+        -------
+        uuid : `UUID`
+            The UUID corresponding to the sim_date/daily_id combination.
+        """
+        sim_date = dayobs_to_date(sim_date)
+        daily_id = int(daily_id)
+        # offset by 12 hours to get into dayobs tz
+        query_template = """
+            SELECT visitseq_uuid
+            FROM {}.simulations_extra
+            WHERE %s=DATE(creation_time - INTERVAL '12 hours')
+                  AND %s=daily_id
+        """
+        sql_params: list[sql.Composable] = [sql.Identifier(self.metadata_db_schema)]
+        query_params = (sim_date, daily_id)
+        visitseq = self.pd_read_sql(query_template, sql_params, query_params)
+        if len(visitseq) == 0:
+            raise ValueError(f"No simulation {daily_id} from {sim_date} found.")
+        assert not (len(visitseq) > 1), "len(visitseq)>1 should not be possible given the database schema."
+        visitseq_uuid = visitseq["visitseq_uuid"].item()
+        return visitseq_uuid
