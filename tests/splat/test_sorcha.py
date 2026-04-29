@@ -1,8 +1,8 @@
+import os
 import unittest
 
 import rubin_sim.splat as splat
 from rubin_sim.data import get_baseline, get_data_dir
-import os
 
 
 class TestSimple(unittest.TestCase):

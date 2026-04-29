@@ -1,23 +1,23 @@
 __all__ = ("sorcha_wrapper",)
 
 from sorcha.sorcha import runLSSTSimulation
+from sorcha.utilities.sorchaArguments import sorchaArguments
 from sorcha.utilities.sorchaConfigs import (
-    inputConfigs,
-    simulationConfigs,
-    filtersConfigs,
-    saturationConfigs,
-    phasecurvesConfigs,
-    fovConfigs,
-    fadingfunctionConfigs,
-    linkingfilterConfigs,
-    outputConfigs,
-    lightcurveConfigs,
     activityConfigs,
-    expertConfigs,
     auxiliaryConfigs,
     basesorchaConfigs,
+    expertConfigs,
+    fadingfunctionConfigs,
+    filtersConfigs,
+    fovConfigs,
+    inputConfigs,
+    lightcurveConfigs,
+    linkingfilterConfigs,
+    outputConfigs,
+    phasecurvesConfigs,
+    saturationConfigs,
+    simulationConfigs,
 )
-from sorcha.utilities.sorchaArguments import sorchaArguments
 
 
 def sorcha_wrapper(

@@ -11,8 +11,8 @@ from astropy.coordinates import AltAz, EarthLocation, get_body, get_sun
 from astropy.time import Time
 from rubin_scheduler.utils import SURVEY_START_MJD, Site
 
-from .plots import BasePlot
 from .plot_utils import bright_filter_colors
+from .plots import BasePlot
 
 
 class PlotHourglass(BasePlot):
