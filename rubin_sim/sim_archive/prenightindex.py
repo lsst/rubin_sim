@@ -154,7 +154,9 @@ def get_prenight_index(
     Parameters
     ----------
     day_obs : `str` or `int` or `date`
-        Night for which to fetch the index.
+        Night for which to fetch the index. The function
+        will return all simulations that simulate
+        the night designated by the day_obs.
     telescope : `str`
         Telescope name (default ``simonyi``).
     schema : `str` or `None`, optional
@@ -257,7 +259,8 @@ def _get_sim_uuid_from_metadata_index(
         The observation night for which to search for the simulation. Can be a
         date string, YYYYMMDD encoded into an integer, or a
         `datetime.date` object. The date rollover follows SITCOMTN-032
-        (-12hr timezone).
+        (-12hr timezone). This can be any night included in the
+        simulation.
     sim_date : `date`
         The creation date of the simulation to find.
     daily_id : `int` or `str`
@@ -319,7 +322,8 @@ def get_sim_metadata(
         The observation night for which to search for the simulation. Can be a
         date string, YYYYMMDD encoded into an integer, or a
         :class:`datetime.date` object. The date rollover follows SITCOMTN-032
-        (-12hr timezone).
+        (-12hr timezone). This can be any night included in the
+        simulation.
     **kwargs
         Additional keyword arguments passed to :func:`get_prenight_index`.
 
