@@ -59,20 +59,36 @@ def get_sim_data(
         if os.path.isfile(db_con) is False:
             raise FileNotFoundError("No file %s" % db_con)
 
+    # Check if this is an HDF5 file
+    is_hdf5 = isinstance(db_con, str) and db_con.lower().endswith((".h5", ".hdf5"))
+
     # Check if table is "observations" or "SummaryAllProps"
     if (table_name is None) & (full_sql_query is None) & (isinstance(db_con, str)):
-        url = make_url("sqlite:///" + db_con)
-        eng = create_engine(url)
-        inspector = inspect(eng)
-        tables = [inspector.get_table_names(schema=schema) for schema in inspector.get_schema_names()]
-        if "observations" in tables[0]:
-            table_name = "observations"
-        elif "SummaryAllProps" in tables[0]:
-            table_name = "SummaryAllProps"
-        elif "summary" in tables[0]:
-            table_name = "summary"
+        if is_hdf5:
+            # For HDF5, detect table names by reading the store keys
+            with pd.HDFStore(db_con, mode="r") as store:
+                table_keys = [key.lstrip("/") for key in store.keys()]
+            if "observations" in table_keys:
+                table_name = "observations"
+            elif "SummaryAllProps" in table_keys:
+                table_name = "SummaryAllProps"
+            elif "summary" in table_keys:
+                table_name = "summary"
+            else:
+                raise ValueError("Could not guess table_name, set with table_name or full_sql_query kwargs")
         else:
-            raise ValueError("Could not guess table_name, set with table_name or full_sql_query kwargs")
+            url = make_url("sqlite:///" + db_con)
+            eng = create_engine(url)
+            inspector = inspect(eng)
+            tables = [inspector.get_table_names(schema=schema) for schema in inspector.get_schema_names()]
+            if "observations" in tables[0]:
+                table_name = "observations"
+            elif "SummaryAllProps" in tables[0]:
+                table_name = "SummaryAllProps"
+            elif "summary" in tables[0]:
+                table_name = "summary"
+            else:
+                raise ValueError("Could not guess table_name, set with table_name or full_sql_query kwargs")
     elif (table_name is None) & (full_sql_query is None):
         # If someone passes in a connection object with an old table_name
         # things will fail
@@ -89,11 +105,25 @@ def get_sim_data(
     else:
         query = full_sql_query
 
-    if isinstance(db_con, sqlite3.Connection):
+    if is_hdf5 and sqlconstraint is None and full_sql_query is None:
+        # Pure HDF5 path - no SQL filtering needed
+        sim_data = pd.read_hdf(db_con, key=table_name).to_records(index=False)
+    elif isinstance(db_con, sqlite3.Connection):
         sim_data = pd.read_sql(query, db_con).to_records(index=False)
     elif isinstance(db_con, str) and os.path.isfile(db_con):
-        with closing(sqlite3.connect(db_con)) as con:
-            sim_data = pd.read_sql(query, con).to_records(index=False)
+        # Handle HDF5 files with SQL constraints by loading into
+        # in-memory SQLite
+        if is_hdf5:
+            with closing(sqlite3.connect(":memory:")) as con:
+                with pd.HDFStore(db_con, mode="r") as store:
+                    for key in store.keys():
+                        tbl_name = key.lstrip("/")
+                        df = pd.read_hdf(db_con, key=key)
+                        df.to_sql(tbl_name, con, index=False)
+                sim_data = pd.read_sql(query, con).to_records(index=False)
+        else:
+            with closing(sqlite3.connect(db_con)) as con:
+                sim_data = pd.read_sql(query, con).to_records(index=False)
     elif (not isinstance(db_con, str)) or urllib.parse.urlparse(db_con).scheme != "":
         try:
             from lsst.resources import ResourcePath
