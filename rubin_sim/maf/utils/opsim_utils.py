@@ -8,7 +8,6 @@ import os
 import sqlite3
 import urllib
 from contextlib import closing
-from functools import partial
 
 import numpy as np
 import pandas as pd
@@ -26,6 +25,8 @@ def _local_get_sim_data(
 ):
     if sqlconstraint is None:
         sqlconstraint = ""
+
+    need_sql: bool = full_sql_query is not None or len(sqlconstraint) > 0
 
     # Check that file exists
     if isinstance(db_con, str):
@@ -78,7 +79,7 @@ def _local_get_sim_data(
     else:
         query = full_sql_query
 
-    if is_hdf5 and sqlconstraint is None and full_sql_query is None:
+    if is_hdf5 and not need_sql:
         # Pure HDF5 path - no SQL filtering needed
         sim_data = pd.read_hdf(db_con, key=table_name).to_records(index=False)
     elif isinstance(db_con, sqlite3.Connection):
@@ -98,7 +99,7 @@ def _local_get_sim_data(
             with closing(sqlite3.connect(db_con)) as con:
                 sim_data = pd.read_sql(query, con).to_records(index=False)
     else:
-        raise RuntimeError("Cannot find {db_con}.")
+        raise RuntimeError(f"Cannot find {db_con}.")
 
     if len(sim_data) == 0:
         raise UserWarning("No data found matching sqlconstraint %s" % (sqlconstraint))
@@ -108,6 +109,7 @@ def _local_get_sim_data(
             sim_data = s.run(sim_data)
 
     return sim_data
+
 
 def get_sim_data(
     db_con,
@@ -145,7 +147,7 @@ def get_sim_data(
         A numpy structured array with columns resulting from dbcols + stackers,
         for observations matching the SQLconstraint.
     """
-    if (not isinstance(db_con, str)) or urllib.parse.urlparse(db_con).scheme == "":
+    if isinstance(db_con, str) and urllib.parse.urlparse(db_con).scheme == "":
         # Already have a local copy
         sim_data = _local_get_sim_data(db_con, sqlconstraint, dbcols, stackers, table_name, full_sql_query)
     else:
@@ -153,7 +155,9 @@ def get_sim_data(
             from lsst.resources import ResourcePath
 
             with ResourcePath(db_con).as_local() as local_db_path:
-                sim_data = _local_get_sim_data(local_db_path, sqlconstraint, dbcols, stackers, table_name, full_sql_query)
+                sim_data = _local_get_sim_data(
+                    local_db_path, sqlconstraint, dbcols, stackers, table_name, full_sql_query
+                )
         except ModuleNotFoundError:
             raise RuntimeError(
                 f"Cannot read visits from {db_con}."
