@@ -8,6 +8,7 @@ import os
 import sqlite3
 import urllib
 from contextlib import closing
+from functools import partial
 
 import numpy as np
 import pandas as pd
@@ -15,7 +16,7 @@ from sqlalchemy import create_engine, inspect
 from sqlalchemy.engine import make_url
 
 
-def get_sim_data(
+def _local_get_sim_data(
     db_con,
     sqlconstraint=None,
     dbcols=None,
@@ -23,34 +24,6 @@ def get_sim_data(
     table_name=None,
     full_sql_query=None,
 ):
-    """Query an opsim database for the needed data columns
-    and run any required stackers.
-
-    Parameters
-    ----------
-    db_con : `str` or SQLAlchemy connectable, or sqlite3 connection
-        Filename to a sqlite3 file, or a connection object that
-        can be used by pandas.read_sql
-    sqlconstraint : `str` or None
-        SQL constraint to apply to query for observations.
-        Ignored if full_sql_query is set.
-    dbcols : `list` [`str`]
-        Columns required from the database. Ignored if full_sql_query is set.
-    stackers : `list` [`rubin_sim.maf.stackers`], optional
-        Stackers to be used to generate additional columns. Default None.
-    table_name : `str` (None)
-        Name of the table to query.
-        Default None will try "observations".
-        Ignored if full_sql_query is set.
-    full_sql_query : `str`
-        The full SQL query to use. Overrides sqlconstraint, dbcols, tablename.
-
-    Returns
-    -------
-    sim_data : `np.ndarray`
-        A numpy structured array with columns resulting from dbcols + stackers,
-        for observations matching the SQLconstraint.
-    """
     if sqlconstraint is None:
         sqlconstraint = ""
 
@@ -124,18 +97,6 @@ def get_sim_data(
         else:
             with closing(sqlite3.connect(db_con)) as con:
                 sim_data = pd.read_sql(query, con).to_records(index=False)
-    elif (not isinstance(db_con, str)) or urllib.parse.urlparse(db_con).scheme != "":
-        try:
-            from lsst.resources import ResourcePath
-
-            with ResourcePath(db_con).as_local() as local_db_path:
-                with closing(sqlite3.connect(local_db_path.ospath)) as con:
-                    sim_data = pd.read_sql(query, con).to_records(index=False)
-        except ModuleNotFoundError:
-            raise RuntimeError(
-                f"Cannot read visits from {db_con}."
-                "Maybe it does not exist, or maybe you need to install lsst.resources."
-            )
     else:
         raise RuntimeError("Cannot find {db_con}.")
 
@@ -145,6 +106,59 @@ def get_sim_data(
     if stackers is not None:
         for s in stackers:
             sim_data = s.run(sim_data)
+
+    return sim_data
+
+def get_sim_data(
+    db_con,
+    sqlconstraint=None,
+    dbcols=None,
+    stackers=None,
+    table_name=None,
+    full_sql_query=None,
+):
+    """Query an opsim database for the needed data columns
+    and run any required stackers.
+
+    Parameters
+    ----------
+    db_con : `str` or SQLAlchemy connectable, or sqlite3 connection
+        Filename to a sqlite3 file, or a connection object that
+        can be used by pandas.read_sql
+    sqlconstraint : `str` or None
+        SQL constraint to apply to query for observations.
+        Ignored if full_sql_query is set.
+    dbcols : `list` [`str`]
+        Columns required from the database. Ignored if full_sql_query is set.
+    stackers : `list` [`rubin_sim.maf.stackers`], optional
+        Stackers to be used to generate additional columns. Default None.
+    table_name : `str` (None)
+        Name of the table to query.
+        Default None will try "observations".
+        Ignored if full_sql_query is set.
+    full_sql_query : `str`
+        The full SQL query to use. Overrides sqlconstraint, dbcols, tablename.
+
+    Returns
+    -------
+    sim_data : `np.ndarray`
+        A numpy structured array with columns resulting from dbcols + stackers,
+        for observations matching the SQLconstraint.
+    """
+    if (not isinstance(db_con, str)) or urllib.parse.urlparse(db_con).scheme == "":
+        # Already have a local copy
+        sim_data = _local_get_sim_data(db_con, sqlconstraint, dbcols, stackers, table_name, full_sql_query)
+    else:
+        try:
+            from lsst.resources import ResourcePath
+
+            with ResourcePath(db_con).as_local() as local_db_path:
+                sim_data = _local_get_sim_data(local_db_path, sqlconstraint, dbcols, stackers, table_name, full_sql_query)
+        except ModuleNotFoundError:
+            raise RuntimeError(
+                f"Cannot read visits from {db_con}."
+                "Maybe it does not exist, or maybe you need to install lsst.resources."
+            )
     return sim_data
 
 
