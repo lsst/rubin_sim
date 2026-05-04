@@ -1,5 +1,6 @@
 __all__ = (
     "get_sim_data",
+    "get_visit_data",
     "scale_benchmarks",
     "calc_coadded_depth",
 )
@@ -137,8 +138,8 @@ def get_sim_data(
     Parameters
     ----------
     db_con : `str` or SQLAlchemy connectable, or sqlite3 connection
-        Filename to a sqlite3 file, or a connection object that
-        can be used by pandas.read_sql
+        Filename or lsst.resources path to an hdf5 or sqlite3 file,
+        or a connection object that can be used by pandas.read_sql
     sqlconstraint : `str` or None
         SQL constraint to apply to query for observations.
         Ignored if full_sql_query is set.
@@ -178,6 +179,64 @@ def get_sim_data(
                 "Maybe it does not exist, or maybe you need to install lsst.resources."
             )
     return sim_data
+
+
+def get_visit_data(
+    db_con,
+    sqlconstraint=None,
+    dbcols=None,
+    stackers=None,
+    table_name=None,
+    full_sql_query=None,
+    return_class=pd.DataFrame,
+):
+    """Query an opsim database, returning a `pandas.DataFrame` by default.
+
+    Thin wrapper around `get_sim_data` with ``return_class`` defaulting to
+    `pandas.DataFrame` instead of `numpy.recarray`.  All parameters are
+    forwarded unchanged; see `get_sim_data` for full documentation.
+
+    Parameters
+    ----------
+    db_con : `str` or SQLAlchemy connectable, or sqlite3 connection
+        Filename or lsst.resources path to an hdf5 or sqlite3 file,
+        or a connection object that can be used by pandas.read_sql
+    sqlconstraint : `str` or None
+        SQL constraint to apply to query for observations.
+        Ignored if full_sql_query is set.
+    dbcols : `list` [`str`]
+        Columns required from the database. Ignored if full_sql_query is set.
+    stackers : `list` [`rubin_sim.maf.stackers`], optional
+        Stackers to be used to generate additional columns. Default None.
+    table_name : `str` (None)
+        Name of the table to query.
+        Default None will try "observations".
+        Ignored if full_sql_query is set.
+    full_sql_query : `str`
+        The full SQL query to use. Overrides sqlconstraint, dbcols, tablename.
+    return_class : `type`, optional
+        Class of the returned data. Default `pandas.DataFrame`.
+
+    Returns
+    -------
+    sim_data : `pandas.DataFrame`
+        A `pandas.DataFrame` with columns resulting from dbcols + stackers,
+        for observations matching the sqlconstraint.
+
+    See Also
+    --------
+    get_sim_data : Equivalent function with ``return_class`` defaulting to
+        `numpy.recarray`.
+    """
+    return get_sim_data(
+        db_con,
+        sqlconstraint=sqlconstraint,
+        dbcols=dbcols,
+        stackers=stackers,
+        table_name=table_name,
+        full_sql_query=full_sql_query,
+        return_class=return_class,
+    )
 
 
 def scale_benchmarks(run_length, benchmark="design"):
