@@ -23,6 +23,7 @@ def _local_get_sim_data(
     stackers=None,
     table_name=None,
     full_sql_query=None,
+    *,
     return_class=np.recarray,
 ):
     if sqlconstraint is None:
@@ -130,6 +131,7 @@ def get_sim_data(
     stackers=None,
     table_name=None,
     full_sql_query=None,
+    *,
     return_class=np.recarray,
 ):
     """Query an opsim database for the needed data columns
@@ -180,7 +182,11 @@ def get_sim_data(
             )
     return sim_data
 
-
+# This almost-alias to get_sim_data is named to be less misleading,
+# in that the same get_*_data function can be used for real visits
+# from consdb as well. Return a DF instead of a recarray by default
+# because much of the code designed for reading consdb output
+# wants that.
 def get_visit_data(
     db_con,
     sqlconstraint=None,
@@ -188,6 +194,7 @@ def get_visit_data(
     stackers=None,
     table_name=None,
     full_sql_query=None,
+    *,
     return_class=pd.DataFrame,
 ):
     """Query an opsim database, returning a `pandas.DataFrame` by default.
