@@ -162,10 +162,10 @@ def get_sim_data(
         A numpy structured array with columns resulting from dbcols + stackers,
         for observations matching the SQLconstraint.
     """
-    if isinstance(db_con, str) and urllib.parse.urlparse(db_con).scheme == "":
+    if (not isinstance(db_con, str)) or urllib.parse.urlparse(db_con).scheme == "":
         # Already have a local copy
         sim_data = _local_get_sim_data(
-            db_con, sqlconstraint, dbcols, stackers, table_name, full_sql_query, return_class
+            db_con, sqlconstraint, dbcols, stackers, table_name, full_sql_query, return_class=return_class
         )
     else:
         try:
@@ -173,7 +173,13 @@ def get_sim_data(
 
             with ResourcePath(db_con).as_local() as local_db_path:
                 sim_data = _local_get_sim_data(
-                    local_db_path, sqlconstraint, dbcols, stackers, table_name, full_sql_query, return_class
+                    local_db_path,
+                    sqlconstraint,
+                    dbcols,
+                    stackers,
+                    table_name,
+                    full_sql_query,
+                    return_class=return_class,
                 )
         except ModuleNotFoundError:
             raise RuntimeError(
