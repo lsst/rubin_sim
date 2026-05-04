@@ -22,6 +22,7 @@ def _local_get_sim_data(
     stackers=None,
     table_name=None,
     full_sql_query=None,
+    return_class=np.recarray,
 ):
     if sqlconstraint is None:
         sqlconstraint = ""
@@ -79,11 +80,12 @@ def _local_get_sim_data(
     else:
         query = full_sql_query
 
+    sim_data: np.recarray | pd.DataFrame | None = None
     if is_hdf5 and not need_sql:
         # Pure HDF5 path - no SQL filtering needed
-        sim_data = pd.read_hdf(db_con, key=table_name).to_records(index=False)
+        sim_data = pd.read_hdf(db_con, key=table_name)
     elif isinstance(db_con, sqlite3.Connection):
-        sim_data = pd.read_sql(query, db_con).to_records(index=False)
+        sim_data = pd.read_sql(query, db_con)
     elif isinstance(db_con, str) and os.path.isfile(db_con):
         # Handle HDF5 files with SQL constraints by loading into
         # in-memory SQLite
@@ -94,10 +96,10 @@ def _local_get_sim_data(
                         tbl_name = key.lstrip("/")
                         df = pd.read_hdf(db_con, key=key)
                         df.to_sql(tbl_name, con, index=False)
-                sim_data = pd.read_sql(query, con).to_records(index=False)
+                sim_data = pd.read_sql(query, con)
         else:
             with closing(sqlite3.connect(db_con)) as con:
-                sim_data = pd.read_sql(query, con).to_records(index=False)
+                sim_data = pd.read_sql(query, con)
     else:
         raise RuntimeError(f"Cannot find {db_con}.")
 
@@ -107,6 +109,15 @@ def _local_get_sim_data(
     if stackers is not None:
         for s in stackers:
             sim_data = s.run(sim_data)
+
+    if return_class is np.recarray:
+        if isinstance(sim_data, pd.DataFrame):
+            sim_data = sim_data.to_records(index=False)
+    if return_class is pd.DataFrame:
+        if isinstance(sim_data, np.recarray):
+            sim_data = pd.DataFrame(sim_data)
+
+    assert isinstance(sim_data, return_class)
 
     return sim_data
 
@@ -118,6 +129,7 @@ def get_sim_data(
     stackers=None,
     table_name=None,
     full_sql_query=None,
+    return_class=np.recarray,
 ):
     """Query an opsim database for the needed data columns
     and run any required stackers.
@@ -149,14 +161,16 @@ def get_sim_data(
     """
     if isinstance(db_con, str) and urllib.parse.urlparse(db_con).scheme == "":
         # Already have a local copy
-        sim_data = _local_get_sim_data(db_con, sqlconstraint, dbcols, stackers, table_name, full_sql_query)
+        sim_data = _local_get_sim_data(
+            db_con, sqlconstraint, dbcols, stackers, table_name, full_sql_query, return_class
+        )
     else:
         try:
             from lsst.resources import ResourcePath
 
             with ResourcePath(db_con).as_local() as local_db_path:
                 sim_data = _local_get_sim_data(
-                    local_db_path, sqlconstraint, dbcols, stackers, table_name, full_sql_query
+                    local_db_path, sqlconstraint, dbcols, stackers, table_name, full_sql_query, return_class
                 )
         except ModuleNotFoundError:
             raise RuntimeError(
