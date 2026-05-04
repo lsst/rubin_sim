@@ -182,6 +182,7 @@ def get_sim_data(
             )
     return sim_data
 
+
 # This almost-alias to get_sim_data is named to be less misleading,
 # in that the same get_*_data function can be used for real visits
 # from consdb as well. Return a DF instead of a recarray by default
