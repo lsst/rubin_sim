@@ -22,6 +22,7 @@
 """Python interface to the metrics analysis framework."""
 
 from .batches import *
+from .chimera_progress import build_chimera, build_chimeras, make_chimera_summary_table, run_chimera_batches
 from .db import *
 from .maf_contrib import *
 from .maps import *
