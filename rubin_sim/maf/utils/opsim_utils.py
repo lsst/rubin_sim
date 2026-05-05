@@ -107,10 +107,16 @@ def _local_get_sim_data(
 
     if len(sim_data) == 0:
         raise UserWarning("No data found matching sqlconstraint %s" % (sqlconstraint))
+
     # Now add the stacker columns.
+    # This fails for pandas.DataFrames, so convert to recarray
+    # if necessary.
     if stackers is not None:
+        if not isinstance(sim_data, np.recarray):
+            assert isinstance(sim_data, pd.DataFrame)
+            sim_data = sim_data.to_records(index=False)
         for s in stackers:
-            sim_data = s.run(sim_data)
+            sim_data = s.run(sim_data).view(np.recarray)
 
     if return_class is np.recarray:
         if isinstance(sim_data, pd.DataFrame):
