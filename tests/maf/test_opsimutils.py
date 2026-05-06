@@ -111,3 +111,7 @@ class TestOpsimUtils(unittest.TestCase):
 
             data_hdf5 = opsimUtils.get_sim_data(hdf5_file, sqlconstraint="observationId < 10")
             assert np.allclose(data_sqlite["fieldRA"], data_hdf5["fieldRA"])
+
+
+if __name__ == "__main__":
+    unittest.main()
