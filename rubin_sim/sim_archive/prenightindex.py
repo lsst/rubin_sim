@@ -137,6 +137,21 @@ def get_prenight_index_from_bucket(
 
     prenights.index.name = "visitseq_uuid"
 
+    # Dates in json are loaded into strings, but in the
+    # DB query code they are returned as instances of
+    # datetime.date.
+    # Convert correctly formatted date strings to datetime.date
+    # so they come back the same regardless of origin.
+    date_keys = ("sim_creation_day_obs", "first_day_obs", "last_day_obs", "parent_last_day_obs")
+    for key in date_keys:
+        replacement_values = None
+        try:
+            replacement_values = pd.to_datetime(prenights[key]).dt.date
+        except (ValueError, KeyError):
+            pass
+        if replacement_values is not None:
+            prenights[key] = replacement_values
+
     return prenights
 
 
