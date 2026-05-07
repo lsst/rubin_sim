@@ -12,9 +12,8 @@ import re
 import warnings
 from collections.abc import Callable
 
-import pandas as pd
-
 import click
+import pandas as pd
 
 import rubin_sim.maf.batches as batches
 import rubin_sim.maf.db as db
@@ -107,20 +106,15 @@ def build_chimera(
         Combined visit sequence containing columns present in both inputs.
     """
     consdb_part = consdb_visits.loc[
-        (consdb_visits["dayObs"] >= int(start_dayobs))
-        & (consdb_visits["dayObs"] <= int(transition_dayobs))
+        (consdb_visits["dayObs"] >= int(start_dayobs)) & (consdb_visits["dayObs"] <= int(transition_dayobs))
     ]
     opsim_part = opsim_visits.loc[
-        (opsim_visits["dayObs"] > int(transition_dayobs))
-        & (opsim_visits["dayObs"] <= int(end_dayobs))
+        (opsim_visits["dayObs"] > int(transition_dayobs)) & (opsim_visits["dayObs"] <= int(end_dayobs))
     ]
 
     common_cols = sorted(set(consdb_part.columns) & set(opsim_part.columns))
     if not common_cols:
-        raise ValueError(
-            "consdb_visits and opsim_visits share no common columns; "
-            "cannot build a chimera."
-        )
+        raise ValueError("consdb_visits and opsim_visits share no common columns; " "cannot build a chimera.")
 
     return pd.concat(
         [consdb_part[common_cols], opsim_part[common_cols]],
@@ -200,7 +194,8 @@ def run_chimera_batches(
         List of ``(transition_dayobs, hdf5_path)`` tuples as returned by
         `build_chimeras`.
     batch_func : callable, optional
-        Function with signature ``batch_func(run_name=...) -> dict``.
+        Function with signature ``batch_func(run_name=...) -> dict``
+        or ``batch_func(runName=...) -> dict``
         Defaults to `rubin_sim.maf.batches.glanceBatch`.
     out_dir : `str`, optional
         Directory for results_db and metric output files.
@@ -218,7 +213,15 @@ def run_chimera_batches(
 
     for transition_dayobs, hdf5_path in chimera_specs:
         run_name = _run_name_from_dayobs(transition_dayobs)
-        bdict = batch_func(run_name=run_name)
+        try:
+            bdict = batch_func(run_name=run_name)
+        except TypeError as batch_error:
+            if not str(batch_error).endswith("got an unexpected keyword argument 'run_name'"):
+                # we got some other exception, just pass it along.
+                raise
+            # We have a batch that uses runName instead of run_name.
+            bdict = batch_func(runName=run_name)
+
         group = mb.MetricBundleGroup(
             bdict,
             hdf5_path,
