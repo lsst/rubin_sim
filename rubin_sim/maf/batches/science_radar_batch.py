@@ -4,6 +4,8 @@ import astropy.units as u
 import healpy as hp
 import numpy as np
 
+from astropy.time import Time
+
 import rubin_sim.maf as maf
 import rubin_sim.maf.maps as maps
 import rubin_sim.maf.metric_bundles as mb
@@ -23,6 +25,7 @@ def science_radar_batch(
     long_microlensing=True,
     srd_only=False,
     mjd0=None,
+    dayobs0=None,
 ):
     """A batch of metrics for looking at survey performance relative to the
     SRD and the main science drivers of LSST.
@@ -47,11 +50,28 @@ def science_radar_batch(
     mjd0 : `float`, optional
         Set the start time for the survey, for metrics which need
         this information.
+    dayobs0 : `int` or `str`, optional
+        Start time for the survey as a dayobs. At most one of dayobs0
+        and mjd0 can be set (they are different ways of specifying
+        the same thing.)
 
     Returns
     -------
     metric_bundleDict : `dict` of `maf.MetricBundle`
     """
+    if dayobs0 is None:
+        if mjd0 is None:
+            raise ValueError("Eithor mjd0 or dayobs0 must be set.")
+    else:
+        dayobs0 = str(dayobs0).replace("-", "")
+        assert isinstance(dayobs0, str)
+        mjd0_from_dayobs0 = Time.strptime(dayobs0, "%Y%m%d").mjd - 0.5
+        if mjd0 is not None and mjd0_from_dayobs0 != mjd0:
+            raise ValueError(
+                "If both mjd0 and dayobs0 are set, they must agree, but they differ by"
+                f"{mjd0-mjd0_from_dayobs0} days."
+            )
+        mjd0 = mjd0_from_dayobs0
 
     bundleList = []
     # Get some standard per-filter coloring and sql constraints
