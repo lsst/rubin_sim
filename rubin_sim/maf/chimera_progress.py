@@ -5,6 +5,7 @@ __all__ = (
     "make_chimera_summary_table",
 )
 
+import ast
 import datetime
 import glob
 import os
@@ -180,6 +181,7 @@ def run_chimera_batches(
     chimera_specs: list[tuple[int, str]],
     batch_func: Callable[..., dict] | None = None,
     out_dir: str = ".",
+    batch_kwargs: dict | None = None,
 ) -> str:
     """Run MAF metric batches on a collection of chimera visit sequences.
 
@@ -199,6 +201,9 @@ def run_chimera_batches(
         Defaults to `rubin_sim.maf.batches.glanceBatch`.
     out_dir : `str`, optional
         Directory for results_db and metric output files.
+    batch_kwargs : `dict`, optional
+        Additional keyword arguments forwarded to ``batch_func`` for each
+        chimera run.
 
     Returns
     -------
@@ -210,17 +215,18 @@ def run_chimera_batches(
 
     os.makedirs(out_dir, exist_ok=True)
     results_db = db.ResultsDb(out_dir=out_dir)
+    batch_kwargs = {} if batch_kwargs is None else dict(batch_kwargs)
 
     for transition_dayobs, hdf5_path in chimera_specs:
         run_name = _run_name_from_dayobs(transition_dayobs)
         try:
-            bdict = batch_func(run_name=run_name)
+            bdict = batch_func(run_name=run_name, **batch_kwargs)
         except TypeError as batch_error:
             if "got an unexpected keyword argument 'run_name'" not in str(batch_error):
                 # we got some other exception, just pass it along.
                 raise
             # We have a batch that uses runName instead of run_name.
-            bdict = batch_func(runName=run_name)
+            bdict = batch_func(runName=run_name, **batch_kwargs)
 
         group = mb.MetricBundleGroup(
             bdict,
@@ -370,8 +376,33 @@ def build_chimeras_cmd(consdb_file, opsim_file, start_dayobs, end_dayobs, step, 
     show_default=True,
     help="Batch function name from rubin_sim.maf.batches.",
 )
-def run_chimera_batches_cmd(chimera_dir, out_dir, batch):
+@click.option(
+    "--batch-kwarg",
+    "batch_kwargs",
+    multiple=True,
+    help="Additional batch kwarg as KEY=VALUE. May be specified multiple times.",
+)
+def run_chimera_batches_cmd(chimera_dir, out_dir, batch, batch_kwargs):
     """Run MAF metric batches on all chimera HDF5 files in a directory."""
+    parsed_batch_kwargs = {}
+    for item in batch_kwargs:
+        if "=" not in item:
+            raise click.BadParameter(
+                f"Invalid --batch-kwarg '{item}'. Expected KEY=VALUE.",
+                param_hint="--batch-kwarg",
+            )
+        key, value_text = item.split("=", 1)
+        if not key:
+            raise click.BadParameter(
+                f"Invalid --batch-kwarg '{item}'. Key cannot be empty.",
+                param_hint="--batch-kwarg",
+            )
+        try:
+            value = ast.literal_eval(value_text)
+        except (ValueError, SyntaxError):
+            value = value_text
+        parsed_batch_kwargs[key] = value
+
     batch_func = getattr(batches, batch, None)
     if batch_func is None:
         raise click.BadParameter(
@@ -386,7 +417,12 @@ def run_chimera_batches_cmd(chimera_dir, out_dir, batch):
         t = _dayobs_from_filename(path)
         if t is not None:
             chimera_specs.append((t, path))
-    results_db_path = run_chimera_batches(chimera_specs, batch_func=batch_func, out_dir=out_dir)
+    results_db_path = run_chimera_batches(
+        chimera_specs,
+        batch_func=batch_func,
+        out_dir=out_dir,
+        batch_kwargs=parsed_batch_kwargs,
+    )
     click.echo(f"Results written to {results_db_path}.")
 
 
