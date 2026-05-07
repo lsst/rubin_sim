@@ -1,6 +1,6 @@
 import os
 import unittest
-from datetime import date
+from datetime import date, datetime
 from io import StringIO
 from tempfile import TemporaryDirectory
 from typing import ClassVar
@@ -9,6 +9,8 @@ from uuid import UUID
 
 import pandas as pd
 import testing.postgresql
+from astropy.time import Time, TimezoneInfo
+from astropy.units import hour
 from lsst.resources import ResourcePath
 
 from rubin_sim.sim_archive import vseqarchive, vseqmetadata
@@ -71,16 +73,24 @@ class TestPrenightIndex(unittest.TestCase):
         vseqmetadata.VSARCHIVE_PGPORT = cls.test_database.psycopg2_dsn()["port"]
         vseqmetadata.VSARCHIVE_PGSCHEMA = TEST_METADATA_DB_SCHEMA
 
+        # Set the creation time by hand and assign it directly
+        # so that if the dayobs rolls over during the test it
+        # won't cause tests to fail.
+        creation_time = Time.now()
+
         # Create a simple simulation using TEST_VISITS data
         cls.sim_uuid = cls.vsarch.record_simulation_metadata(
             TEST_VISITS,
             "Test simonyi simulation",
             first_day_obs="2026-12-01",
             last_day_obs="2026-12-02",
+            creation_time=creation_time,
             telescope="simonyi",
         )
-        # Store the sim creation date for our test
-        cls.sim_creation_date = date(2026, 12, 1)
+        # Store the sim creation dayobs
+        sim_creation_datetime = creation_time.to_datetime(timezone=TimezoneInfo(utc_offset=-12 * hour))
+        assert isinstance(sim_creation_datetime, datetime)
+        cls.sim_creation_dayobs = sim_creation_datetime.date()
         cls.vsarch.tag(cls.sim_uuid, "prenight", "nominal", "ideal")
 
         # Add visits to the simulation
@@ -148,11 +158,7 @@ class TestPrenightIndex(unittest.TestCase):
         self.assertEqual(len(result), 1)
 
     def test_get_sim_uuid(self) -> None:
-        # Test the get_sim_uuid function
-        # We should be able to find our test simulation
-        # Using today's date as requested
-        today = date.today()
-        result = get_sim_uuid(today, 1, 20261201)
+        result = get_sim_uuid(self.sim_creation_dayobs, 1, 20261201)
 
         # Should return a UUID
         self.assertIsInstance(result, UUID)
@@ -162,18 +168,18 @@ class TestPrenightIndex(unittest.TestCase):
 
         # Test with date object for day_obs
         result2 = get_sim_uuid(
-            today,
+            self.sim_creation_dayobs,
             1,
             date(2026, 12, 1),
         )
         self.assertEqual(result2, self.sim_uuid)
 
         # Test with str for day_obs
-        result3 = get_sim_uuid(today, 1, "20261201")
+        result3 = get_sim_uuid(self.sim_creation_dayobs, 1, "20261201")
         self.assertEqual(result3, self.sim_uuid)
 
         # Test with iso str for day_obs
-        result4 = get_sim_uuid(today, 1, "2026-12-01")
+        result4 = get_sim_uuid(self.sim_creation_dayobs, 1, "2026-12-01")
         self.assertEqual(result4, self.sim_uuid)
 
         # Test that it raises ValueError for non-existent simulation
@@ -183,7 +189,7 @@ class TestPrenightIndex(unittest.TestCase):
 
         # Test that it raises ValueError for non-existent daily_id
         with self.assertRaises(ValueError):
-            get_sim_uuid(today, 2, 20261201)
+            get_sim_uuid(self.sim_creation_dayobs, 2, 20261201)
 
     def test_get_sim_metadata(self) -> None:
         # Test the get_sim_index_info function
@@ -291,7 +297,7 @@ class TestPrenightIndex(unittest.TestCase):
 
             # Check that the first row has expected data
             first_row = result.loc["6c242afb-edd1-4cea-9f8c-80e0a18b4b75"]
-            self.assertEqual(first_row["sim_creation_day_obs"], "2026-04-11")
+            self.assertEqual(first_row["sim_creation_day_obs"], date(2026, 4, 11))
             self.assertEqual(first_row["daily_id"], 2)
             self.assertIn("ideal", first_row["tags"])
             self.assertIn("nominal", first_row["tags"])
@@ -299,7 +305,7 @@ class TestPrenightIndex(unittest.TestCase):
 
             # Check that the second row has expected data
             second_row = result.loc["b9405aaf-dfe8-4508-ad90-cb37527dbc27"]
-            self.assertEqual(second_row["sim_creation_day_obs"], "2026-04-11")
+            self.assertEqual(second_row["sim_creation_day_obs"], date(2026, 4, 11))
             self.assertEqual(second_row["daily_id"], 3)
             self.assertIn("ideal", second_row["tags"])
             self.assertIn("nominal", second_row["tags"])
