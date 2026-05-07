@@ -1746,7 +1746,7 @@ def science_radar_batch(
     i_starMap = maf.maps.StellarDensityMap(filtername="i")
     lv_slicer = maf.maf_contrib.generate_known_lv_dwarf_slicer()
     lv_metric = maf.maf_contrib.LVDwarfsMetric()
-    sqlconstraint = "(filter = 'i' OR filter = 'g')"
+    sqlconstraint = "(band = 'i' OR band = 'g')"
     info_label = "gi"
     cutoff = -6.4
     summary_metrics = [
@@ -1793,7 +1793,7 @@ def science_radar_batch(
         "star-galaxy separation), over the southern celestial pole,"
         "to a distance of 0.1 Mpc."
     )
-    sqlconstraint = "(filter = 'i' OR filter = 'g') and fieldDec < -60"
+    sqlconstraint = "(band = 'i' OR band = 'g') and fieldDec < -60"
     info_label = "gi SCP"
     lv_metric3 = maf.maf_contrib.LVDwarfsMetric(distlim=0.1 * u.Mpc)  # for a distance limit, healpix map
     summary_area = maf.metrics.AreaThresholdMetric(lower_threshold=0.0, metric_name="Area M_v>0.0")
