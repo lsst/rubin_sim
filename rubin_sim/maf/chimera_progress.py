@@ -216,7 +216,7 @@ def run_chimera_batches(
         try:
             bdict = batch_func(run_name=run_name)
         except TypeError as batch_error:
-            if not str(batch_error).endswith("got an unexpected keyword argument 'run_name'"):
+            if "got an unexpected keyword argument 'run_name'" not in str(batch_error):
                 # we got some other exception, just pass it along.
                 raise
             # We have a batch that uses runName instead of run_name.
