@@ -22,30 +22,20 @@ import rubin_sim.maf.metric_bundles as mb
 from rubin_sim.maf.stackers.date_stackers import DayObsStacker
 from rubin_sim.maf.utils.opsim_utils import get_sim_data
 
-# ---------------------------------------------------------------------------
-# DayObs helpers
-# DayObs is an integer YYYYMMDD in UTC-12, so it doesn't roll over mid-night.
-# ---------------------------------------------------------------------------
-
-
-def _dayobs_to_date(dayobs: int) -> datetime.date:
-    """Convert an integer YYYYMMDD dayobs to a datetime.date."""
-    s = f"{int(dayobs):08d}"
-    return datetime.date(int(s[:4]), int(s[4:6]), int(s[6:]))
-
-
-def _date_to_dayobs(d: datetime.date) -> int:
-    """Convert a datetime.date to an integer YYYYMMDD dayobs."""
-    return int(d.strftime("%Y%m%d"))
-
 
 def _dayobs_range(start_dayobs: int, end_dayobs: int, step: int = 1) -> list[int]:
     """Return a list of integer dayobs values from start to end (inclusive)."""
+
+    def _dayobs_to_date(dayobs: int) -> datetime.date:
+        s = f"{int(dayobs):08d}"
+        return datetime.date(int(s[:4]), int(s[4:6]), int(s[6:]))
+
     current = _dayobs_to_date(start_dayobs)
     end_date = _dayobs_to_date(end_dayobs)
     result = []
     while current <= end_date:
-        result.append(_date_to_dayobs(current))
+        dayobs = int(current.strftime("%Y%m%d"))
+        result.append(dayobs)
         current += datetime.timedelta(days=step)
     return result
 
