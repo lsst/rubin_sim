@@ -619,7 +619,7 @@ class RangeHourglassPlot(GeneralHourglassPlot):
         color_mappable = self._plot_dates(
             intervals, self.start_date, self.end_date, ax, epoch_tstamp=epoch_tstamp
         )
-        self._add_axis_labels(ax)
+        self._add_axis_labels(ax, self.plot_dict)
 
         if plot_dict["ylabel"] == "MJD":
 
