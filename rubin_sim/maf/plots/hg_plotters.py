@@ -610,9 +610,32 @@ class RangeHourglassPlot(GeneralHourglassPlot):
            "duration" should be in units of hours.
 
         """
+        plot_dict = {} if self.plot_dict is None else self.plot_dict
+
         ax = fig.add_axes([0, 0, 1, 1])  # pylint: disable=invalid-name
-        color_mappable = self._plot_dates(intervals, self.start_date, self.end_date, ax)
-        self._add_axis_labels(ax, self.plot_dict)
+        epoch_tstamp = pd.Timestamp(
+            year=self.start_date.year, month=self.start_date.month, day=self.start_date.day, hour=0, tz="UTC"
+        )
+        color_mappable = self._plot_dates(
+            intervals, self.start_date, self.end_date, ax, epoch_tstamp=epoch_tstamp
+        )
+        self._add_axis_labels(ax)
+
+        if plot_dict["ylabel"] == "MJD":
+
+            def ylabel_formatter(days_past_epoch, *args):
+                return int(
+                    (epoch_tstamp + pd.to_timedelta(days_past_epoch, unit="days")).to_julian_date()
+                    - 2400000.5
+                )
+
+        else:
+
+            def ylabel_formatter(days_past_epoch, *args):
+                return (epoch_tstamp + pd.to_timedelta(days_past_epoch, unit="days")).strftime("%Y-%m-%d")
+
+        ax.yaxis.set_major_formatter(mpl.ticker.FuncFormatter(ylabel_formatter))
+
         return color_mappable, np.array([ax])
 
 
