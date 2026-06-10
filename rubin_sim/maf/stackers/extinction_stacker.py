@@ -4,6 +4,7 @@ import logging
 import warnings
 
 import numpy as np
+from scipy.optimize import least_squares
 from sklearn.linear_model import LinearRegression, RANSACRegressor, TheilSenRegressor
 
 from rubin_sim.phot_utils import predicted_zeropoint
@@ -11,60 +12,64 @@ from rubin_sim.phot_utils import predicted_zeropoint
 from .base_stacker import BaseStacker
 
 logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
 
-def _make_band_limits(k_fraction_tolerance=0.5, zp_mag_window=0.5):
-    """Generate per-band physical limits for the extinction fit.
+def _make_default_band_priors():
+    """Build the default per-band prior dictionary from the throughput model.
 
-    Derives limits from the predicted zeropoint model in
-    `rubin_sim.phot_utils.predicted_zeropoints`.  All zeropoint limits
-    are expressed on a 1-second exposure time scale (the
-    `ExtinctionStacker` normalizes raw zeropoints to 1-second before
-    fitting).
-
-    Parameters
-    ----------
-    k_fraction_tolerance : `float`, optional
-        The extinction coefficient limits are set to
-        ``(1 - k_fraction_tolerance) * k_predicted`` (min, floored at 0)
-        and ``(1 + k_fraction_tolerance) * k_predicted`` (max) for each
-        band, where ``k_predicted`` is the standard extinction
-        coefficient from the throughput model.  Default is 0.5.
-    zp_mag_window : `float`, optional
-        The zeropoint limits are set to
-        ``zp_at_X0 +/- zp_mag_window`` for each band, where
-        ``zp_at_X0`` is the predicted zeropoint extrapolated to
-        airmass 0 (above the atmosphere) for a 1-second exposure.
-        This corresponds to the intercept of the fitted model.
-        Default is 0.5 mag.
+    Derives ``expected_k`` and ``expected_zp_X0`` for each of the six
+    Rubin bands by evaluating `~rubin_sim.phot_utils.predicted_zeropoint`
+    at two airmasses on a 1-second exposure time scale.
 
     Returns
     -------
-    band_limits : `dict`
-        Keys are single-character band names; values are dicts with
-        keys ``k_min``, ``k_max``, ``zp_min``, ``zp_max``.
+    band_priors : `dict`
+        Keys are single-character band names; values are dicts with keys
+        ``expected_k``, ``k_fraction_tolerance``, ``expected_zp_X0``,
+        and ``zp_window``.  See `ExtinctionStacker` for a description of
+        each key.
     """
-    band_limits = {}
+    band_priors = {}
     for band in "ugrizy":
-        # Extract k from the model by evaluating at two airmasses.
-        # The extinction coefficient is independent of exptime.
         zp_at_X1 = predicted_zeropoint(band, airmass=1.0, exptime=1.0)
         zp_at_X2 = predicted_zeropoint(band, airmass=2.0, exptime=1.0)
         k_predicted = zp_at_X1 - zp_at_X2  # positive extinction coefficient
-
-        # The fitted zeropoint is the intercept at airmass=0.
         zp_at_X0 = zp_at_X1 + k_predicted
-
-        band_limits[band] = {
-            "k_min": max(0.0, (1 - k_fraction_tolerance) * k_predicted),
-            "k_max": (1 + k_fraction_tolerance) * k_predicted,
-            "zp_min": zp_at_X0 - zp_mag_window,
-            "zp_max": zp_at_X0 + zp_mag_window,
+        band_priors[band] = {
+            "expected_k": k_predicted,
+            "k_fraction_tolerance": 0.5,
+            "expected_zp_X0": zp_at_X0,
+            "zp_window": 0.5,
         }
-    return band_limits
+    return band_priors
 
 
-DEFAULT_BAND_LIMITS = _make_band_limits()
+DEFAULT_BAND_PRIORS = _make_default_band_priors()
+
+
+def _limits_from_prior(prior):
+    """Compute ``k_min``, ``k_max``, ``zp_min``, ``zp_max`` from a prior dict.
+
+    Parameters
+    ----------
+    prior : `dict`
+        Must contain ``expected_k``, ``k_fraction_tolerance``,
+        ``expected_zp_X0``, and ``zp_window``.
+
+    Returns
+    -------
+    k_min, k_max, zp_min, zp_max : `float`
+    """
+    k = prior["expected_k"]
+    tol = prior["k_fraction_tolerance"]
+    zp0 = prior["expected_zp_X0"]
+    win = prior["zp_window"]
+    k_min = max(0.0, (1.0 - tol) * k)
+    k_max = (1.0 + tol) * k
+    zp_min = zp0 - win
+    zp_max = zp0 + win
+    return k_min, k_max, zp_min, zp_max
 
 
 def _fit_extinction_one_group(
@@ -74,6 +79,7 @@ def _fit_extinction_one_group(
     k_max,
     zp_min,
     zp_max,
+    zp_prior,
     residual_threshold,
     min_inliers,
     min_inlier_fraction,
@@ -85,8 +91,22 @@ def _fit_extinction_one_group(
 
         zero_point = fitted_zeropoint - extinction_k * airmass
 
-    using RANSAC robust regression, with Theil-Sen as a fallback when
-    RANSAC fails or yields unphysical parameters.
+    Three stages are attempted in order, stopping as soon as one succeeds:
+
+    **Stage 1 — RANSAC** free two-parameter linear regression.  The fit is
+    accepted if both ``extinction_k`` and ``fitted_zeropoint`` fall within
+    their physical bounds and the inlier count passes the quality thresholds.
+
+    **Stage 2 — Theil-Sen** robust regression, used as a fallback when RANSAC
+    fails or its result is out of bounds.  Subject to the same acceptance
+    criteria.
+
+    **Stage 3 — Anchored-clip + bounded Huber regression**.  Used when both
+    free fits fail.  ``zp_prior`` is used as a fixed anchor to identify
+    inliers via a median-based k estimate; bounded
+    ``scipy.optimize.least_squares`` with a Huber loss then fits both
+    parameters jointly within their physical bounds, so an out-of-range
+    intercept can never cause rejection.
 
     Parameters
     ----------
@@ -103,10 +123,16 @@ def _fit_extinction_one_group(
         Minimum physically plausible zenith zeropoint (mag).
     zp_max : `float`
         Maximum physically plausible zenith zeropoint (mag).
+    zp_prior : `float`
+        Expected zenith zeropoint used as the fixed anchor in Stage 3
+        (typically ``expected_zp_X0`` from the band prior, i.e. the
+        midpoint of ``[zp_min, zp_max]``).
     residual_threshold : `float`
-        RANSAC inlier residual threshold in magnitudes.
+        RANSAC inlier residual threshold in magnitudes.  Also used as the
+        Huber ``f_scale`` in Stage 3; the Stage 3 clip threshold is
+        ``2 * residual_threshold``.
     min_inliers : `int`
-        Minimum number of inlier visits required for a valid RANSAC fit.
+        Minimum number of inlier visits required for a valid fit.
     min_inlier_fraction : `float`
         Minimum fraction of the original visit count that must be inliers.
     premask : `bool`, optional
@@ -117,12 +143,13 @@ def _fit_extinction_one_group(
     Returns
     -------
     extinction_k : `float`
-        Fitted extinction coefficient, or `np.nan` if the fit failed.
+        Fitted extinction coefficient, or `np.nan` if all stages failed.
     fitted_zeropoint : `float`
-        Fitted zenith zeropoint, or `np.nan` if the fit failed.
+        Fitted zenith zeropoint, or `np.nan` if all stages failed.
     """
     orig_npts = len(airmass)
     if orig_npts == 0:
+        logger.debug("Extinction fit: no data points supplied; returning NaN.")
         return np.nan, np.nan
 
     X = airmass.reshape(-1, 1)
@@ -138,9 +165,17 @@ def _fit_extinction_one_group(
 
     npts = len(y)
     if npts < min_inliers or (npts / orig_npts) < min_inlier_fraction:
+        logger.debug(
+            "Extinction fit: too few points after pre-masking (%d of %d survive; "
+            "min_inliers=%d, min_inlier_fraction=%.2f); returning NaN.",
+            npts,
+            orig_npts,
+            min_inliers,
+            min_inlier_fraction,
+        )
         return np.nan, np.nan
 
-    # --- RANSAC robust linear regression ---
+    # --- Stage 1: RANSAC robust linear regression ---
     ransac = RANSACRegressor(
         estimator=LinearRegression(),
         residual_threshold=residual_threshold,
@@ -161,11 +196,19 @@ def _fit_extinction_one_group(
             and (num_inliers >= min_inlier_fraction * orig_npts)
         )
         if ok:
+            logger.debug(
+                "Extinction fit stage 1 (RANSAC) succeeded: k=%.4f, zp=%.4f, "
+                "inliers=%d/%d.",
+                k,
+                zp,
+                num_inliers,
+                orig_npts,
+            )
             return k, zp
-    except Exception:
-        pass
+    except Exception as exc:
+        logger.debug("Extinction fit stage 1 (RANSAC) raised an exception: %s.", exc)
 
-    # --- Theil-Sen fallback ---
+    # --- Stage 2: Theil-Sen fallback ---
     try:
         ts = TheilSenRegressor(max_subpopulation=100)
         with warnings.catch_warnings():
@@ -174,10 +217,96 @@ def _fit_extinction_one_group(
         k = float(-ts.coef_[0])
         zp = float(ts.intercept_)
         if (k_min <= k <= k_max) and (zp_min <= zp <= zp_max):
+            logger.debug(
+                "Extinction fit stage 2 (Theil-Sen) succeeded: k=%.4f, zp=%.4f.",
+                k,
+                zp,
+            )
             return k, zp
-    except Exception:
-        pass
+    except Exception as exc:
+        logger.debug("Extinction fit stage 2 (Theil-Sen) raised an exception: %s.", exc)
 
+    # --- Stage 3: Anchored-clip + bounded Huber regression ---
+    #
+    # Fix the intercept to zp_prior and compute the implied k for each visit,
+    # then take the median as a robust anchor estimate.  Visits whose residual
+    # against the anchored model exceeds 2 * residual_threshold are clipped.
+    # The surviving inlier set is passed to a bounded least_squares fit with a
+    # Huber loss that jointly optimises both k and zp within their physical
+    # bounds, so an out-of-range intercept can never cause rejection.
+
+    airmass_pm = X.ravel()  # post-premask 1-D array
+    zp_pm = y
+
+    # Guard against any airmass == 0 entries (shouldn't occur in practice).
+    nonzero = airmass_pm > 0.0
+    if nonzero.sum() < min_inliers:
+        logger.debug(
+            "Extinction fit stage 3: too few non-zero airmass points (%d); "
+            "returning NaN.",
+            int(nonzero.sum()),
+        )
+        return np.nan, np.nan
+
+    k_implied = (zp_prior - zp_pm[nonzero]) / airmass_pm[nonzero]
+    k_anchor = float(np.clip(np.median(k_implied), k_min, k_max))
+
+    # Clip outliers relative to the anchored model.
+    clip_threshold = 2.0 * residual_threshold
+    residuals = zp_pm - (zp_prior - k_anchor * airmass_pm)
+    inlier_mask = np.abs(residuals) <= clip_threshold
+
+    n_inliers = int(inlier_mask.sum())
+    if n_inliers < min_inliers or (n_inliers / orig_npts) < min_inlier_fraction:
+        logger.debug(
+            "Extinction fit stage 3: too few inliers after anchor-clip (%d of %d; "
+            "min_inliers=%d, min_inlier_fraction=%.2f); returning NaN.",
+            n_inliers,
+            orig_npts,
+            min_inliers,
+            min_inlier_fraction,
+        )
+        return np.nan, np.nan
+
+    airmass_in = airmass_pm[inlier_mask]
+    zp_in = zp_pm[inlier_mask]
+
+    def _residuals(params):
+        k_fit, zp_fit = params
+        return zp_in - (zp_fit - k_fit * airmass_in)
+
+    try:
+        result = least_squares(
+            _residuals,
+            x0=[k_anchor, zp_prior],
+            bounds=([k_min, zp_min], [k_max, zp_max]),
+            loss="huber",
+            f_scale=residual_threshold,
+            method="trf",
+        )
+        if result.success or result.cost < np.inf:
+            k_fit, zp_fit = float(result.x[0]), float(result.x[1])
+            logger.debug(
+                "Extinction fit stage 3 (anchored-clip + bounded Huber) succeeded: "
+                "k=%.4f, zp=%.4f, inliers=%d/%d.",
+                k_fit,
+                zp_fit,
+                n_inliers,
+                orig_npts,
+            )
+            return k_fit, zp_fit
+        logger.debug(
+            "Extinction fit stage 3: least_squares converged to infinite cost; "
+            "returning NaN."
+        )
+    except Exception as exc:
+        logger.debug(
+            "Extinction fit stage 3 (anchored-clip + bounded Huber) raised an "
+            "exception: %s.",
+            exc,
+        )
+
+    logger.debug("Extinction fit: all three stages failed; returning NaN.")
     return np.nan, np.nan
 
 
@@ -190,6 +319,17 @@ class ExtinctionStacker(BaseStacker):
         zp_1s = fitted_zeropoint - extinction_k * airmass
 
     where ``zp_1s = zero_point_median - 2.5 * log10(visitExposureTime)``.
+
+    Three fitting stages are attempted in order for each group:
+
+    1. **RANSAC** free two-parameter regression with physical bounds check.
+    2. **Theil-Sen** robust regression with physical bounds check.
+    3. **Anchored-clip + bounded Huber regression**: the expected zenith
+       zeropoint ``expected_zp_X0`` from the band prior is used as a fixed
+       anchor to identify inliers via a median-based slope estimate;
+       `scipy.optimize.least_squares` then fits both parameters with hard
+       physical bounds so an out-of-range intercept can never cause
+       rejection.
 
     Parameters
     ----------
@@ -206,16 +346,35 @@ class ExtinctionStacker(BaseStacker):
     day_obs_col : `str`, optional
         Name of the dayObs column (integer YYYYMMDD, as defined by
         SITCOMTN-32).  Default ``'dayObs'``.
-    band_limits : `dict` or `None`, optional
-        Per-band physical limits for the fit (on a 1-second zeropoint
-        scale).  Keys are single-character band names (``'u'``, ``'g'``,
-        ``'r'``, ``'i'``, ``'z'``, ``'y'``); values are dicts with keys
-        ``k_min``, ``k_max``, ``zp_min``, ``zp_max``.  If ``None``, the
-        Rubin Observatory defaults (`DEFAULT_BAND_LIMITS`) are used.
+    band_priors : `dict` or `None`, optional
+        Per-band prior parameters used to derive physical limits for the
+        fit (on a 1-second zeropoint scale).  Keys are single-character
+        band names (``'u'``, ``'g'``, ``'r'``, ``'i'``, ``'z'``,
+        ``'y'``); values are dicts with keys:
+
+        ``expected_k`` : `float`
+            Expected atmospheric extinction coefficient (mag/airmass).
+        ``k_fraction_tolerance`` : `float`
+            Allowed fractional deviation from ``expected_k``; the fit
+            bounds become
+            ``[(1 - tol) * expected_k, (1 + tol) * expected_k]``
+            (floored at 0).
+        ``expected_zp_X0`` : `float`
+            Expected zenith zeropoint at airmass 0, 1-second exposure
+            (mag).  Used as both the centre of the zeropoint window and
+            the fixed anchor in Stage 3.
+        ``zp_window`` : `float`
+            Half-width of the allowed zeropoint range (mag); the fit
+            bounds become
+            ``[expected_zp_X0 - zp_window, expected_zp_X0 + zp_window]``.
+
+        If ``None``, the Rubin Observatory defaults
+        (`DEFAULT_BAND_PRIORS`) are used.
     residual_threshold : `float`, optional
-        RANSAC inlier residual threshold in magnitudes.  Default 0.05.
+        RANSAC inlier residual threshold in magnitudes.  Also used as
+        the Huber ``f_scale`` in Stage 3.  Default 0.05.
     min_inliers : `int`, optional
-        Minimum number of inlier visits required for a valid RANSAC fit.
+        Minimum number of inlier visits required for a valid fit.
         Default 10.
     min_inlier_fraction : `float`, optional
         Minimum fraction of visits (before pre-masking) that must be
@@ -227,11 +386,9 @@ class ExtinctionStacker(BaseStacker):
 
     Notes
     -----
-
-    This uses RANSAC robust regression (with Theil-Sen fallback).  The
-    fitted ``extinction_k`` and ``fitted_zeropoint`` (at 1-second) are
-    then assigned to every visit belonging to that group.  Visits from
-    groups where the fit failed (too few data points, or no physically
+    The fitted ``extinction_k`` and ``fitted_zeropoint`` (at 1-second) are
+    assigned to every visit belonging to that group.  Visits from groups
+    where all fitting stages failed (too few data points, or no physically
     plausible solution found) receive `NaN` in both columns.
 
     This stacker is intended for use with consdb visit tables, which
@@ -260,7 +417,7 @@ class ExtinctionStacker(BaseStacker):
         band_col="band",
         exptime_col="visitExposureTime",
         day_obs_col="dayObs",
-        band_limits=None,
+        band_priors=None,
         residual_threshold=0.05,
         min_inliers=10,
         min_inlier_fraction=0.1,
@@ -271,7 +428,7 @@ class ExtinctionStacker(BaseStacker):
         self.band_col = band_col
         self.exptime_col = exptime_col
         self.day_obs_col = day_obs_col
-        self.band_limits = band_limits if band_limits is not None else DEFAULT_BAND_LIMITS
+        self.band_priors = band_priors if band_priors is not None else DEFAULT_BAND_PRIORS
         self.residual_threshold = residual_threshold
         self.min_inliers = min_inliers
         self.min_inlier_fraction = min_inlier_fraction
@@ -304,13 +461,16 @@ class ExtinctionStacker(BaseStacker):
         sim_data["fitted_zeropoint"] = np.nan
 
         for band in np.unique(sim_data[self.band_col]):
-            limits = self.band_limits.get(band)
-            if limits is None:
+            prior = self.band_priors.get(band)
+            if prior is None:
                 logger.warning(
-                    "No band limits defined for band '%s'; skipping extinction fit.",
+                    "No band priors defined for band '%s'; skipping extinction fit.",
                     band,
                 )
                 continue
+
+            k_min, k_max, zp_min, zp_max = _limits_from_prior(prior)
+            zp_prior = prior["expected_zp_X0"]
 
             band_mask = sim_data[self.band_col] == band
 
@@ -326,10 +486,11 @@ class ExtinctionStacker(BaseStacker):
                 k, zp = _fit_extinction_one_group(
                     airmass,
                     zp_1s,
-                    k_min=limits["k_min"],
-                    k_max=limits["k_max"],
-                    zp_min=limits["zp_min"],
-                    zp_max=limits["zp_max"],
+                    k_min=k_min,
+                    k_max=k_max,
+                    zp_min=zp_min,
+                    zp_max=zp_max,
+                    zp_prior=zp_prior,
                     residual_threshold=self.residual_threshold,
                     min_inliers=self.min_inliers,
                     min_inlier_fraction=self.min_inlier_fraction,

@@ -7,6 +7,7 @@ import numpy as np
 import rubin_sim.maf.stackers as stackers
 from rubin_sim.maf.stackers.extinction_stacker import (
     _fit_extinction_one_group,
+    _limits_from_prior,
 )
 from rubin_sim.phot_utils import predicted_zeropoint
 
@@ -75,6 +76,7 @@ class TestFitExtinctionOneGroup(unittest.TestCase):
             k_max=0.4,
             zp_min=32.0,
             zp_max=33.0,
+            zp_prior=32.5,
             residual_threshold=0.05,
             min_inliers=10,
             min_inlier_fraction=0.1,
@@ -101,6 +103,7 @@ class TestFitExtinctionOneGroup(unittest.TestCase):
             k_max=0.4,
             zp_min=32.0,
             zp_max=33.0,
+            zp_prior=32.5,
             residual_threshold=0.05,
             min_inliers=10,
             min_inlier_fraction=0.1,
@@ -120,6 +123,7 @@ class TestFitExtinctionOneGroup(unittest.TestCase):
             k_max=0.4,
             zp_min=32.0,
             zp_max=33.0,
+            zp_prior=32.5,
             residual_threshold=0.05,
             min_inliers=10,
             min_inlier_fraction=0.1,
@@ -140,6 +144,7 @@ class TestFitExtinctionOneGroup(unittest.TestCase):
             k_max=0.4,
             zp_min=32.0,
             zp_max=33.0,
+            zp_prior=32.5,
             residual_threshold=0.05,
             min_inliers=10,
             min_inlier_fraction=0.1,
@@ -156,6 +161,7 @@ class TestFitExtinctionOneGroup(unittest.TestCase):
             k_max=0.4,
             zp_min=32.0,
             zp_max=33.0,
+            zp_prior=32.5,
             residual_threshold=0.05,
             min_inliers=10,
             min_inlier_fraction=0.1,
@@ -261,16 +267,67 @@ class TestExtinctionStacker(unittest.TestCase):
         result = stacker.run(visits)
         self.assertTrue(np.all(np.isnan(result["extinction_k"])))
 
-    def test_custom_band_limits(self):
-        """Custom band_limits should override the defaults."""
+    def test_custom_band_priors(self):
+        """Custom band_priors should override the defaults."""
         rng = np.random.default_rng(16)
-        custom_limits = {"r": {"k_min": 0.0, "k_max": 0.3, "zp_min": 28.0, "zp_max": 29.0}}
+        custom_priors = {
+            "r": {
+                "expected_k": 0.09,
+                "k_fraction_tolerance": 0.5,
+                "expected_zp_X0": self.TRUE_ZP_1S_R,
+                "zp_window": 0.5,
+            }
+        }
         visits = _make_visits("r", 20260101, 0.09, self.TRUE_ZP_1S_R, n_visits=60, rng=rng)
-        stacker = stackers.ExtinctionStacker(band_limits=custom_limits)
+        stacker = stackers.ExtinctionStacker(band_priors=custom_priors)
         result = stacker.run(visits)
         self.assertFalse(
-            np.all(np.isnan(result["extinction_k"])), "Should fit with custom limits that allow k~0.09"
+            np.all(np.isnan(result["extinction_k"])), "Should fit with custom priors that allow k~0.09"
         )
+
+    def test_stage3_fallback_high_scatter(self):
+        """Stage 3 should recover k when scatter is high enough to push the
+        free-fit intercept outside its allowed window."""
+        # Construct data where the free ZP intercept will be pulled out of
+        # range by high scatter, but the slope (k) is physically reasonable.
+        # Use a very tight zp_window so stages 1 and 2 reliably fail on the
+        # intercept check, then confirm stage 3 returns a valid result.
+        rng = np.random.default_rng(99)
+        true_k = 0.09
+        true_zp = self.TRUE_ZP_1S_R
+        n = 60
+        airmass = rng.uniform(1.0, 1.3, n)  # short lever arm → poor intercept
+        # Large scatter: sigma = 0.3 mag, enough to pull the free-fit ZP out
+        # of a ±0.05 mag window around true_zp.
+        noise = rng.normal(0, 0.3, n)
+        zp_1s = true_zp - true_k * airmass + noise
+
+        tight_prior = {
+            "expected_k": true_k,
+            "k_fraction_tolerance": 0.5,
+            "expected_zp_X0": true_zp,
+            "zp_window": 0.05,  # very tight: stages 1 & 2 likely fail on ZP
+        }
+        k_min, k_max, zp_min, zp_max = _limits_from_prior(tight_prior)
+        k, fitted_zp = _fit_extinction_one_group(
+            airmass,
+            zp_1s,
+            k_min=k_min,
+            k_max=k_max,
+            zp_min=zp_min,
+            zp_max=zp_max,
+            zp_prior=tight_prior["expected_zp_X0"],
+            residual_threshold=0.05,
+            min_inliers=10,
+            min_inlier_fraction=0.1,
+        )
+        self.assertFalse(np.isnan(k), "Stage 3 should recover k on high-scatter data")
+        # k must be within the allowed bounds (guaranteed by the bounded solver)
+        self.assertGreaterEqual(k, k_min)
+        self.assertLessEqual(k, k_max)
+        # zp must also be within bounds
+        self.assertGreaterEqual(fitted_zp, zp_min)
+        self.assertLessEqual(fitted_zp, zp_max)
 
     def test_registered_in_registry(self):
         """ExtinctionStacker should appear in the stacker registry."""
