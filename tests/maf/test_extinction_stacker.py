@@ -7,6 +7,7 @@ import numpy as np
 import rubin_sim.maf.stackers as stackers
 from rubin_sim.maf.stackers.extinction_stacker import (
     _fit_extinction_one_group,
+    _fit_zp_extinction_one_group,
     _limits_from_prior,
 )
 from rubin_sim.phot_utils import predicted_zeropoint
@@ -60,8 +61,8 @@ def _stack_many(arrays):
     return np.concatenate(arrays)
 
 
-class TestFitExtinctionOneGroup(unittest.TestCase):
-    """Unit tests for the _fit_extinction_one_group helper."""
+class TestFitZpExtinctionOneGroup(unittest.TestCase):
+    """Unit tests for the _fit_zp_extinction_one_group helper (free ZP + k)."""
 
     def test_clean_data_recovery(self):
         """Fit recovers known k/zp on clean synthetic data."""
@@ -69,7 +70,7 @@ class TestFitExtinctionOneGroup(unittest.TestCase):
         airmass = rng.uniform(1.0, 2.0, 100)
         true_k, true_zp = 0.12, 32.4
         zp = true_zp - true_k * airmass + rng.normal(0, 0.01, 100)
-        k, fitted_zp = _fit_extinction_one_group(
+        k, fitted_zp = _fit_zp_extinction_one_group(
             airmass,
             zp,
             k_min=0.0,
@@ -96,7 +97,7 @@ class TestFitExtinctionOneGroup(unittest.TestCase):
         n_out = int(0.15 * n)
         outlier_idx = rng.choice(n, n_out, replace=False)
         zp[outlier_idx] -= 2.0
-        k, _ = _fit_extinction_one_group(
+        k, _ = _fit_zp_extinction_one_group(
             airmass,
             zp,
             k_min=0.0,
@@ -116,7 +117,7 @@ class TestFitExtinctionOneGroup(unittest.TestCase):
         rng = np.random.default_rng(2)
         airmass = rng.uniform(1.0, 2.0, 5)
         zp = 32.4 - 0.1 * airmass
-        k, fzp = _fit_extinction_one_group(
+        k, fzp = _fit_zp_extinction_one_group(
             airmass,
             zp,
             k_min=0.0,
@@ -137,7 +138,7 @@ class TestFitExtinctionOneGroup(unittest.TestCase):
         airmass = rng.uniform(1.0, 2.0, 50)
         # True k = 0.9, far above k_max=0.4
         zp = 32.4 - 0.9 * airmass + rng.normal(0, 0.005, 50)
-        k, fzp = _fit_extinction_one_group(
+        k, fzp = _fit_zp_extinction_one_group(
             airmass,
             zp,
             k_min=0.0,
@@ -154,7 +155,7 @@ class TestFitExtinctionOneGroup(unittest.TestCase):
 
     def test_empty_input_returns_nan(self):
         """Empty arrays should produce NaN without raising."""
-        k, fzp = _fit_extinction_one_group(
+        k, fzp = _fit_zp_extinction_one_group(
             np.array([]),
             np.array([]),
             k_min=0.0,
@@ -166,6 +167,78 @@ class TestFitExtinctionOneGroup(unittest.TestCase):
             min_inliers=10,
             min_inlier_fraction=0.1,
         )
+        self.assertTrue(np.isnan(k))
+        self.assertTrue(np.isnan(fzp))
+
+
+class TestFitExtinctionOneGroup(unittest.TestCase):
+    """Unit tests for _fit_extinction_one_group (fixed ZP, k-only fit)."""
+
+    # Common parameters used across tests.
+    ZP_FIXED = 32.5
+    K_MIN = 0.0
+    K_MAX = 0.4
+
+    def _call(self, airmass, zero_point, min_inliers=10, min_inlier_fraction=0.1):
+        return _fit_extinction_one_group(
+            airmass,
+            zero_point,
+            zp_fixed=self.ZP_FIXED,
+            k_min=self.K_MIN,
+            k_max=self.K_MAX,
+            min_inliers=min_inliers,
+            min_inlier_fraction=min_inlier_fraction,
+        )
+
+    def test_clean_data_recovery(self):
+        """Median k should recover the true extinction on clean data."""
+        rng = np.random.default_rng(50)
+        true_k = 0.12
+        airmass = rng.uniform(1.0, 2.0, 100)
+        zp = self.ZP_FIXED - true_k * airmass + rng.normal(0, 0.01, 100)
+        k, fitted_zp = self._call(airmass, zp)
+        self.assertFalse(np.isnan(k), "Fit should succeed on clean data")
+        self.assertAlmostEqual(k, true_k, delta=0.02)
+        self.assertEqual(fitted_zp, self.ZP_FIXED, "Returned zeropoint must equal zp_fixed")
+
+    def test_cloud_clip(self):
+        """Cloud-dimmed visits (k_implied > k_max) should be excluded."""
+        rng = np.random.default_rng(51)
+        true_k = 0.10
+        n = 80
+        airmass = rng.uniform(1.0, 2.0, n)
+        zp = self.ZP_FIXED - true_k * airmass + rng.normal(0, 0.01, n)
+        # Inject 20 % heavily clouded visits: subtract 2 mag (high implied k)
+        n_cloud = int(0.20 * n)
+        cloud_idx = rng.choice(n, n_cloud, replace=False)
+        zp[cloud_idx] -= 2.0
+        k, _ = self._call(airmass, zp)
+        self.assertFalse(np.isnan(k), "Fit should succeed despite cloudy outliers")
+        self.assertAlmostEqual(k, true_k, delta=0.03)
+
+    def test_low_extinction_not_clipped(self):
+        """Visits with k_implied just above k_min should be retained."""
+        rng = np.random.default_rng(52)
+        # Use k close to k_min but still above it; all visits should survive.
+        true_k = 0.02  # above K_MIN=0.0 but low
+        airmass = rng.uniform(1.0, 2.0, 60)
+        zp = self.ZP_FIXED - true_k * airmass + rng.normal(0, 0.005, 60)
+        k, _ = self._call(airmass, zp)
+        self.assertFalse(np.isnan(k), "Low-extinction visits must not be clipped")
+        self.assertAlmostEqual(k, true_k, delta=0.02)
+
+    def test_too_few_visits_returns_nan(self):
+        """Fewer than min_inliers surviving visits should yield NaN."""
+        rng = np.random.default_rng(53)
+        airmass = rng.uniform(1.0, 2.0, 5)
+        zp = self.ZP_FIXED - 0.10 * airmass
+        k, fzp = self._call(airmass, zp)
+        self.assertTrue(np.isnan(k))
+        self.assertTrue(np.isnan(fzp))
+
+    def test_empty_input_returns_nan(self):
+        """Empty arrays should return NaN without raising."""
+        k, fzp = self._call(np.array([]), np.array([]))
         self.assertTrue(np.isnan(k))
         self.assertTrue(np.isnan(fzp))
 
@@ -309,7 +382,7 @@ class TestExtinctionStacker(unittest.TestCase):
             "zp_window": 0.05,  # very tight: stages 1 & 2 likely fail on ZP
         }
         k_min, k_max, zp_min, zp_max = _limits_from_prior(tight_prior)
-        k, fitted_zp = _fit_extinction_one_group(
+        k, fitted_zp = _fit_zp_extinction_one_group(
             airmass,
             zp_1s,
             k_min=k_min,
@@ -328,6 +401,38 @@ class TestExtinctionStacker(unittest.TestCase):
         # zp must also be within bounds
         self.assertGreaterEqual(fitted_zp, zp_min)
         self.assertLessEqual(fitted_zp, zp_max)
+
+    def test_zp_window_zero_uses_k_only(self):
+        """When zp_window=0 the stacker should fix zp and fit only k."""
+        rng = np.random.default_rng(20)
+        true_k = 0.09
+        # Use a slightly wrong expected_zp_X0 to confirm it is not adjusted.
+        fixed_zp = self.TRUE_ZP_1S_R + 0.05
+        custom_priors = {
+            "r": {
+                "expected_k": true_k,
+                "k_fraction_tolerance": 0.5,
+                "expected_zp_X0": fixed_zp,
+                "zp_window": 0.0,  # fixed-ZP mode
+            }
+        }
+        visits = _make_visits("r", 20260101, true_k, self.TRUE_ZP_1S_R, n_visits=80, rng=rng)
+        stacker = stackers.ExtinctionStacker(band_priors=custom_priors)
+        result = stacker.run(visits)
+
+        k_vals = result["extinction_k"]
+        zp_vals = result["fitted_zeropoint"]
+
+        self.assertFalse(np.all(np.isnan(k_vals)), "Fixed-ZP fit should succeed")
+        # All visits in the group share the same k
+        self.assertTrue(np.allclose(k_vals, k_vals[0], equal_nan=False))
+        # k should be reasonable (within 0.05 of true; slight bias from wrong ZP is OK)
+        self.assertAlmostEqual(float(k_vals[0]), true_k, delta=0.05)
+        # fitted_zeropoint must be exactly the fixed value, never adjusted
+        self.assertTrue(
+            np.all(zp_vals == fixed_zp),
+            "fitted_zeropoint must equal expected_zp_X0 when zp_window=0",
+        )
 
     def test_registered_in_registry(self):
         """ExtinctionStacker should appear in the stacker registry."""
