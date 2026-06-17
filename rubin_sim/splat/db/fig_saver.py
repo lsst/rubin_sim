@@ -68,7 +68,8 @@ class FigSaver:
                 filename += info[key] + "_"
 
         if "slicer: nside" in info.keys():
-            filename += "nside%i" % info["slicer: nside"]
+            if info["slicer: nside"] is not None:
+                filename += "nside%i" % info["slicer: nside"]
 
         # Maybe a more extensive clean here
         swaps = {"=": "_", " ": "_", "<": "lt", ">": "gt"}
