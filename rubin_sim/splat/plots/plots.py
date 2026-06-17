@@ -7,6 +7,8 @@ __all__ = (
     "PlotLambert",
     "PlotFo",
     "PlotHealbin",
+    "PlotLambertHealpy",
+    "PlotGnom",
 )
 
 import copy
@@ -119,6 +121,47 @@ class PlotMoll(BasePlot):
         }
         return cb_params
 
+    def add_colorbar(self, cb_params, moll_kwarg_dict, im, log):
+        """Add a colorbar to a plot."""
+        if cb_params == "default":
+            cb_params = self.default_cb_params()
+        else:
+            defaults = self.default_cb_params()
+            for key in cb_params:
+                defaults[key] = cb_params[key]
+            cb_params = defaults
+
+        if cb_params["label"] is None:
+            if "unit" in moll_kwarg_dict.keys():
+                cb_params["label"] = moll_kwarg_dict["unit"]
+
+        cb = plt.colorbar(
+            im,
+            shrink=cb_params["shrink"],
+            aspect=cb_params["aspect"],
+            pad=cb_params["pad"],
+            orientation=cb_params["orientation"],
+            format=cb_params["format"],
+            extendrect=cb_params["extendrect"],
+            extend=cb_params["extend"],
+        )
+        cb.set_label(cb_params["label"], fontsize=cb_params["fontsize"])
+
+        if cb_params["labelsize"] is not None:
+            cb.ax.tick_params(labelsize=cb_params["labelsize"])
+        if log:
+            tick_locator = ticker.LogLocator(numticks=cb_params["n_ticks"])
+            cb.locator = tick_locator
+            cb.update_ticks()
+        else:
+            if cb_params["n_ticks"] is not None:
+                tick_locator = ticker.MaxNLocator(nbins=cb_params["n_ticks"])
+                cb.locator = tick_locator
+                cb.update_ticks()
+        # If outputing to PDF, this fixes the colorbar white stripes
+        if cb_params["cbar_edge"]:
+            cb.solids.set_edgecolor("face")
+
     def __call__(
         self,
         inarray,
@@ -190,44 +233,7 @@ class PlotMoll(BasePlot):
             cbar = True
 
         if cbar:
-            if cb_params == "default":
-                cb_params = self.default_cb_params()
-            else:
-                defaults = self.default_cb_params()
-                for key in cb_params:
-                    defaults[key] = cb_params[key]
-                cb_params = defaults
-
-            if cb_params["label"] is None:
-                if "unit" in moll_kwarg_dict.keys():
-                    cb_params["label"] = moll_kwarg_dict["unit"]
-
-            cb = plt.colorbar(
-                im,
-                shrink=cb_params["shrink"],
-                aspect=cb_params["aspect"],
-                pad=cb_params["pad"],
-                orientation=cb_params["orientation"],
-                format=cb_params["format"],
-                extendrect=cb_params["extendrect"],
-                extend=cb_params["extend"],
-            )
-            cb.set_label(cb_params["label"], fontsize=cb_params["fontsize"])
-
-            if cb_params["labelsize"] is not None:
-                cb.ax.tick_params(labelsize=cb_params["labelsize"])
-            if log:
-                tick_locator = ticker.LogLocator(numticks=cb_params["n_ticks"])
-                cb.locator = tick_locator
-                cb.update_ticks()
-            else:
-                if cb_params["n_ticks"] is not None:
-                    tick_locator = ticker.MaxNLocator(nbins=cb_params["n_ticks"])
-                    cb.locator = tick_locator
-                    cb.update_ticks()
-            # If outputing to PDF, this fixes the colorbar white stripes
-            if cb_params["cbar_edge"]:
-                cb.solids.set_edgecolor("face")
+            self.add_colorbar(cb_params, moll_kwarg_dict, im, log)
 
         return fig
 
@@ -475,6 +481,157 @@ def draw_grat(ax):
         ax.text(x, y, "%i" % np.round(np.degrees(dec)))
 
     return ax
+
+
+class PlotGnom(PlotMoll):
+    def __call__(
+        self,
+        inarray,
+        fig=None,
+        ax=None,
+        title=None,
+        rot=None,
+        cb_params={"labelsize": None, "format": "%i", "label": None},
+        grat_params="default",
+        add_grat=True,
+        log=False,
+        **kwargs,
+    ):
+        if fig is None:
+            fig = plt.figure()
+
+        # Nothing valid to plot, just return
+        if np.sum(np.isfinite(inarray)) == 0:
+            warnings.warn("No finite values to plot, returning empty figure")
+            return fig
+
+        if grat_params == "default":
+            grat_params = {"dpar": 30, "dmer": 30}
+        # Copy any auto-generated plot kwargs
+        moll_kwarg_dict = copy.copy(self.generated_plot_dict)
+        # Override if those things have been set with kwargs
+        for key in kwargs:
+            moll_kwarg_dict[key] = kwargs.get(key)
+
+        # mollview seems to throw lots of warnings when using fig.number
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", UserWarning)
+            if cb_params is None:
+                hp.gnomview(
+                    inarray,
+                    rot=rot,
+                    **moll_kwarg_dict,
+                    fig=fig.number,
+                )
+            else:
+                hp.gnomview(
+                    inarray,
+                    rot=rot,
+                    cbar=False,
+                    **moll_kwarg_dict,
+                    fig=fig.number,
+                )
+
+        if add_grat:
+            hp.graticule(**grat_params)
+        self.ax = plt.gca()
+        im = self.ax.get_images()[0]
+
+        # Make sure cbar wasn't set to False
+        if "cbar" in kwargs:
+            cbar = kwargs["cbar"]
+        else:
+            cbar = True
+
+        if cbar:
+            self.add_colorbar(cb_params, moll_kwarg_dict, im, log)
+
+        return fig
+
+
+class PlotLambertHealpy(PlotMoll):
+    """Use the HEALpix lambert plotting"""
+
+    def __call__(
+        self,
+        inarray,
+        fig=None,
+        ax=None,
+        title=None,
+        alt_limit=10.0,
+        half_sky=True,
+        reso=13,
+        alpha=None,
+        flip="geo",
+        rot=(180, 90, 0),
+        lam=True,
+        cb_params={"labelsize": None, "format": "%i", "label": None},
+        grat_params="default",
+        add_grat=True,
+        log=False,
+        **kwargs,
+    ):
+
+        if fig is None:
+            fig = plt.figure()
+
+        # Nothing valid to plot, just return
+        if np.sum(np.isfinite(inarray)) == 0:
+            warnings.warn("No finite values to plot, returning empty figure")
+            return fig
+
+        if grat_params == "default":
+            grat_params = {"dpar": 30, "dmer": 30}
+        # Copy any auto-generated plot kwargs
+        moll_kwarg_dict = copy.copy(self.generated_plot_dict)
+        # Override if those things have been set with kwargs
+        for key in kwargs:
+            moll_kwarg_dict[key] = kwargs.get(key)
+
+        # mollview seems to throw lots of warnings when using fig.number
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", UserWarning)
+            if cb_params is None:
+                hp.azeqview(
+                    inarray,
+                    rot=rot,
+                    half_sky=half_sky,
+                    reso=reso,
+                    lamb=lam,
+                    alpha=alpha,
+                    flip=flip,
+                    **moll_kwarg_dict,
+                    fig=fig.number,
+                )
+            else:
+                hp.azeqview(
+                    inarray,
+                    rot=rot,
+                    half_sky=half_sky,
+                    reso=reso,
+                    lamb=lam,
+                    alpha=alpha,
+                    flip=flip,
+                    cbar=False,
+                    **moll_kwarg_dict,
+                    fig=fig.number,
+                )
+
+        if add_grat:
+            hp.graticule(**grat_params)
+        self.ax = plt.gca()
+        im = self.ax.get_images()[0]
+
+        # Make sure cbar wasn't set to False
+        if "cbar" in kwargs:
+            cbar = kwargs["cbar"]
+        else:
+            cbar = True
+
+        if cbar:
+            self.add_colorbar(cb_params, moll_kwarg_dict, im, log)
+
+        return fig
 
 
 class PlotLambert(BasePlot):

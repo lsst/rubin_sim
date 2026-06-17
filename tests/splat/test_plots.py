@@ -72,6 +72,28 @@ class TestPlots(unittest.TestCase):
         pl = maf.PlotLambert(info=self.info)
         fig = pl(self.hp_array, fig=fig, ax=ax, xlabel="pies", alt_limit=15.0, levels=199)
 
+    def test_hp_lambert(self):
+
+        # Defaults
+        pl = maf.PlotLambertHealpy()
+        fig = pl(self.hp_array)
+
+        # Non-defaults
+        fig, ax = plt.subplots()
+        pl = maf.PlotLambertHealpy(info=self.info)
+        fig = pl(self.hp_array, fig=fig, ax=ax, title="pies", flip="astro")
+
+    def test_hp_gnom(self):
+
+        # Defaults
+        pl = maf.PlotGnom()
+        fig = pl(self.hp_array)
+
+        # Non-defaults
+        fig, ax = plt.subplots()
+        pl = maf.PlotGnom(info=self.info)
+        fig = pl(self.hp_array, fig=fig, ax=ax, title="pies", rot=(30, 30))
+
     def test_hourglass(self):
         # Defaults
         hr = maf.PlotHourglass()
