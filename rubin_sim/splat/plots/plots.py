@@ -558,7 +558,6 @@ class PlotLambertHealpy(PlotMoll):
         fig=None,
         ax=None,
         title=None,
-        alt_limit=10.0,
         half_sky=True,
         reso=13,
         alpha=None,
