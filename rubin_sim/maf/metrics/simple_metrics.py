@@ -184,8 +184,15 @@ class RelRmsMetric(BaseMetric):
 class SumMetric(BaseMetric):
     """Calculate the sum of a simData column slice."""
 
+    def __init__(self, col=None, nansum=False, **kwargs):
+        super().__init__(col=col, **kwargs)
+        self.nansum = nansum
+
     def run(self, data_slice, slice_point=None):
-        return np.sum(data_slice[self.colname])
+        if self.nansum:
+            return np.nansum(data_slice[self.colname])
+        else:
+            return np.sum(data_slice[self.colname])
 
 
 class CountUniqueMetric(BaseMetric):
