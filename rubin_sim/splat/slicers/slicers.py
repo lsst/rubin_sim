@@ -223,7 +223,7 @@ class Slicer(object):
 
     def add_info(self, metric, info):
         """Update info dict with how slicer and metric were run."""
-        info["slicer: nside"] = self.nside
+        info["nside"] = self.nside
         if hasattr(metric, "add_info"):
             info = metric.add_info(info)
         return info

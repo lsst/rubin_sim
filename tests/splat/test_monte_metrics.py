@@ -33,11 +33,11 @@ class TestMonte(unittest.TestCase):
 
         info = maf.empty_info()
 
-        info["run_name"] = "default test"
+        info["data_source"] = "default test"
         result, info = slicer(self.visits_array, kne_metric, info=info)
 
         assert slicer.nside is None
-        assert info["slicer: nside"] is None
+        assert info["nside"] is None
 
     def test_kne_files(self):
         files = maf.get_kne_filename(

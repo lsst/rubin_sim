@@ -63,13 +63,13 @@ class FigSaver:
         """
         filename = ""
 
-        for key in ["metric: name", "metric: col", "observations_subset"]:
+        for key in ["name", "col", "observations_subset"]:
             if key in info.keys():
                 filename += info[key] + "_"
 
-        if "slicer: nside" in info.keys():
-            if info["slicer: nside"] is not None:
-                filename += "nside%i" % info["slicer: nside"]
+        if "nside" in info.keys():
+            if info["nside"] is not None:
+                filename += "nside%i" % info["nside"]
 
         # Maybe a more extensive clean here
         swaps = {"=": "_", " ": "_", "<": "lt", ">": "gt"}

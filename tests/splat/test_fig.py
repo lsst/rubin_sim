@@ -19,8 +19,8 @@ class TestFig(unittest.TestCase):
         fs = maf.FigSaver()
 
         info = {}
-        info["metric: name"] = "test name"
-        info["slicer: nside"] = 42
+        info["name"] = "test name"
+        info["nside"] = 42
 
         fig, ax = plt.subplots()
         ax.plot([0, 1], [0, 1])
@@ -37,13 +37,13 @@ class TestFig(unittest.TestCase):
         f3 = glob.glob("maf_figs/*.db")
         assert len(f3) > 0
 
-        stats = {"value": [12, 12], "run_name": ["test_name", "ack"]}
+        stats = {"value": [12, 12], "data_source": ["test_name", "ack"]}
         stats = pd.DataFrame.from_dict(stats)
 
         fs.save_stats(stats)
 
         # If we have a single row, use from_records
-        stats = {"value": 12, "run_name": "test_name"}
+        stats = {"value": 12, "data_source": "test_name"}
         stats = pd.DataFrame.from_records([stats])
 
         fs.save_stats(stats)

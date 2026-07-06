@@ -36,11 +36,11 @@ class BaseMetric(object):
                 self.unit = UNIT_LOOKUP_DICT[self.col]
 
     def add_info(self, info):
-        info["metric: name"] = self.name
+        info["name"] = self.name
         if hasattr(self, "col"):
-            info["metric: col"] = self.col
+            info["col"] = self.col
         if hasattr(self, "unit"):
-            info["metric: unit"] = self.unit
+            info["unit"] = self.unit
         return info
 
     def __call__(self, visits, slice_point=None):
@@ -160,8 +160,8 @@ class VectorMetric(MeanMetric):
         self.times = times
 
     def add_info(self, info):
-        info["metric: name, MeanMetric"]
-        info["metric: times"] = self.times
+        info["name"] = MeanMetric
+        info["times"] = self.times
         return info
 
     def __call__(self, visits, slice_point):

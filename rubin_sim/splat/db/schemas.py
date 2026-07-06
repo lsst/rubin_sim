@@ -14,9 +14,9 @@ def empty_info(as_df_row=False, **kwargs):
     Returns
     -------
     dict or pandas.DataFrame with keys
-    run_name : `str`
-    metric: name : `str`
-    metric: col : `str`
+    data_source : `str`
+    name : `str`
+    col : `str`
     observations_subset : `str`
     slicer: nside : `int`
     summary_name : `str`
@@ -25,12 +25,13 @@ def empty_info(as_df_row=False, **kwargs):
     """
 
     result = {}
-    result["run_name"] = ""
-    result["metric: name"] = ""
-    result["metric: col"] = ""
-    result["metric: unit"] = ""
+    result["data_source"] = ""
+    result["name"] = ""
+    result["col"] = ""
+    result["unit"] = ""
+    result["times"] = ""
     result["observations_subset"] = ""
-    result["slicer: nside"] = 0
+    result["nside"] = 0
     result["summary_name"] = ""
     result["value"] = 0.0
     result["table_name"] = ""

@@ -29,7 +29,7 @@ class TestParallel(unittest.TestCase):
 
         # Also with info dict
         info = maf.empty_info()
-        info["run_name"] = "arglebargle"
+        info["data_source"] = "arglebargle"
 
         p2, info = maf.metric_parallel(self.visits_array, metric, slicer, info=info, processes=2)
 
@@ -37,8 +37,8 @@ class TestParallel(unittest.TestCase):
         assert np.array_equal(p1, p2, equal_nan=True)
 
         # Check info dict got things filled in
-        assert info["run_name"] == "arglebargle"
-        assert info["slicer: nside"] == nside
+        assert info["data_source"] == "arglebargle"
+        assert info["nside"] == nside
 
         # Check we can run on custom point array
         ra = np.arange(0, 360, 1)

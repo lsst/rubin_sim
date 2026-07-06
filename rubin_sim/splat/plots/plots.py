@@ -92,16 +92,16 @@ class PlotMoll(BasePlot):
         """ """
         result = {}
         if info is not None:
-            if "run_name" in info.keys():
-                result["title"] = info["run_name"]
+            if "data_source" in info.keys():
+                result["title"] = info["data_source"]
             else:
                 result["title"] = ""
             if "observations_subset" in info.keys():
                 if len(info["observations_subset"]) > 0:
                     result["title"] += "\n" + info["observations_subset"]
 
-            if "metric: unit" in info.keys():
-                result["unit"] = info["metric: unit"]
+            if "unit" in info.keys():
+                result["unit"] = info["unit"]
         return result
 
     def default_cb_params(self):
@@ -249,14 +249,14 @@ class PlotHist(BasePlot):
         result["title"] = ""
         result["xlabel"] = ""
         if info is not None:
-            if "run_name" in info.keys():
-                result["title"] = info["run_name"]
+            if "data_source" in info.keys():
+                result["title"] = info["data_source"]
             else:
                 result["title"] = ""
             if "observations_subset" in info.keys():
                 result["title"] += "\n" + info["observations_subset"]
-            if "metric: unit" in info.keys():
-                result["xlabel"] = info["metric: unit"]
+            if "unit" in info.keys():
+                result["xlabel"] = info["unit"]
 
         return result
 
@@ -375,8 +375,8 @@ class PlotLine(BasePlot):
         result["title"] = ""
         result["xlabel"] = ""
         if info is not None:
-            if "run_name" in info.keys():
-                result["title"] = info["run_name"]
+            if "data_source" in info.keys():
+                result["title"] = info["data_source"]
             else:
                 result["title"] = ""
             if "observations_subset" in info.keys():
@@ -557,7 +557,6 @@ class PlotLambertHealpy(PlotMoll):
         inarray,
         fig=None,
         ax=None,
-        title=None,
         half_sky=True,
         reso=13,
         alpha=None,
@@ -647,8 +646,8 @@ class PlotLambert(BasePlot):
         result = {}
         result["title"] = ""
         result["xlabel"] = ""
-        if "run_name" in info.keys():
-            result["title"] = info["run_name"]
+        if "data_source" in info.keys():
+            result["title"] = info["data_source"]
         else:
             result["title"] = ""
         if "observations_subset" in info.keys():
@@ -739,8 +738,8 @@ class PlotLambert(BasePlot):
         ax.set_title(plot_dict["title"])
 
         if cb_params["label"] is None:
-            if "metric: unit" in self.info.keys():
-                cb_params["label"] = self.info["metric: unit"]
+            if "unit" in self.info.keys():
+                cb_params["label"] = self.info["unit"]
             else:
                 cb_params["label"] = "#"
 
@@ -766,8 +765,8 @@ class PlotFo(BasePlot):
         result["title"] = ""
         result["xlabel"] = "Number of Visits"
         if info is not None:
-            if "run_name" in info.keys():
-                result["title"] = info["run_name"]
+            if "data_source" in info.keys():
+                result["title"] = info["data_source"]
             else:
                 result["title"] = ""
             if "observations_subset" in info.keys():
