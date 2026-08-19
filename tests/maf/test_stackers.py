@@ -6,7 +6,7 @@ import warnings
 import numpy as np
 import pandas as pd
 from astropy import units as u
-from astropy.coordinates import SkyCoord
+from astropy.coordinates import AltAz, EarthLocation, SkyCoord
 from astropy.time import Time
 from rubin_scheduler.utils import Site, _alt_az_pa_from_ra_dec, calc_lmst
 
@@ -417,6 +417,129 @@ class TestStackerClasses(unittest.TestCase):
         with open(os.devnull, "w") as new_target:
             sys.stdout = new_target
             stackers.BaseStacker.help(doc=True)
+
+
+class TestRiseSetStacker(unittest.TestCase):
+    """Tests for RiseSetStacker."""
+
+    def setUp(self):
+        self.alt_limit = 20.0
+        self.stacker = stackers.RiseSetStacker(alt_limit=self.alt_limit)
+        site = self.stacker.site
+        self.location = EarthLocation(
+            lat=site.latitude * u.deg,
+            lon=site.longitude * u.deg,
+            height=site.height * u.m,
+        )
+
+    def _get_alt(self, ra_deg, dec_deg, mjd):
+        """Return altitude in degrees from astropy.
+
+        pressure=0 disables the atmospheric refraction correction, matching
+        the stacker's purely geometric calculation.
+        """
+        coord = SkyCoord(ra=ra_deg * u.deg, dec=dec_deg * u.deg)
+        frame = AltAz(
+            obstime=Time(mjd, format="mjd", scale="utc"),
+            location=self.location,
+            pressure=0 * u.hPa,
+        )
+        return coord.transform_to(frame).alt.deg
+
+    def test_rise_set_above_horizon(self):
+        """rise_mjd/set_mjd bracket the observation and match alt_limit.
+
+        For several fields that are above alt_limit at the time of the
+        (simulated) observation, verify that:
+          - rise_mjd <= observationStartMJD < set_mjd
+          - The altitude at rise_mjd and set_mjd is alt_limit within 0.5 deg.
+
+        0.5 deg in altitude corresponds to roughly 2-3 minutes of time near the
+        horizon for these fields, comfortably within the 1-minute requirement.
+
+        All fields are tested together in a single stacker.run() call to
+        exercise the vectorised code path.
+        """
+        # (RA deg, Dec deg) pairs observable from Rubin (lat ~-30.24 deg)
+        # with a normal rise and set above 20 deg.  Fields must have
+        # -79.8 deg < Dec < +39.8 deg to avoid circumpolar/never-rises.
+        test_cases = [
+            (60.0, -40.0),  # moderate southern declination
+            (180.0, -25.0),  # near-equatorial
+            (300.0, -55.0),  # deep southern sky
+        ]
+        mjd_base = 51545.0  # near J2000; precession negligible at this epoch
+
+        # For each field, scan forward in steps of ~7 min to find an MJD where
+        # the field is at least 1 deg above alt_limit (so we are not right at a
+        # transition boundary).
+        dtype = [("observationStartMJD", float), ("fieldRA", float), ("fieldDec", float)]
+        rows = []
+        for ra_deg, dec_deg in test_cases:
+            for delta in np.arange(0.0, 1.0, 0.005):
+                if self._get_alt(ra_deg, dec_deg, mjd_base + delta) > self.alt_limit + 1.0:
+                    rows.append((mjd_base + delta, ra_deg, dec_deg))
+                    break
+        self.assertEqual(
+            len(rows),
+            len(test_cases),
+            "Could not find an above-horizon time for every test field",
+        )
+
+        sim_data = np.array(rows, dtype=dtype)
+        result = self.stacker.run(sim_data)
+
+        alt_tol = 0.5  # degrees; corresponds to ~2-3 min near the horizon
+
+        for i, (test_mjd, ra_deg, dec_deg) in enumerate(rows):
+            with self.subTest(ra=ra_deg, dec=dec_deg):
+                rise_mjd = result["rise_mjd"][i]
+                set_mjd = result["set_mjd"][i]
+
+                # Results must not be NaN for a field above the horizon.
+                self.assertFalse(np.isnan(rise_mjd), "rise_mjd should not be NaN")
+                self.assertFalse(np.isnan(set_mjd), "set_mjd should not be NaN")
+
+                # The observation must fall within the [rise, set) window.
+                self.assertLessEqual(rise_mjd, test_mjd)
+                self.assertGreater(set_mjd, test_mjd)
+
+                # The altitude at each crossing must equal alt_limit.
+                self.assertAlmostEqual(
+                    self._get_alt(ra_deg, dec_deg, rise_mjd),
+                    self.alt_limit,
+                    delta=alt_tol,
+                    msg=f"Altitude at rise_mjd wrong for RA={ra_deg}, Dec={dec_deg}",
+                )
+                self.assertAlmostEqual(
+                    self._get_alt(ra_deg, dec_deg, set_mjd),
+                    self.alt_limit,
+                    delta=alt_tol,
+                    msg=f"Altitude at set_mjd wrong for RA={ra_deg}, Dec={dec_deg}",
+                )
+
+    def test_rise_set_nan_cases(self):
+        """NaN is returned for circumpolar and never-above-limit fields.
+
+        At Rubin (lat ~-30.24 deg) with alt_limit = 20 deg:
+
+        - Dec = -80 deg: the lower-transit altitude is ~20.2 deg, so the field
+          is always above the limit (circumpolar w.r.t. alt_limit).
+        - Dec = +60 deg: the upper-transit altitude is ~-0.2 deg, so the field
+          never rises above the limit (or even above the horizon).
+        """
+        dtype = [("observationStartMJD", float), ("fieldRA", float), ("fieldDec", float)]
+        mjd = 51545.0
+
+        # Circumpolar field: should return NaN for both columns.
+        result = self.stacker.run(np.array([(mjd, 0.0, -80.0)], dtype=dtype))
+        self.assertTrue(np.isnan(result["rise_mjd"][0]), "Circumpolar field: rise_mjd should be NaN")
+        self.assertTrue(np.isnan(result["set_mjd"][0]), "Circumpolar field: set_mjd should be NaN")
+
+        # Field that never rises above alt_limit: should also return NaN.
+        result = self.stacker.run(np.array([(mjd, 0.0, 60.0)], dtype=dtype))
+        self.assertTrue(np.isnan(result["rise_mjd"][0]), "Never-rises field: rise_mjd should be NaN")
+        self.assertTrue(np.isnan(result["set_mjd"][0]), "Never-rises field: set_mjd should be NaN")
 
 
 if __name__ == "__main__":
