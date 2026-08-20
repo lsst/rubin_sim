@@ -1039,7 +1039,7 @@ def science_radar_batch(
         "",
         run_name=runName,
         plot_dict=plotDict,
-        summary_metrics=metrics.SumMetric(metric_name="Total detected"),
+        summary_metrics=metrics.SumMetric(metric_name="Total detected", nansum=True),
         display_dict=displayDict,
     )
     bundleList.append(bundle)
