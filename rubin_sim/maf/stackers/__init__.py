@@ -8,6 +8,7 @@ from .m5_optimal_stacker import *
 from .mo_stackers import *
 from .n_follow_stacker import *
 from .neo_dist_stacker import *
+from .riseset_stacker import *
 from .sdss_stackers import *
 from .sn_stacker import *
 from .teff_stacker import *
