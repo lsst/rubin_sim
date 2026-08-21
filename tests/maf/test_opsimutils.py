@@ -4,6 +4,7 @@ import unittest
 from tempfile import TemporaryDirectory
 
 import numpy as np
+import pandas as pd
 from rubin_scheduler.data import get_data_dir
 
 import rubin_sim.maf.utils.opsim_utils as opsimUtils
@@ -111,6 +112,209 @@ class TestOpsimUtils(unittest.TestCase):
 
             data_hdf5 = opsimUtils.get_sim_data(hdf5_file, sqlconstraint="observationId < 10")
             assert np.allclose(data_sqlite["fieldRA"], data_hdf5["fieldRA"])
+
+    def test_save_visits_as_parquet_dataframe(self):
+        """Test that a DataFrame round-trips through save_visits_as_parquet."""
+        database_file = os.path.join(get_data_dir(), "tests", TEST_DB)
+        original = opsimUtils.get_sim_data(database_file, return_class=pd.DataFrame)
+
+        with TemporaryDirectory() as tmpdir:
+            parquet_file = os.path.join(tmpdir, "visits.parquet")
+            opsimUtils.save_visits_as_parquet(original, parquet_file)
+
+            assert os.path.isfile(parquet_file)
+            reloaded = pd.read_parquet(parquet_file)
+
+            # Same number of rows
+            assert len(reloaded) == len(original)
+
+            # Numeric columns should survive the round-trip
+            for col in ("fieldRA", "fieldDec", "observationStartMJD", "night"):
+                assert col in reloaded.columns
+                np.testing.assert_array_almost_equal(reloaded[col].values, original[col].values, decimal=10)
+
+    def test_save_visits_as_parquet_recarray(self):
+        """Test that a numpy recarray round-trips through
+        save_visits_as_parquet."""
+        database_file = os.path.join(get_data_dir(), "tests", TEST_DB)
+        original_rec = opsimUtils.get_sim_data(database_file, return_class=np.recarray)
+
+        with TemporaryDirectory() as tmpdir:
+            parquet_file = os.path.join(tmpdir, "visits_rec.parquet")
+            opsimUtils.save_visits_as_parquet(original_rec, parquet_file)
+
+            assert os.path.isfile(parquet_file)
+            reloaded = pd.read_parquet(parquet_file)
+
+            assert len(reloaded) == len(original_rec)
+            np.testing.assert_array_almost_equal(
+                reloaded["fieldRA"].values, original_rec["fieldRA"], decimal=10
+            )
+
+    def test_save_visits_as_parquet_visit_id_index(self):
+        """Test that visit_id becomes the index when present."""
+        df = pd.DataFrame(
+            {
+                "visit_id": [10, 20, 30],
+                "fieldRA": [1.0, 2.0, 3.0],
+                "fieldDec": [-1.0, -2.0, -3.0],
+            }
+        )
+
+        with TemporaryDirectory() as tmpdir:
+            parquet_file = os.path.join(tmpdir, "visits_id.parquet")
+            opsimUtils.save_visits_as_parquet(df, parquet_file)
+
+            reloaded = pd.read_parquet(parquet_file)
+            # visit_id should be the index
+            np.testing.assert_array_equal(reloaded.index.values, [10, 20, 30])
+            # visit_id column should still be present (drop=False)
+            assert "visit_id" in reloaded.columns
+
+    def test_save_visits_as_parquet_drops_index_column(self):
+        """Test that a spurious 'index' column is removed before writing."""
+        df = pd.DataFrame(
+            {
+                "index": [0, 1, 2],
+                "fieldRA": [1.0, 2.0, 3.0],
+            }
+        )
+
+        with TemporaryDirectory() as tmpdir:
+            parquet_file = os.path.join(tmpdir, "visits_index_col.parquet")
+            opsimUtils.save_visits_as_parquet(df, parquet_file)
+
+            reloaded = pd.read_parquet(parquet_file)
+            assert "index" not in reloaded.columns
+
+    def test_save_visits_as_parquet_all_nan_object_column(self):
+        """Test that object columns that are entirely NaN are cast to
+        float64."""
+        df = pd.DataFrame(
+            {
+                "fieldRA": [1.0, 2.0, 3.0],
+                "all_nan_col": pd.array([None, None, None], dtype=object),
+            }
+        )
+
+        with TemporaryDirectory() as tmpdir:
+            parquet_file = os.path.join(tmpdir, "visits_nan.parquet")
+            # Should not raise even though the column has no valid type info.
+            opsimUtils.save_visits_as_parquet(df, parquet_file)
+
+            reloaded = pd.read_parquet(parquet_file)
+            assert "all_nan_col" in reloaded.columns
+            # All values should be NaN in the reloaded data.
+            assert reloaded["all_nan_col"].isna().all()
+
+    def test_save_visits_as_parquet_string_nan_filled(self):
+        """Test that NaN values in string columns are replaced with empty
+        strings."""
+        df = pd.DataFrame(
+            {
+                "fieldRA": [1.0, 2.0, 3.0],
+                "note": ["a", None, "c"],
+            }
+        )
+
+        with TemporaryDirectory() as tmpdir:
+            parquet_file = os.path.join(tmpdir, "visits_str.parquet")
+            opsimUtils.save_visits_as_parquet(df, parquet_file)
+
+            reloaded = pd.read_parquet(parquet_file)
+            assert reloaded["note"].iloc[1] == ""
+
+    def test_save_visits_as_parquet_creates_parent_dirs(self):
+        """Test that missing parent directories are created automatically."""
+        with TemporaryDirectory() as tmpdir:
+            parquet_file = os.path.join(tmpdir, "subdir", "nested", "visits.parquet")
+            df = pd.DataFrame({"fieldRA": [1.0, 2.0]})
+            opsimUtils.save_visits_as_parquet(df, parquet_file)
+            assert os.path.isfile(parquet_file)
+
+    def test_save_visits_as_parquet_bad_input(self):
+        """Test that a non-convertible input raises TypeError."""
+        with TemporaryDirectory() as tmpdir:
+            parquet_file = os.path.join(tmpdir, "visits_bad.parquet")
+            with self.assertRaises(TypeError):
+                opsimUtils.save_visits_as_parquet("not_a_dataframe", parquet_file)
+
+    def test_get_sim_data_parquet_roundtrip(self):
+        """Test that get_sim_data reads a parquet file written by
+        save_visits_as_parquet."""
+        database_file = os.path.join(get_data_dir(), "tests", TEST_DB)
+        original = opsimUtils.get_sim_data(database_file, return_class=pd.DataFrame)
+
+        with TemporaryDirectory() as tmpdir:
+            parquet_file = os.path.join(tmpdir, "visits.parquet")
+            opsimUtils.save_visits_as_parquet(original, parquet_file)
+
+            # Read back via get_sim_data as a recarray (the default)
+            reloaded_rec = opsimUtils.get_sim_data(parquet_file)
+            assert isinstance(reloaded_rec, np.recarray)
+            assert len(reloaded_rec) == len(original)
+            np.testing.assert_array_almost_equal(
+                reloaded_rec["fieldRA"], original["fieldRA"].values, decimal=10
+            )
+
+            # Read back via get_sim_data as a DataFrame
+            reloaded_df = opsimUtils.get_sim_data(parquet_file, return_class=pd.DataFrame)
+            assert isinstance(reloaded_df, pd.DataFrame)
+            assert len(reloaded_df) == len(original)
+
+    def test_get_sim_data_parquet_with_sqlconstraint(self):
+        """Test that get_sim_data applies sqlconstraint when reading
+        parquet."""
+        database_file = os.path.join(get_data_dir(), "tests", TEST_DB)
+        original = opsimUtils.get_sim_data(database_file, return_class=pd.DataFrame)
+
+        with TemporaryDirectory() as tmpdir:
+            parquet_file = os.path.join(tmpdir, "visits.parquet")
+            opsimUtils.save_visits_as_parquet(original, parquet_file)
+
+            filtered = opsimUtils.get_sim_data(parquet_file, sqlconstraint="night < 5")
+            assert isinstance(filtered, np.recarray)
+            assert len(filtered) > 0
+            assert np.all(filtered["night"] < 5)
+
+    def test_get_visit_data_parquet_roundtrip(self):
+        """Test that get_visit_data reads a parquet file as a DataFrame."""
+        database_file = os.path.join(get_data_dir(), "tests", TEST_DB)
+        original = opsimUtils.get_visit_data(database_file)
+        assert isinstance(original, pd.DataFrame)
+
+        with TemporaryDirectory() as tmpdir:
+            parquet_file = os.path.join(tmpdir, "visits.parquet")
+            opsimUtils.save_visits_as_parquet(original, parquet_file)
+
+            reloaded = opsimUtils.get_visit_data(parquet_file)
+            assert isinstance(reloaded, pd.DataFrame)
+            assert len(reloaded) == len(original)
+            np.testing.assert_array_almost_equal(
+                reloaded["fieldRA"].values, original["fieldRA"].values, decimal=10
+            )
+
+    def test_save_visits_does_not_mutate_input(self):
+        """Test that save_visits_as_parquet does not modify the caller's
+        DataFrame."""
+        df = pd.DataFrame(
+            {
+                "visit_id": [1, 2, 3],
+                "fieldRA": [10.0, 20.0, 30.0],
+                "note": ["a", None, "c"],
+                "all_nan": pd.array([None, None, None], dtype=object),
+            }
+        )
+        original_note = df["note"].copy()
+        original_all_nan = df["all_nan"].copy()
+
+        with TemporaryDirectory() as tmpdir:
+            parquet_file = os.path.join(tmpdir, "visits.parquet")
+            opsimUtils.save_visits_as_parquet(df, parquet_file)
+
+        # The original DataFrame should be unchanged.
+        pd.testing.assert_series_equal(df["note"], original_note)
+        pd.testing.assert_series_equal(df["all_nan"], original_all_nan)
 
 
 if __name__ == "__main__":
