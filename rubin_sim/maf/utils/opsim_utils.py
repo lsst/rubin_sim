@@ -9,6 +9,8 @@ import os
 import sqlite3
 import urllib
 from contextlib import closing
+from pathlib import Path
+from typing import Any, Union
 
 import numpy as np
 import pandas as pd
@@ -36,12 +38,20 @@ def _local_get_sim_data(
         if os.path.isfile(db_con) is False:
             raise FileNotFoundError("No file %s" % db_con)
 
-    # Check if this is an HDF5 file
-    is_hdf5 = isinstance(db_con, str) and db_con.lower().endswith((".h5", ".hdf5"))
+    # Check what type of source was provided, defaulting
+    # to an sqlite3 file if it is a string without an extinsion
+    # that identifies it as a parquet or hdf5 file name.
+    source_type: str = "sqlite3"
+    if isinstance(db_con, str) and db_con.lower().endswith((".h5", ".hdf5")):
+        source_type = "hdf5"
+    elif isinstance(db_con, str) and db_con.lower().endswith((".parquet", ".pq", ".parq")):
+        source_type = "parquet"
+    elif isinstance(db_con, sqlite3.Connection):
+        source_type = "connection"
 
     # Check if table is "observations" or "SummaryAllProps"
     if (table_name is None) & (full_sql_query is None) & (isinstance(db_con, str)):
-        if is_hdf5:
+        if source_type == "hdf5":
             # For HDF5, detect table names by reading the store keys
             with pd.HDFStore(db_con, mode="r") as store:
                 table_keys = [key.lstrip("/") for key in store.keys()]
@@ -53,6 +63,8 @@ def _local_get_sim_data(
                 table_name = "summary"
             else:
                 raise ValueError("Could not guess table_name, set with table_name or full_sql_query kwargs")
+        elif source_type == "parquet":
+            table_name = "observations"
         else:
             url = make_url("sqlite:///" + db_con)
             eng = create_engine(url)
@@ -83,27 +95,34 @@ def _local_get_sim_data(
         query = full_sql_query
 
     sim_data: np.recarray | pd.DataFrame | None = None
-    if is_hdf5 and not need_sql:
-        # Pure HDF5 path - no SQL filtering needed
-        sim_data = pd.read_hdf(db_con, key=table_name)
-    elif isinstance(db_con, sqlite3.Connection):
-        sim_data = pd.read_sql(query, db_con)
-    elif isinstance(db_con, str) and os.path.isfile(db_con):
-        # Handle HDF5 files with SQL constraints by loading into
-        # in-memory SQLite
-        if is_hdf5:
-            with closing(sqlite3.connect(":memory:")) as con:
-                with pd.HDFStore(db_con, mode="r") as store:
-                    for key in store.keys():
-                        tbl_name = key.lstrip("/")
-                        df = pd.read_hdf(db_con, key=key)
-                        df.to_sql(tbl_name, con, index=False)
-                sim_data = pd.read_sql(query, con)
-        else:
+
+    match source_type:
+        case "connection":
+            sim_data = pd.read_sql(query, db_con)
+        case "sqlite3":
             with closing(sqlite3.connect(db_con)) as con:
                 sim_data = pd.read_sql(query, con)
-    else:
-        raise RuntimeError(f"Cannot find {db_con}.")
+        case "hdf5":
+            if need_sql:
+                with closing(sqlite3.connect(":memory:")) as con:
+                    with pd.HDFStore(db_con, mode="r") as store:
+                        for key in store.keys():
+                            table_name = key.lstrip("/")
+                            table_values = pd.read_hdf(db_con, key=key)
+                            table_values.to_sql(table_name, con, index=False)
+                    sim_data = pd.read_sql(query, con)
+            else:
+                sim_data = pd.read_hdf(db_con, key=table_name)
+        case "parquet":
+            if need_sql:
+                with closing(sqlite3.connect(":memory:")) as con:
+                    raw_observations = pd.read_parquet(db_con)
+                    raw_observations.to_sql("observations", con, index=False)
+                    sim_data = pd.read_sql(query, con)
+            else:
+                sim_data = pd.read_parquet(db_con)
+        case _:
+            raise RuntimeError(f"Cannot find {db_con}.")
 
     if len(sim_data) == 0:
         raise UserWarning("No data found matching sqlconstraint %s" % (sqlconstraint))
@@ -128,6 +147,67 @@ def _local_get_sim_data(
     assert isinstance(sim_data, return_class)
 
     return sim_data
+
+
+def save_visits_as_parquet(
+    visits: Union[pd.DataFrame, Any],
+    parquet_file_path: Union[str, Path],
+) -> None:
+    """Save visit data to a Parquet file.
+
+    Parameters
+    ----------
+    visits : `pandas.DataFrame` or Any
+        Visit-like tabular data. If not already a `pandas.DataFrame`, the input
+        must be convertible via ``pandas.DataFrame(visits)``.
+    parquet_file_path : `str` or `pathlib.Path`
+        Destination path for the output Parquet file. Parent directories are
+        created automatically if they do not exist.
+
+    Notes
+    -----
+    This function works around a few issues with pandas auto-detection
+    of column types for columns with NaN or None values.
+    """
+
+    # Normalize path and ensure parent directory exists.
+    parquet_path = Path(parquet_file_path)
+    parquet_path.parent.mkdir(parents=True, exist_ok=True)
+
+    # Convert input to DataFrame, and ensure our adjustments
+    # do not alter the originally passed data.
+    if isinstance(visits, pd.DataFrame):
+        cleaned_visits = visits.copy(deep=True)
+    else:
+        try:
+            cleaned_visits = pd.DataFrame(visits).copy(deep=True)
+        except Exception as exc:
+            raise TypeError("visits must be a pandas.DataFrame or a DataFrame-compatible object.") from exc
+
+    if "visit_id" in cleaned_visits.columns:
+        cleaned_visits = cleaned_visits.set_index("visit_id", drop=False).rename_axis(index=None)
+
+    if "index" in cleaned_visits.columns:
+        cleaned_visits = cleaned_visits.drop(columns=["index"])
+
+    # Convert object columns that are entirely NaN to float for parquet.
+    obj_cols = cleaned_visits.select_dtypes(include=["object"]).columns
+    all_nan_obj_cols = [c for c in obj_cols if cleaned_visits[c].isna().all()]
+    if all_nan_obj_cols:
+        cleaned_visits[all_nan_obj_cols] = cleaned_visits[all_nan_obj_cols].astype("float64")
+
+    # For object columns that contain only strings (ignoring nulls),
+    # replace NaN with "".
+    string_columns = []
+    for col in cleaned_visits.select_dtypes(include=["object"]).columns:
+        non_null = cleaned_visits[col].dropna()
+        if non_null.empty or non_null.map(lambda v: isinstance(v, str)).all():
+            string_columns.append(col)
+
+    if string_columns:
+        cleaned_visits[string_columns] = cleaned_visits[string_columns].fillna("")
+
+    cleaned_visits.to_parquet(parquet_path, index=True)
 
 
 def get_sim_data(
