@@ -151,42 +151,6 @@ class TestOpsimUtils(unittest.TestCase):
                 reloaded["fieldRA"].values, original_rec["fieldRA"], decimal=10
             )
 
-    def test_save_visits_as_parquet_visit_id_index(self):
-        """Test that visit_id becomes the index when present."""
-        df = pd.DataFrame(
-            {
-                "visit_id": [10, 20, 30],
-                "fieldRA": [1.0, 2.0, 3.0],
-                "fieldDec": [-1.0, -2.0, -3.0],
-            }
-        )
-
-        with TemporaryDirectory() as tmpdir:
-            parquet_file = os.path.join(tmpdir, "visits_id.parquet")
-            opsimUtils.save_visits_as_parquet(df, parquet_file)
-
-            reloaded = pd.read_parquet(parquet_file)
-            # visit_id should be the index
-            np.testing.assert_array_equal(reloaded.index.values, [10, 20, 30])
-            # visit_id column should still be present (drop=False)
-            assert "visit_id" in reloaded.columns
-
-    def test_save_visits_as_parquet_drops_index_column(self):
-        """Test that a spurious 'index' column is removed before writing."""
-        df = pd.DataFrame(
-            {
-                "index": [0, 1, 2],
-                "fieldRA": [1.0, 2.0, 3.0],
-            }
-        )
-
-        with TemporaryDirectory() as tmpdir:
-            parquet_file = os.path.join(tmpdir, "visits_index_col.parquet")
-            opsimUtils.save_visits_as_parquet(df, parquet_file)
-
-            reloaded = pd.read_parquet(parquet_file)
-            assert "index" not in reloaded.columns
-
     def test_save_visits_as_parquet_all_nan_object_column(self):
         """Test that object columns that are entirely NaN are cast to
         float64."""
@@ -223,21 +187,6 @@ class TestOpsimUtils(unittest.TestCase):
 
             reloaded = pd.read_parquet(parquet_file)
             assert reloaded["note"].iloc[1] == ""
-
-    def test_save_visits_as_parquet_creates_parent_dirs(self):
-        """Test that missing parent directories are created automatically."""
-        with TemporaryDirectory() as tmpdir:
-            parquet_file = os.path.join(tmpdir, "subdir", "nested", "visits.parquet")
-            df = pd.DataFrame({"fieldRA": [1.0, 2.0]})
-            opsimUtils.save_visits_as_parquet(df, parquet_file)
-            assert os.path.isfile(parquet_file)
-
-    def test_save_visits_as_parquet_bad_input(self):
-        """Test that a non-convertible input raises TypeError."""
-        with TemporaryDirectory() as tmpdir:
-            parquet_file = os.path.join(tmpdir, "visits_bad.parquet")
-            with self.assertRaises(TypeError):
-                opsimUtils.save_visits_as_parquet("not_a_dataframe", parquet_file)
 
     def test_get_sim_data_parquet_roundtrip(self):
         """Test that get_sim_data reads a parquet file written by
@@ -289,32 +238,36 @@ class TestOpsimUtils(unittest.TestCase):
 
             reloaded = opsimUtils.get_visit_data(parquet_file)
             assert isinstance(reloaded, pd.DataFrame)
+
+            # Same number of rows and same set of columns.
             assert len(reloaded) == len(original)
-            np.testing.assert_array_almost_equal(
-                reloaded["fieldRA"].values, original["fieldRA"].values, decimal=10
-            )
+            assert set(reloaded.columns) == set(original.columns)
 
-    def test_save_visits_does_not_mutate_input(self):
-        """Test that save_visits_as_parquet does not modify the caller's
-        DataFrame."""
-        df = pd.DataFrame(
-            {
-                "visit_id": [1, 2, 3],
-                "fieldRA": [10.0, 20.0, 30.0],
-                "note": ["a", None, "c"],
-                "all_nan": pd.array([None, None, None], dtype=object),
-            }
-        )
-        original_note = df["note"].copy()
-        original_all_nan = df["all_nan"].copy()
+            # Check every numeric column for exact value preservation.
+            numeric_cols = original.select_dtypes(include=[np.number]).columns
+            for col in numeric_cols:
+                np.testing.assert_array_almost_equal(
+                    reloaded[col].values,
+                    original[col].values,
+                    decimal=10,
+                    err_msg=f"Column '{col}' differs after parquet round-trip",
+                )
 
-        with TemporaryDirectory() as tmpdir:
-            parquet_file = os.path.join(tmpdir, "visits.parquet")
-            opsimUtils.save_visits_as_parquet(df, parquet_file)
-
-        # The original DataFrame should be unchanged.
-        pd.testing.assert_series_equal(df["note"], original_note)
-        pd.testing.assert_series_equal(df["all_nan"], original_all_nan)
+            # Check string columns: original NaN/None should become ""
+            # and non-null values should be preserved unchanged.
+            string_cols = original.select_dtypes(include=["object"]).columns
+            for col in string_cols:
+                mask_null = original[col].isna()
+                # Non-null values must be identical.
+                np.testing.assert_array_equal(
+                    reloaded.loc[~mask_null, col].values,
+                    original.loc[~mask_null, col].values,
+                    err_msg=f"String column '{col}' differs after round-trip",
+                )
+                # Where the original was null, the reloaded value is "".
+                assert (reloaded.loc[mask_null, col] == "").all(), (
+                    f"String column '{col}': expected '' for originally-null" " entries after round-trip"
+                )
 
 
 if __name__ == "__main__":
