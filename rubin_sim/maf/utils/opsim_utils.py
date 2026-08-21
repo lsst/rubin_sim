@@ -1,6 +1,7 @@
 __all__ = (
     "get_sim_data",
     "get_visit_data",
+    "save_visits_as_parquet",
     "scale_benchmarks",
     "calc_coadded_depth",
 )
@@ -159,7 +160,8 @@ def save_visits_as_parquet(
     ----------
     visits : `pandas.DataFrame` or Any
         Visit-like tabular data. If not already a `pandas.DataFrame`, the input
-        must be convertible via ``pandas.DataFrame(visits)``.
+        must be convertible via ``pandas.DataFrame(visits)``. For example,
+        a recarray.
     parquet_file_path : `str` or `pathlib.Path`
         Destination path for the output Parquet file. Parent directories are
         created automatically if they do not exist.
