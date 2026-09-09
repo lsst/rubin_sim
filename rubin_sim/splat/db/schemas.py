@@ -18,6 +18,7 @@ def empty_info(as_df_row=False, **kwargs):
     name : `str`
     col : `str`
     observations_subset : `str`
+    population : `str`
     slicer: nside : `int`
     summary_name : `str`
     value : `float`
@@ -31,6 +32,7 @@ def empty_info(as_df_row=False, **kwargs):
     result["unit"] = ""
     result["times"] = ""
     result["observations_subset"] = ""
+    result["population"] = ""
     result["nside"] = 0
     result["summary_name"] = ""
     result["value"] = 0.0
