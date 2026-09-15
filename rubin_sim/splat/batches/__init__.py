@@ -1,3 +1,4 @@
+from .agn_batch import *
 from .astrometry_batch import *
 from .batch_tools import *
 from .bd_batch import *

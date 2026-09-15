@@ -1,3 +1,4 @@
+from .agn_metrics import *
 from .astrometry_metrics import *
 from .brown_dwarf_metric import *
 from .color_slope_metric import *

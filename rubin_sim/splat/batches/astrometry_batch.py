@@ -2,7 +2,7 @@ __all__ = ("astrometry_batch",)
 
 import numpy as np
 
-import rubin_sim.splat as maf
+import rubin_sim.splat as splat
 
 
 def astrometry_batch(observations=None, run_name=None, quick_test=False, fig_saver=None):
@@ -18,11 +18,11 @@ def astrometry_batch(observations=None, run_name=None, quick_test=False, fig_sav
     quick_test : `bool`
         If True, grabs just the first 61 days of observations.
         Default False.
-    fig_saver : `rubin_sim.maf_splat.db.FigSaver`
+    fig_saver : `rubin_sim.splat_splat.db.FigSaver`
         Class that takes matplotlib.Figure objects and saves them.
         Default None.
     """
-    visits_array, df, run_name, subset, fig_saver = maf.batch_preamble(
+    visits_array, df, run_name, subset, fig_saver = splat.batch_preamble(
         observations=observations,
         run_name=run_name,
         quick_test=quick_test,
@@ -30,14 +30,14 @@ def astrometry_batch(observations=None, run_name=None, quick_test=False, fig_sav
     )
 
     # Add any new columns we need
-    ra_pi_amp, dec_pi_amp = maf.parallax_amplitude(
+    ra_pi_amp, dec_pi_amp = splat.parallax_amplitude(
         df["fieldRA"].values, df["fieldDec"].values, df["observationStartMJD"].values, degrees=True
     )
 
     df["ra_pi_amp"] = ra_pi_amp
     df["dec_pi_amp"] = dec_pi_amp
 
-    ra_dcr_amp, dec_dcr_amp = maf.dcr_amplitude(
+    ra_dcr_amp, dec_dcr_amp = splat.dcr_amplitude(
         90.0 - df["altitude"].values, df["paraAngle"].values, df["filter"].values, degrees=True
     )
     df["ra_dcr_amp"] = ra_dcr_amp
@@ -49,19 +49,19 @@ def astrometry_batch(observations=None, run_name=None, quick_test=False, fig_sav
     summary_stats = []
 
     stats_to_run = {"mean": np.nanmean, "median": np.nanmedian}
-    sl = maf.Slicer(nside=64)
+    sl = splat.Slicer(nside=64)
 
     metrics = []
-    metrics.append(maf.ParallaxMetric())
-    metrics.append(maf.ProperMotionMetric())
-    metrics.append(maf.ParallaxCoverageMetric())
-    metrics.append(maf.ParallaxDcrDegenMetric())
+    metrics.append(splat.ParallaxMetric())
+    metrics.append(splat.ProperMotionMetric())
+    metrics.append(splat.ParallaxCoverageMetric())
+    metrics.append(splat.ParallaxDcrDegenMetric())
 
     infos = []
     plot_dicts = []
     for m in metrics:
-        info = maf.empty_info()
-        info["run_name"] = run_name
+        info = splat.empty_info()
+        info["data_source"] = run_name
         info["observations_subset"] = subset
         infos.append(info)
         plot_dicts.append({})
@@ -76,15 +76,15 @@ def astrometry_batch(observations=None, run_name=None, quick_test=False, fig_sav
     for hp_array, metric, info, plot_dict in zip(hp_arrays, metrics, infos, plot_dicts):
         if "min" in plot_dict.keys():
             if plot_dict["min"] == "percentile":
-                min_val, max_val = maf.percentile_clipping(hp_array[np.isfinite(hp_array)])
+                min_val, max_val = splat.percentile_clipping(hp_array[np.isfinite(hp_array)])
                 plot_dict["min"] = min_val
                 plot_dict["max"] = max_val
 
-        pm = maf.PlotMoll(info=info)
+        pm = splat.PlotMoll(info=info)
         fig = pm(hp_array, **plot_dict)
         fig_saver(fig, info=info)
         # Do whatever stats we want on the hp_array
         for stat in stats_to_run:
-            summary_stats.append(maf.gen_summary_row(info, stat, stats_to_run[stat](hp_array)))
+            summary_stats.append(splat.gen_summary_row(info, stat, stats_to_run[stat](hp_array)))
 
     return summary_stats
