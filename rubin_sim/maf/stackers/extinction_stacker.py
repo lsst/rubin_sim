@@ -200,8 +200,7 @@ def _fit_zp_extinction_one_group(
         )
         if ok:
             logger.debug(
-                "ZP+extinction fit stage 1 (RANSAC) succeeded: k=%.4f, zp=%.4f, "
-                "inliers=%d/%d.",
+                "ZP+extinction fit stage 1 (RANSAC) succeeded: k=%.4f, zp=%.4f, " "inliers=%d/%d.",
                 k,
                 zp,
                 num_inliers,
@@ -268,8 +267,7 @@ def _fit_zp_extinction_one_group(
     nonzero = airmass_pm > 0.0
     if nonzero.sum() < min_inliers:
         logger.debug(
-            "ZP+extinction fit stage 3: too few non-zero airmass points (%d); "
-            "returning NaN.",
+            "ZP+extinction fit stage 3: too few non-zero airmass points (%d); " "returning NaN.",
             int(nonzero.sum()),
         )
         return np.nan, np.nan
@@ -322,14 +320,10 @@ def _fit_zp_extinction_one_group(
                 orig_npts,
             )
             return k_fit, zp_fit
-        logger.debug(
-            "ZP+extinction fit stage 3: least_squares converged to infinite cost; "
-            "returning NaN."
-        )
+        logger.debug("ZP+extinction fit stage 3: least_squares converged to infinite cost; " "returning NaN.")
     except Exception as exc:
         logger.debug(
-            "ZP+extinction fit stage 3 (anchored-clip + bounded Huber) raised an "
-            "exception: %s.",
+            "ZP+extinction fit stage 3 (anchored-clip + bounded Huber) raised an " "exception: %s.",
             exc,
         )
 
@@ -346,7 +340,7 @@ def _fit_extinction_one_group(
     min_inliers,
     min_inlier_fraction,
 ):
-    """Fit the extinction coefficient for one group with a fixed zenith zeropoint.
+    """Fit the extinction coefficient for one group with a fixed zenith zp.
 
     Used when ``zp_window=0`` in the band prior, i.e. the zenith zeropoint is
     treated as perfectly known.  Only ``extinction_k`` is estimated; the
@@ -406,9 +400,7 @@ def _fit_extinction_one_group(
     zp_nz = zero_point[nonzero]
 
     if len(airmass_nz) == 0:
-        logger.debug(
-            "Extinction fit (fixed ZP): all airmass values are zero; returning NaN."
-        )
+        logger.debug("Extinction fit (fixed ZP): all airmass values are zero; returning NaN.")
         return np.nan, np.nan
 
     # Per-visit implied extinction coefficient.
@@ -432,8 +424,7 @@ def _fit_extinction_one_group(
 
     k_fit = float(np.clip(np.median(k_implied[inlier_mask]), k_min, k_max))
     logger.debug(
-        "Extinction fit (fixed ZP) succeeded: k=%.4f, zp=%.4f (fixed), "
-        "inliers=%d/%d.",
+        "Extinction fit (fixed ZP) succeeded: k=%.4f, zp=%.4f (fixed), " "inliers=%d/%d.",
         k_fit,
         zp_fixed,
         n_inliers,
