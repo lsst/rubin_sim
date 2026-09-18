@@ -395,7 +395,8 @@ class TestExtinctionStacker(unittest.TestCase):
             min_inlier_fraction=0.1,
         )
         self.assertFalse(np.isnan(k), "Stage 3 should recover k on high-scatter data")
-        # k must be within the allowed bounds (guaranteed by the bounded solver)
+        # k must be within the allowed bounds
+        # (guaranteed by the bounded solver)
         self.assertGreaterEqual(k, k_min)
         self.assertLessEqual(k, k_max)
         # zp must also be within bounds
@@ -426,7 +427,8 @@ class TestExtinctionStacker(unittest.TestCase):
         self.assertFalse(np.all(np.isnan(k_vals)), "Fixed-ZP fit should succeed")
         # All visits in the group share the same k
         self.assertTrue(np.allclose(k_vals, k_vals[0], equal_nan=False))
-        # k should be reasonable (within 0.05 of true; slight bias from wrong ZP is OK)
+        # k should be reasonable
+        # (within 0.05 of true; slight bias from wrong ZP is OK)
         self.assertAlmostEqual(float(k_vals[0]), true_k, delta=0.05)
         # fitted_zeropoint must be exactly the fixed value, never adjusted
         self.assertTrue(
