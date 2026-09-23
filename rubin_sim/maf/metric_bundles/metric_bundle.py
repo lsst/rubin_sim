@@ -1,6 +1,8 @@
 __all__ = ("MetricBundle", "create_empty_metric_bundle")
 
+import keyword
 import os
+import re
 import warnings
 from copy import deepcopy
 
@@ -14,6 +16,23 @@ import rubin_sim.maf.slicers as slicers
 import rubin_sim.maf.stackers as stackers
 import rubin_sim.maf.utils as utils
 from rubin_sim.maf.stackers import ColInfo
+
+
+_PD_SKIP = frozenset({"True", "False", "None", "inf", "Inf", "nan", "NaN"})
+
+
+def _cols_from_pdconstraint(pdconstraint):
+    """Return the set of column names referenced in a pandas query string."""
+    if not pdconstraint:
+        return set()
+    # Backtick-quoted names (e.g. `filter`) are literal column names.
+    cols = set(re.findall(r"`([^`]+)`", pdconstraint))
+    # Bare identifiers outside backtick spans.
+    stripped = re.sub(r"`[^`]+`", "", pdconstraint)
+    for tok in re.findall(r"\b([a-zA-Z_]\w*)\b", stripped):
+        if not keyword.iskeyword(tok) and tok not in _PD_SKIP:
+            cols.add(tok)
+    return cols
 
 
 def create_empty_metric_bundle():
@@ -79,6 +98,11 @@ class MetricBundle:
         A list of pre-configured maps to use for the metric.
         This will be auto-generated if specified
         by the metric class, but pre-configured versions will override these.
+    pdconstraint : `str` or None, opt
+        A constraint passed to `pandas.DataFrame.query`, applied after
+        the SQL query.  Useful for filtering on columns with names that
+        are reserved SQL words (e.g. ``filter``), or on columns produced
+        by stackers that are not in the database.
 
     Notes
     -----
@@ -122,6 +146,7 @@ class MetricBundle:
         maps_list=None,
         file_root=None,
         plot_funcs=None,
+        pdconstraint=None,
     ):
         # Set the metric.
         if not isinstance(metric, metrics.BaseMetric):
@@ -135,6 +160,7 @@ class MetricBundle:
         self.constraint = constraint
         if self.constraint is None:
             self.constraint = ""
+        self.pdconstraint = pdconstraint if pdconstraint is not None else ""
         # Set the stacker_list if applicable.
         if stacker_list is not None:
             if isinstance(stacker_list, stackers.BaseStacker):
@@ -208,6 +234,7 @@ class MetricBundle:
         self.metric = None
         self.slicer = None
         self.constraint = None
+        self.pdconstraint = None
         self.stacker_list = []
         self.summary_metrics = []
         self.plot_funcs = []
@@ -290,6 +317,8 @@ class MetricBundle:
         for s in self.stacker_list:
             known_cols += s.cols_req
         known_cols = set(known_cols)
+        # Columns referenced in pdconstraint must also be fetched.
+        known_cols |= _cols_from_pdconstraint(self.pdconstraint)
         # Track sources of all of these columns.
         self.db_cols = set()
         new_stackers = set()
@@ -631,7 +660,7 @@ class MetricBundle:
         """
         if self.summary_values is None:
             self.summary_values = {}
-        if self.summary_metrics is not None:
+        if self.summary_metrics is not None and self.metric_values is not None:
             # Build array of metric values, to use for  summary statistics.
             arr = self.metric_values.compressed()
             rarr_std = np.empty(arr.shape, dtype=[("metricdata", arr.dtype)])
@@ -727,6 +756,7 @@ class MetricBundle:
             summary_metrics=self.summary_metrics,
             maps_list=self.maps_list,
             file_root="",
+            pdconstraint=self.pdconstraint,
         )
         # Build a new output file root name.
         newmetric_bundle._build_file_root()
