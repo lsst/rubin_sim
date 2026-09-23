@@ -14,6 +14,7 @@ import warnings
 from collections.abc import Callable
 
 import click
+import numpy as np
 import pandas as pd
 
 import rubin_sim.maf.batches as batches
@@ -22,6 +23,15 @@ import rubin_sim.maf.metric_bundles as mb
 from rubin_sim.maf.stackers.date_stackers import DayObsStacker
 from rubin_sim.maf.utils.opsim_utils import get_sim_data
 
+# Default values for consdb columns without valid values
+CONSDB_DEFAULTS = {
+    'exposures': 1,
+    'fiveSigmaDepth': -np.inf
+    }
+
+# Columns required to be non-null in consdb for the visit
+# to be included.
+CONSDB_COLUMNS_TO_DROP_IF_NULL = ['fiveSigmaDepth']
 
 def _dayobs_range(start_dayobs: int, end_dayobs: int, step: int = 1) -> list[int]:
     """Return a list of integer dayobs values from start to end (inclusive)."""
@@ -98,11 +108,27 @@ def build_chimera(
     """
     consdb_part = consdb_visits.loc[
         (consdb_visits["dayObs"] >= int(start_dayobs)) & (consdb_visits["dayObs"] <= int(transition_dayobs))
-    ]
+    ].copy()
+
+    # Drop visits where columns that require valid values are null
+    consdb_part.dropna(subset=CONSDB_COLUMNS_TO_DROP_IF_NULL, inplace=True)
+
+    # Mark which visits were simulated, and which not
+    consdb_part['simulated'] = False
+
+    
+    # Fix columns from consdb that can be missing or have bad values
+    for column in CONSDB_DEFAULTS:
+        if column not in consdb_part.columns:
+            consdb_part[column] = CONSDB_DEFAULTS[column]
+        else:
+            consdb_part[column].fillna(CONSDB_DEFAULTS[column], inplace=True)
+
     opsim_part = opsim_visits.loc[
         (opsim_visits["dayObs"] > int(transition_dayobs)) & (opsim_visits["dayObs"] <= int(end_dayobs))
-    ]
-
+    ].copy()
+    opsim_part['simulated'] = True
+    
     common_cols = sorted(set(consdb_part.columns) & set(opsim_part.columns))
     if not common_cols:
         raise ValueError("consdb_visits and opsim_visits share no common columns; " "cannot build a chimera.")
@@ -237,7 +263,7 @@ def make_chimera_summary_table(results_db: db.ResultsDb | str) -> pd.DataFrame:
     Queries the ``ResultsDb`` for all runs whose names match the
     ``chimera_YYYYMMDD`` pattern and returns a wide-format DataFrame with
     one row per transition date and one column per summary metric.
-
+g
     Parameters
     ----------
     results_db : `rubin_sim.maf.db.ResultsDb` or `str`
