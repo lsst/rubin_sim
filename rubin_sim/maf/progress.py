@@ -3,6 +3,7 @@ __all__ = (
     "build_chimera",
     "build_chimeras",
     "run_chimera_batches",
+    "run_progress_batches",
     "make_chimera_summary_table",
 )
 
@@ -290,6 +291,71 @@ def run_chimera_batches(
     return os.path.join(out_dir, "resultsDb_sqlite.db")
 
 
+def run_progress_batches(
+    visits_path: str,
+    start_dayobs: int,
+    end_dayobs: int,
+    step: int = 30,
+    out_dir: str = ".",
+    run_prefix: str = "chimera",
+    batch_kwargs: dict | None = None,
+) -> str:
+    """Run snapshot MAF metric batches for a range of dayobs values.
+
+    Calls `rubin_sim.maf.batches.snapshot_batch` once per dayobs value in
+    ``dayobs_range(start_dayobs, end_dayobs, step)``, filtering each run to
+    visits with ``dayObs <= dayobs``.  All runs share a single ``ResultsDb``
+    in ``out_dir``.
+
+    Parameters
+    ----------
+    visits_path : `str`
+        Path to an HDF5 or SQLite visits file.  The file must include a
+        boolean ``simulated`` column and a ``dayObs`` column (integer
+        YYYYMMDD).  May be a chimera file, a pure baseline, or a
+        consdb-derived visits file.
+    start_dayobs : `int`
+        First dayobs in the sequence, YYYYMMDD.
+    end_dayobs : `int`
+        Last dayobs in the sequence, YYYYMMDD (inclusive).
+    step : `int`, optional
+        Number of nights between successive dayobs values.  Default 30.
+    out_dir : `str`, optional
+        Directory for results_db and metric output files.
+    run_prefix : `str`, optional
+        Prefix for the run name, which will be f"{run_prefix}_{dayobs}"
+    batch_kwargs : `dict`, optional
+        Additional keyword arguments forwarded to ``snapshot_batch`` for
+        each run (e.g. ``nside``, ``bands``).
+
+    Returns
+    -------
+    results_db_path : `str`
+        Path to the shared ``resultsDb_sqlite.db`` file.
+    """
+    os.makedirs(out_dir, exist_ok=True)
+    results_db = db.ResultsDb(out_dir=out_dir)
+    batch_kwargs = {} if batch_kwargs is None else dict(batch_kwargs)
+
+    dayobs_list = dayobs_range(start_dayobs, end_dayobs, step)
+    if not dayobs_list or dayobs_list[-1] != end_dayobs:
+        dayobs_list.append(end_dayobs)
+    for dayobs in dayobs_list:
+        run_name = f"{run_prefix}_{int(dayobs):08d}"
+        bdict = batches.snapshot_batch(run_name=run_name, end_dayobs=dayobs, **batch_kwargs)
+        group = mb.MetricBundleGroup(
+            bdict,
+            visits_path,
+            out_dir=out_dir,
+            results_db=results_db,
+            save_early=False,
+        )
+        group.run_all(clear_memory=True)
+
+    results_db.close()
+    return os.path.join(out_dir, "resultsDb_sqlite.db")
+
+
 def make_chimera_summary_table(results_db: db.ResultsDb | str) -> pd.DataFrame:
     """Build a summary table from chimera run results.
 
@@ -473,6 +539,71 @@ def run_chimera_batches_cmd(chimera_dir, out_dir, batch, batch_kwargs):
         batch_kwargs=parsed_batch_kwargs,
     )
     click.echo(f"Results written to {results_db_path}.")
+
+
+@click.command(name="run_progress_batches")
+@click.option(
+    "--visits-file",
+    required=True,
+    type=click.Path(exists=True),
+    help="HDF5 or SQLite visits file with a 'simulated' column and a 'dayObs' column.",
+)
+@click.option("--out-dir", default=".", show_default=True, help="Output directory for results_db.")
+@click.option("--start-dayobs", required=True, type=int, help="Start date YYYYMMDD.")
+@click.option("--end-dayobs", required=True, type=int, help="End date YYYYMMDD (inclusive).")
+@click.option("--step", default=1, show_default=True, type=int, help="Nights between successive dayobs values.")
+@click.option(
+    "--run-prefix",
+    default="chimera",
+    show_default=True,
+    help="Prefix for run names, which will be {run_prefix}_{YYYYMMDD}.",
+)
+@click.option(
+    "--batch-kwarg",
+    "batch_kwargs",
+    multiple=True,
+    help="Additional snapshot_batch kwarg as KEY=VALUE. May be specified multiple times.",
+)
+def run_progress_batches_cmd(visits_file, out_dir, start_dayobs, end_dayobs, step, run_prefix, batch_kwargs):
+    """Run snapshot MAF metric batches for a range of dayobs values.
+
+    For each dayobs in [start_dayobs, end_dayobs] (stepped by --step), runs
+    snapshot_batch filtering visits to dayObs <= dayobs. Run names are of the
+    form snapshot_YYYYMMDD.
+    """
+    parsed_batch_kwargs = {}
+    for item in batch_kwargs:
+        if "=" not in item:
+            raise click.BadParameter(
+                f"Invalid --batch-kwarg '{item}'. Expected KEY=VALUE.",
+                param_hint="--batch-kwarg",
+            )
+        key, value_text = item.split("=", 1)
+        if not key:
+            raise click.BadParameter(
+                f"Invalid --batch-kwarg '{item}'. Key cannot be empty.",
+                param_hint="--batch-kwarg",
+            )
+        try:
+            value = ast.literal_eval(value_text)
+        except (ValueError, SyntaxError):
+            value = value_text
+        parsed_batch_kwargs[key] = value
+
+    dayobs_list = dayobs_range(start_dayobs, end_dayobs, step)
+    if not dayobs_list:
+        raise click.UsageError("dayobs_range produced no dates; check --start-dayobs and --end-dayobs.")
+
+    results_db_path = run_progress_batches(
+        visits_file,
+        start_dayobs=start_dayobs,
+        end_dayobs=end_dayobs,
+        step=step,
+        out_dir=out_dir,
+        run_prefix=run_prefix,
+        batch_kwargs=parsed_batch_kwargs,
+    )
+    click.echo(f"Ran {len(dayobs_list)} snapshot batch(es). Results written to {results_db_path}.")
 
 
 @click.command(name="make_chimera_summary_table")

@@ -261,6 +261,7 @@ def snapshot_batch(
     nside: int = 32,
     bands: Sequence[str] = ("u", "g", "r", "i", "z", "y"),
     label_prefix: str = "snapshot",
+    end_dayobs: int | None = None,
 ) -> dict[str, maf.metric_bundles.MetricBundle]:
     """Generate progress-tracking metrics for the snapshot subsets.
 
@@ -279,6 +280,9 @@ def snapshot_batch(
         There is always an all-visits version of the metrics run as well.
     label_prefix : `str`, optional
         Prefix for metric info labels.
+    end_dayobs : `int`, optional
+        If provided, only visits with ``dayObs <= end_dayobs`` are included
+        (YYYYMMDD integer format).
 
     Returns
     -------
@@ -286,12 +290,16 @@ def snapshot_batch(
         A dictionary of metric bundles keyed by their file names.
     """
     colmap = _make_colmap(colmap)
-    
+
+    dayobs_filter = f" and dayObs <= {int(end_dayobs)}" if end_dayobs is not None else ""
+
     pdconstraints: dict[str, str] = {}
     for band in bands:
-        pdconstraints[f"{label_prefix}_{band}"] = f"not simulated and {colmap['band']} == '{band}'"
+        pdconstraints[f"{label_prefix}_{band}"] = (
+            f"not simulated{dayobs_filter} and {colmap['band']} == '{band}'"
+        )
 
-    pdconstraints[f"{label_prefix}_all"] = "not simulated"
+    pdconstraints[f"{label_prefix}_all"] = f"not simulated{dayobs_filter}"
 
     bundle_list = _make_base_progress_bundle_list(pdconstraints, colmap, nside)
 

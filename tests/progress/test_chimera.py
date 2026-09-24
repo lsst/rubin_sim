@@ -1,32 +1,28 @@
 """Test suite for the chimera progress capability.
 
-This module contains tests for the core API functions in rubin_sim.maf.chimera_progress:
-- build_chimera
-- build_chimeras
-- run_chimera_batches
-- make_chimera_summary_table
-
-Tests follow the unittest.TestCase pattern and use synthetic test data generated
-from the baseline opsim database.
+Tests the chimera and snapshot APIs in rubin_sim.maf.progress using
+synthetic visits sampled from the baseline opsim database.
 """
 
 import os
 import tempfile
 import unittest
+from unittest.mock import call, patch
 
 import numpy as np
 import pandas as pd
 
 import rubin_sim.maf.batches as batches
-from rubin_sim.maf.chimera_progress import (
+from rubin_sim.maf.progress import (
     _dayobs_from_filename,
     _dayobs_from_run_name,
-    _dayobs_range,
     _run_name_from_dayobs,
     build_chimera,
     build_chimeras,
+    dayobs_range,
     make_chimera_summary_table,
     run_chimera_batches,
+    run_progress_batches,
 )
 from rubin_sim.maf.db import ResultsDb
 
@@ -38,22 +34,29 @@ class TestDayObsHelpers(unittest.TestCase):
     """Test helper functions for dayObs manipulation."""
 
     def test_dayobs_range_basic(self):
-        """Test _dayobs_range with basic inputs."""
-        result = _dayobs_range(20260101, 20260105, 1)
+        """Test dayobs_range with basic inputs."""
+        result = dayobs_range(20260101, 20260105, 1)
         expected = [20260101, 20260102, 20260103, 20260104, 20260105]
         self.assertEqual(result, expected)
 
     def test_dayobs_range_with_step(self):
-        """Test _dayobs_range with step parameter."""
-        result = _dayobs_range(20260101, 20260107, 2)
+        """Test dayobs_range with step parameter."""
+        result = dayobs_range(20260101, 20260107, 2)
         expected = [20260101, 20260103, 20260105, 20260107]
         self.assertEqual(result, expected)
 
     def test_dayobs_range_same_start_end(self):
-        """Test _dayobs_range when start equals end."""
-        result = _dayobs_range(20260105, 20260105, 1)
+        """Test dayobs_range when start equals end."""
+        result = dayobs_range(20260105, 20260105, 1)
         expected = [20260105]
         self.assertEqual(result, expected)
+
+    def test_dayobs_range_crosses_month_boundary(self):
+        self.assertEqual(dayobs_range(20260130, 20260202), [20260130, 20260131, 20260201, 20260202])
+
+    def test_dayobs_range_rejects_nonpositive_step(self):
+        with self.assertRaises(ValueError):
+            dayobs_range(20260101, 20260105, 0)
 
     def test_run_name_from_dayobs(self):
         """Test _run_name_from_dayobs conversion."""
@@ -89,6 +92,7 @@ class TestBuildChimera(unittest.TestCase):
             "observationId": [1, 2, 3],
             "dayObs": [20260101, 20260102, 20260103],
             "filter": ["g", "r", "i"],
+            "fiveSigmaDepth": [24.1, 24.2, 24.3],
             "observationStartMJD": [61000, 61001, 61002],
         })
 
@@ -96,6 +100,8 @@ class TestBuildChimera(unittest.TestCase):
             "observationId": [101, 102, 103],
             "dayObs": [20260104, 20260105, 20260106],
             "filter": ["g", "r", "i"],
+            "fiveSigmaDepth": [23.1, 23.2, 23.3],
+            "exposures": [2, 2, 2],
             "observationStartMJD": [61003, 61004, 61005],
         })
 
@@ -110,6 +116,29 @@ class TestBuildChimera(unittest.TestCase):
         )
         self.assertEqual(len(result), 6)
         self.assertEqual(result["observationId"].tolist(), [1, 2, 3, 101, 102, 103])
+
+    def test_simulated_flag_and_missing_exposures(self):
+        result = build_chimera(
+            self.consdb_visits,
+            self.opsim_visits,
+            start_dayobs=20260101,
+            transition_dayobs=20260103,
+            end_dayobs=20260106,
+        )
+        self.assertEqual(result["simulated"].tolist(), [False, False, False, True, True, True])
+        self.assertEqual(result["exposures"].tolist()[:3], [1, 1, 1])
+
+    def test_drops_consdb_visits_without_depth(self):
+        consdb = self.consdb_visits.copy()
+        consdb.loc[1, "fiveSigmaDepth"] = np.nan
+        result = build_chimera(
+            consdb,
+            self.opsim_visits,
+            start_dayobs=20260101,
+            transition_dayobs=20260103,
+            end_dayobs=20260106,
+        )
+        self.assertEqual(result["observationId"].tolist(), [1, 3, 101, 102, 103])
 
     def test_dayobs_boundary(self):
         """Test that dayObs boundary is correct."""
@@ -131,11 +160,7 @@ class TestBuildChimera(unittest.TestCase):
 
     def test_empty_consdb_returns_empty(self):
         """Test with empty consdb visits where no opsim in range."""
-        consdb = pd.DataFrame({
-            "observationId": [],
-            "dayObs": [],
-            "filter": [],
-        })
+        consdb = self.consdb_visits.iloc[:0].copy()
 
         # When transition_dayobs is before all opsim visits and end_dayobs is
         # also before, result should be empty
@@ -151,11 +176,7 @@ class TestBuildChimera(unittest.TestCase):
 
     def test_empty_consdb_returns_opsim(self):
         """Test with empty consdb visits."""
-        consdb = pd.DataFrame({
-            "observationId": [],
-            "dayObs": [],
-            "filter": [],
-        })
+        consdb = self.consdb_visits.iloc[:0].copy()
 
         result = build_chimera(
             consdb,
@@ -164,19 +185,11 @@ class TestBuildChimera(unittest.TestCase):
             transition_dayobs=20260106,
             end_dayobs=20260106,
         )
-        # When consdb is empty but opsim has visits in range, return opsim visits
-        # All opsim visits have dayObs 4, 5, 6 and end_dayobs=6 with transition=6
-        # opsim visits with dayObs > 6 and <= 6 = none
-        # So result should be empty
         self.assertEqual(len(result), 0)
 
     def test_empty_opsim_returns_consdb(self):
         """Test with empty opsim visits."""
-        opsim = pd.DataFrame({
-            "observationId": [],
-            "dayObs": [],
-            "filter": [],
-        })
+        opsim = self.opsim_visits.iloc[:0].copy()
 
         result = build_chimera(
             self.consdb_visits,
@@ -185,7 +198,6 @@ class TestBuildChimera(unittest.TestCase):
             transition_dayobs=20260106,
             end_dayobs=20260106,
         )
-        # All consdb visits (dayObs 1, 2, 3) are <= transition (6), so all 3 should be included
         self.assertEqual(len(result), 3)
 
     def test_filter_by_dayobs(self):
@@ -383,9 +395,6 @@ class TestRunChimeraBatches(unittest.TestCase):
 
     def test_handles_run_name_and_runname(self):
         """Test that run_chimera_batches handles run_name and runName."""
-        # The run_chimera_batches function tries run_name first, then falls back
-        # to runName if there's a TypeError about unexpected 'run_name' argument.
-        # This test verifies the fallback logic works.
 
         def batch_func_with_fallback(**kwargs) -> dict:
             """Batch function that handles both run_name and runName."""
@@ -437,6 +446,70 @@ class TestRunChimeraBatches(unittest.TestCase):
         results_db.close()
 
         self.assertEqual(len(run_names), len(self.chimera_specs))
+
+
+class TestRunProgressBatches(unittest.TestCase):
+    def test_runs_snapshots_through_end_dayobs(self):
+        with tempfile.TemporaryDirectory() as out_dir:
+            with (
+                patch("rubin_sim.maf.progress.batches.snapshot_batch", return_value={"metric": 1}) as batch,
+                patch("rubin_sim.maf.progress.mb.MetricBundleGroup") as group,
+                patch("rubin_sim.maf.progress.db.ResultsDb") as results_db,
+            ):
+                path = run_progress_batches(
+                    "visits.h5",
+                    start_dayobs=20260130,
+                    end_dayobs=20260203,
+                    step=2,
+                    out_dir=out_dir,
+                    run_prefix="baseline",
+                    batch_kwargs={"nside": 8},
+                )
+
+            self.assertEqual(path, os.path.join(out_dir, "resultsDb_sqlite.db"))
+            self.assertEqual(
+                batch.call_args_list,
+                [
+                    call(run_name="baseline_20260130", end_dayobs=20260130, nside=8),
+                    call(run_name="baseline_20260201", end_dayobs=20260201, nside=8),
+                    call(run_name="baseline_20260203", end_dayobs=20260203, nside=8),
+                ],
+            )
+            self.assertEqual(group.call_count, 3)
+            for group_call in group.call_args_list:
+                self.assertEqual(group_call.args, (batch.return_value, "visits.h5"))
+                self.assertEqual(group_call.kwargs["out_dir"], out_dir)
+                self.assertIs(group_call.kwargs["results_db"], results_db.return_value)
+            self.assertEqual(group.return_value.run_all.call_args_list, [call(clear_memory=True)] * 3)
+            results_db.return_value.close.assert_called_once_with()
+
+    def test_appends_end_dayobs_off_cadence(self):
+        with tempfile.TemporaryDirectory() as out_dir:
+            with (
+                patch("rubin_sim.maf.progress.batches.snapshot_batch", return_value={}) as batch,
+                patch("rubin_sim.maf.progress.mb.MetricBundleGroup"),
+                patch("rubin_sim.maf.progress.db.ResultsDb"),
+            ):
+                run_progress_batches("visits.h5", 20260101, 20260106, step=4, out_dir=out_dir)
+            self.assertEqual(
+                batch.call_args_list,
+                [
+                    call(run_name="chimera_20260101", end_dayobs=20260101),
+                    call(run_name="chimera_20260105", end_dayobs=20260105),
+                    call(run_name="chimera_20260106", end_dayobs=20260106),
+                ],
+            )
+
+
+class TestSnapshotBatch(unittest.TestCase):
+    def test_filters_real_visits_through_end_dayobs(self):
+        from rubin_sim.maf.batches.progress_batch import snapshot_batch
+
+        bundles = snapshot_batch(run_name="baseline_20260102", bands=("g",), nside=8, end_dayobs=20260102)
+        constraints = {bundle.info_label: bundle.pdconstraint for bundle in bundles.values()}
+        self.assertEqual(constraints["snapshot_all"], "not simulated and dayObs <= 20260102")
+        self.assertEqual(constraints["snapshot_g"], "not simulated and dayObs <= 20260102 and band == 'g'")
+        self.assertEqual({bundle.run_name for bundle in bundles.values()}, {"baseline_20260102"})
 
 
 class TestMakeChimeraSummaryTable(unittest.TestCase):
