@@ -231,6 +231,7 @@ class MetricBundle:
             shape = self.slicer.shape
         else:
             shape = (self.slicer.shape, self.metric.shape)
+        print(self.slicer.shape)
         self.metric_values = ma.MaskedArray(
             data=np.empty(shape, dtype),
             mask=np.zeros(shape, "bool"),
