@@ -231,6 +231,7 @@ class MetricBundle:
             shape = self.slicer.shape
         else:
             shape = (self.slicer.shape, self.metric.shape)
+        print(self.slicer.shape)
         self.metric_values = ma.MaskedArray(
             data=np.empty(shape, dtype),
             mask=np.zeros(shape, "bool"),
@@ -328,6 +329,8 @@ class MetricBundle:
             self.db_cols.remove("metricdata")
         if "None" in self.db_cols:
             self.db_cols.remove("None")
+        if None in self.db_cols:
+            self.db_cols.remove(None)
 
     def set_summary_metrics(self, summary_metrics):
         """Set (or reset) the summary metrics for the metricbundle.

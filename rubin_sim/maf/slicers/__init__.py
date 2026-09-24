@@ -4,6 +4,7 @@ from .healpix_sdss_slicer import *
 from .healpix_slicer import *
 from .healpix_subset_slicer import *
 from .hourglass_slicer import *
+from .lcl_slicer import *
 from .mo_slicer import *
 from .movie_slicer import *
 from .nd_slicer import *
