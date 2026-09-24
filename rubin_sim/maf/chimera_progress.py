@@ -1,4 +1,5 @@
 __all__ = (
+    "dayobs_range",
     "build_chimera",
     "build_chimeras",
     "run_chimera_batches",
@@ -33,8 +34,40 @@ CONSDB_DEFAULTS = {
 # to be included.
 CONSDB_COLUMNS_TO_DROP_IF_NULL = ['fiveSigmaDepth']
 
-def _dayobs_range(start_dayobs: int, end_dayobs: int, step: int = 1) -> list[int]:
-    """Return a list of integer dayobs values from start to end (inclusive)."""
+
+def dayobs_range(start_dayobs: int, end_dayobs: int, step: int = 1) -> list[int]:
+    """Generate a list of integer ``dayObs`` values between two dates.
+
+    ``dayObs`` values are integer dates formatted as ``YYYYMMDD`` in the
+    UTC-12 observing day convention. The returned list begins at
+    ``start_dayobs`` and includes each subsequent date separated by ``step``
+    nights, up to and including ``end_dayobs`` whenever the step lands exactly
+    on or before it.
+
+    Parameters
+    ----------
+    start_dayobs : `int`
+        First date in the range, formatted as ``YYYYMMDD``.
+    end_dayobs : `int`
+        Last date in the range, formatted as ``YYYYMMDD``.
+    step : `int`, optional
+        Number of days to advance between successive values. Must be a
+        positive integer. Default is 1.
+
+    Returns
+    -------
+    dayobs_list : `list` [`int`]
+        List of integer ``YYYYMMDD`` dayObs values from ``start_dayobs`` to
+        ``end_dayobs`` (inclusive), spaced by ``step`` days.
+
+    Raises
+    ------
+    ValueError
+        If ``step`` is not a positive integer.
+    """
+
+    if step <= 0:
+        raise ValueError("step must be a positive integer.")
 
     def _dayobs_to_date(dayobs: int) -> datetime.date:
         s = f"{int(dayobs):08d}"
@@ -181,7 +214,7 @@ def build_chimeras(
     """
     os.makedirs(out_dir, exist_ok=True)
     last_consdb = int(consdb_visits["dayObs"].max())
-    transition_dates = _dayobs_range(start_dayobs, last_consdb, step)
+    transition_dates = dayobs_range(start_dayobs, last_consdb, step)
     if not transition_dates or transition_dates[-1] != last_consdb:
         transition_dates.append(last_consdb)
     chimera_specs = []
