@@ -73,7 +73,7 @@ def _local_get_sim_data(
         table_name = "observations"
 
     if full_sql_query is None:
-        col_str = "*" if dbcols is None else ", ".join(dbcols)
+        col_str = "*" if len(dbcols) == 0 else ", ".join(dbcols)
 
         query = "SELECT %s FROM %s" % (col_str, table_name)
         if len(sqlconstraint) > 0:
