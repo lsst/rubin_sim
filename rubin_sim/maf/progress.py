@@ -1,0 +1,648 @@
+__all__ = (
+    "dayobs_range",
+    "build_chimera",
+    "build_chimeras",
+    "run_chimera_batches",
+    "run_progress_batches",
+    "make_chimera_summary_table",
+)
+
+import ast
+import datetime
+import glob
+import os
+import re
+import warnings
+from collections.abc import Callable
+
+import click
+import numpy as np
+import pandas as pd
+
+import rubin_sim.maf.batches as batches
+import rubin_sim.maf.db as db
+import rubin_sim.maf.metric_bundles as mb
+from rubin_sim.maf.stackers.date_stackers import DayObsStacker
+from rubin_sim.maf.utils.opsim_utils import get_sim_data
+
+# Default values for consdb columns without valid values
+CONSDB_DEFAULTS = {
+    'exposures': 1,
+    'fiveSigmaDepth': -np.inf
+    }
+
+# Columns required to be non-null in consdb for the visit
+# to be included.
+CONSDB_COLUMNS_TO_DROP_IF_NULL = ['fiveSigmaDepth']
+
+
+def dayobs_range(start_dayobs: int, end_dayobs: int, step: int = 1) -> list[int]:
+    """Generate a list of integer ``dayObs`` values between two dates.
+
+    ``dayObs`` values are integer dates formatted as ``YYYYMMDD`` in the
+    UTC-12 observing day convention. The returned list begins at
+    ``start_dayobs`` and includes each subsequent date separated by ``step``
+    nights, up to and including ``end_dayobs`` whenever the step lands exactly
+    on or before it.
+
+    Parameters
+    ----------
+    start_dayobs : `int`
+        First date in the range, formatted as ``YYYYMMDD``.
+    end_dayobs : `int`
+        Last date in the range, formatted as ``YYYYMMDD``.
+    step : `int`, optional
+        Number of days to advance between successive values. Must be a
+        positive integer. Default is 1.
+
+    Returns
+    -------
+    dayobs_list : `list` [`int`]
+        List of integer ``YYYYMMDD`` dayObs values from ``start_dayobs`` to
+        ``end_dayobs`` (inclusive), spaced by ``step`` days.
+
+    Raises
+    ------
+    ValueError
+        If ``step`` is not a positive integer.
+    """
+
+    if step <= 0:
+        raise ValueError("step must be a positive integer.")
+
+    def _dayobs_to_date(dayobs: int) -> datetime.date:
+        s = f"{int(dayobs):08d}"
+        return datetime.date(int(s[:4]), int(s[4:6]), int(s[6:]))
+
+    current = _dayobs_to_date(start_dayobs)
+    end_date = _dayobs_to_date(end_dayobs)
+    result = []
+    while current <= end_date:
+        dayobs = int(current.strftime("%Y%m%d"))
+        result.append(dayobs)
+        current += datetime.timedelta(days=step)
+    return result
+
+
+def _run_name_from_dayobs(transition_dayobs: int) -> str:
+    """Return the run name string for a given transition dayobs."""
+    return f"chimera_{int(transition_dayobs):08d}"
+
+
+def _dayobs_from_run_name(run_name: str) -> int | None:
+    """Extract transition dayobs integer from a chimera run name, or None."""
+    m = re.match(r"^chimera_(\d{8})$", run_name)
+    return int(m.group(1)) if m else None
+
+
+def _dayobs_from_filename(path: str) -> int | None:
+    """Extract transition dayobs integer from a chimera HDF5
+    filename, or None."""
+    basename = os.path.basename(path)
+    m = re.match(r"^chimera_(\d{8})\.h5$", basename)
+    return int(m.group(1)) if m else None
+
+
+# ---------------------------------------------------------------------------
+# Core Python API
+# ---------------------------------------------------------------------------
+
+
+def build_chimera(
+    consdb_visits: pd.DataFrame,
+    opsim_visits: pd.DataFrame,
+    start_dayobs: int,
+    transition_dayobs: int,
+    end_dayobs: int,
+) -> pd.DataFrame:
+    """Build a single chimera visit sequence.
+
+    Combines consdb visits in [start_dayobs, transition_dayobs] with opsim
+    visits in (transition_dayobs, end_dayobs].  Both input DataFrames must
+    already have a ``dayObs`` column (integer YYYYMMDD, UTC-12).
+
+    Parameters
+    ----------
+    consdb_visits : `pandas.DataFrame`
+        Real visits from consdb. Must include a ``dayObs`` column.
+    opsim_visits : `pandas.DataFrame`
+        Simulated visits from an opsim database. Must include a ``dayObs``
+        column.
+    start_dayobs : `int`
+        Start of the chimera window, YYYYMMDD inclusive.
+    transition_dayobs : `int`
+        Transition date; consdb visits up to and including this date are used.
+    end_dayobs : `int`
+        End of the chimera window, YYYYMMDD inclusive.
+
+    Returns
+    -------
+    chimera : `pandas.DataFrame`
+        Combined visit sequence containing columns present in both inputs.
+    """
+    consdb_part = consdb_visits.loc[
+        (consdb_visits["dayObs"] >= int(start_dayobs)) & (consdb_visits["dayObs"] <= int(transition_dayobs))
+    ].copy()
+
+    # Drop visits where columns that require valid values are null
+    consdb_part.dropna(subset=CONSDB_COLUMNS_TO_DROP_IF_NULL, inplace=True)
+
+    # Mark which visits were simulated, and which not
+    consdb_part['simulated'] = False
+
+    # Fix columns from consdb that can be missing or have bad values
+    for column in CONSDB_DEFAULTS:
+        if column not in consdb_part.columns:
+            consdb_part[column] = CONSDB_DEFAULTS[column]
+        else:
+            consdb_part[column].fillna(CONSDB_DEFAULTS[column], inplace=True)
+
+    opsim_part = opsim_visits.loc[
+        (opsim_visits["dayObs"] > int(transition_dayobs)) & (opsim_visits["dayObs"] <= int(end_dayobs))
+    ].copy()
+    opsim_part['simulated'] = True
+
+    common_cols = sorted(set(consdb_part.columns) & set(opsim_part.columns))
+    if not common_cols:
+        raise ValueError("consdb_visits and opsim_visits share no common columns; " "cannot build a chimera.")
+
+    return pd.concat(
+        [consdb_part[common_cols], opsim_part[common_cols]],
+        ignore_index=True,
+    )
+
+
+def build_chimeras(
+    consdb_visits: pd.DataFrame,
+    opsim_visits: pd.DataFrame,
+    start_dayobs: int,
+    end_dayobs: int,
+    step: int = 1,
+    out_dir: str = ".",
+) -> list[tuple[int, str]]:
+    """Build chimera visit sequences for a range of transition dates.
+
+    For each transition date, a chimera is constructed by combining real
+    consdb visits up to that date with simulated opsim visits after it, then
+    saved as an HDF5 file named ``chimera_YYYYMMDD.h5``.
+
+    Both input DataFrames must already have a ``dayObs`` column (integer
+    YYYYMMDD, UTC-12).
+
+    Parameters
+    ----------
+    consdb_visits : `pandas.DataFrame`
+        Real visits from consdb. Must include a ``dayObs`` column.
+    opsim_visits : `pandas.DataFrame`
+        Simulated visits from an opsim database. Must include a ``dayObs``
+        column.
+    start_dayobs : `int`
+        First date in the chimera window, YYYYMMDD.
+    end_dayobs : `int`
+        End of the opsim extension window used for every chimera, YYYYMMDD.
+    step : `int`, optional
+        Number of nights between successive transition dates.  Default 1.
+    out_dir : `str`, optional
+        Directory in which to write HDF5 files.  Created if absent.
+
+    Returns
+    -------
+    chimera_specs : `list` of `(int, str)`
+        List of ``(transition_dayobs, hdf5_path)`` tuples, one per chimera.
+        The last transition date is always the maximum dayobs present in
+        ``consdb_visits``, even if it does not fall on the step cadence.
+    """
+    os.makedirs(out_dir, exist_ok=True)
+    last_consdb = int(consdb_visits["dayObs"].max())
+    transition_dates = dayobs_range(start_dayobs, last_consdb, step)
+    if not transition_dates or transition_dates[-1] != last_consdb:
+        transition_dates.append(last_consdb)
+    chimera_specs = []
+    for t in transition_dates:
+        chimera = build_chimera(consdb_visits, opsim_visits, start_dayobs, t, end_dayobs)
+        fname = os.path.join(out_dir, f"chimera_{t:08d}.h5")
+        chimera.to_hdf(fname, key="observations", complevel=5)
+        chimera_specs.append((t, fname))
+    return chimera_specs
+
+
+def run_chimera_batches(
+    chimera_specs: list[tuple[int, str]],
+    batch_func: Callable[..., dict] | None = None,
+    out_dir: str = ".",
+    batch_kwargs: dict | None = None,
+) -> str:
+    """Run MAF metric batches on a collection of chimera visit sequences.
+
+    Each chimera is processed with ``batch_func``, which should return a
+    dictionary of ``MetricBundle`` objects.  All runs share a single
+    ``ResultsDb`` in ``out_dir``, with run names of the form
+    ``chimera_YYYYMMDD`` encoding the transition date.
+
+    Parameters
+    ----------
+    chimera_specs : `list` of `(int, str)`
+        List of ``(transition_dayobs, hdf5_path)`` tuples as returned by
+        `build_chimeras`.
+    batch_func : callable, optional
+        Function with signature ``batch_func(run_name=...) -> dict``
+        or ``batch_func(runName=...) -> dict``
+        Defaults to `rubin_sim.maf.batches.glanceBatch`.
+    out_dir : `str`, optional
+        Directory for results_db and metric output files.
+    batch_kwargs : `dict`, optional
+        Additional keyword arguments forwarded to ``batch_func`` for each
+        chimera run.
+
+    Returns
+    -------
+    results_db_path : `str`
+        Path to the shared ``resultsDb_sqlite.db`` file.
+    """
+    if batch_func is None:
+        batch_func = batches.glanceBatch
+
+    os.makedirs(out_dir, exist_ok=True)
+    results_db = db.ResultsDb(out_dir=out_dir)
+    batch_kwargs = {} if batch_kwargs is None else dict(batch_kwargs)
+
+    for transition_dayobs, hdf5_path in chimera_specs:
+        run_name = _run_name_from_dayobs(transition_dayobs)
+        try:
+            bdict = batch_func(run_name=run_name, **batch_kwargs)
+        except TypeError as batch_error:
+            if "got an unexpected keyword argument 'run_name'" not in str(batch_error):
+                # we got some other exception, just pass it along.
+                raise
+            # We have a batch that uses runName instead of run_name.
+            bdict = batch_func(runName=run_name, **batch_kwargs)
+
+        group = mb.MetricBundleGroup(
+            bdict,
+            hdf5_path,
+            out_dir=out_dir,
+            results_db=results_db,
+            save_early=False,
+        )
+        group.run_all(clear_memory=True)
+
+    results_db.close()
+    return os.path.join(out_dir, "resultsDb_sqlite.db")
+
+
+def run_progress_batches(
+    visits_path: str,
+    start_dayobs: int,
+    end_dayobs: int,
+    step: int = 30,
+    out_dir: str = ".",
+    run_prefix: str = "consdb",
+    batch_kwargs: dict | None = None,
+    batch_func: Callable[..., dict] | None = None,
+) -> str:
+    """Run MAF metric batches for a range of dayobs values.
+
+    Calls ``batch_func`` once per dayobs value in
+    ``dayobs_range(start_dayobs, end_dayobs, step)``, passing the dayobs as
+    ``end_dayobs`` to filter visits. All runs share a single ``ResultsDb``
+    in ``out_dir``.
+
+    Parameters
+    ----------
+    visits_path : `str`
+        Path to an HDF5 or SQLite visits file.  The file must include a
+        boolean ``simulated`` column and a ``dayObs`` column (integer
+        YYYYMMDD).  May be a chimera file, a pure baseline, or a
+        consdb-derived visits file.
+    start_dayobs : `int`
+        First dayobs in the sequence, YYYYMMDD.
+    end_dayobs : `int`
+        Last dayobs in the sequence, YYYYMMDD (inclusive).
+    step : `int`, optional
+        Number of nights between successive dayobs values.  Default 30.
+    out_dir : `str`, optional
+        Directory for results_db and metric output files.
+    run_prefix : `str`, optional
+        Prefix for the run name, which will be f"{run_prefix}_{dayobs}"
+    batch_kwargs : `dict`, optional
+        Additional keyword arguments forwarded to ``batch_func`` for each run.
+    batch_func : callable, optional
+        Batch function accepting ``run_name`` and ``end_dayobs`` keyword
+        arguments. Defaults to `rubin_sim.maf.batches.snapshot_batch`.
+
+    Returns
+    -------
+    results_db_path : `str`
+        Path to the shared ``resultsDb_sqlite.db`` file.
+    """
+    if batch_func is None:
+        batch_func = batches.snapshot_batch
+
+    os.makedirs(out_dir, exist_ok=True)
+    results_db = db.ResultsDb(out_dir=out_dir)
+    batch_kwargs = {} if batch_kwargs is None else dict(batch_kwargs)
+
+    dayobs_list = dayobs_range(start_dayobs, end_dayobs, step)
+    if not dayobs_list or dayobs_list[-1] != end_dayobs:
+        dayobs_list.append(end_dayobs)
+    for dayobs in dayobs_list:
+        run_name = f"{run_prefix}_{int(dayobs):08d}"
+        bdict = batch_func(run_name=run_name, end_dayobs=dayobs, **batch_kwargs)
+        group = mb.MetricBundleGroup(
+            bdict,
+            visits_path,
+            out_dir=out_dir,
+            results_db=results_db,
+            save_early=False,
+        )
+        group.run_all(clear_memory=True)
+
+    results_db.close()
+    return os.path.join(out_dir, "resultsDb_sqlite.db")
+
+
+def make_chimera_summary_table(results_db: db.ResultsDb | str) -> pd.DataFrame:
+    """Build a summary table from chimera run results.
+
+    Queries the ``ResultsDb`` for all runs whose names match the
+    ``chimera_YYYYMMDD`` pattern and returns a wide-format DataFrame with
+    one row per transition date and one column per summary metric.
+g
+    Parameters
+    ----------
+    results_db : `rubin_sim.maf.db.ResultsDb` or `str`
+        An open ``ResultsDb`` instance, or a path to a ``resultsDb_sqlite.db``
+        file.
+
+    Returns
+    -------
+    summary_table : `pandas.DataFrame`
+        DataFrame indexed by ``transition_dayobs`` (integer YYYYMMDD) with a
+        ``MultiIndex`` column of
+        ``(metric_name, slicer_name, metric_info_label, summary_metric)``.
+    """
+    close_after = False
+    if isinstance(results_db, str):
+        results_db = db.ResultsDb(database=results_db)
+        close_after = True
+
+    # Get all run_names that look like chimera runs and find their metric IDs.
+    all_run_names = results_db.get_run_name()
+    chimera_run_names = [r for r in all_run_names if _dayobs_from_run_name(r) is not None]
+
+    if not chimera_run_names:
+        warnings.warn("No chimera run names found in results_db.")
+        if close_after:
+            results_db.close()
+        return pd.DataFrame()
+
+    # Collect all metric IDs for chimera runs.
+    metric_ids = []
+    for run_name in chimera_run_names:
+        results_db.open()
+        ids = (
+            results_db.session.query(db.results_db.MetricRow.metric_id)
+            .filter(db.results_db.MetricRow.run_name == run_name)
+            .all()
+        )
+        results_db.close()
+        metric_ids.extend(i[0] for i in ids)
+
+    if not metric_ids:
+        if close_after:
+            results_db.close()
+        return pd.DataFrame()
+
+    # Retrieve summary stats with run_name included.
+    stats = results_db.get_summary_stats(metric_id=metric_ids, with_sim_name=True)
+
+    if close_after:
+        results_db.close()
+
+    if stats.size == 0:
+        return pd.DataFrame()
+
+    df = pd.DataFrame(stats)
+    df["transition_dayobs"] = df["run_name"].apply(_dayobs_from_run_name)
+
+    pivot = df.pivot_table(
+        index="transition_dayobs",
+        columns=["metric_name", "slicer_name", "metric_info_label", "summary_metric"],
+        values="summary_value",
+        aggfunc="first",
+    )
+    pivot.index = pivot.index.astype(int)
+    pivot.sort_index(inplace=True)
+    return pivot
+
+
+# ---------------------------------------------------------------------------
+# CLI helpers: read visit sequences from files
+# ---------------------------------------------------------------------------
+
+
+def _read_visits_with_dayobs(path: str) -> pd.DataFrame:
+    """Read a visit sequence (SQLite or HDF5) and add a dayObs column."""
+    sim_data = get_sim_data(path, sqlconstraint="", stackers=[DayObsStacker()])
+    return pd.DataFrame(sim_data)
+
+
+# ---------------------------------------------------------------------------
+# Click CLI commands
+# ---------------------------------------------------------------------------
+
+
+@click.command(name="build_chimeras")
+@click.option(
+    "--consdb-file",
+    required=True,
+    type=click.Path(exists=True),
+    help="SQLite or HDF5 file with consdb visits.",
+)
+@click.option(
+    "--opsim-file",
+    required=True,
+    type=click.Path(exists=True),
+    help="SQLite or HDF5 file with opsim visits.",
+)
+@click.option("--start-dayobs", required=True, type=int, help="Start date YYYYMMDD.")
+@click.option("--end-dayobs", required=True, type=int, help="End date YYYYMMDD.")
+@click.option("--step", default=1, show_default=True, type=int, help="Nights between transition dates.")
+@click.option("--out-dir", default=".", show_default=True, help="Output directory for chimera HDF5 files.")
+def build_chimeras_cmd(consdb_file, opsim_file, start_dayobs, end_dayobs, step, out_dir):
+    """Build chimera visit sequences and save them as HDF5 files.
+
+    Each HDF5 file is named chimera_YYYYMMDD.h5, where YYYYMMDD is the
+    transition date that separates real consdb visits from simulated
+    opsim visits.
+    """
+    consdb_visits = _read_visits_with_dayobs(consdb_file)
+    opsim_visits = _read_visits_with_dayobs(opsim_file)
+    specs = build_chimeras(consdb_visits, opsim_visits, start_dayobs, end_dayobs, step, out_dir)
+    click.echo(f"Wrote {len(specs)} chimera files to {out_dir}.")
+
+
+@click.command(name="run_chimera_batches")
+@click.option(
+    "--chimera-dir",
+    required=True,
+    type=click.Path(exists=True),
+    help="Directory containing chimera_*.h5 files.",
+)
+@click.option("--out-dir", default=".", show_default=True, help="Output directory for results_db.")
+@click.option(
+    "--batch",
+    default="glanceBatch",
+    show_default=True,
+    help="Batch function name from rubin_sim.maf.batches.",
+)
+@click.option(
+    "--batch-kwarg",
+    "batch_kwargs",
+    multiple=True,
+    help="Additional batch kwarg as KEY=VALUE. May be specified multiple times.",
+)
+def run_chimera_batches_cmd(chimera_dir, out_dir, batch, batch_kwargs):
+    """Run MAF metric batches on all chimera HDF5 files in a directory."""
+    parsed_batch_kwargs = {}
+    for item in batch_kwargs:
+        if "=" not in item:
+            raise click.BadParameter(
+                f"Invalid --batch-kwarg '{item}'. Expected KEY=VALUE.",
+                param_hint="--batch-kwarg",
+            )
+        key, value_text = item.split("=", 1)
+        if not key:
+            raise click.BadParameter(
+                f"Invalid --batch-kwarg '{item}'. Key cannot be empty.",
+                param_hint="--batch-kwarg",
+            )
+        try:
+            value = ast.literal_eval(value_text)
+        except (ValueError, SyntaxError):
+            value = value_text
+        parsed_batch_kwargs[key] = value
+
+    batch_func = getattr(batches, batch, None)
+    if batch_func is None:
+        raise click.BadParameter(
+            f"'{batch}' is not a known batch function in rubin_sim.maf.batches.",
+            param_hint="--batch",
+        )
+    h5_files = sorted(glob.glob(os.path.join(chimera_dir, "chimera_*.h5")))
+    if not h5_files:
+        raise click.UsageError(f"No chimera_*.h5 files found in {chimera_dir}.")
+    chimera_specs = []
+    for path in h5_files:
+        t = _dayobs_from_filename(path)
+        if t is not None:
+            chimera_specs.append((t, path))
+    results_db_path = run_chimera_batches(
+        chimera_specs,
+        batch_func=batch_func,
+        out_dir=out_dir,
+        batch_kwargs=parsed_batch_kwargs,
+    )
+    click.echo(f"Results written to {results_db_path}.")
+
+
+@click.command(name="run_progress_batches")
+@click.option(
+    "--visits-file",
+    required=True,
+    type=click.Path(exists=True),
+    help="HDF5 or SQLite visits file with a 'simulated' column and a 'dayObs' column.",
+)
+@click.option("--out-dir", default=".", show_default=True, help="Output directory for results_db.")
+@click.option("--start-dayobs", required=True, type=int, help="Start date YYYYMMDD.")
+@click.option("--end-dayobs", required=True, type=int, help="End date YYYYMMDD (inclusive).")
+@click.option(
+    "--step", default=1, show_default=True, type=int, help="Nights between successive dayobs values."
+)
+@click.option(
+    "--batch",
+    default="snapshot_batch",
+    show_default=True,
+    help="Batch function name from rubin_sim.maf.batches (must accept end_dayobs).",
+)
+@click.option(
+    "--run-prefix",
+    default="consdb",
+    show_default=True,
+    help="Prefix for run names, which will be {run_prefix}_{YYYYMMDD}.",
+)
+@click.option(
+    "--batch-kwarg",
+    "batch_kwargs",
+    multiple=True,
+    help="Additional batch kwarg as KEY=VALUE. May be specified multiple times.",
+)
+def run_progress_batches_cmd(
+    visits_file, out_dir, start_dayobs, end_dayobs, step, batch, run_prefix, batch_kwargs
+):
+    """Run MAF metric batches for a range of dayobs values."""
+    parsed_batch_kwargs = {}
+    for item in batch_kwargs:
+        if "=" not in item:
+            raise click.BadParameter(
+                f"Invalid --batch-kwarg '{item}'. Expected KEY=VALUE.",
+                param_hint="--batch-kwarg",
+            )
+        key, value_text = item.split("=", 1)
+        if not key:
+            raise click.BadParameter(
+                f"Invalid --batch-kwarg '{item}'. Key cannot be empty.",
+                param_hint="--batch-kwarg",
+            )
+        try:
+            value = ast.literal_eval(value_text)
+        except (ValueError, SyntaxError):
+            value = value_text
+        parsed_batch_kwargs[key] = value
+
+    batch_func = getattr(batches, batch, None)
+    if batch_func is None or not callable(batch_func):
+        raise click.BadParameter(
+            f"'{batch}' is not a known batch function in rubin_sim.maf.batches.",
+            param_hint="--batch",
+        )
+
+    dayobs_list = dayobs_range(start_dayobs, end_dayobs, step)
+    if not dayobs_list:
+        raise click.UsageError("dayobs_range produced no dates; check --start-dayobs and --end-dayobs.")
+
+    results_db_path = run_progress_batches(
+        visits_file,
+        start_dayobs=start_dayobs,
+        end_dayobs=end_dayobs,
+        step=step,
+        out_dir=out_dir,
+        run_prefix=run_prefix,
+        batch_kwargs=parsed_batch_kwargs,
+        batch_func=batch_func,
+    )
+    click.echo(f"Ran {len(dayobs_list)} batch(es). Results written to {results_db_path}.")
+
+
+@click.command(name="make_chimera_summary_table")
+@click.option(
+    "--results-db",
+    required=True,
+    type=click.Path(exists=True),
+    help="Path to resultsDb_sqlite.db.",
+)
+@click.option(
+    "--out-file",
+    default="chimera_summary.h5",
+    show_default=True,
+    help="Output HDF5 file for the summary table.",
+)
+def make_chimera_summary_table_cmd(results_db, out_file):
+    """Query a results_db to produce a summary table
+    (one row per transition date)."""
+    table = make_chimera_summary_table(results_db)
+    if table.empty:
+        click.echo("Warning: summary table is empty.")
+    else:
+        table.to_hdf(out_file, key="summary")
+        click.echo(f"Summary table ({table.shape[0]} rows x {table.shape[1]} cols) written to {out_file}.")
