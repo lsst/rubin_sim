@@ -25,13 +25,14 @@ def _cols_from_pdconstraint(pdconstraint):
     """Return the set of column names referenced in a pandas query string."""
     if not pdconstraint:
         return set()
-    # Backtick-quoted names (e.g. `filter`) are literal column names.
-    cols = set(re.findall(r"`([^`]+)`", pdconstraint))
-    # Bare identifiers outside backtick spans.
-    stripped = re.sub(r"`[^`]+`", "", pdconstraint)
-    for tok in re.findall(r"\b([a-zA-Z_]\w*)\b", stripped):
-        if not keyword.iskeyword(tok) and tok not in _PD_SKIP:
-            cols.add(tok)
+    cols = set()
+    tokens = r"`[^`]+`|'(?:\\.|[^'\\])*'|\"(?:\\.|[^\"\\])*\"|\b[a-zA-Z_]\w*\b"
+    for match in re.finditer(tokens, pdconstraint):
+        token = match.group()
+        if token.startswith("`"):
+            cols.add(token[1:-1])
+        elif token[0] not in ("'", '"') and not keyword.iskeyword(token) and token not in _PD_SKIP:
+            cols.add(token)
     return cols
 
 

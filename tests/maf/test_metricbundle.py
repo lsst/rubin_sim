@@ -14,6 +14,7 @@ import rubin_sim.maf.metric_bundles as metric_bundles
 import rubin_sim.maf.metrics as metrics
 import rubin_sim.maf.slicers as slicers
 import rubin_sim.maf.stackers as stackers
+from rubin_sim.maf.metric_bundles.metric_bundle import _cols_from_pdconstraint
 
 TEST_DB = "example_v3.4_0yrs.db"
 
@@ -72,6 +73,34 @@ class TestMetricBundle(unittest.TestCase):
 
         b_pd = metric_bundles.MetricBundle(metric, slicer, "", pdconstraint="night < 5")
         assert b_pd.pdconstraint == "night < 5"
+
+    def test_pdconstraint_required_columns_ignore_literals(self):
+        cases = [
+            ("band == 'r'", {"band"}),
+            ('band == "g"', {"band"}),
+            ("band in ('r', 'i', 'z')", {"band"}),
+            ("`filter name` == 'r'", {"filter name"}),
+            ("night < 5 and band == 'r' and not simulated", {"night", "band", "simulated"}),
+            ("band == 'it\\'s g'", {"band"}),
+            ('band == "say \\"g\\""', {"band"}),
+        ]
+        for pdconstraint, expected in cases:
+            with self.subTest(pdconstraint=pdconstraint):
+                self.assertEqual(_cols_from_pdconstraint(pdconstraint), expected)
+
+    def test_pdconstraint_band_value_not_in_group_db_cols(self):
+        pdconstraint = "band == 'r' and not simulated"
+        bundle = metric_bundles.MetricBundle(
+            metrics.MeanMetric(col="airmass"), slicers.UniSlicer(), "", pdconstraint=pdconstraint
+        )
+        self.assertIn("band", bundle.db_cols)
+        self.assertIn("simulated", bundle.db_cols)
+        self.assertNotIn("r", bundle.db_cols)
+
+        group = metric_bundles.MetricBundleGroup({"band": bundle}, None, out_dir=self.out_dir)
+        group.set_current("", pdconstraint=pdconstraint)
+        self.assertIn("band", group.db_cols)
+        self.assertNotIn("r", group.db_cols)
 
     def test_pdconstraint_incompatible(self):
         """Bundles with different pdconstraints are not compatible.
