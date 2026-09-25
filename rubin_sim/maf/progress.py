@@ -86,12 +86,12 @@ def dayobs_range(start_dayobs: int, end_dayobs: int, step: int = 1) -> list[int]
 
 def _run_name_from_dayobs(transition_dayobs: int) -> str:
     """Return the run name string for a given transition dayobs."""
-    return f"progress_{int(transition_dayobs):08d}"
+    return f"chimera_{int(transition_dayobs):08d}"
 
 
 def _dayobs_from_run_name(run_name: str) -> int | None:
     """Extract transition dayobs integer from a chimera run name, or None."""
-    m = re.match(r"^progress_(\d{8})$", run_name)
+    m = re.match(r"^chimera_(\d{8})$", run_name)
     return int(m.group(1)) if m else None
 
 
@@ -237,7 +237,7 @@ def run_chimera_batches(
     Each chimera is processed with ``batch_func``, which should return a
     dictionary of ``MetricBundle`` objects.  All runs share a single
     ``ResultsDb`` in ``out_dir``, with run names of the form
-    ``progress_YYYYMMDD`` encoding the transition date.
+    ``chimera_YYYYMMDD`` encoding the transition date.
 
     Parameters
     ----------
@@ -296,7 +296,7 @@ def run_progress_batches(
     end_dayobs: int,
     step: int = 30,
     out_dir: str = ".",
-    run_prefix: str = "progress",
+    run_prefix: str = "consdb",
     batch_kwargs: dict | None = None,
     batch_func: Callable[..., dict] | None = None,
 ) -> str:
@@ -365,7 +365,7 @@ def make_chimera_summary_table(results_db: db.ResultsDb | str) -> pd.DataFrame:
     """Build a summary table from chimera run results.
 
     Queries the ``ResultsDb`` for all runs whose names match the
-    ``progress_YYYYMMDD`` pattern and returns a wide-format DataFrame with
+    ``chimera_YYYYMMDD`` pattern and returns a wide-format DataFrame with
     one row per transition date and one column per summary metric.
 g
     Parameters
@@ -567,7 +567,7 @@ def run_chimera_batches_cmd(chimera_dir, out_dir, batch, batch_kwargs):
 )
 @click.option(
     "--run-prefix",
-    default="progress",
+    default="consdb",
     show_default=True,
     help="Prefix for run names, which will be {run_prefix}_{YYYYMMDD}.",
 )
