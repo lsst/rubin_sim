@@ -5,6 +5,8 @@ from __future__ import annotations
 from collections.abc import Sequence
 from typing import Any, NamedTuple
 
+from astropy.time import Time
+
 from rubin_sim import maf
 
 from .col_map_dict import col_map_dict
@@ -43,14 +45,13 @@ class MetricSlicerSummaryStackers(NamedTuple):
 def _make_colmap(colmap: dict[str, str] | None = None) -> dict[str, str]:
     if colmap is None:
         colmap = col_map_dict()
-    
+
     if not isinstance(colmap, dict):
         raise ValueError(f"colmap must be a dictionary, not a {type(colmap)}")
 
     return colmap
 
 
-    
 def _make_base_progress_bundle_list(
     pdconstraints: dict[str, str],
     colmap: dict[str, str] | None = None,
@@ -233,7 +234,7 @@ def chimera_batch(
 
     Returns
     -------
-    metric_bundleDict : `dict` [`str`, `rubin_sim.maf.metric_bundles.MetricBundle`]
+    metric_bundleDict : `dict` [`str`, `MetricBundle`]
         A dictionary of metric bundles keyed by their file names.
     """
     colmap = _make_colmap(colmap)
@@ -281,25 +282,28 @@ def snapshot_batch(
     label_prefix : `str`, optional
         Prefix for metric info labels.
     end_dayobs : `int`, optional
-        If provided, only visits with ``dayObs <= end_dayobs`` are included
-        (YYYYMMDD integer format).
+        If provided, include visits before the end of this observing day
+        (YYYYMMDD integer format, UTC-12).
 
     Returns
     -------
-    metric_bundleDict : `dict` [`str`, `rubin_sim.maf.metric_bundles.MetricBundle`]
+    metric_bundleDict : `dict` [`str`, `MetricBundle`]
         A dictionary of metric bundles keyed by their file names.
     """
     colmap = _make_colmap(colmap)
 
-    dayobs_filter = f" and dayObs <= {int(end_dayobs)}" if end_dayobs is not None else ""
+    mjd_filter = ""
+    if end_dayobs is not None:
+        end_mjd = Time.strptime(str(end_dayobs), "%Y%m%d").mjd + 1.5
+        mjd_filter = f" and {colmap['mjd']} < {end_mjd}"
 
     pdconstraints: dict[str, str] = {}
     for band in bands:
         pdconstraints[f"{label_prefix}_{band}"] = (
-            f"not simulated{dayobs_filter} and {colmap['band']} == '{band}'"
+            f"not simulated{mjd_filter} and {colmap['band']} == '{band}'"
         )
 
-    pdconstraints[f"{label_prefix}_all"] = f"not simulated{dayobs_filter}"
+    pdconstraints[f"{label_prefix}_all"] = f"not simulated{mjd_filter}"
 
     bundle_list = _make_base_progress_bundle_list(pdconstraints, colmap, nside)
 
