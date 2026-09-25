@@ -237,7 +237,7 @@ def run_chimera_batches(
     Each chimera is processed with ``batch_func``, which should return a
     dictionary of ``MetricBundle`` objects.  All runs share a single
     ``ResultsDb`` in ``out_dir``, with run names of the form
-    ``chimera_YYYYMMDD`` encoding the transition date.
+    ``progress_YYYYMMDD`` encoding the transition date.
 
     Parameters
     ----------
@@ -365,7 +365,7 @@ def make_chimera_summary_table(results_db: db.ResultsDb | str) -> pd.DataFrame:
     """Build a summary table from chimera run results.
 
     Queries the ``ResultsDb`` for all runs whose names match the
-    ``chimera_YYYYMMDD`` pattern and returns a wide-format DataFrame with
+    ``progress_YYYYMMDD`` pattern and returns a wide-format DataFrame with
     one row per transition date and one column per summary metric.
 g
     Parameters
@@ -567,7 +567,7 @@ def run_chimera_batches_cmd(chimera_dir, out_dir, batch, batch_kwargs):
 )
 @click.option(
     "--run-prefix",
-    default="chimera",
+    default="progress",
     show_default=True,
     help="Prefix for run names, which will be {run_prefix}_{YYYYMMDD}.",
 )
