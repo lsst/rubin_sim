@@ -77,6 +77,75 @@ class TestOpsimUtils(unittest.TestCase):
         with self.assertRaises(FileNotFoundError):
             opsimUtils.get_sim_data("not_a_file.db", sql, ["nocol"])
 
+    def test_pdconstraint_night(self):
+        """Test that pdconstraint filters rows correctly on a numeric column.
+        """
+        database_file = os.path.join(get_data_dir(), "tests", TEST_DB)
+        sql = "night < 10"
+
+        all_data = opsimUtils.get_sim_data(database_file, sql)
+        filtered = opsimUtils.get_sim_data(database_file, sql, pdconstraint="night < 5")
+
+        assert np.size(filtered) > 0
+        assert np.size(filtered) < np.size(all_data)
+        assert np.all(filtered["night"] < 5)
+
+    def test_pdconstraint_get_visit_data(self):
+        """Test pdconstraint through get_visit_data, which returns a DataFrame.
+        """
+        import pandas as pd
+
+        database_file = os.path.join(get_data_dir(), "tests", TEST_DB)
+        sql = "night < 10"
+
+        all_df = opsimUtils.get_visit_data(database_file, sql)
+        filtered_df = opsimUtils.get_visit_data(database_file, sql, pdconstraint="night < 5")
+
+        assert isinstance(filtered_df, pd.DataFrame)
+        assert len(filtered_df) > 0
+        assert len(filtered_df) < len(all_df)
+        assert (filtered_df["night"] < 5).all()
+
+    def test_pdconstraint_return_recarray(self):
+        """Test that pdconstraint still returns a recarray.
+
+        Checks behavior when return_class=np.recarray (the default).
+        """
+        database_file = os.path.join(get_data_dir(), "tests", TEST_DB)
+        sql = "night < 10"
+
+        result = opsimUtils.get_sim_data(database_file, sql, pdconstraint="night < 5")
+        assert isinstance(result, np.recarray)
+        assert np.all(result["night"] < 5)
+
+    def test_pdconstraint_none_is_noop(self):
+        """Test that pdconstraint=None is a no-op.
+        """
+        database_file = os.path.join(get_data_dir(), "tests", TEST_DB)
+        sql = "night < 10"
+
+        data_default = opsimUtils.get_sim_data(database_file, sql)
+        data_none = opsimUtils.get_sim_data(database_file, sql, pdconstraint=None)
+        assert np.size(data_default) == np.size(data_none)
+
+    def test_pdconstraint_hdf5(self):
+        """Test that pdconstraint works with HDF5 input files."""
+        from tempfile import TemporaryDirectory
+
+        from rubin_sim.sim_archive.util import opsimdb_to_hdf5
+
+        database_file = os.path.join(get_data_dir(), "tests", TEST_DB)
+        with TemporaryDirectory() as tmpdir:
+            hdf5_file = os.path.join(tmpdir, "test_visits.h5")
+            opsimdb_to_hdf5(database_file, hdf5_file)
+
+            all_data = opsimUtils.get_sim_data(hdf5_file)
+            filtered = opsimUtils.get_sim_data(hdf5_file, pdconstraint="night < 5")
+
+            assert np.size(filtered) > 0
+            assert np.size(filtered) < np.size(all_data)
+            assert np.all(filtered["night"] < 5)
+
     def test_get_sim_data_hdf5(self):
         """Test that we can get simulation data from HDF5 files."""
         database_file = os.path.join(get_data_dir(), "tests", TEST_DB)
