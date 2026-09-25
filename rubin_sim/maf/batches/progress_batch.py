@@ -292,18 +292,19 @@ def snapshot_batch(
     """
     colmap = _make_colmap(colmap)
 
-    mjd_filter = ""
+    global_pdconstraints = f"{colmap['fiveSigmaDepth']} > 0.0"
+
     if end_dayobs is not None:
         end_mjd = Time.strptime(str(end_dayobs), "%Y%m%d").mjd + 1.5
-        mjd_filter = f"{colmap['mjd']} < {end_mjd}"
+        global_pdconstraints += f"and {colmap['mjd']} < {end_mjd}"
 
     pdconstraints: dict[str, str] = {}
     for band in bands:
         pdconstraints[f"{label_prefix}_{band}"] = (
-            f"{mjd_filter} and {colmap['band']} == '{band}'"
+            f"{global_pdconstraints} and {colmap['band']} == '{band}'"
         )
 
-    pdconstraints[f"{label_prefix}_all"] = mjd_filter
+    pdconstraints[f"{label_prefix}_all"] = global_pdconstraints
 
     bundle_list = _make_base_progress_bundle_list(pdconstraints, colmap, nside)
 
