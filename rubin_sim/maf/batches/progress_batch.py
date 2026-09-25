@@ -295,15 +295,15 @@ def snapshot_batch(
     mjd_filter = ""
     if end_dayobs is not None:
         end_mjd = Time.strptime(str(end_dayobs), "%Y%m%d").mjd + 1.5
-        mjd_filter = f" and {colmap['mjd']} < {end_mjd}"
+        mjd_filter = f"{colmap['mjd']} < {end_mjd}"
 
     pdconstraints: dict[str, str] = {}
     for band in bands:
         pdconstraints[f"{label_prefix}_{band}"] = (
-            f"not simulated{mjd_filter} and {colmap['band']} == '{band}'"
+            f"{mjd_filter} and {colmap['band']} == '{band}'"
         )
 
-    pdconstraints[f"{label_prefix}_all"] = f"not simulated{mjd_filter}"
+    pdconstraints[f"{label_prefix}_all"] = mjd_filter
 
     bundle_list = _make_base_progress_bundle_list(pdconstraints, colmap, nside)
 
