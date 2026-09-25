@@ -86,12 +86,12 @@ def dayobs_range(start_dayobs: int, end_dayobs: int, step: int = 1) -> list[int]
 
 def _run_name_from_dayobs(transition_dayobs: int) -> str:
     """Return the run name string for a given transition dayobs."""
-    return f"chimera_{int(transition_dayobs):08d}"
+    return f"progress_{int(transition_dayobs):08d}"
 
 
 def _dayobs_from_run_name(run_name: str) -> int | None:
     """Extract transition dayobs integer from a chimera run name, or None."""
-    m = re.match(r"^chimera_(\d{8})$", run_name)
+    m = re.match(r"^progress_(\d{8})$", run_name)
     return int(m.group(1)) if m else None
 
 
@@ -296,7 +296,7 @@ def run_progress_batches(
     end_dayobs: int,
     step: int = 30,
     out_dir: str = ".",
-    run_prefix: str = "chimera",
+    run_prefix: str = "progress",
     batch_kwargs: dict | None = None,
     batch_func: Callable[..., dict] | None = None,
 ) -> str:
