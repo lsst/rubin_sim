@@ -26,12 +26,15 @@ def _cols_from_pdconstraint(pdconstraint):
     if not pdconstraint:
         return set()
     cols = set()
-    tokens = r"`[^`]+`|'(?:\\.|[^'\\])*'|\"(?:\\.|[^\"\\])*\"|\b[a-zA-Z_]\w*\b"
+    tokens = (
+        r"`[^`]+`|'(?:\\.|[^'\\])*'|\"(?:\\.|[^\"\\])*\"|"
+        r"@[a-zA-Z_]\w*(?:\.[a-zA-Z_]\w*)*|\b[a-zA-Z_]\w*\b"
+    )
     for match in re.finditer(tokens, pdconstraint):
         token = match.group()
         if token.startswith("`"):
             cols.add(token[1:-1])
-        elif token[0] not in ("'", '"') and not keyword.iskeyword(token) and token not in _PD_SKIP:
+        elif token[0] not in ("'", '"', "@") and not keyword.iskeyword(token) and token not in _PD_SKIP:
             cols.add(token)
     return cols
 

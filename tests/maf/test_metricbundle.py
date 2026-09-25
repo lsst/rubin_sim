@@ -83,6 +83,8 @@ class TestMetricBundle(unittest.TestCase):
             ("night < 5 and band == 'r' and not simulated", {"night", "band", "simulated"}),
             ("band == 'it\\'s g'", {"band"}),
             ('band == "say \\"g\\""', {"band"}),
+            ("@np.isfinite(fiveSigmaDepth)", {"fiveSigmaDepth"}),
+            ("@threshold < fiveSigmaDepth and band == 'r'", {"fiveSigmaDepth", "band"}),
         ]
         for pdconstraint, expected in cases:
             with self.subTest(pdconstraint=pdconstraint):
@@ -101,6 +103,20 @@ class TestMetricBundle(unittest.TestCase):
         group.set_current("", pdconstraint=pdconstraint)
         self.assertIn("band", group.db_cols)
         self.assertNotIn("r", group.db_cols)
+
+    def test_pdconstraint_function_not_in_group_db_cols(self):
+        pdconstraint = "@np.isfinite(fiveSigmaDepth) and band == 'r'"
+        bundle = metric_bundles.MetricBundle(
+            metrics.MeanMetric(col="airmass"), slicers.UniSlicer(), "", pdconstraint=pdconstraint
+        )
+        group = metric_bundles.MetricBundleGroup({"band": bundle}, None, out_dir=self.out_dir)
+        group.set_current("", pdconstraint=pdconstraint)
+        for db_cols in (bundle.db_cols, group.db_cols):
+            self.assertIn("fiveSigmaDepth", db_cols)
+            self.assertIn("band", db_cols)
+            self.assertNotIn("np", db_cols)
+            self.assertNotIn("isfinite", db_cols)
+            self.assertNotIn("r", db_cols)
 
     def test_pdconstraint_incompatible(self):
         """Bundles with different pdconstraints are not compatible.
