@@ -16,3 +16,4 @@ from .slew_batch import *
 from .srd_batch import *
 from .time_batch import *
 from .visitdepth_batch import *
+from .progress_batch import *
