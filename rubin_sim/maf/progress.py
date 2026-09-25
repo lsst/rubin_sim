@@ -150,7 +150,6 @@ def build_chimera(
     # Mark which visits were simulated, and which not
     consdb_part['simulated'] = False
 
-    
     # Fix columns from consdb that can be missing or have bad values
     for column in CONSDB_DEFAULTS:
         if column not in consdb_part.columns:
@@ -162,7 +161,7 @@ def build_chimera(
         (opsim_visits["dayObs"] > int(transition_dayobs)) & (opsim_visits["dayObs"] <= int(end_dayobs))
     ].copy()
     opsim_part['simulated'] = True
-    
+
     common_cols = sorted(set(consdb_part.columns) & set(opsim_part.columns))
     if not common_cols:
         raise ValueError("consdb_visits and opsim_visits share no common columns; " "cannot build a chimera.")
@@ -299,12 +298,13 @@ def run_progress_batches(
     out_dir: str = ".",
     run_prefix: str = "chimera",
     batch_kwargs: dict | None = None,
+    batch_func: Callable[..., dict] | None = None,
 ) -> str:
-    """Run snapshot MAF metric batches for a range of dayobs values.
+    """Run MAF metric batches for a range of dayobs values.
 
-    Calls `rubin_sim.maf.batches.snapshot_batch` once per dayobs value in
-    ``dayobs_range(start_dayobs, end_dayobs, step)``, filtering each run to
-    visits with ``dayObs <= dayobs``.  All runs share a single ``ResultsDb``
+    Calls ``batch_func`` once per dayobs value in
+    ``dayobs_range(start_dayobs, end_dayobs, step)``, passing the dayobs as
+    ``end_dayobs`` to filter visits. All runs share a single ``ResultsDb``
     in ``out_dir``.
 
     Parameters
@@ -325,14 +325,19 @@ def run_progress_batches(
     run_prefix : `str`, optional
         Prefix for the run name, which will be f"{run_prefix}_{dayobs}"
     batch_kwargs : `dict`, optional
-        Additional keyword arguments forwarded to ``snapshot_batch`` for
-        each run (e.g. ``nside``, ``bands``).
+        Additional keyword arguments forwarded to ``batch_func`` for each run.
+    batch_func : callable, optional
+        Batch function accepting ``run_name`` and ``end_dayobs`` keyword
+        arguments. Defaults to `rubin_sim.maf.batches.snapshot_batch`.
 
     Returns
     -------
     results_db_path : `str`
         Path to the shared ``resultsDb_sqlite.db`` file.
     """
+    if batch_func is None:
+        batch_func = batches.snapshot_batch
+
     os.makedirs(out_dir, exist_ok=True)
     results_db = db.ResultsDb(out_dir=out_dir)
     batch_kwargs = {} if batch_kwargs is None else dict(batch_kwargs)
@@ -342,7 +347,7 @@ def run_progress_batches(
         dayobs_list.append(end_dayobs)
     for dayobs in dayobs_list:
         run_name = f"{run_prefix}_{int(dayobs):08d}"
-        bdict = batches.snapshot_batch(run_name=run_name, end_dayobs=dayobs, **batch_kwargs)
+        bdict = batch_func(run_name=run_name, end_dayobs=dayobs, **batch_kwargs)
         group = mb.MetricBundleGroup(
             bdict,
             visits_path,
@@ -551,7 +556,15 @@ def run_chimera_batches_cmd(chimera_dir, out_dir, batch, batch_kwargs):
 @click.option("--out-dir", default=".", show_default=True, help="Output directory for results_db.")
 @click.option("--start-dayobs", required=True, type=int, help="Start date YYYYMMDD.")
 @click.option("--end-dayobs", required=True, type=int, help="End date YYYYMMDD (inclusive).")
-@click.option("--step", default=1, show_default=True, type=int, help="Nights between successive dayobs values.")
+@click.option(
+    "--step", default=1, show_default=True, type=int, help="Nights between successive dayobs values."
+)
+@click.option(
+    "--batch",
+    default="snapshot_batch",
+    show_default=True,
+    help="Batch function name from rubin_sim.maf.batches (must accept end_dayobs).",
+)
 @click.option(
     "--run-prefix",
     default="chimera",
@@ -562,15 +575,12 @@ def run_chimera_batches_cmd(chimera_dir, out_dir, batch, batch_kwargs):
     "--batch-kwarg",
     "batch_kwargs",
     multiple=True,
-    help="Additional snapshot_batch kwarg as KEY=VALUE. May be specified multiple times.",
+    help="Additional batch kwarg as KEY=VALUE. May be specified multiple times.",
 )
-def run_progress_batches_cmd(visits_file, out_dir, start_dayobs, end_dayobs, step, run_prefix, batch_kwargs):
-    """Run snapshot MAF metric batches for a range of dayobs values.
-
-    For each dayobs in [start_dayobs, end_dayobs] (stepped by --step), runs
-    snapshot_batch filtering visits to dayObs <= dayobs. Run names are of the
-    form snapshot_YYYYMMDD.
-    """
+def run_progress_batches_cmd(
+    visits_file, out_dir, start_dayobs, end_dayobs, step, batch, run_prefix, batch_kwargs
+):
+    """Run MAF metric batches for a range of dayobs values."""
     parsed_batch_kwargs = {}
     for item in batch_kwargs:
         if "=" not in item:
@@ -590,6 +600,13 @@ def run_progress_batches_cmd(visits_file, out_dir, start_dayobs, end_dayobs, ste
             value = value_text
         parsed_batch_kwargs[key] = value
 
+    batch_func = getattr(batches, batch, None)
+    if batch_func is None or not callable(batch_func):
+        raise click.BadParameter(
+            f"'{batch}' is not a known batch function in rubin_sim.maf.batches.",
+            param_hint="--batch",
+        )
+
     dayobs_list = dayobs_range(start_dayobs, end_dayobs, step)
     if not dayobs_list:
         raise click.UsageError("dayobs_range produced no dates; check --start-dayobs and --end-dayobs.")
@@ -602,8 +619,9 @@ def run_progress_batches_cmd(visits_file, out_dir, start_dayobs, end_dayobs, ste
         out_dir=out_dir,
         run_prefix=run_prefix,
         batch_kwargs=parsed_batch_kwargs,
+        batch_func=batch_func,
     )
-    click.echo(f"Ran {len(dayobs_list)} snapshot batch(es). Results written to {results_db_path}.")
+    click.echo(f"Ran {len(dayobs_list)} batch(es). Results written to {results_db_path}.")
 
 
 @click.command(name="make_chimera_summary_table")

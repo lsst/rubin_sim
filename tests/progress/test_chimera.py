@@ -11,6 +11,8 @@ from unittest.mock import call, patch
 
 import numpy as np
 import pandas as pd
+from astropy.time import Time
+from click.testing import CliRunner
 
 import rubin_sim.maf.batches as batches
 from rubin_sim.maf.progress import (
@@ -23,6 +25,7 @@ from rubin_sim.maf.progress import (
     make_chimera_summary_table,
     run_chimera_batches,
     run_progress_batches,
+    run_progress_batches_cmd,
 )
 from rubin_sim.maf.db import ResultsDb
 
@@ -500,6 +503,87 @@ class TestRunProgressBatches(unittest.TestCase):
                 ],
             )
 
+    def test_uses_custom_batch_function(self):
+        with tempfile.TemporaryDirectory() as out_dir:
+            with (
+                patch("rubin_sim.maf.progress.mb.MetricBundleGroup") as group,
+                patch("rubin_sim.maf.progress.db.ResultsDb"),
+            ):
+                batch_func = unittest.mock.Mock(return_value={"custom": 1})
+                run_progress_batches(
+                    "visits.h5",
+                    20260101,
+                    20260101,
+                    out_dir=out_dir,
+                    batch_func=batch_func,
+                    batch_kwargs={"nside": 8},
+                )
+            batch_func.assert_called_once_with(run_name="chimera_20260101", end_dayobs=20260101, nside=8)
+            self.assertIs(group.call_args.args[0], batch_func.return_value)
+
+
+class TestRunProgressBatchesCommand(unittest.TestCase):
+    def test_selects_batch_by_name(self):
+        with tempfile.TemporaryDirectory() as out_dir:
+            visits_file = os.path.join(out_dir, "visits.h5")
+            with open(visits_file, "wb"):
+                pass
+            with (
+                patch.object(batches, "custom_progress_batch", create=True) as batch_func,
+                patch(
+                    "rubin_sim.maf.progress.run_progress_batches", return_value="results.db"
+                ) as run_batches,
+            ):
+                result = CliRunner().invoke(
+                    run_progress_batches_cmd,
+                    [
+                        "--visits-file", visits_file,
+                        "--start-dayobs", "20260101",
+                        "--end-dayobs", "20260102",
+                        "--batch", "custom_progress_batch",
+                        "--batch-kwarg", "nside=8",
+                        "--out-dir", out_dir,
+                    ],
+                )
+            self.assertIsNone(result.exception)
+            self.assertIn("Ran 2 batch(es)", result.output)
+            self.assertIs(run_batches.call_args.kwargs["batch_func"], batch_func)
+            self.assertEqual(run_batches.call_args.kwargs["batch_kwargs"], {"nside": 8})
+
+    def test_defaults_to_snapshot_batch(self):
+        with tempfile.TemporaryDirectory() as out_dir:
+            visits_file = os.path.join(out_dir, "visits.h5")
+            with open(visits_file, "wb"):
+                pass
+            with patch(
+                "rubin_sim.maf.progress.run_progress_batches", return_value="results.db"
+            ) as run_batches:
+                result = CliRunner().invoke(
+                    run_progress_batches_cmd,
+                    ["--visits-file", visits_file, "--start-dayobs", "20260101", "--end-dayobs", "20260101"],
+                )
+            self.assertIsNone(result.exception)
+            self.assertIs(run_batches.call_args.kwargs["batch_func"], batches.snapshot_batch)
+
+    def test_rejects_unknown_batch(self):
+        with tempfile.TemporaryDirectory() as out_dir:
+            visits_file = os.path.join(out_dir, "visits.h5")
+            with open(visits_file, "wb"):
+                pass
+            with patch("rubin_sim.maf.progress.run_progress_batches") as run_batches:
+                result = CliRunner().invoke(
+                    run_progress_batches_cmd,
+                    [
+                        "--visits-file", visits_file,
+                        "--start-dayobs", "20260101",
+                        "--end-dayobs", "20260101",
+                        "--batch", "not_a_batch",
+                    ],
+                )
+            self.assertNotEqual(result.exit_code, 0)
+            self.assertIn("not a known batch function", result.output)
+            run_batches.assert_not_called()
+
 
 class TestSnapshotBatch(unittest.TestCase):
     def test_filters_real_visits_through_end_dayobs(self):
@@ -507,9 +591,35 @@ class TestSnapshotBatch(unittest.TestCase):
 
         bundles = snapshot_batch(run_name="baseline_20260102", bands=("g",), nside=8, end_dayobs=20260102)
         constraints = {bundle.info_label: bundle.pdconstraint for bundle in bundles.values()}
-        self.assertEqual(constraints["snapshot_all"], "not simulated and dayObs <= 20260102")
-        self.assertEqual(constraints["snapshot_g"], "not simulated and dayObs <= 20260102 and band == 'g'")
+        end_mjd = Time("2026-01-03T12:00:00").mjd
+        self.assertEqual(constraints["snapshot_all"], f"not simulated and observationStartMJD < {end_mjd}")
+        self.assertEqual(
+            constraints["snapshot_g"], f"not simulated and observationStartMJD < {end_mjd} and band == 'g'"
+        )
+        visits = pd.DataFrame(
+            {
+                "observationStartMJD": [end_mjd - 1, end_mjd - 0.5, end_mjd, end_mjd - 0.5],
+                "simulated": [False, False, False, True],
+                "band": ["g", "g", "g", "g"],
+            }
+        )
+        self.assertEqual(visits.query(constraints["snapshot_all"]).index.tolist(), [0, 1])
+        self.assertEqual(visits.query(constraints["snapshot_g"]).index.tolist(), [0, 1])
         self.assertEqual({bundle.run_name for bundle in bundles.values()}, {"baseline_20260102"})
+
+    def test_uses_colmap_mjd_and_supports_no_end_dayobs(self):
+        from rubin_sim.maf.batches.col_map_dict import col_map_dict
+        from rubin_sim.maf.batches.progress_batch import snapshot_batch
+
+        colmap = col_map_dict()
+        colmap["mjd"] = "visitMjd"
+        bundles = snapshot_batch(colmap=colmap, bands=(), nside=8, end_dayobs=20260102)
+        self.assertEqual(
+            {bundle.pdconstraint for bundle in bundles.values()},
+            {f"not simulated and visitMjd < {Time('2026-01-03T12:00:00').mjd}"},
+        )
+        bundles = snapshot_batch(colmap=colmap, bands=(), nside=8)
+        self.assertEqual({bundle.pdconstraint for bundle in bundles.values()}, {"not simulated"})
 
 
 class TestMakeChimeraSummaryTable(unittest.TestCase):
