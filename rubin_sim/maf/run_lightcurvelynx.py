@@ -4,15 +4,11 @@ from . import slicers
 from .metrics import LCLObsCountMetric
 
 
-def run_lightcurvelynx(sim_data="/Users/maxwest/rubin_sim_data/lcl_data/lightcurves.db"):
+def run_lightcurvelynx(sim_data):
     out_dir = "/Users/maxwest/maf_runs/"
-    # data = read_parquet(sim_data)
-    slicer = slicers.LynxSpatialSlicer()
-    slicer.setup_slicer(sim_data)
-    # slicer.sim_data = data
+    slicer = slicers.LynxSpatialSlicer(leafsize=25)
+    # slicer = slicers.LynxBaseSlicer()
     metric = LCLObsCountMetric()
-
-    # constraint = "select * from lightcurves"
 
     bundle = metricBundles.MetricBundle(metric, slicer, constraint="")
 
