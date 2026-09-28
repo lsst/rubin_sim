@@ -16,7 +16,6 @@ import warnings
 from collections.abc import Callable
 
 import click
-import numpy as np
 import pandas as pd
 
 import rubin_sim.maf.batches as batches
@@ -25,15 +24,10 @@ import rubin_sim.maf.metric_bundles as mb
 from rubin_sim.maf.stackers.date_stackers import DayObsStacker
 from rubin_sim.maf.utils.opsim_utils import get_sim_data
 
-# Default values for consdb columns without valid values
-CONSDB_DEFAULTS = {
-    'exposures': 1,
-    'fiveSigmaDepth': -np.inf
-    }
+FIVE_SIGMA_DEPTH_LIMIT = 0.0
 
-# Columns required to be non-null in consdb for the visit
-# to be included.
-CONSDB_COLUMNS_TO_DROP_IF_NULL = ['fiveSigmaDepth']
+# Default values for consdb columns without valid values.
+CONSDB_DEFAULTS = {"exposures": 1}
 
 
 def dayobs_range(start_dayobs: int, end_dayobs: int, step: int = 1) -> list[int]:
@@ -144,23 +138,24 @@ def build_chimera(
         (consdb_visits["dayObs"] >= int(start_dayobs)) & (consdb_visits["dayObs"] <= int(transition_dayobs))
     ].copy()
 
-    # Drop visits where columns that require valid values are null
-    consdb_part.dropna(subset=CONSDB_COLUMNS_TO_DROP_IF_NULL, inplace=True)
+    consdb_part = consdb_part.loc[consdb_part["fiveSigmaDepth"] > FIVE_SIGMA_DEPTH_LIMIT].copy()
 
     # Mark which visits were simulated, and which not
-    consdb_part['simulated'] = False
+    consdb_part["simulated"] = False
 
     # Fix columns from consdb that can be missing or have bad values
     for column in CONSDB_DEFAULTS:
         if column not in consdb_part.columns:
             consdb_part[column] = CONSDB_DEFAULTS[column]
         else:
-            consdb_part[column].fillna(CONSDB_DEFAULTS[column], inplace=True)
+            consdb_part[column] = consdb_part[column].fillna(CONSDB_DEFAULTS[column])
 
     opsim_part = opsim_visits.loc[
-        (opsim_visits["dayObs"] > int(transition_dayobs)) & (opsim_visits["dayObs"] <= int(end_dayobs))
+        (opsim_visits["dayObs"] > int(transition_dayobs))
+        & (opsim_visits["dayObs"] <= int(end_dayobs))
+        & (opsim_visits["fiveSigmaDepth"] > FIVE_SIGMA_DEPTH_LIMIT)
     ].copy()
-    opsim_part['simulated'] = True
+    opsim_part["simulated"] = True
 
     common_cols = sorted(set(consdb_part.columns) & set(opsim_part.columns))
     if not common_cols:
@@ -310,10 +305,8 @@ def run_progress_batches(
     Parameters
     ----------
     visits_path : `str`
-        Path to an HDF5 or SQLite visits file.  The file must include a
-        boolean ``simulated`` column and a ``dayObs`` column (integer
-        YYYYMMDD).  May be a chimera file, a pure baseline, or a
-        consdb-derived visits file.
+        Path to an HDF5 or SQLite visits file.  May be a chimera file,
+        a pure baseline, or a consdb-derived visits file.
     start_dayobs : `int`
         First dayobs in the sequence, YYYYMMDD.
     end_dayobs : `int`
@@ -367,7 +360,7 @@ def make_chimera_summary_table(results_db: db.ResultsDb | str) -> pd.DataFrame:
     Queries the ``ResultsDb`` for all runs whose names match the
     ``chimera_YYYYMMDD`` pattern and returns a wide-format DataFrame with
     one row per transition date and one column per summary metric.
-g
+
     Parameters
     ----------
     results_db : `rubin_sim.maf.db.ResultsDb` or `str`
@@ -388,7 +381,9 @@ g
 
     # Get all run_names that look like chimera runs and find their metric IDs.
     all_run_names = results_db.get_run_name()
-    chimera_run_names = [r for r in all_run_names if _dayobs_from_run_name(r) is not None]
+    chimera_run_names = [
+        r for r in all_run_names if r.startswith("chimera_") and _dayobs_from_run_name(r) is not None
+    ]
 
     if not chimera_run_names:
         warnings.warn("No chimera run names found in results_db.")
@@ -524,7 +519,7 @@ def run_chimera_batches_cmd(chimera_dir, out_dir, batch, batch_kwargs):
         parsed_batch_kwargs[key] = value
 
     batch_func = getattr(batches, batch, None)
-    if batch_func is None:
+    if batch_func is None or not callable(batch_func):
         raise click.BadParameter(
             f"'{batch}' is not a known batch function in rubin_sim.maf.batches.",
             param_hint="--batch",
@@ -551,13 +546,13 @@ def run_chimera_batches_cmd(chimera_dir, out_dir, batch, batch_kwargs):
     "--visits-file",
     required=True,
     type=click.Path(exists=True),
-    help="HDF5 or SQLite visits file with a 'simulated' column and a 'dayObs' column.",
+    help="HDF5 or SQLite visits file.",
 )
 @click.option("--out-dir", default=".", show_default=True, help="Output directory for results_db.")
 @click.option("--start-dayobs", required=True, type=int, help="Start date YYYYMMDD.")
 @click.option("--end-dayobs", required=True, type=int, help="End date YYYYMMDD (inclusive).")
 @click.option(
-    "--step", default=1, show_default=True, type=int, help="Nights between successive dayobs values."
+    "--step", default=30, show_default=True, type=int, help="Nights between successive dayobs values."
 )
 @click.option(
     "--batch",
@@ -610,6 +605,8 @@ def run_progress_batches_cmd(
     dayobs_list = dayobs_range(start_dayobs, end_dayobs, step)
     if not dayobs_list:
         raise click.UsageError("dayobs_range produced no dates; check --start-dayobs and --end-dayobs.")
+    if dayobs_list[-1] != end_dayobs:
+        dayobs_list.append(end_dayobs)
 
     results_db_path = run_progress_batches(
         visits_file,

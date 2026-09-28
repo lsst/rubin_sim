@@ -78,8 +78,7 @@ class TestOpsimUtils(unittest.TestCase):
             opsimUtils.get_sim_data("not_a_file.db", sql, ["nocol"])
 
     def test_pdconstraint_night(self):
-        """Test that pdconstraint filters rows correctly on a numeric column.
-        """
+        """A pandas constraint filters rows by a numeric column."""
         database_file = os.path.join(get_data_dir(), "tests", TEST_DB)
         sql = "night < 10"
 
@@ -91,8 +90,7 @@ class TestOpsimUtils(unittest.TestCase):
         assert np.all(filtered["night"] < 5)
 
     def test_pdconstraint_get_visit_data(self):
-        """Test pdconstraint through get_visit_data, which returns a DataFrame.
-        """
+        """A pandas constraint filters the DataFrame from get_visit_data."""
         import pandas as pd
 
         database_file = os.path.join(get_data_dir(), "tests", TEST_DB)
@@ -119,8 +117,7 @@ class TestOpsimUtils(unittest.TestCase):
         assert np.all(result["night"] < 5)
 
     def test_pdconstraint_none_is_noop(self):
-        """Test that pdconstraint=None is a no-op.
-        """
+        """Test that pdconstraint=None is a no-op."""
         database_file = os.path.join(get_data_dir(), "tests", TEST_DB)
         sql = "night < 10"
 

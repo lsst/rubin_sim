@@ -9,6 +9,7 @@ from .info_batch import *
 from .metadata_batch import *
 from .moving_objects_batch import *
 from .openshutter_batch import *
+from .progress_batch import *
 from .radar_limited import *
 from .science_radar_batch import *
 from .skycoverage import *
@@ -16,4 +17,3 @@ from .slew_batch import *
 from .srd_batch import *
 from .time_batch import *
 from .visitdepth_batch import *
-from .progress_batch import *

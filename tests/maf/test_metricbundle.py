@@ -63,8 +63,7 @@ class TestMetricBundle(unittest.TestCase):
         assert len(out_npz) == 1
 
     def test_pdconstraint_stored(self):
-        """Test that pdconstraint is stored correctly on MetricBundle.
-        """
+        """Test that pdconstraint is stored correctly on MetricBundle."""
         metric = metrics.MeanMetric(col="airmass")
         slicer = slicers.UniSlicer()
 
@@ -119,8 +118,7 @@ class TestMetricBundle(unittest.TestCase):
             self.assertNotIn("r", db_cols)
 
     def test_pdconstraint_incompatible(self):
-        """Bundles with different pdconstraints are not compatible.
-        """
+        """Bundles with different pdconstraints are not compatible."""
         metric = metrics.MeanMetric(col="airmass")
         slicer = slicers.UniSlicer()
         database = os.path.join(get_data_dir(), "tests", TEST_DB)
@@ -128,24 +126,19 @@ class TestMetricBundle(unittest.TestCase):
         b1 = metric_bundles.MetricBundle(metric, slicer, "", pdconstraint="night < 5")
         b2 = metric_bundles.MetricBundle(metric, slicer, "", pdconstraint="night > 5")
 
-        bg = metric_bundles.MetricBundleGroup(
-            {"b1": b1, "b2": b2}, database, out_dir=self.out_dir
-        )
+        bg = metric_bundles.MetricBundleGroup({"b1": b1, "b2": b2}, database, out_dir=self.out_dir)
         assert bg.constraints == [""]
         assert set(bg.pdconstraints[""]) == {"night < 5", "night > 5"}
         assert not bg._check_compatible(b1, b2)
 
     def test_pdconstraint_group_structure(self):
-        """Check structure of MetricBundleGroup.pdconstraints.
-        """
+        """Check structure of MetricBundleGroup.pdconstraints."""
         metric = metrics.MeanMetric(col="airmass")
         slicer = slicers.UniSlicer()
         database = os.path.join(get_data_dir(), "tests", TEST_DB)
 
         b_no_pd = metric_bundles.MetricBundle(metric, slicer, "night < 100")
-        b_pd = metric_bundles.MetricBundle(
-            metric, slicer, "night < 100", pdconstraint="night < 50"
-        )
+        b_pd = metric_bundles.MetricBundle(metric, slicer, "night < 100", pdconstraint="night < 50")
         b_other = metric_bundles.MetricBundle(metric, slicer, "")
 
         bg = metric_bundles.MetricBundleGroup(
@@ -158,25 +151,18 @@ class TestMetricBundle(unittest.TestCase):
         assert bg.pdconstraints[""] == [""]
 
     def test_pdconstraint_end_to_end(self):
-        """run_all with a pdconstraint should yield fewer visits than without.
-        """
+        """A pandas constraint should reduce the visit count."""
         metric = metrics.CountMetric(col="observationId")
         slicer = slicers.UniSlicer()
         database = os.path.join(get_data_dir(), "tests", TEST_DB)
 
         b_all = metric_bundles.MetricBundle(metric, slicer, "night < 10")
-        b_pd = metric_bundles.MetricBundle(
-            metric, slicer, "night < 10", pdconstraint="night < 5"
-        )
+        b_pd = metric_bundles.MetricBundle(metric, slicer, "night < 10", pdconstraint="night < 5")
 
-        bg_all = metric_bundles.MetricBundleGroup(
-            {"all": b_all}, database, out_dir=self.out_dir
-        )
+        bg_all = metric_bundles.MetricBundleGroup({"all": b_all}, database, out_dir=self.out_dir)
         bg_all.run_all()
 
-        bg_pd = metric_bundles.MetricBundleGroup(
-            {"pd": b_pd}, database, out_dir=self.out_dir
-        )
+        bg_pd = metric_bundles.MetricBundleGroup({"pd": b_pd}, database, out_dir=self.out_dir)
         bg_pd.run_all()
 
         count_all = b_all.metric_values.data[0]

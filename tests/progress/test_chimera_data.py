@@ -4,11 +4,11 @@ This module provides functions to generate sample test data by sampling from
 the baseline opsim database.
 """
 
-import numpy as np
 import pandas as pd
+
 from rubin_sim.data import get_baseline
-from rubin_sim.maf.utils.opsim_utils import get_sim_data
 from rubin_sim.maf.stackers.date_stackers import DayObsStacker
+from rubin_sim.maf.utils.opsim_utils import get_sim_data
 
 
 def _dayobs_to_mjd(dayobs: int) -> float:
@@ -25,6 +25,7 @@ def _dayobs_to_mjd(dayobs: int) -> float:
         Modified Julian Date.
     """
     import datetime
+
     # Parse YYYYMMDD
     year = dayobs // 10000
     month = (dayobs % 10000) // 100
@@ -61,8 +62,6 @@ def make_sample_opsim_visits(n_visits: int = 500, random_state: int | None = 42)
     visits : pandas.DataFrame
         Synthetic visits with dayObs column.
     """
-    rng = np.random.default_rng(random_state)
-
     # Get baseline database
     baseline_path = get_baseline()
 
@@ -89,9 +88,7 @@ def make_sample_opsim_visits(n_visits: int = 500, random_state: int | None = 42)
     return df
 
 
-def make_sample_consdb_visits(
-    n_visits: int = 100, days: int = 60, random_state: int | None = 42
-) -> pd.DataFrame:
+def make_sample_consdb_visits(n_visits: int = 100, random_state: int | None = 42) -> pd.DataFrame:
     """Generate synthetic consdb visits from first N days of baseline.
 
     Samples visits with dayObs in the range 20260101-20260130.
@@ -100,8 +97,6 @@ def make_sample_consdb_visits(
     ----------
     n_visits : int, optional
         Number of visits to generate. Default 100.
-    days : int, optional
-        Number of days to generate visits within. Default 60 (2 months).
     random_state : int or None, optional
         Random state for reproducible sampling. Default 42.
 
@@ -110,8 +105,6 @@ def make_sample_consdb_visits(
     visits : pandas.DataFrame
         Synthetic visits with dayObs column.
     """
-    rng = np.random.default_rng(random_state)
-
     # Get baseline database
     baseline_path = get_baseline()
 

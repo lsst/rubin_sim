@@ -404,8 +404,6 @@ class MetricBundleGroup:
                 )
             if pdconstraint:
                 print("Applying pandas constraint: %s" % pdconstraint)
-        # Note that we do NOT run the stackers at this point
-        # (this must be done in each 'compatible' group).
         self.sim_data = utils.get_sim_data(
             self.db_obj,
             constraint,

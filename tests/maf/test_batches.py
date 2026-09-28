@@ -134,6 +134,23 @@ class TestBatches(unittest.TestCase):
         ack = batches.science_radar_batch()
         assert ack is not None
 
+    def test_science_radar_dayobs0_raises_on_conflict(self):
+        # dayobs0=20260629 maps to SURVEY_START_MJD (61220.5).
+        # Passing a different mjd0 must raise ValueError before any file I/O.
+        with self.assertRaises(ValueError):
+            batches.science_radar_batch(dayobs0=20260629, mjd0=61219.5)
+
+    @unittest.skipUnless(
+        os.path.isdir(os.path.join(get_data_dir(), "maps")),
+        "Skipping science_radar dayobs0 MJD test because operating without full MAF test data",
+    )
+    def test_science_radar_dayobs0_mjd_mapping(self):
+        # dayobs0=20260629 must yield mjd0 == SURVEY_START_MJD (61220.5):
+        # MJD(20260629 00:00 UTC) + 0.5 = 61220.0 + 0.5 = 61220.5.
+        # Passing consistent mjd0 along with dayobs0 must not raise.
+        ack = batches.science_radar_batch(dayobs0=20260629, mjd0=SURVEY_START_MJD)
+        assert ack is not None
+
     @unittest.skipUnless(
         os.path.isdir(os.path.join(get_data_dir(), "maf")),
         "Skipping glance test because operating without full MAF test data",

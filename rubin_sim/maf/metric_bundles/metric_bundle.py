@@ -17,7 +17,6 @@ import rubin_sim.maf.stackers as stackers
 import rubin_sim.maf.utils as utils
 from rubin_sim.maf.stackers import ColInfo
 
-
 _PD_SKIP = frozenset({"True", "False", "None", "inf", "Inf", "nan", "NaN"})
 
 
@@ -105,8 +104,9 @@ class MetricBundle:
     pdconstraint : `str` or None, opt
         A constraint passed to `pandas.DataFrame.query`, applied after
         the SQL query.  Useful for filtering on columns with names that
-        are reserved SQL words (e.g. ``filter``), or on columns produced
-        by stackers that are not in the database.
+        are reserved SQL words (e.g. ``filter``).  Only database columns
+        may be referenced; stacker-produced columns are not available
+        at filter time.
 
     Notes
     -----

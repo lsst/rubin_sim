@@ -12,7 +12,6 @@ from rubin_sim import maf
 from .col_map_dict import col_map_dict
 from .common import standard_summary
 
-
 __all__ = ("snapshot_batch", "chimera_batch")
 
 # Benchmark values used for the fO metrics.
@@ -97,25 +96,19 @@ def _make_base_progress_bundle_list(
             stackers=[maf.stackers.TeffStacker(normed=False)],
         ),
         MetricSlicerSummaryStackers(
-            metric=maf.metrics.CountMetric(
-                col=colmap["mjd"], metric_name="Numbers of exposures"
-            ),
+            metric=maf.metrics.CountMetric(col=colmap["mjd"], metric_name="Numbers of exposures"),
             slicer=unislicer,
             summary=None,
             stackers=None,
         ),
         MetricSlicerSummaryStackers(
-            metric=maf.metrics.CountMetric(
-                col=colmap["mjd"], metric_name="Number of exposure area stats"
-            ),
+            metric=maf.metrics.CountMetric(col=colmap["mjd"], metric_name="Number of exposure area stats"),
             slicer=spatial_slicer,
             summary=spatial_stats,
             stackers=None,
         ),
         MetricSlicerSummaryStackers(
-            metric=maf.metrics.Coaddm5Metric(
-                m5_col=colmap["fiveSigmaDepth"], metric_name="Depth area stats"
-            ),
+            metric=maf.metrics.Coaddm5Metric(m5_col=colmap["fiveSigmaDepth"], metric_name="Depth area stats"),
             slicer=spatial_slicer,
             summary=spatial_stats,
             stackers=None,
@@ -246,7 +239,7 @@ def chimera_batch(
     pdconstraints[f"{label_prefix}_all"] = ""
 
     bundle_list = _make_base_progress_bundle_list(pdconstraints, colmap, nside)
-    fO_bundle = _make_fO_bundle()
+    fO_bundle = _make_fO_bundle(nside=nside)
 
     bundle_list.append(fO_bundle)
 
@@ -265,8 +258,6 @@ def snapshot_batch(
     end_dayobs: int | None = None,
 ) -> dict[str, maf.metric_bundles.MetricBundle]:
     """Generate progress-tracking metrics for the snapshot subsets.
-
-    Note: the visits database must include a boolean ``simulated`` column.
 
     Parameters
     ----------
@@ -290,19 +281,20 @@ def snapshot_batch(
     metric_bundleDict : `dict` [`str`, `MetricBundle`]
         A dictionary of metric bundles keyed by their file names.
     """
+    # Import here because progress imports batches during MAF initialization.
+    from rubin_sim.maf.progress import FIVE_SIGMA_DEPTH_LIMIT
+
     colmap = _make_colmap(colmap)
 
-    global_pdconstraints = f"{colmap['fiveSigmaDepth']} > 0.0"
+    global_pdconstraints = f"{colmap['fiveSigmaDepth']} > {FIVE_SIGMA_DEPTH_LIMIT}"
 
     if end_dayobs is not None:
         end_mjd = Time.strptime(str(end_dayobs), "%Y%m%d").mjd + 1.5
-        global_pdconstraints += f"and {colmap['mjd']} < {end_mjd}"
+        global_pdconstraints += f" and {colmap['mjd']} < {end_mjd}"
 
     pdconstraints: dict[str, str] = {}
     for band in bands:
-        pdconstraints[f"{label_prefix}_{band}"] = (
-            f"{global_pdconstraints} and {colmap['band']} == '{band}'"
-        )
+        pdconstraints[f"{label_prefix}_{band}"] = f"{global_pdconstraints} and {colmap['band']} == '{band}'"
 
     pdconstraints[f"{label_prefix}_all"] = global_pdconstraints
 

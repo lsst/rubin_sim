@@ -4,6 +4,7 @@ Tests the chimera and snapshot APIs in rubin_sim.maf.progress using
 synthetic visits sampled from the baseline opsim database.
 """
 
+import datetime
 import os
 import tempfile
 import unittest
@@ -15,6 +16,7 @@ from astropy.time import Time
 from click.testing import CliRunner
 
 import rubin_sim.maf.batches as batches
+from rubin_sim.maf.db import ResultsDb
 from rubin_sim.maf.progress import (
     _dayobs_from_filename,
     _dayobs_from_run_name,
@@ -24,10 +26,10 @@ from rubin_sim.maf.progress import (
     dayobs_range,
     make_chimera_summary_table,
     run_chimera_batches,
+    run_chimera_batches_cmd,
     run_progress_batches,
     run_progress_batches_cmd,
 )
-from rubin_sim.maf.db import ResultsDb
 
 # Use relative imports for test data (works with pytest from rubin_sim)
 from .test_chimera_data import make_sample_consdb_visits, make_sample_opsim_visits
@@ -75,12 +77,8 @@ class TestDayObsHelpers(unittest.TestCase):
 
     def test_dayobs_from_filename(self):
         """Test _dayobs_from_filename extraction."""
-        self.assertEqual(
-            _dayobs_from_filename("/path/to/chimera_20260101.h5"), 20260101
-        )
-        self.assertEqual(
-            _dayobs_from_filename("chimera_20261231.h5"), 20261231
-        )
+        self.assertEqual(_dayobs_from_filename("/path/to/chimera_20260101.h5"), 20260101)
+        self.assertEqual(_dayobs_from_filename("chimera_20261231.h5"), 20261231)
         self.assertIsNone(_dayobs_from_filename("other_20260101.h5"))
         self.assertIsNone(_dayobs_from_filename("/path/to/file.txt"))
 
@@ -91,22 +89,26 @@ class TestBuildChimera(unittest.TestCase):
     def setUp(self):
         """Create test DataFrames with dayObs column."""
         # Use observationId to match baseline data schema
-        self.consdb_visits = pd.DataFrame({
-            "observationId": [1, 2, 3],
-            "dayObs": [20260101, 20260102, 20260103],
-            "filter": ["g", "r", "i"],
-            "fiveSigmaDepth": [24.1, 24.2, 24.3],
-            "observationStartMJD": [61000, 61001, 61002],
-        })
+        self.consdb_visits = pd.DataFrame(
+            {
+                "observationId": [1, 2, 3],
+                "dayObs": [20260101, 20260102, 20260103],
+                "filter": ["g", "r", "i"],
+                "fiveSigmaDepth": [24.1, 24.2, 24.3],
+                "observationStartMJD": [61000, 61001, 61002],
+            }
+        )
 
-        self.opsim_visits = pd.DataFrame({
-            "observationId": [101, 102, 103],
-            "dayObs": [20260104, 20260105, 20260106],
-            "filter": ["g", "r", "i"],
-            "fiveSigmaDepth": [23.1, 23.2, 23.3],
-            "exposures": [2, 2, 2],
-            "observationStartMJD": [61003, 61004, 61005],
-        })
+        self.opsim_visits = pd.DataFrame(
+            {
+                "observationId": [101, 102, 103],
+                "dayObs": [20260104, 20260105, 20260106],
+                "filter": ["g", "r", "i"],
+                "fiveSigmaDepth": [23.1, 23.2, 23.3],
+                "exposures": [2, 2, 2],
+                "observationStartMJD": [61003, 61004, 61005],
+            }
+        )
 
     def test_basic_concatenation(self):
         """Test basic chimera concatenation."""
@@ -142,6 +144,21 @@ class TestBuildChimera(unittest.TestCase):
             end_dayobs=20260106,
         )
         self.assertEqual(result["observationId"].tolist(), [1, 3, 101, 102, 103])
+
+    def test_shared_depth_limit_filters_both_sources(self):
+        consdb = self.consdb_visits.copy()
+        opsim = self.opsim_visits.copy()
+        consdb["fiveSigmaDepth"] = [24.1, 0.0, -1.0]
+        opsim["fiveSigmaDepth"] = [23.1, 0.0, np.nan]
+
+        result = build_chimera(consdb, opsim, 20260101, 20260103, 20260106)
+        self.assertEqual(result["observationId"].tolist(), [1, 101])
+
+        with patch("rubin_sim.maf.progress.FIVE_SIGMA_DEPTH_LIMIT", 24.1):
+            consdb.loc[0, "fiveSigmaDepth"] = 24.2
+            opsim.loc[0, "fiveSigmaDepth"] = 24.1
+            result = build_chimera(consdb, opsim, 20260101, 20260103, 20260106)
+        self.assertEqual(result["observationId"].tolist(), [1])
 
     def test_dayobs_boundary(self):
         """Test that dayObs boundary is correct."""
@@ -227,7 +244,7 @@ class TestBuildChimeras(unittest.TestCase):
     def setUpClass(cls):
         """Generate sample test data once for all tests."""
         cls.opsim_visits = make_sample_opsim_visits(n_visits=500, random_state=42)
-        cls.consdb_visits = make_sample_consdb_visits(n_visits=100, days=60, random_state=42)
+        cls.consdb_visits = make_sample_consdb_visits(n_visits=100, random_state=42)
         cls.out_dir = tempfile.mkdtemp(prefix="chimera_test_")
 
     @classmethod
@@ -270,9 +287,14 @@ class TestBuildChimeras(unittest.TestCase):
         )
 
         transition_dates = [t for t, _ in specs]
+
+        def _to_date(dayobs):
+            s = f"{dayobs:08d}"
+            return datetime.date(int(s[:4]), int(s[4:6]), int(s[6:]))
+
         # Check that dates are spaced by step (except possibly last)
         for i in range(len(transition_dates) - 1):
-            diff = transition_dates[i + 1] - transition_dates[i]
+            diff = (_to_date(transition_dates[i + 1]) - _to_date(transition_dates[i])).days
             self.assertEqual(diff, 7)  # Step should be exactly 7
         # Last date should be max consdb dayObs
         max_consdb = int(self.consdb_visits["dayObs"].max())
@@ -341,9 +363,11 @@ class TestBuildChimeras(unittest.TestCase):
             chimera = pd.read_hdf(path, key="observations")
             # All consdb visits should be before transition
             self.assertTrue(
-                (chimera[chimera["dayObs"] <= transition_dayobs]["observationId"]
-                 .isin(self.consdb_visits["observationId"]))
-                .all()
+                (
+                    chimera[chimera["dayObs"] <= transition_dayobs]["observationId"].isin(
+                        self.consdb_visits["observationId"]
+                    )
+                ).all()
             )
 
 
@@ -354,7 +378,7 @@ class TestRunChimeraBatches(unittest.TestCase):
     def setUpClass(cls):
         """Generate sample test data and build chimera files."""
         cls.opsim_visits = make_sample_opsim_visits(n_visits=500, random_state=42)
-        cls.consdb_visits = make_sample_consdb_visits(n_visits=100, days=60, random_state=42)
+        cls.consdb_visits = make_sample_consdb_visits(n_visits=100, random_state=42)
         cls.out_dir = tempfile.mkdtemp(prefix="chimera_batch_test_")
 
         # Build some chimera files
@@ -402,6 +426,7 @@ class TestRunChimeraBatches(unittest.TestCase):
         def batch_func_with_fallback(**kwargs) -> dict:
             """Batch function that handles both run_name and runName."""
             import rubin_sim.maf as maf
+
             metric = maf.metrics.CountMetric(col="observationStartMJD")
             bundle = maf.MetricBundle(
                 metric,
@@ -497,9 +522,9 @@ class TestRunProgressBatches(unittest.TestCase):
             self.assertEqual(
                 batch.call_args_list,
                 [
-                    call(run_name="chimera_20260101", end_dayobs=20260101),
-                    call(run_name="chimera_20260105", end_dayobs=20260105),
-                    call(run_name="chimera_20260106", end_dayobs=20260106),
+                    call(run_name="consdb_20260101", end_dayobs=20260101),
+                    call(run_name="consdb_20260105", end_dayobs=20260105),
+                    call(run_name="consdb_20260106", end_dayobs=20260106),
                 ],
             )
 
@@ -518,8 +543,42 @@ class TestRunProgressBatches(unittest.TestCase):
                     batch_func=batch_func,
                     batch_kwargs={"nside": 8},
                 )
-            batch_func.assert_called_once_with(run_name="chimera_20260101", end_dayobs=20260101, nside=8)
+            batch_func.assert_called_once_with(run_name="consdb_20260101", end_dayobs=20260101, nside=8)
             self.assertIs(group.call_args.args[0], batch_func.return_value)
+
+    def test_empty_early_snapshot_writes_no_rows(self):
+        """Early dates before the first visit create no rows or errors.
+
+        The 2026-09-29 manual check used 100 sampled visits (first dayObs
+        20260102), start=20251201, end=20260105, and step=30. This produces
+        dates [20251201, 20251231, 20260105]. The first two precede all visits,
+        so only consdb_20260105 appears in the ResultsDb.
+
+        Verifies R-3 (empty early snapshots) and R-5 (run names).
+        """
+        consdb_visits = make_sample_consdb_visits(n_visits=100, random_state=42)
+        with tempfile.TemporaryDirectory() as out_dir:
+            visits_path = os.path.join(out_dir, "consdb.h5")
+            consdb_visits.to_hdf(visits_path, key="observations", complevel=5)
+
+            results_db_path = run_progress_batches(
+                visits_path,
+                start_dayobs=20251201,
+                end_dayobs=20260105,
+                step=30,
+                out_dir=out_dir,
+                batch_kwargs={"nside": 8, "bands": ()},
+            )
+
+            results_db = ResultsDb(database=results_db_path)
+            run_names = results_db.get_run_name()
+            results_db.close()
+
+        # The two dates before the first visit must not appear.
+        self.assertNotIn("consdb_20251201", run_names)
+        self.assertNotIn("consdb_20251231", run_names)
+        # The end date lands on or after the first visit and must appear.
+        self.assertIn("consdb_20260105", run_names)
 
 
 class TestRunProgressBatchesCommand(unittest.TestCase):
@@ -537,12 +596,20 @@ class TestRunProgressBatchesCommand(unittest.TestCase):
                 result = CliRunner().invoke(
                     run_progress_batches_cmd,
                     [
-                        "--visits-file", visits_file,
-                        "--start-dayobs", "20260101",
-                        "--end-dayobs", "20260102",
-                        "--batch", "custom_progress_batch",
-                        "--batch-kwarg", "nside=8",
-                        "--out-dir", out_dir,
+                        "--visits-file",
+                        visits_file,
+                        "--start-dayobs",
+                        "20260101",
+                        "--end-dayobs",
+                        "20260102",
+                        "--step",
+                        "1",
+                        "--batch",
+                        "custom_progress_batch",
+                        "--batch-kwarg",
+                        "nside=8",
+                        "--out-dir",
+                        out_dir,
                     ],
                 )
             self.assertIsNone(result.exception)
@@ -565,6 +632,30 @@ class TestRunProgressBatchesCommand(unittest.TestCase):
             self.assertIsNone(result.exception)
             self.assertIs(run_batches.call_args.kwargs["batch_func"], batches.snapshot_batch)
 
+    def test_reports_end_dayobs_when_off_cadence(self):
+        with tempfile.TemporaryDirectory() as out_dir:
+            visits_file = os.path.join(out_dir, "visits.h5")
+            with open(visits_file, "wb"):
+                pass
+            with patch("rubin_sim.maf.progress.run_progress_batches", return_value="results.db"):
+                for end_dayobs, count in (("20260103", 2), ("20260104", 3)):
+                    with self.subTest(end_dayobs=end_dayobs):
+                        result = CliRunner().invoke(
+                            run_progress_batches_cmd,
+                            [
+                                "--visits-file",
+                                visits_file,
+                                "--start-dayobs",
+                                "20260101",
+                                "--end-dayobs",
+                                end_dayobs,
+                                "--step",
+                                "2",
+                            ],
+                        )
+                        self.assertIsNone(result.exception)
+                        self.assertIn(f"Ran {count} batch(es)", result.output)
+
     def test_rejects_unknown_batch(self):
         with tempfile.TemporaryDirectory() as out_dir:
             visits_file = os.path.join(out_dir, "visits.h5")
@@ -574,32 +665,296 @@ class TestRunProgressBatchesCommand(unittest.TestCase):
                 result = CliRunner().invoke(
                     run_progress_batches_cmd,
                     [
-                        "--visits-file", visits_file,
-                        "--start-dayobs", "20260101",
-                        "--end-dayobs", "20260101",
-                        "--batch", "not_a_batch",
+                        "--visits-file",
+                        visits_file,
+                        "--start-dayobs",
+                        "20260101",
+                        "--end-dayobs",
+                        "20260101",
+                        "--batch",
+                        "not_a_batch",
                     ],
                 )
             self.assertNotEqual(result.exit_code, 0)
             self.assertIn("not a known batch function", result.output)
             run_batches.assert_not_called()
 
+    def test_rejects_malformed_batch_kwarg(self):
+        with tempfile.TemporaryDirectory() as out_dir:
+            visits_file = os.path.join(out_dir, "visits.h5")
+            with open(visits_file, "wb"):
+                pass
+
+            with patch("rubin_sim.maf.progress.run_progress_batches") as run_batches:
+                for batch_kwarg in ("nside", "=8"):
+                    with self.subTest(batch_kwarg=batch_kwarg):
+                        result = CliRunner().invoke(
+                            run_progress_batches_cmd,
+                            [
+                                "--visits-file",
+                                visits_file,
+                                "--start-dayobs",
+                                "20260101",
+                                "--end-dayobs",
+                                "20260101",
+                                "--batch-kwarg",
+                                batch_kwarg,
+                            ],
+                        )
+                        self.assertNotEqual(result.exit_code, 0)
+                        self.assertIn("Invalid --batch-kwarg", result.output)
+                run_batches.assert_not_called()
+
+
+class TestRunChimeraBatchesCommand(unittest.TestCase):
+    def test_rejects_unknown_batch(self):
+        with tempfile.TemporaryDirectory() as chimera_dir:
+            with patch("rubin_sim.maf.progress.run_chimera_batches") as run_batches:
+                result = CliRunner().invoke(
+                    run_chimera_batches_cmd,
+                    ["--chimera-dir", chimera_dir, "--batch", "not_a_batch"],
+                )
+
+            self.assertNotEqual(result.exit_code, 0)
+            self.assertIn("not a known batch function", result.output)
+            run_batches.assert_not_called()
+
+    def test_rejects_malformed_batch_kwarg(self):
+        with tempfile.TemporaryDirectory() as chimera_dir:
+            with patch("rubin_sim.maf.progress.run_chimera_batches") as run_batches:
+                for batch_kwarg in ("nside", "=8"):
+                    with self.subTest(batch_kwarg=batch_kwarg):
+                        result = CliRunner().invoke(
+                            run_chimera_batches_cmd,
+                            [
+                                "--chimera-dir",
+                                chimera_dir,
+                                "--batch-kwarg",
+                                batch_kwarg,
+                            ],
+                        )
+                        self.assertNotEqual(result.exit_code, 0)
+                        self.assertIn("Invalid --batch-kwarg", result.output)
+                run_batches.assert_not_called()
+
+
+class TestProgressConsoleScripts(unittest.TestCase):
+    def test_console_scripts_are_registered(self):
+        from importlib.metadata import distribution
+
+        scripts = {
+            entry_point.name: entry_point.value
+            for entry_point in distribution("rubin-sim").entry_points
+            if entry_point.group == "console_scripts"
+        }
+        expected = {
+            "build_chimeras": "rubin_sim.maf.progress:build_chimeras_cmd",
+            "run_chimera_batches": "rubin_sim.maf.progress:run_chimera_batches_cmd",
+            "run_progress_batches": "rubin_sim.maf.progress:run_progress_batches_cmd",
+            "make_chimera_summary_table": "rubin_sim.maf.progress:make_chimera_summary_table_cmd",
+        }
+
+        for name, target in expected.items():
+            with self.subTest(script=name):
+                self.assertEqual(scripts.get(name), target)
+
+
+def _assert_base_progress_bundles(test_case, bundles, labels):
+    """Assert the four required R-4 bundle types for each label.
+
+    Each label in ``labels`` must have exactly these four bundles:
+    - ``"Sum t_eff"`` on a UniSlicer (MAF adds only IdentityMetric);
+    - ``"Numbers of exposures"`` on a UniSlicer (same);
+    - ``"Number of exposure area stats"`` on a HealpixSlicer with standard
+      summaries, top-18k, and 10th-percentile summaries;
+    - ``"Depth area stats"`` on a HealpixSlicer with the same summaries.
+
+    Parameters
+    ----------
+    test_case : `unittest.TestCase`
+    bundles : `dict`
+        Return value of ``chimera_batch`` or ``snapshot_batch``.
+    labels : `list` of `str`
+        Expected ``info_label`` values, e.g. ``["chimera_g", "chimera_all"]``.
+    """
+    import rubin_sim.maf.slicers as slicers
+
+    # m.name on standard_summary() instances carries a " None" suffix for
+    # column-agnostic metrics.
+    STANDARD_SUMMARY_NAMES = {
+        "Mean None",
+        "Rms None",
+        "Median None",
+        "Max None",
+        "Min None",
+        "N(+3Sigma)",
+        "N(-3Sigma)",
+        "Count None",
+    }
+    # AreaSummaryMetric(metric_name="top18k") -> m.name == "top18k"
+    # PercentileMetric(..., percentile=10) -> m.name == "10th%ile metricdata"
+    TOP18K_NAME = "top18k"
+    PERCENTILE_NAME = "10th%ile metricdata"
+    # MAF auto-adds IdentityMetric to UniSlicer bundles without summaries.
+    UNISLICER_AUTO_SUMMARY = {"Identity None"}
+
+    bundle_list = list(bundles.values())
+    non_fo = [b for b in bundle_list if b.metric.name != "fO"]
+
+    test_case.assertEqual(
+        len(non_fo),
+        4 * len(labels),
+        f"Expected 4 base bundle types × {len(labels)} labels = {4 * len(labels)} bundles; "
+        f"got {len(non_fo)}",
+    )
+
+    by_metric_label = {(b.metric.name, b.info_label): b for b in non_fo}
+
+    for label in labels:
+        with test_case.subTest(label=label):
+            # --- t_eff sum (UniSlicer) ---
+            teff_key = ("Sum t_eff", label)
+            test_case.assertIn(teff_key, by_metric_label, f"Missing t_eff bundle for {label}")
+            teff = by_metric_label[teff_key]
+            test_case.assertIsInstance(teff.slicer, slicers.UniSlicer)
+            teff_summary_names = {m.name for m in teff.summary_metrics}
+            test_case.assertTrue(
+                teff_summary_names.issubset(UNISLICER_AUTO_SUMMARY),
+                f"t_eff bundle for {label} has unexpected summary metrics: {teff_summary_names}",
+            )
+
+            # --- visit count (UniSlicer) ---
+            count_uni_key = ("Numbers of exposures", label)
+            test_case.assertIn(count_uni_key, by_metric_label, f"Missing visit-count bundle for {label}")
+            count_uni = by_metric_label[count_uni_key]
+            test_case.assertIsInstance(count_uni.slicer, slicers.UniSlicer)
+            count_uni_summary_names = {m.name for m in count_uni.summary_metrics}
+            test_case.assertTrue(
+                count_uni_summary_names.issubset(UNISLICER_AUTO_SUMMARY),
+                f"Visit-count bundle for {label} has unexpected summary metrics: "
+                f"{count_uni_summary_names}",
+            )
+
+            # --- HEALPix visit-count area stats ---
+            count_hp_key = ("Number of exposure area stats", label)
+            test_case.assertIn(
+                count_hp_key, by_metric_label, f"Missing HEALPix visit-count bundle for {label}"
+            )
+            count_hp = by_metric_label[count_hp_key]
+            test_case.assertIsInstance(count_hp.slicer, slicers.HealpixSlicer)
+            count_hp_summary_names = {m.name for m in count_hp.summary_metrics}
+            test_case.assertTrue(
+                STANDARD_SUMMARY_NAMES.issubset(count_hp_summary_names),
+                f"HEALPix visit-count for {label} missing standard summaries; "
+                f"got {count_hp_summary_names}",
+            )
+            test_case.assertIn(
+                TOP18K_NAME, count_hp_summary_names, f"HEALPix visit-count for {label} missing top18k summary"
+            )
+            test_case.assertIn(
+                PERCENTILE_NAME,
+                count_hp_summary_names,
+                f"HEALPix visit-count for {label} missing 10th-percentile summary",
+            )
+
+            # --- HEALPix coadded-depth area stats ---
+            depth_key = ("Depth area stats", label)
+            test_case.assertIn(depth_key, by_metric_label, f"Missing HEALPix depth bundle for {label}")
+            depth_hp = by_metric_label[depth_key]
+            test_case.assertIsInstance(depth_hp.slicer, slicers.HealpixSlicer)
+            depth_hp_summary_names = {m.name for m in depth_hp.summary_metrics}
+            test_case.assertTrue(
+                STANDARD_SUMMARY_NAMES.issubset(depth_hp_summary_names),
+                f"HEALPix depth for {label} missing standard summaries; " f"got {depth_hp_summary_names}",
+            )
+            test_case.assertIn(
+                TOP18K_NAME, depth_hp_summary_names, f"HEALPix depth for {label} missing top18k summary"
+            )
+            test_case.assertIn(
+                PERCENTILE_NAME,
+                depth_hp_summary_names,
+                f"HEALPix depth for {label} missing 10th-percentile summary",
+            )
+
+
+class TestChimeraBatch(unittest.TestCase):
+    def test_fo_bundle_uses_requested_nside(self):
+        from rubin_sim.maf.batches.progress_batch import chimera_batch
+
+        bundles = chimera_batch(bands=(), nside=8)
+        fo_bundle = next(bundle for bundle in bundles.values() if bundle.metric.name == "fO")
+        self.assertEqual(fo_bundle.slicer.nside, 8)
+        self.assertEqual({metric.nside for metric in fo_bundle.summary_metrics}, {8})
+
+    def test_covers_required_metrics(self):
+        """chimera_batch covers all metrics and summaries required by R-4.
+
+        For each band u,g,r,i,z,y and for all bands combined:
+        - a t_eff sum bundle (UniSlicer, no configured summary metrics);
+        - a visit-count bundle (UniSlicer, no configured summary metrics);
+        - a HEALPix visit-count bundle with standard summary stats,
+          the top-18k-deg² minimum, and the 10th-percentile summary;
+        - a HEALPix coadded-depth bundle with the same three summary groups.
+
+        Plus exactly the five fO summary metrics (fOArea, fOArea/benchmark,
+        fONv, fONv/benchmark, fOArea_750) on a single fO bundle.
+        """
+        from rubin_sim.maf.batches.progress_batch import chimera_batch
+
+        BANDS = ("u", "g", "r", "i", "z", "y")
+        LABELS = [f"chimera_{b}" for b in BANDS] + ["chimera_all"]
+
+        bundles = chimera_batch(bands=BANDS, nside=8)
+        bundle_list = list(bundles.values())
+
+        # --- fO bundle ---
+        fo_bundles = [b for b in bundle_list if b.metric.name == "fO"]
+        self.assertEqual(len(fo_bundles), 1, "Expected exactly one fO bundle")
+        fo_summary_names = {m.name for m in fo_bundles[0].summary_metrics}
+        self.assertEqual(
+            fo_summary_names,
+            {
+                "fOArea",
+                "fOArea/benchmark",
+                "fONv",
+                "fONv/benchmark",
+                "fOArea_750",
+            },
+        )
+
+        # --- Base bundles (4 types × 7 labels) ---
+        _assert_base_progress_bundles(self, bundles, LABELS)
+
 
 class TestSnapshotBatch(unittest.TestCase):
+    def test_uses_shared_depth_limit(self):
+        from rubin_sim.maf.batches.progress_batch import snapshot_batch
+
+        with patch("rubin_sim.maf.progress.FIVE_SIGMA_DEPTH_LIMIT", 24.0):
+            bundles = snapshot_batch(bands=(), nside=8)
+        self.assertEqual({bundle.pdconstraint for bundle in bundles.values()}, {"fiveSigmaDepth > 24.0"})
+
     def test_filters_real_visits_through_end_dayobs(self):
         from rubin_sim.maf.batches.progress_batch import snapshot_batch
 
         bundles = snapshot_batch(run_name="baseline_20260102", bands=("g",), nside=8, end_dayobs=20260102)
         constraints = {bundle.info_label: bundle.pdconstraint for bundle in bundles.values()}
         end_mjd = Time("2026-01-03T12:00:00").mjd
-        self.assertEqual(constraints["snapshot_all"], f"not simulated and observationStartMJD < {end_mjd}")
         self.assertEqual(
-            constraints["snapshot_g"], f"not simulated and observationStartMJD < {end_mjd} and band == 'g'"
+            constraints["snapshot_all"], f"fiveSigmaDepth > 0.0 and observationStartMJD < {end_mjd}"
         )
+        self.assertEqual(
+            constraints["snapshot_g"],
+            f"fiveSigmaDepth > 0.0 and observationStartMJD < {end_mjd} and band == 'g'",
+        )
+        # Row 0: before end_mjd, depth > 0 -> included
+        # Row 1: before end_mjd, depth > 0 -> included
+        # Row 2: at end_mjd (not < end_mjd), depth > 0 -> excluded
+        # Row 3: before end_mjd, depth <= 0 -> excluded
         visits = pd.DataFrame(
             {
                 "observationStartMJD": [end_mjd - 1, end_mjd - 0.5, end_mjd, end_mjd - 0.5],
-                "simulated": [False, False, False, True],
+                "fiveSigmaDepth": [25.0, 24.5, 25.0, -1.0],
                 "band": ["g", "g", "g", "g"],
             }
         )
@@ -616,10 +971,38 @@ class TestSnapshotBatch(unittest.TestCase):
         bundles = snapshot_batch(colmap=colmap, bands=(), nside=8, end_dayobs=20260102)
         self.assertEqual(
             {bundle.pdconstraint for bundle in bundles.values()},
-            {f"not simulated and visitMjd < {Time('2026-01-03T12:00:00').mjd}"},
+            {f"fiveSigmaDepth > 0.0 and visitMjd < {Time('2026-01-03T12:00:00').mjd}"},
         )
         bundles = snapshot_batch(colmap=colmap, bands=(), nside=8)
-        self.assertEqual({bundle.pdconstraint for bundle in bundles.values()}, {"not simulated"})
+        self.assertEqual({bundle.pdconstraint for bundle in bundles.values()}, {"fiveSigmaDepth > 0.0"})
+
+    def test_covers_required_metrics(self):
+        """snapshot_batch covers all metrics and summaries required by R-4.
+
+        For each band u,g,r,i,z,y and for all bands combined:
+        - a t_eff sum bundle (UniSlicer, no configured summary metrics);
+        - a visit-count bundle (UniSlicer, no configured summary metrics);
+        - a HEALPix visit-count bundle with standard summary stats,
+          the top-18k-deg² minimum, and the 10th-percentile summary;
+        - a HEALPix coadded-depth bundle with the same three summary groups.
+
+        snapshot_batch does not produce fO bundles (R-4).
+        """
+        from rubin_sim.maf.batches.progress_batch import snapshot_batch
+
+        BANDS = ("u", "g", "r", "i", "z", "y")
+        LABELS = [f"snapshot_{b}" for b in BANDS] + ["snapshot_all"]
+
+        bundles = snapshot_batch(bands=BANDS, nside=8)
+
+        # snapshot_batch produces no fO bundle (R-4).
+        fo_bundles = [b for b in bundles.values() if b.metric.name == "fO"]
+        self.assertEqual(len(fo_bundles), 0, "snapshot_batch must not produce an fO bundle")
+
+        # 4 base metric types × 7 labels = 28 bundles total.
+        self.assertEqual(len(bundles), 4 * len(LABELS))
+
+        _assert_base_progress_bundles(self, bundles, LABELS)
 
 
 class TestMakeChimeraSummaryTable(unittest.TestCase):
@@ -629,7 +1012,7 @@ class TestMakeChimeraSummaryTable(unittest.TestCase):
     def setUpClass(cls):
         """Run a full chimera batch workflow."""
         cls.opsim_visits = make_sample_opsim_visits(n_visits=500, random_state=42)
-        cls.consdb_visits = make_sample_consdb_visits(n_visits=100, days=60, random_state=42)
+        cls.consdb_visits = make_sample_consdb_visits(n_visits=100, random_state=42)
         cls.out_dir = tempfile.mkdtemp(prefix="chimera_summary_test_")
 
         # Build chimera files
@@ -724,16 +1107,26 @@ class TestMakeChimeraSummaryTable(unittest.TestCase):
 
 
 class TestEndToEnd(unittest.TestCase):
-    """Test end-to-end chimera workflow."""
+    """Test end-to-end chimera workflow.
+
+    The chimera files are built once and shared by two batch runs, each
+    writing to its own results directory: ``science_radar_batch`` (a legacy
+    batch, using ``dayobs0``) and ``chimera_batch`` (R-4 progress metrics).
+    """
+
+    NSIDE = 16
+    BANDS = ("u", "g", "r", "i", "z", "y")
 
     @classmethod
     def setUpClass(cls):
-        """Generate sample data and run full workflow."""
+        """Generate sample data, build chimeras, and run both batches."""
         cls.opsim_visits = make_sample_opsim_visits(n_visits=500, random_state=42)
-        cls.consdb_visits = make_sample_consdb_visits(n_visits=100, days=60, random_state=42)
+        cls.consdb_visits = make_sample_consdb_visits(n_visits=100, random_state=42)
         cls.out_dir = tempfile.mkdtemp(prefix="e2e_test_")
+        cls.radar_out_dir = os.path.join(cls.out_dir, "science_radar")
+        cls.progress_out_dir = os.path.join(cls.out_dir, "chimera_batch")
 
-        # Build chimera files
+        # Build chimera files once, shared by both batches.
         cls.chimera_specs = build_chimeras(
             cls.consdb_visits,
             cls.opsim_visits,
@@ -743,17 +1136,22 @@ class TestEndToEnd(unittest.TestCase):
             out_dir=cls.out_dir,
         )
 
-        # Run batches with science_radar_batch (srd_only for speed)
-        # science_radar_batch requires dayobs0 parameter
+        # science_radar_batch (srd_only for speed) requires dayobs0.
         cls.results_db_path = run_chimera_batches(
             cls.chimera_specs,
             batch_func=batches.science_radar_batch,
-            out_dir=cls.out_dir,
+            out_dir=cls.radar_out_dir,
             batch_kwargs={"srd_only": True, "dayobs0": 20260101},
         )
-
-        # Create summary table
         cls.summary_df = make_chimera_summary_table(cls.results_db_path)
+
+        cls.progress_results_db_path = run_chimera_batches(
+            cls.chimera_specs,
+            batch_func=batches.chimera_batch,
+            out_dir=cls.progress_out_dir,
+            batch_kwargs={"nside": cls.NSIDE},
+        )
+        cls.progress_summary_df = make_chimera_summary_table(cls.progress_results_db_path)
 
     @classmethod
     def tearDownClass(cls):
@@ -762,44 +1160,131 @@ class TestEndToEnd(unittest.TestCase):
 
         shutil.rmtree(cls.out_dir, ignore_errors=True)
 
+    def _summaries(self):
+        """Yield (label, results db path, summary table) for each batch."""
+        yield "science_radar_batch", self.results_db_path, self.summary_df
+        yield "chimera_batch", self.progress_results_db_path, self.progress_summary_df
+
     def test_full_workflow_completes(self):
         """Test that full workflow completes successfully."""
         self.assertGreater(len(self.chimera_specs), 0)
-        self.assertTrue(os.path.exists(self.results_db_path))
-        self.assertGreater(len(self.summary_df), 0)
+        for label, db_path, summary_df in self._summaries():
+            with self.subTest(batch=label):
+                self.assertTrue(os.path.exists(db_path))
+                self.assertGreater(len(summary_df), 0)
 
     def test_summary_table_structure(self):
         """Test summary table has expected structure."""
-        # Check index
-        self.assertEqual(self.summary_df.index.name, "transition_dayobs")
-        self.assertTrue(np.issubdtype(self.summary_df.index.dtype, np.integer))
-
-        # Check columns
-        self.assertIsInstance(self.summary_df.columns, pd.MultiIndex)
-        self.assertEqual(len(self.summary_df.columns.names), 4)
-
-        # Check row count
-        self.assertEqual(len(self.summary_df), len(self.chimera_specs))
+        for label, _, summary_df in self._summaries():
+            with self.subTest(batch=label):
+                self.assertEqual(summary_df.index.name, "transition_dayobs")
+                self.assertTrue(np.issubdtype(summary_df.index.dtype, np.integer))
+                self.assertIsInstance(summary_df.columns, pd.MultiIndex)
+                self.assertEqual(len(summary_df.columns.names), 4)
+                self.assertEqual(len(summary_df), len(self.chimera_specs))
 
     def test_run_names_match_chimera_pattern(self):
         """Test that run names in ResultsDb match chimera pattern."""
-        results_db = ResultsDb(database=self.results_db_path)
-        run_names = results_db.get_run_name()
-        results_db.close()
-
-        for run_name in run_names:
-            self.assertRegex(run_name, r"^chimera_\d{8}$")
+        for label, db_path, _ in self._summaries():
+            with self.subTest(batch=label):
+                results_db = ResultsDb(database=db_path)
+                run_names = results_db.get_run_name()
+                results_db.close()
+                self.assertEqual(
+                    sorted(run_names),
+                    sorted(_run_name_from_dayobs(dayobs) for dayobs, _ in self.chimera_specs),
+                )
+                for run_name in run_names:
+                    self.assertRegex(run_name, r"^chimera_\d{8}$")
 
     def test_summary_values_are_numeric(self):
         """Test that summary values are numeric."""
-        # All values should be numeric (float or int)
-        for col in self.summary_df.columns:
-            values = self.summary_df[col].dropna()
-            if len(values) > 0:
-                self.assertTrue(
-                    np.issubdtype(values.dtype, np.number),
-                    f"Column {col} has non-numeric values: {values.dtype}",
+        for label, _, summary_df in self._summaries():
+            for col in summary_df.columns:
+                values = summary_df[col].dropna()
+                if len(values) > 0:
+                    self.assertTrue(
+                        np.issubdtype(values.dtype, np.number),
+                        f"{label} column {col} has non-numeric values: {values.dtype}",
+                    )
+
+    def _progress_column(self, metric, slicer, info_label, summary):
+        col = (metric, slicer, info_label, summary)
+        self.assertIn(col, self.progress_summary_df.columns)
+        return self.progress_summary_df[col]
+
+    def test_chimera_batch_visit_counts(self):
+        """Visit counts from chimera_batch match the visits in each file."""
+        for dayobs, path in self.chimera_specs:
+            visits = pd.read_hdf(path, key="observations")
+            expected = {"all": len(visits)}
+            expected.update({band: int((visits["band"] == band).sum()) for band in self.BANDS})
+            for suffix, n_expected in expected.items():
+                if n_expected == 0:
+                    continue  # Bundles with no visits write no results.
+                counts = self._progress_column(
+                    "Numbers of exposures", "UniSlicer", f"chimera_{suffix}", "Identity"
                 )
+                self.assertEqual(counts.loc[dayobs], n_expected, f"{dayobs} {suffix}")
+
+    def test_chimera_batch_teff_is_additive(self):
+        """Per-band t_eff is positive and sums to the all-band value."""
+        total = self._progress_column("Sum t_eff", "UniSlicer", "chimera_all", "Identity")
+        self.assertTrue((total > 0).all())
+        band_sum = sum(
+            self._progress_column("Sum t_eff", "UniSlicer", f"chimera_{band}", "Identity")
+            for band in self.BANDS
+        )
+        np.testing.assert_allclose(band_sum.to_numpy(), total.to_numpy(), rtol=1e-6)
+
+    def test_chimera_batch_healpix_summaries(self):
+        """Count and depth maps have all required, sane summaries."""
+        required = ["Count", "Max", "Mean", "Median", "Min", "Rms", "top18k", "10th%ile"]
+        for metric in ("Number of exposure area stats", "Depth area stats"):
+            for suffix in ("all",) + self.BANDS:
+                for summary in required:
+                    self._progress_column(metric, "HealpixSlicer", f"chimera_{suffix}", summary)
+
+            counts = self._progress_column(metric, "HealpixSlicer", "chimera_all", "Count")
+            self.assertTrue((counts > 0).all())
+            mins = self._progress_column(metric, "HealpixSlicer", "chimera_all", "Min")
+            maxs = self._progress_column(metric, "HealpixSlicer", "chimera_all", "Max")
+            tenth = self._progress_column(metric, "HealpixSlicer", "chimera_all", "10th%ile")
+            self.assertTrue((mins <= tenth).all())
+            self.assertTrue((tenth <= maxs).all())
+
+        # Coadded depth must be a plausible magnitude; every covered pixel
+        # in a visit-count map has at least one visit.
+        depth_mean = self._progress_column("Depth area stats", "HealpixSlicer", "chimera_all", "Mean")
+        self.assertTrue(((depth_mean > 15) & (depth_mean < 30)).all())
+        nvis_min = self._progress_column(
+            "Number of exposure area stats", "HealpixSlicer", "chimera_all", "Min"
+        )
+        self.assertTrue((nvis_min >= 1).all())
+
+    def test_chimera_batch_fo_metrics_present(self):
+        """The fO metrics are recorded for every chimera.
+
+        The sample data are too sparse to give meaningful fO values (they
+        are masked), so only the presence of the summary columns is checked.
+        """
+        fo_summaries = {col[3] for col in self.progress_summary_df.columns if col[0] == "fO"}
+        required = {
+            "fOArea",
+            "fOArea/benchmark",
+            "fOArea_750",
+            "fONv MedianNvis",
+            "fONv MinNvis",
+            "fONv/benchmark MedianNvis",
+            "fONv/benchmark MinNvis",
+        }
+        self.assertLessEqual(required, fo_summaries)
+
+    def test_chimera_batch_tracks_transition_dates(self):
+        """Metrics change as completed visits replace baseline ones."""
+        counts = self._progress_column("Numbers of exposures", "UniSlicer", "chimera_all", "Identity")
+        self.assertEqual(list(counts.index), [dayobs for dayobs, _ in self.chimera_specs])
+        self.assertGreater(counts.nunique(), 1)
 
 
 if __name__ == "__main__":
