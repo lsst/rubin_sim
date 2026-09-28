@@ -35,5 +35,4 @@ class LCLObsCountMetric(BaseLCLMetric):
         -------
         metricValue : `int` `float` or `object`
             The metric value at each slice_point."""
-        print("here")
         return len(data_slice)
