@@ -4,7 +4,6 @@ import shutil
 import tempfile
 import unittest
 
-import numpy as np
 from rubin_scheduler.data import get_data_dir
 from rubin_scheduler.utils.code_utilities import sims_clean_up
 
@@ -62,19 +61,9 @@ class TestMetricBundle(unittest.TestCase):
         assert len(out_pdf) == 2
         assert len(out_npz) == 1
 
-    def test_pdconstraint_stored(self):
-        """Test that pdconstraint is stored correctly on MetricBundle."""
-        metric = metrics.MeanMetric(col="airmass")
-        slicer = slicers.UniSlicer()
-
-        b_none = metric_bundles.MetricBundle(metric, slicer, "")
-        assert b_none.pdconstraint == ""
-
-        b_pd = metric_bundles.MetricBundle(metric, slicer, "", pdconstraint="night < 5")
-        assert b_pd.pdconstraint == "night < 5"
-
     def test_pdconstraint_required_columns_ignore_literals(self):
         cases = [
+            ("", set()),
             ("band == 'r'", {"band"}),
             ('band == "g"', {"band"}),
             ("band in ('r', 'i', 'z')", {"band"}),
@@ -89,87 +78,58 @@ class TestMetricBundle(unittest.TestCase):
             with self.subTest(pdconstraint=pdconstraint):
                 self.assertEqual(_cols_from_pdconstraint(pdconstraint), expected)
 
-    def test_pdconstraint_band_value_not_in_group_db_cols(self):
-        pdconstraint = "band == 'r' and not simulated"
-        bundle = metric_bundles.MetricBundle(
-            metrics.MeanMetric(col="airmass"), slicers.UniSlicer(), "", pdconstraint=pdconstraint
-        )
-        self.assertIn("band", bundle.db_cols)
-        self.assertIn("simulated", bundle.db_cols)
-        self.assertNotIn("r", bundle.db_cols)
+    def test_pdconstraint_db_cols(self):
+        """Columns named in a pdconstraint are fetched; literals are not."""
+        metric = metrics.MeanMetric(col="airmass")
+        slicer = slicers.UniSlicer()
+        self.assertEqual(metric_bundles.MetricBundle(metric, slicer, "").pdconstraint, "")
 
-        group = metric_bundles.MetricBundleGroup({"band": bundle}, None, out_dir=self.out_dir)
-        group.set_current("", pdconstraint=pdconstraint)
-        self.assertIn("band", group.db_cols)
-        self.assertNotIn("r", group.db_cols)
-
-    def test_pdconstraint_function_not_in_group_db_cols(self):
         pdconstraint = "@np.isfinite(fiveSigmaDepth) and band == 'r'"
-        bundle = metric_bundles.MetricBundle(
-            metrics.MeanMetric(col="airmass"), slicers.UniSlicer(), "", pdconstraint=pdconstraint
-        )
+        bundle = metric_bundles.MetricBundle(metric, slicer, "", pdconstraint=pdconstraint)
+        self.assertEqual(bundle.pdconstraint, pdconstraint)
         group = metric_bundles.MetricBundleGroup({"band": bundle}, None, out_dir=self.out_dir)
         group.set_current("", pdconstraint=pdconstraint)
         for db_cols in (bundle.db_cols, group.db_cols):
             self.assertIn("fiveSigmaDepth", db_cols)
             self.assertIn("band", db_cols)
-            self.assertNotIn("np", db_cols)
-            self.assertNotIn("isfinite", db_cols)
-            self.assertNotIn("r", db_cols)
+            for not_a_column in ("np", "isfinite", "r"):
+                self.assertNotIn(not_a_column, db_cols)
 
-    def test_pdconstraint_incompatible(self):
-        """Bundles with different pdconstraints are not compatible."""
+    def test_pdconstraint_grouping(self):
+        """Bundles are grouped, and made incompatible, by pdconstraint."""
         metric = metrics.MeanMetric(col="airmass")
         slicer = slicers.UniSlicer()
         database = os.path.join(get_data_dir(), "tests", TEST_DB)
 
-        b1 = metric_bundles.MetricBundle(metric, slicer, "", pdconstraint="night < 5")
-        b2 = metric_bundles.MetricBundle(metric, slicer, "", pdconstraint="night > 5")
-
-        bg = metric_bundles.MetricBundleGroup({"b1": b1, "b2": b2}, database, out_dir=self.out_dir)
-        assert bg.constraints == [""]
-        assert set(bg.pdconstraints[""]) == {"night < 5", "night > 5"}
-        assert not bg._check_compatible(b1, b2)
-
-    def test_pdconstraint_group_structure(self):
-        """Check structure of MetricBundleGroup.pdconstraints."""
-        metric = metrics.MeanMetric(col="airmass")
-        slicer = slicers.UniSlicer()
-        database = os.path.join(get_data_dir(), "tests", TEST_DB)
-
-        b_no_pd = metric_bundles.MetricBundle(metric, slicer, "night < 100")
-        b_pd = metric_bundles.MetricBundle(metric, slicer, "night < 100", pdconstraint="night < 50")
+        b_none = metric_bundles.MetricBundle(metric, slicer, "night < 100")
+        b_early = metric_bundles.MetricBundle(metric, slicer, "night < 100", pdconstraint="night < 50")
+        b_late = metric_bundles.MetricBundle(metric, slicer, "night < 100", pdconstraint="night > 50")
         b_other = metric_bundles.MetricBundle(metric, slicer, "")
+        bundles = {"none": b_none, "early": b_early, "late": b_late, "other": b_other}
+        bg = metric_bundles.MetricBundleGroup(bundles, database, out_dir=self.out_dir)
 
-        bg = metric_bundles.MetricBundleGroup(
-            {"a": b_no_pd, "b": b_pd, "c": b_other},
-            database,
-            out_dir=self.out_dir,
-        )
-        assert set(bg.constraints) == {"night < 100", ""}
-        assert set(bg.pdconstraints["night < 100"]) == {"", "night < 50"}
-        assert bg.pdconstraints[""] == [""]
+        self.assertEqual(set(bg.constraints), {"night < 100", ""})
+        self.assertEqual(set(bg.pdconstraints["night < 100"]), {"", "night < 50", "night > 50"})
+        self.assertEqual(bg.pdconstraints[""], [""])
+        self.assertFalse(bg._check_compatible(b_early, b_late))
+        self.assertFalse(bg._check_compatible(b_none, b_early))
 
     def test_pdconstraint_end_to_end(self):
-        """A pandas constraint should reduce the visit count."""
+        """A pandas constraint selects the same visits as the SQL one."""
         metric = metrics.CountMetric(col="observationId")
         slicer = slicers.UniSlicer()
         database = os.path.join(get_data_dir(), "tests", TEST_DB)
 
         b_all = metric_bundles.MetricBundle(metric, slicer, "night < 10")
+        b_sql = metric_bundles.MetricBundle(metric, slicer, "night < 5")
         b_pd = metric_bundles.MetricBundle(metric, slicer, "night < 10", pdconstraint="night < 5")
-
-        bg_all = metric_bundles.MetricBundleGroup({"all": b_all}, database, out_dir=self.out_dir)
-        bg_all.run_all()
-
-        bg_pd = metric_bundles.MetricBundleGroup({"pd": b_pd}, database, out_dir=self.out_dir)
-        bg_pd.run_all()
+        for name, bundle in (("all", b_all), ("sql", b_sql), ("pd", b_pd)):
+            metric_bundles.MetricBundleGroup({name: bundle}, database, out_dir=self.out_dir).run_all()
 
         count_all = b_all.metric_values.data[0]
         count_pd = b_pd.metric_values.data[0]
-        assert count_pd > 0
-        assert count_pd < count_all
-        assert np.isfinite(count_pd)
+        assert 0 < count_pd < count_all
+        assert count_pd == b_sql.metric_values.data[0]
 
     def tearDown(self):
         if os.path.isdir(self.out_dir):
