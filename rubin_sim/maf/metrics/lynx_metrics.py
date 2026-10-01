@@ -4,40 +4,28 @@ from .base_metric import BaseMetric
 
 
 class LynxBaseMetric(BaseMetric):
-    """An abstract base class for metrics that use LightCurveLynx models
+    """A base class for metrics that use LightCurveLynx models
     that provides support for evaluating the model on the given points.
 
     Parameters
     ----------
-    col : `str` or `list` [`str`]
-        Names of the data columns that the metric will use.
-        The columns required for each metric is tracked in the ColRegistry,
-        and used to retrieve data from the opsim database.
-        Can be a single string or a list.
-    metric_name : `str`
-        Name to use for the metric (optional - if not set, will be derived).
-    maps : `list` [`rubin_sim.maf.maps`]
-        The maps that the metric will need (passed from the slicer).
-    units : `str`
-        The units for the value returned by the metric (optional - if not set,
-        will be derived from the ColInfo).
-    metric_dtype : `str`
-        The type of value returned by the metric - 'int', 'float', 'object'.
-        If not set, will be derived by introspection.
-    badval : `float`
-        The value indicating "bad" values calculated by the metric.
+    **kwargs
+        Additional keyword arguments passed to the parent class (BaseMetric).
     """
+    # The columns from the Opsim database that are required for evaluating the model.
     _opsim_cols = [
-        "visitExposureTime",  # seconds
+        "fieldRA",
+        "fieldDec",
         "filter",
-        "numExposures",  # count
-        "seeingFwhmEff",  # arcseconds
-        "skyBrightness",  # mag per arcsec^2
-        "observationStartMJD",  # days
-        "zp_nJy",  # nJy
+        "visitExposureTime",
+        "numExposures",
+        "seeingFwhmEff",
+        "skyBrightness",
+        "observationStartMJD",
+        "airmass",
     ]
-    def __init__(self):
-        super().__init__(col=self._opsim_cols)
+    def __init__(self, **kwargs):
+        super().__init__(col=self._opsim_cols, **kwargs)
 
     def get_lightcurve(self, data_slice, slice_point):
         """Calculate metric values.
@@ -60,7 +48,7 @@ class LynxBaseMetric(BaseMetric):
             from lightcurvelynx.utils.maf_api import MAFQueryTable, execute_maf_query
         except ImportError as e:
             raise ImportError(
-                "LightCurveLynx is needed to run the LynxSamplerSlicer. It is not installed by "
+                "LightCurveLynx is needed to run the LynxDetectionMetric. It is not installed by "
                 "default. Install it with `pip install lightcurvelynx`."
             )
 
@@ -69,10 +57,43 @@ class LynxBaseMetric(BaseMetric):
         maf_query_table = MAFQueryTable(data_dict)
 
         # Execute the MAF query to retrieve the lightcurve data for this slice point.
-        lightcurve_data = execute_maf_query(
+        lightcurve_data, _ = execute_maf_query(
             slice_point["lynx_model"],
             maf_query_table,
-            slice_point["lynx_params"],
+            graph_state = slice_point["lynx_params"],
         )
-        return lightcurve_data["lightcurve"][0]
- 
+        return lightcurve_data
+
+
+class LynxDetectionMetric(LynxBaseMetric):
+    """A metric that counts the number of times an object's signal to noise
+    is above the given threshold.
+
+    Parameters
+    ----------
+    threshold : `float`
+        The signal-to-noise ratio threshold above which detections are counted.
+    **kwargs
+        Additional keyword arguments passed to the parent class (BaseMetric).
+    """
+    def __init__(self, threshold, **kwargs):
+        super().__init__(**kwargs)
+        self.threshold = threshold
+
+    def run(self, data_slice, slice_point=None):
+        try:
+            from lightcurvelynx.utils.post_process_results import lightcurve_compute_snr
+        except ImportError as e:
+            raise ImportError(
+                "LightCurveLynx is needed to run the LynxDetectionMetric. It is not installed by "
+                "default. Install it with `pip install lightcurvelynx`."
+            )
+
+        lightcurve = self.get_lightcurve(data_slice, slice_point)
+        if lightcurve is None or len(lightcurve) == 0:
+            return 0
+
+        # Count the number of detections above the threshold.
+        snr = lightcurve_compute_snr(lightcurve["flux"], lightcurve["fluxerr"])
+        detections = snr > self.threshold
+        return detections.sum()
