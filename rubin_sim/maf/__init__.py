@@ -28,7 +28,6 @@ from .maps import *
 from .metric_bundles import *
 from .metrics import *
 from .plots import *
-from .progress import build_chimera, build_chimeras, make_chimera_summary_table, run_chimera_batches
 from .run_comparison import *
 from .slicers import *
 from .stackers import *
