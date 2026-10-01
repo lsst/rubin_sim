@@ -13,6 +13,7 @@ try:
 except ImportError:
     HAS_LIBRARY = False
 
+
 class TestLightCurveLynxInterface(unittest.TestCase):
     @unittest.skipIf(not HAS_LIBRARY, "lightcurvelynx is not installed")
     def test_lynx_sample_slicer(self):
@@ -51,7 +52,42 @@ class TestLightCurveLynxInterface(unittest.TestCase):
         """Test that metric name is set appropriately automatically
         and when explicitly passed.
         """
-        pass
+        # Create fake 'matched' data with the columns we need.
+        single_query_data = {
+            "observationStartMJD": np.array([0.0, 1.0, 2.0, 3.0]),
+            "fieldRA": np.array([15.0, 15.0, 15.0, 15.0]),
+            "fieldDec": np.array([-10.0, -10.0, -10.0, -10.0]),
+            "filter": np.array(["r", "g", "r", "r"]),
+            "seeingFwhmEff": [1.12] * 4,
+            "skyBrightness": [20.0] * 4,
+            "visitExposureTime": [29.2] * 4,
+            "numExposures": [1] * 4,
+            "airmass": [1.0] * 4,
+        }
+
+        # Create a fake model and sample a single state.
+        model = SinWaveModel(
+            brightness=1000.0,
+            amplitude=20.0,
+            frequency=0.01,
+            t0=0.0,
+            ra=15.0,
+            dec=-10.0,
+            node_label="sin_wave_model",
+        )
+        sampled_state = model.sample_parameters(num_samples=1)
+
+        # At SNR > 5, we expect at least one detection.
+        metric = LynxDetectionMetric(threshold=5.0)
+        result = metric.run(single_query_data, slice_point={"lynx_model": model, "lynx_params": sampled_state})
+        self.assertIsInstance(result, (int, np.integer))
+        self.assertGreater(result, 0)
+
+        # At SNR > 0, we expect everything to be a detection.
+        metric = LynxDetectionMetric(threshold=0.0)
+        result = metric.run(single_query_data, slice_point={"lynx_model": model, "lynx_params": sampled_state})
+        self.assertIsInstance(result, (int, np.integer))
+        self.assertEqual(result, 4)
 
 
 if __name__ == "__main__":
