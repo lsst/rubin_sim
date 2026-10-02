@@ -21,6 +21,7 @@ class LynxBaseMetric(BaseMetric):
     **kwargs
         Additional keyword arguments passed to the parent class (BaseMetric).
     """
+
     # The columns from the Opsim database that are required for evaluating the model.
     _opsim_cols = [
         "fieldRA",
@@ -33,6 +34,7 @@ class LynxBaseMetric(BaseMetric):
         "observationStartMJD",
         "airmass",
     ]
+
     def __init__(self, **kwargs):
         super().__init__(col=self._opsim_cols, **kwargs)
 
@@ -75,7 +77,7 @@ class LynxBaseMetric(BaseMetric):
         lightcurve_data, _ = execute_maf_query(
             slice_point["lynx_model"],
             maf_query_table,
-            graph_state = slice_point["lynx_params"],
+            graph_state=slice_point["lynx_params"],
         )
         return lightcurve_data
 
@@ -91,6 +93,7 @@ class LynxDetectionMetric(LynxBaseMetric):
     **kwargs
         Additional keyword arguments passed to the parent class (BaseMetric).
     """
+
     def __init__(self, threshold, **kwargs):
         super().__init__(**kwargs)
         self.threshold = threshold

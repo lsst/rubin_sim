@@ -26,6 +26,7 @@ class LynxSamplerSlicer(UserPointsSlicer):
     **kwargs
         Additional keyword arguments passed to the parent class.
     """
+
     def __init__(self, samples, model, **kwargs):
         try:
             from lightcurvelynx.graph_state import GraphState
