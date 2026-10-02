@@ -2,8 +2,9 @@
 # the Rubin Sim MAF framework. These require the lightcurvelynx library be
 # installed, so they will be skipped if the library is not available.
 
-import numpy as np
 import unittest
+
+import numpy as np
 
 from rubin_sim.maf.metrics.lynx_metrics import LynxDetectionMetric
 from rubin_sim.maf.slicers.lynx_slicers import LynxSamplerSlicer
@@ -17,7 +18,9 @@ except ImportError:
 
 
 class TestLightCurveLynxInterface(unittest.TestCase):
-    """The test cases for the LightCurveLynx interface that require the library to be installed."""
+    """The test cases for the LightCurveLynx interface that require the
+    library to be installed.
+    """
 
     def setUp(self):
         # If the library is not available, skip the tests.
@@ -61,14 +64,32 @@ class TestLightCurveLynxInterface(unittest.TestCase):
         self.assertEqual(slicer.slice_points["lynx_params"].shape, (5,))
 
         for idx, sample in enumerate(slicer.slice_points["lynx_params"]):
-            self.assertTrue(np.allclose(sample["sin_wave_model"]["ra"], ra_vals[idx]))
-            self.assertTrue(np.allclose(sample["sin_wave_model"]["dec"], dec_vals[idx]))
+            self.assertTrue(
+                np.allclose(
+                    sample["sin_wave_model"]["ra"],
+                    ra_vals[idx],
+                )
+            )
+            self.assertTrue(
+                np.allclose(
+                    sample["sin_wave_model"]["dec"],
+                    dec_vals[idx],
+                )
+            )
 
-        # Create a slicer from the model directly, letting it sample its own states.
-        slicer_from_model = LynxSamplerSlicer(self.model.sample_parameters(num_samples=10), self.model)
+        # Create a slicer from the model directly, letting it sample.
+        slicer_from_model = LynxSamplerSlicer(
+            self.model.sample_parameters(num_samples=10),
+            self.model,
+        )
         self.assertIsInstance(slicer_from_model, LynxSamplerSlicer)
-        self.assertTrue(slicer_from_model.slice_points["lynx_model"] is self.model)
-        self.assertEqual(slicer_from_model.slice_points["lynx_params"].shape, (10,))
+        self.assertTrue(
+            slicer_from_model.slice_points["lynx_model"] is self.model
+        )
+        self.assertEqual(
+            slicer_from_model.slice_points["lynx_params"].shape,
+            (10,),
+        )
 
     def test_lynx_detection_metric(self):
         """Test that metric name is set appropriately automatically
@@ -90,13 +111,15 @@ class TestLightCurveLynxInterface(unittest.TestCase):
         self.assertEqual(result, 4)
 
     def test_lynx_detection_metric_with_precomputed_lightcurve(self):
-        """Test that the LynxDetectionMetric works correctly when the 'lightcurve' data is precomputed and
-        provided in the slice_point. We should return the pandas DataFrame directly."""
+        """Test that the LynxDetectionMetric works correctly when the
+        'lightcurve' data is precomputed and provided in the slice_point.
+        We should return the pandas DataFrame directly.
+        """
         # Create a fake model and sample a single state.
         sampled_state = self.model.sample_parameters(num_samples=1)
 
-        # Precompute the light curve data as a Pandas DataFrame. Pandas is installed
-        # if LightCurveLynx is available.
+        # Precompute the light curve data as a Pandas DataFrame. Pandas
+        # is installed if LightCurveLynx is available.
         import pandas as pd
 
         lightcurve = pd.DataFrame(
@@ -106,7 +129,11 @@ class TestLightCurveLynxInterface(unittest.TestCase):
                 "fluxerr": np.array([10.0, 20.0, 20.0, 20.0]),
             }
         )
-        slice_point = {"lynx_model": self.model, "lynx_params": sampled_state, "lightcurve": lightcurve}
+        slice_point = {
+            "lynx_model": self.model,
+            "lynx_params": sampled_state,
+            "lightcurve": lightcurve,
+        }
 
         # At SNR > 1, we should get exactly 3 detections.
         metric = LynxDetectionMetric(threshold=1.0)
@@ -116,11 +143,15 @@ class TestLightCurveLynxInterface(unittest.TestCase):
 
 
 class TestLightCurveLynxInterfaceNoInstall(unittest.TestCase):
-    """Test cases for the LightCurveLynx interface when the library is not installed."""
+    """Test cases for the LightCurveLynx interface when the library is
+    not installed.
+    """
 
     def test_lynx_detection_metric_with_precomputed_lightcurve_no_install(self):
-        """Test that the LynxDetectionMetric works correctly when the 'lightcurve' data is precomputed and
-        provided in the slice_point. We should return the pandas DataFrame directly."""
+        """Test that the LynxDetectionMetric works correctly when the
+        'lightcurve' data is precomputed and provided in the slice_point.
+        We should return that pandas DataFrame directly.
+        """
         single_query_data = {
             "observationStartMJD": np.array([0.0, 1.0, 2.0, 3.0]),
             "fieldRA": np.array([15.0, 15.0, 15.0, 15.0]),
@@ -142,7 +173,10 @@ class TestLightCurveLynxInterfaceNoInstall(unittest.TestCase):
 
         # At SNR > 1, we should get exactly 3 detections.
         metric = LynxDetectionMetric(threshold=1.0)
-        result = metric.run(single_query_data, slice_point={"lightcurve": lightcurve_data})
+        result = metric.run(
+            single_query_data,
+            slice_point={"lightcurve": lightcurve_data},
+        )
         self.assertIsInstance(result, (int, np.integer))
         self.assertEqual(result, 3)
 

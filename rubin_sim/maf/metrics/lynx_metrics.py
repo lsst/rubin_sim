@@ -12,9 +12,9 @@ class LynxBaseMetric(BaseMetric):
     """A base class for metrics that use LightCurveLynx models
     that provides support for evaluating the model on the given points.
 
-    This class will first try to use the saved "lightcurve" data (in the slice_point)
-    if available. Otherwise, it will call out to LightCurveLynx to compute the
-    light curve.
+    This class will first try to use the saved "lightcurve" data (in the
+    slice_point) if available. Otherwise, it will call out to LightCurveLynx
+    to compute the light curve.
 
     Parameters
     ----------
@@ -22,7 +22,7 @@ class LynxBaseMetric(BaseMetric):
         Additional keyword arguments passed to the parent class (BaseMetric).
     """
 
-    # The columns from the Opsim database that are required for evaluating the model.
+    # The columns from the Opsim database that are required.
     _opsim_cols = [
         "fieldRA",
         "fieldDec",
@@ -39,8 +39,9 @@ class LynxBaseMetric(BaseMetric):
         super().__init__(col=self._opsim_cols, **kwargs)
 
     def get_lightcurve(self, data_slice, slice_point):
-        """Run the LightCurveLynx simulation and return the resulting light curve
-        information in a pandas DataFrame with columns such as mjd, flux, and fluxerr.
+        """Run the LightCurveLynx simulation and return the resulting light
+        curve information in a pandas DataFrame with columns such as mjd,
+        flux, and fluxerr.
 
         Parameters
         ----------
@@ -54,26 +55,30 @@ class LynxBaseMetric(BaseMetric):
         Returns
         -------
         lightcurve : `Pandas DataFrame`
-            A pandas data frame with the light curve information for the object.
+            A pandas data frame with the light curve information for the
+            object.
         """
-        # If we have the precomputed lightcurve in the slice_point, use it directly.
+        # If we have the precomputed lightcurve in the slice_point, use it.
         if slice_point is not None and "lightcurve" in slice_point:
             return slice_point["lightcurve"]
 
-        # Make sure we can use the libraries that are required for LightCurveLynx.
+        # Make sure we can use the LightCurveLynx libraries.
         try:
             from lightcurvelynx.utils.maf_api import MAFQueryTable, execute_maf_query
-        except ImportError as e:
+        except ImportError:
             raise ImportError(
-                "LightCurveLynx is needed to run the LynxDetectionMetric. It is not installed by "
-                "default. Install it with `pip install lightcurvelynx`."
+                "LightCurveLynx is needed to run the LynxDetectionMetric. "
+                "It is not installed by default. Install it with "
+                "`pip install lightcurvelynx`."
             )
 
-        # Convert the numpy table into a dictionary and use that to initialize the MAF query table.
+        # Convert the numpy table into a dictionary and use that to
+        # initialize the MAF query table.
         data_dict = {col: data_slice[col] for col in self._opsim_cols}
         maf_query_table = MAFQueryTable(data_dict)
 
-        # Execute the MAF query to retrieve the lightcurve data for this slice point.
+        # Execute the MAF query to retrieve the lightcurve data for
+        # this slice point.
         lightcurve_data, _ = execute_maf_query(
             slice_point["lynx_model"],
             maf_query_table,
@@ -89,7 +94,8 @@ class LynxDetectionMetric(LynxBaseMetric):
     Parameters
     ----------
     threshold : `float`
-        The signal-to-noise ratio threshold above which detections are counted.
+        The signal-to-noise ratio threshold above which detections are
+        counted.
     **kwargs
         Additional keyword arguments passed to the parent class (BaseMetric).
     """
@@ -103,7 +109,8 @@ class LynxDetectionMetric(LynxBaseMetric):
         if lightcurve is None or len(lightcurve) == 0:
             return 0
 
-        # Compute the signal-to-noise ratio for each observation, masking out invalid values.
+        # Compute the signal-to-noise ratio for each observation, masking
+        # out invalid values.
         flux = np.asarray(lightcurve["flux"])
         fluxerr = np.asarray(lightcurve["fluxerr"])
         valid_mask = (flux > 0) & (fluxerr > 0)
