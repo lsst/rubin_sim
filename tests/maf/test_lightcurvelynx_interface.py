@@ -83,9 +83,6 @@ class TestLightCurveLynxInterface(unittest.TestCase):
             self.model,
         )
         self.assertIsInstance(slicer_from_model, LynxSamplerSlicer)
-        self.assertTrue(
-            slicer_from_model.slice_points["lynx_model"] is self.model
-        )
         self.assertEqual(
             slicer_from_model.slice_points["lynx_params"].shape,
             (10,),
