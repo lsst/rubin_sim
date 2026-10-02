@@ -1,4 +1,9 @@
-# Base class for all metrics that use LightCurveLynx models.
+# Base class for all metrics that use LightCurveLynx models. The can either
+# take a precomputed light curve (saved in the slicepoint) or compute it
+# dynamically using LightCurveLynx.
+
+import numpy as np
+import numpy.ma as ma
 
 from .base_metric import BaseMetric
 
@@ -6,6 +11,10 @@ from .base_metric import BaseMetric
 class LynxBaseMetric(BaseMetric):
     """A base class for metrics that use LightCurveLynx models
     that provides support for evaluating the model on the given points.
+
+    This class will first try to use the saved "lightcurve" data (in the slice_point)
+    if available. Otherwise, it will call out to LightCurveLynx to compute the
+    light curve.
 
     Parameters
     ----------
@@ -28,7 +37,8 @@ class LynxBaseMetric(BaseMetric):
         super().__init__(col=self._opsim_cols, **kwargs)
 
     def get_lightcurve(self, data_slice, slice_point):
-        """Calculate metric values.
+        """Run the LightCurveLynx simulation and return the resulting light curve
+        information in a pandas DataFrame with columns such as mjd, flux, and fluxerr.
 
         Parameters
         ----------
@@ -44,6 +54,11 @@ class LynxBaseMetric(BaseMetric):
         lightcurve : `Pandas DataFrame`
             A pandas data frame with the light curve information for the object.
         """
+        # If we have the precomputed lightcurve in the slice_point, use it directly.
+        if slice_point is not None and "lightcurve" in slice_point:
+            return slice_point["lightcurve"]
+
+        # Make sure we can use the libraries that are required for LightCurveLynx.
         try:
             from lightcurvelynx.utils.maf_api import MAFQueryTable, execute_maf_query
         except ImportError as e:
@@ -81,19 +96,17 @@ class LynxDetectionMetric(LynxBaseMetric):
         self.threshold = threshold
 
     def run(self, data_slice, slice_point=None):
-        try:
-            from lightcurvelynx.utils.post_process_results import lightcurve_compute_snr
-        except ImportError as e:
-            raise ImportError(
-                "LightCurveLynx is needed to run the LynxDetectionMetric. It is not installed by "
-                "default. Install it with `pip install lightcurvelynx`."
-            )
-
         lightcurve = self.get_lightcurve(data_slice, slice_point)
         if lightcurve is None or len(lightcurve) == 0:
             return 0
 
+        # Compute the signal-to-noise ratio for each observation, masking out invalid values.
+        flux = np.asarray(lightcurve["flux"])
+        fluxerr = np.asarray(lightcurve["fluxerr"])
+        valid_mask = (flux > 0) & (fluxerr > 0)
+        snr = ma.masked_all(flux.shape)
+        snr[valid_mask] = flux[valid_mask] / fluxerr[valid_mask]
+
         # Count the number of detections above the threshold.
-        snr = lightcurve_compute_snr(lightcurve["flux"], lightcurve["fluxerr"])
         detections = snr > self.threshold
         return detections.sum()
