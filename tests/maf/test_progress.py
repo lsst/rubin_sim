@@ -18,6 +18,7 @@ from astropy.time import Time
 from click.testing import CliRunner
 
 import rubin_sim.maf.batches as batches
+from rubin_sim.maf import MetricBundleGroup
 from rubin_sim.maf.db import ResultsDb
 from rubin_sim.maf.progress import (
     build_chimera,
@@ -183,6 +184,51 @@ class TestProgressBatches(unittest.TestCase):
             bundles = batches.snapshot_batch(bands=(), nside=NSIDE)
         (pdconstraint,) = {b.pdconstraint for b in bundles.values()}
         self.assertEqual(late.query(pdconstraint).index.tolist(), [2, 3, 4])
+
+    def test_colmap_metric_values(self):
+        visits = _make_visits(20260101, 1, 600, seed=2)
+        visits["visitExposureTime"] = np.resize([15.0, 30.0, 60.0], len(visits))
+        renamed = {
+            "fiveSigmaDepth": "depth",
+            "band": "passband",
+            "visitExposureTime": "exptime",
+            "fieldRA": "ra",
+            "fieldDec": "dec",
+            "observationStartMJD": "mjd",
+        }
+        colmap = batches.col_map_dict()
+        colmap.update(
+            {key: renamed.get(value, value) for key, value in colmap.items() if isinstance(value, str)}
+        )
+        with tempfile.TemporaryDirectory() as tmp:
+            paths = [os.path.join(tmp, name) for name in ("default.h5", "mapped.h5")]
+            visits.to_hdf(paths[0], key="observations")
+            visits.rename(columns=renamed).to_hdf(paths[1], key="observations")
+            for batch in (batches.snapshot_batch, batches.chimera_batch):
+                with self.subTest(batch=batch.__name__):
+                    results = []
+                    for path, mapping in zip(paths, (None, colmap)):
+                        bundles = batch(nside=NSIDE, bands=("g",), colmap=mapping)
+                        group = MetricBundleGroup(bundles, path, out_dir=tmp, save_early=False)
+                        group.run_all()
+                        results.append({(b.metric.name, b.info_label): b for b in bundles.values()})
+                    self.assertEqual(results[0].keys(), results[1].keys())
+                    for key, original in results[0].items():
+                        mapped = results[1][key]
+                        np.testing.assert_array_equal(original.metric_values.mask, mapped.metric_values.mask)
+                        np.testing.assert_allclose(
+                            original.metric_values.compressed(), mapped.metric_values.compressed()
+                        )
+                        self.assertEqual(original.summary_values.keys(), mapped.summary_values.keys())
+                        for name, value in original.summary_values.items():
+                            np.testing.assert_array_equal(value, mapped.summary_values[name])
+                        self.assertFalse(set(renamed) & mapped.db_cols)
+                    self.assertGreater(
+                        results[1][("Sum t_eff", f"{batch.__name__.split('_')[0]}_all")].metric_values[0], 0
+                    )
+                    if batch is batches.chimera_batch:
+                        fo = next(b for b in results[1].values() if b.metric.name == "fO")
+                        self.assertGreater(fo.metric_values.count(), 0)
 
     def test_batch_contents(self):
         std_summaries = {

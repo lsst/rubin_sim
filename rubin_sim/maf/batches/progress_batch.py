@@ -93,7 +93,14 @@ def _make_base_progress_bundle_list(
             metric=maf.metrics.SumMetric(col="t_eff"),
             slicer=unislicer,
             summary=None,
-            stackers=[maf.stackers.TeffStacker(normed=False)],
+            stackers=[
+                maf.stackers.TeffStacker(
+                    m5_col=colmap["fiveSigmaDepth"],
+                    filter_col=colmap["band"],
+                    exptime_col=colmap["exptime"],
+                    normed=False,
+                )
+            ],
         ),
         MetricSlicerSummaryStackers(
             metric=maf.metrics.CountMetric(col=colmap["mjd"], metric_name="Numbers of exposures"),
@@ -132,7 +139,7 @@ def _make_base_progress_bundle_list(
                 slicer,
                 **kwargs,
             )
-            bundle.db_cols.update({colmap["fiveSigmaDepth"], colmap["mjd"], colmap["filter"]})
+            bundle.db_cols.update({colmap["fiveSigmaDepth"], colmap["mjd"], colmap["band"]})
             bundle_list.append(bundle)
 
     return bundle_list
@@ -140,6 +147,7 @@ def _make_base_progress_bundle_list(
 
 def _make_fO_bundle(
     nside: int = 32,
+    colmap: dict[str, str] | None = None,
 ) -> maf.metric_bundles.MetricBundle:
     """Create the fO metric bundle.
 
@@ -147,14 +155,17 @@ def _make_fO_bundle(
     ----------
     nside : `int`, optional
         HEALPix nside parameter for the spatial slicer.
+    colmap : `dict` [`str`, `str`], optional
+        Mapping of exposure time and coordinate column names.
 
     Returns
     -------
     bundle : `rubin_sim.maf.metric_bundles.MetricBundle`
         The fO metric bundle.
     """
+    colmap = _make_colmap(colmap)
     # Configure the count metric used for the fO slicer.
-    metric = maf.metrics.CountExplimMetric(metric_name="fO")
+    metric = maf.metrics.CountExplimMetric(exp_col=colmap["exptime"], metric_name="fO")
     summary_metrics: list[maf.metrics.BaseMetric] = [
         maf.metrics.FOArea(
             nside=nside,
@@ -192,7 +203,12 @@ def _make_fO_bundle(
             n_visit=MIN_NVISITS,
         ),
     ]
-    slicer = maf.slicers.HealpixSlicer(nside=nside)
+    slicer = maf.slicers.HealpixSlicer(
+        nside=nside,
+        lat_col=colmap["dec"],
+        lon_col=colmap["ra"],
+        lat_lon_deg=colmap["raDecDeg"],
+    )
     bundle = maf.metric_bundles.MetricBundle(
         metric,
         slicer,
@@ -242,7 +258,7 @@ def chimera_batch(
     pdconstraints[f"{label_prefix}_all"] = ""
 
     bundle_list = _make_base_progress_bundle_list(pdconstraints, colmap, nside)
-    fO_bundle = _make_fO_bundle(nside=nside)
+    fO_bundle = _make_fO_bundle(nside=nside, colmap=colmap)
 
     bundle_list.append(fO_bundle)
 
