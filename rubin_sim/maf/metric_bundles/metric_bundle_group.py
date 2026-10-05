@@ -106,6 +106,24 @@ class MetricBundleGroup:
         """Set up the MetricBundleGroup."""
         if isinstance(bundle_dict, list):
             bundle_dict = make_bundles_dict_from_list(bundle_dict)
+        if not isinstance(bundle_dict, dict):
+            raise ValueError("bundleDict should be a dictionary containing MetricBundle objects.")
+        # ResultsDb does not include pdconstraint in its metric identity.
+        pdconstraint_by_results_db_key = {}
+        for b in bundle_dict.values():
+            if not isinstance(b, MetricBundle):
+                raise ValueError("bundleDict should contain only MetricBundle objects.")
+            results_db_key = (b.metric.name, b.slicer.slicer_name, b.run_name, b.constraint, b.info_label)
+            if (
+                results_db_key in pdconstraint_by_results_db_key
+                and pdconstraint_by_results_db_key[results_db_key] != b.pdconstraint
+            ):
+                raise ValueError(
+                    f"MetricBundles with identity {results_db_key!r} have different pdconstraint values "
+                    f"({pdconstraint_by_results_db_key[results_db_key]!r} and {b.pdconstraint!r}). "
+                    "Use distinct info_label values to prevent ResultsDb collisions and file overwrites."
+                )
+            pdconstraint_by_results_db_key[results_db_key] = b.pdconstraint
         # Print occasional messages to screen.
         self.verbose = verbose
         # Save metric results as soon as possible (in case of crash).

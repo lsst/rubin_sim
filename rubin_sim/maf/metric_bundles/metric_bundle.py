@@ -107,6 +107,12 @@ class MetricBundle:
         are reserved SQL words (e.g. ``filter``).  Only database columns
         may be referenced; stacker-produced columns are not available
         at filter time.
+        This constraint is not part of the ResultsDb metric identity or
+        the automatically generated file name. Bundles in a MetricBundleGroup
+        with different pdconstraint values but the same metric name, slicer
+        name, run_name, and SQL constraint must use distinct info_label
+        values. Otherwise MetricBundleGroup raises ValueError, even if
+        custom file_root values are supplied.
 
     Notes
     -----

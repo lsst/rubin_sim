@@ -102,8 +102,12 @@ class TestMetricBundle(unittest.TestCase):
         database = os.path.join(get_data_dir(), "tests", TEST_DB)
 
         b_none = metric_bundles.MetricBundle(metric, slicer, "night < 100")
-        b_early = metric_bundles.MetricBundle(metric, slicer, "night < 100", pdconstraint="night < 50")
-        b_late = metric_bundles.MetricBundle(metric, slicer, "night < 100", pdconstraint="night > 50")
+        b_early = metric_bundles.MetricBundle(
+            metric, slicer, "night < 100", pdconstraint="night < 50", info_label="early"
+        )
+        b_late = metric_bundles.MetricBundle(
+            metric, slicer, "night < 100", pdconstraint="night > 50", info_label="late"
+        )
         b_other = metric_bundles.MetricBundle(metric, slicer, "")
         bundles = {"none": b_none, "early": b_early, "late": b_late, "other": b_other}
         bg = metric_bundles.MetricBundleGroup(bundles, database, out_dir=self.out_dir)
@@ -113,6 +117,37 @@ class TestMetricBundle(unittest.TestCase):
         self.assertEqual(bg.pdconstraints[""], [""])
         self.assertFalse(bg._check_compatible(b_early, b_late))
         self.assertFalse(bg._check_compatible(b_none, b_early))
+
+    def test_pdconstraint_identity_collision(self):
+        """Different pandas selections require distinct ResultsDb labels."""
+        for first_constraint in (None, "night < 5"):
+            for custom_file_roots in (False, True):
+                for as_list in (False, True):
+                    with self.subTest(
+                        first_constraint=first_constraint,
+                        custom_file_roots=custom_file_roots,
+                        as_list=as_list,
+                    ):
+                        bundles = [
+                            metric_bundles.MetricBundle(
+                                metrics.CountMetric(col="observationId"),
+                                slicers.UniSlicer(),
+                                pdconstraint=constraint,
+                                file_root=f"bundle_{i}" if custom_file_roots else None,
+                            )
+                            for i, constraint in enumerate((first_constraint, "night > 5"))
+                        ]
+                        bundle_dict = bundles if as_list else dict(enumerate(bundles))
+                        if as_list and not custom_file_roots:
+                            with self.assertRaisesRegex(NameError, "same file_root"):
+                                metric_bundles.MetricBundleGroup(bundle_dict, None, out_dir=self.out_dir)
+                            continue
+                        with self.assertRaisesRegex(ValueError, "Use distinct info_label values"):
+                            metric_bundles.MetricBundleGroup(bundle_dict, None, out_dir=self.out_dir)
+
+        bundles[0].info_label = "early"
+        bundles[1].info_label = "late"
+        metric_bundles.MetricBundleGroup(dict(enumerate(bundles)), None, out_dir=self.out_dir)
 
     def test_pdconstraint_end_to_end(self):
         """A pandas constraint selects the same visits as the SQL one."""
