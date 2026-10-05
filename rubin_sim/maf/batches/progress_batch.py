@@ -281,7 +281,7 @@ def snapshot_batch(
     metric_bundleDict : `dict` [`str`, `MetricBundle`]
         A dictionary of metric bundles keyed by their file names.
     """
-    # Import here because progress imports batches during MAF initialization.
+    # Import at call time to avoid a circular import: progress imports batches.
     from rubin_sim.maf.progress import FIVE_SIGMA_DEPTH_LIMIT
 
     colmap = _make_colmap(colmap)
