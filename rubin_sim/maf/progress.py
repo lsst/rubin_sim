@@ -302,6 +302,11 @@ def run_progress_batches(
     ``end_dayobs`` to filter visits. All runs share a single ``ResultsDb``
     in ``out_dir``.
 
+    Choose the HEALPix nside high enough that every LSST camera pointing
+    covers at least one pixel. Empty-map minimum-reduction errors warn and
+    skip the remainder of that snapshot, retaining any partial results and
+    continuing subsequent dates. Other ValueErrors propagate.
+
     Parameters
     ----------
     visits_path : `str`
@@ -348,7 +353,17 @@ def run_progress_batches(
             results_db=results_db,
             save_early=False,
         )
-        group.run_all(clear_memory=True)
+        try:
+            group.run_all(clear_memory=True)
+        except ValueError as error:
+            if "zero-size array to reduction operation minimum which has no identity" not in str(error):
+                raise
+            warnings.warn(
+                f"Snapshot {run_name} has incomplete results: {error}. "
+                "Choose a higher HEALPix nside so every LSST camera pointing covers at least one pixel. "
+                "Continuing with subsequent snapshots.",
+                stacklevel=2,
+            )
 
     results_db.close()
     return os.path.join(out_dir, "resultsDb_sqlite.db")

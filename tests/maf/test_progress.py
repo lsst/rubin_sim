@@ -27,6 +27,7 @@ from rubin_sim.maf.progress import (
     make_chimera_summary_table_cmd,
     run_chimera_batches,
     run_chimera_batches_cmd,
+    run_progress_batches,
     run_progress_batches_cmd,
 )
 
@@ -295,6 +296,53 @@ class TestProgressWorkflow(unittest.TestCase):
                 self.assertEqual(result.exit_code, 0, f"{result.output}\n{result.exception!r}")
         # Four batches: the cadence dates plus the appended end date.
         self.assertIn("Ran 4 batch(es)", self.results["snapshot"].output)
+
+    def test_sparse_snapshot_warns_and_continues(self):
+        visits = _make_visits(20260101, 1, 1, seed=1)
+        visits.loc[:, ["fieldRA", "fieldDec"]] = 0.0
+        later = _make_visits(20260102, 1, 600, seed=2)
+        with tempfile.TemporaryDirectory() as tmp:
+            path = os.path.join(tmp, "visits.h5")
+            pd.concat([visits, later]).to_hdf(path, key="observations")
+            with self.assertWarnsRegex(UserWarning, "Snapshot consdb_20260101 has incomplete results"):
+                db_path = run_progress_batches(
+                    path,
+                    20260101,
+                    20260102,
+                    step=1,
+                    out_dir=tmp,
+                    batch_kwargs={"nside": NSIDE, "bands": ()},
+                )
+            results_db = ResultsDb(database=db_path)
+            stats = pd.DataFrame(results_db.get_summary_stats(with_sim_name=True))
+            results_db.close()
+            later_counts = stats[
+                (stats["run_name"] == "consdb_20260102")
+                & (stats["metric_name"] == "Numbers of exposures")
+                & (stats["summary_metric"] == "Identity")
+            ]
+            self.assertEqual(later_counts["summary_value"].tolist(), [601])
+            self.assertTrue(
+                ((stats["run_name"] == "consdb_20260102") & (stats["summary_metric"] == "top18k")).any()
+            )
+
+    def test_unrelated_snapshot_valueerror_propagates(self):
+        def invalid_batch(run_name, end_dayobs):
+            from rubin_sim.maf import MetricBundle
+            from rubin_sim.maf.metrics import CountMetric
+            from rubin_sim.maf.slicers import UniSlicer
+
+            class InvalidMetric(CountMetric):
+                def run(self, data_slice, slice_point=None):
+                    raise ValueError("unrelated metric failure")
+
+            return {"invalid": MetricBundle(InvalidMetric(col="band"), UniSlicer(), run_name=run_name)}
+
+        with tempfile.TemporaryDirectory() as tmp:
+            path = os.path.join(tmp, "visits.h5")
+            _make_visits(20260101, 1, 1, seed=1).to_hdf(path, key="observations")
+            with self.assertRaisesRegex(ValueError, "unrelated metric failure"):
+                run_progress_batches(path, 20260101, 20260102, out_dir=tmp, batch_func=invalid_batch)
 
     def test_run_names(self):
         results_db = ResultsDb(database=self.results_db)

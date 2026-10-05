@@ -77,6 +77,8 @@ The SP-3142 selection ran in 602 s. The cost has the following causes:
 
 ## 5. Test design
 
+**Amendment 3 update (2026-10-05).** The original parser tests in §5.3 and historical mapping below are superseded by the current parent IWD R-7 mapping. Predicate columns are explicitly requested, not discovered automatically. `test_pdconstraint_required_columns_ignore_literals` and its helper were removed; `test_pdconstraint_db_cols` now exercises omitted-column failure and successful functions, accessors, and stored `dayObs` after explicit requests. `test_pdconstraint_end_to_end` explicitly requests `night`. The original design below remains as implementation history.
+
 ### 5.1 Synthetic visits
 
 `test_progress.py` defines a module-level helper of about 20 lines:

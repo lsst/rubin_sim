@@ -1,8 +1,6 @@
 __all__ = ("MetricBundle", "create_empty_metric_bundle")
 
-import keyword
 import os
-import re
 import warnings
 from copy import deepcopy
 
@@ -16,26 +14,6 @@ import rubin_sim.maf.slicers as slicers
 import rubin_sim.maf.stackers as stackers
 import rubin_sim.maf.utils as utils
 from rubin_sim.maf.stackers import ColInfo
-
-_PD_SKIP = frozenset({"True", "False", "None", "inf", "Inf", "nan", "NaN"})
-
-
-def _cols_from_pdconstraint(pdconstraint):
-    """Return the set of column names referenced in a pandas query string."""
-    if not pdconstraint:
-        return set()
-    cols = set()
-    tokens = (
-        r"`[^`]+`|'(?:\\.|[^'\\])*'|\"(?:\\.|[^\"\\])*\"|"
-        r"@[a-zA-Z_]\w*(?:\.[a-zA-Z_]\w*)*|\b[a-zA-Z_]\w*\b"
-    )
-    for match in re.finditer(tokens, pdconstraint):
-        token = match.group()
-        if token.startswith("`"):
-            cols.add(token[1:-1])
-        elif token[0] not in ("'", '"', "@") and not keyword.iskeyword(token) and token not in _PD_SKIP:
-            cols.add(token)
-    return cols
 
 
 def create_empty_metric_bundle():
@@ -107,6 +85,10 @@ class MetricBundle:
         are reserved SQL words (e.g. ``filter``).  Only database columns
         may be referenced; stacker-produced columns are not available
         at filter time.
+        Predicate columns are not fetched automatically. They must already
+        be requested by the metric, slicer, or stacker inputs, or explicitly
+        added to this bundle's db_cols before constructing the group, e.g.
+        ``bundle.db_cols.update({"band", "fiveSigmaDepth"})``.
         This constraint is not part of the ResultsDb metric identity or
         the automatically generated file name. Bundles in a MetricBundleGroup
         with different pdconstraint values but the same metric name, slicer
@@ -327,8 +309,6 @@ class MetricBundle:
         for s in self.stacker_list:
             known_cols += s.cols_req
         known_cols = set(known_cols)
-        # Columns referenced in pdconstraint must also be fetched.
-        known_cols |= _cols_from_pdconstraint(self.pdconstraint)
         # Track sources of all of these columns.
         self.db_cols = set()
         new_stackers = set()

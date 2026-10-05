@@ -1,9 +1,11 @@
 import glob
 import os
 import shutil
+import sqlite3
 import tempfile
 import unittest
 
+import pandas as pd
 from rubin_scheduler.data import get_data_dir
 from rubin_scheduler.utils.code_utilities import sims_clean_up
 
@@ -13,7 +15,6 @@ import rubin_sim.maf.metric_bundles as metric_bundles
 import rubin_sim.maf.metrics as metrics
 import rubin_sim.maf.slicers as slicers
 import rubin_sim.maf.stackers as stackers
-from rubin_sim.maf.metric_bundles.metric_bundle import _cols_from_pdconstraint
 
 TEST_DB = "example_v3.4_0yrs.db"
 
@@ -61,39 +62,42 @@ class TestMetricBundle(unittest.TestCase):
         assert len(out_pdf) == 2
         assert len(out_npz) == 1
 
-    def test_pdconstraint_required_columns_ignore_literals(self):
-        cases = [
-            ("", set()),
-            ("band == 'r'", {"band"}),
-            ('band == "g"', {"band"}),
-            ("band in ('r', 'i', 'z')", {"band"}),
-            ("`filter name` == 'r'", {"filter name"}),
-            ("night < 5 and band == 'r' and not simulated", {"night", "band", "simulated"}),
-            ("band == 'it\\'s g'", {"band"}),
-            ('band == "say \\"g\\""', {"band"}),
-            ("@np.isfinite(fiveSigmaDepth)", {"fiveSigmaDepth"}),
-            ("@threshold < fiveSigmaDepth and band == 'r'", {"fiveSigmaDepth", "band"}),
-        ]
-        for pdconstraint, expected in cases:
-            with self.subTest(pdconstraint=pdconstraint):
-                self.assertEqual(_cols_from_pdconstraint(pdconstraint), expected)
-
     def test_pdconstraint_db_cols(self):
-        """Columns named in a pdconstraint are fetched; literals are not."""
-        metric = metrics.MeanMetric(col="airmass")
-        slicer = slicers.UniSlicer()
-        self.assertEqual(metric_bundles.MetricBundle(metric, slicer, "").pdconstraint, "")
-
-        pdconstraint = "@np.isfinite(fiveSigmaDepth) and band == 'r'"
-        bundle = metric_bundles.MetricBundle(metric, slicer, "", pdconstraint=pdconstraint)
-        self.assertEqual(bundle.pdconstraint, pdconstraint)
-        group = metric_bundles.MetricBundleGroup({"band": bundle}, None, out_dir=self.out_dir)
-        group.set_current("", pdconstraint=pdconstraint)
-        for db_cols in (bundle.db_cols, group.db_cols):
-            self.assertIn("fiveSigmaDepth", db_cols)
-            self.assertIn("band", db_cols)
-            for not_a_column in ("np", "isfinite", "r"):
-                self.assertNotIn(not_a_column, db_cols)
+        """Predicate columns must be explicitly requested, without parsing."""
+        visits = pd.DataFrame(
+            {
+                "observationId": [1, 2, 3],
+                "night": [1, 2, 3],
+                "band": ["g", "r", "g"],
+                "dayObs": [20230225, 20230226, 20230227],
+            }
+        )
+        with sqlite3.connect(":memory:") as connection:
+            visits.to_sql("observations", connection, index=False)
+            for predicate, columns in (
+                ("abs(night) < 3", {"night"}),
+                ('band.str.startswith("g")', {"band"}),
+                ("dayObs < 20230227", {"dayObs"}),
+            ):
+                with self.subTest(predicate=predicate):
+                    bundle = metric_bundles.MetricBundle(
+                        metrics.CountMetric(col="observationId"),
+                        slicers.UniSlicer(),
+                        pdconstraint=predicate,
+                    )
+                    self.assertEqual(bundle.db_cols, {"observationId"})
+                    group = metric_bundles.MetricBundleGroup(
+                        {"count": bundle},
+                        connection,
+                        out_dir=self.out_dir,
+                        save_early=False,
+                    )
+                    with self.assertRaises(pd.errors.UndefinedVariableError):
+                        group.run_all()
+                    bundle.db_cols.update(columns)
+                    group.run_all()
+                    self.assertEqual(set(group.db_cols), {"observationId"} | columns)
+                    self.assertEqual(bundle.metric_values.data[0], len(visits.query(predicate)))
 
     def test_pdconstraint_grouping(self):
         """Bundles are grouped, and made incompatible, by pdconstraint."""
@@ -158,6 +162,7 @@ class TestMetricBundle(unittest.TestCase):
         b_all = metric_bundles.MetricBundle(metric, slicer, "night < 10")
         b_sql = metric_bundles.MetricBundle(metric, slicer, "night < 5")
         b_pd = metric_bundles.MetricBundle(metric, slicer, "night < 10", pdconstraint="night < 5")
+        b_pd.db_cols.add("night")
         for name, bundle in (("all", b_all), ("sql", b_sql), ("pd", b_pd)):
             metric_bundles.MetricBundleGroup({name: bundle}, database, out_dir=self.out_dir).run_all()
 

@@ -132,6 +132,7 @@ def _make_base_progress_bundle_list(
                 slicer,
                 **kwargs,
             )
+            bundle.db_cols.update({colmap["fiveSigmaDepth"], colmap["mjd"], colmap["filter"]})
             bundle_list.append(bundle)
 
     return bundle_list
@@ -219,6 +220,8 @@ def chimera_batch(
         The name of the simulated survey.
     nside : `int`, optional
         The nside for the HEALPix slicers.
+        Must be high enough that every LSST camera pointing covers at
+        least one HEALPixel.
     bands : `collections.abc.Sequence` [`str`], optional
         The list of individual filters to use when running metrics.
         There is always an all-visits version of the metrics run as well.
@@ -267,6 +270,8 @@ def snapshot_batch(
         The name of the simulated survey.
     nside : `int`, optional
         The nside for the HEALPix slicers.
+        Must be high enough that every LSST camera pointing covers at
+        least one HEALPixel.
     bands : `collections.abc.Sequence` [`str`], optional
         The list of individual filters to use when running metrics.
         There is always an all-visits version of the metrics run as well.
