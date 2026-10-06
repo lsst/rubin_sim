@@ -468,7 +468,7 @@ class TestProgressWorkflow(unittest.TestCase):
 
 
 class TestProgressCommands(unittest.TestCase):
-    """Error-path tests for progress commands using independent synthetic inputs."""
+    """Error-path tests for progress commands."""
 
     def test_sparse_snapshot_warns_and_continues(self):
         sparse_visits = _make_visits(20260101, 1, 1, seed=1)
