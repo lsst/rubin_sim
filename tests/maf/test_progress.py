@@ -334,8 +334,7 @@ class TestProgressWorkflow(unittest.TestCase):
             ),
             "chimera": (
                 run_chimera_batches_cmd,
-                ["--chimera-dir", cls.chimera_dir, "--batch", "chimera_batch", "--out-dir", cls.results_dir]
-                + kwarg,
+                ["--chimera-dir", cls.chimera_dir, "--out-dir", cls.results_dir] + kwarg,
             ),
             "snapshot": (
                 run_progress_batches_cmd,
@@ -465,6 +464,14 @@ class TestProgressWorkflow(unittest.TestCase):
             run_names = results_db.get_run_name()
             results_db.close()
         self.assertEqual(run_names, ["chimera_20260108"])
+
+    def test_default_batch(self):
+        """The Python API defaults to ``chimera_batch``."""
+        with tempfile.TemporaryDirectory() as out_dir:
+            with patch("rubin_sim.maf.progress.batches.chimera_batch", return_value={}) as default_batch:
+                with patch("rubin_sim.maf.progress.mb.MetricBundleGroup"):
+                    run_chimera_batches([(20260108, "unused.h5")], out_dir=out_dir)
+        default_batch.assert_called_once_with(run_name="chimera_20260108")
 
 
 class TestProgressCommands(unittest.TestCase):

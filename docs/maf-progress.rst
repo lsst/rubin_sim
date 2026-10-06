@@ -12,12 +12,13 @@ generate baselines, or create progress plots.
 
 Two kinds of visit sequences support different comparisons:
 
-* A **snapshot** contains qualifying visits through an observing day. Running
+* A **snapshot** contains qualifying visits through a given night. Running
   the same batch on completed visits and on a baseline measures actual and
-  expected progress as a function of date.
-* A **chimera** combines completed visits through a transition day with baseline
-  visits after that day, through an extrapolation target. Its metrics estimate
-  the outcome at that target given the visits already completed.
+  baseline progress as a function of date.
+* A **chimera** combines completed visits through a transition date with baseline
+  visits after that day, through an extrapolation target (e.g., the end of the
+  survey). Its metrics estimate the outcome at that target given the visits
+  already completed.
 
 Chimeras do not model how the scheduler would respond to the actual survey
 state. They are therefore a pessimistic extrapolation, not a replacement for a
@@ -52,8 +53,7 @@ For start day S, transition day T, and target day E, each chimera contains
 completed visits with S <= ``dayObs`` <= T, followed by baseline visits with
 T < ``dayObs`` <= E. Both sources exclude visits whose ``fiveSigmaDepth`` is
 null or does not exceed ``FIVE_SIGMA_DEPTH_LIMIT`` in ``rubin_sim.maf.progress``
-(default 0.0). ``snapshot_batch`` applies the same depth cut and does not require
-or filter on a ``simulated`` column.
+(default 0.0). ``snapshot_batch`` applies the same depth cut.
 
 Chimera construction adds a missing completed-visits ``exposures`` column with
 value 1, or fills null values in that column with 1, before keeping only columns
@@ -93,7 +93,6 @@ its final snapshot supplies the baseline reference for extrapolated metrics.
     # Measure extrapolated progress on every chimera.
     run_chimera_batches \
       --chimera-dir "$CHIMERA_DIR" \
-      --batch chimera_batch \
       --out-dir "$RESULTS_DIR"
 
     # Measure actual progress through the latest completed observing day.
@@ -120,18 +119,14 @@ its final snapshot supplies the baseline reference for extrapolated metrics.
       --out-file "$RESULTS_DIR/chimera_summary.h5"
 
 All three batch-running invocations use the same output directory and therefore
-the same ``resultsDb_sqlite.db``. If only as-completed comparisons are needed,
-the baseline series can end at ``LAST_CONSDB_DAYOBS`` instead. If the completed
-end date is off cadence, a longer baseline series need not include that exact
-date; evaluate it separately when an exact paired endpoint is needed.
+the same ``resultsDb_sqlite.db``.
 
 Batch Selection
 ===============
 
-``run_chimera_batches`` defaults to ``glanceBatch``, so specify
-``--batch chimera_batch`` for the progress metrics. ``run_progress_batches``
-defaults to ``snapshot_batch``. Batch names must resolve to callable functions
-in ``rubin_sim.maf.batches``.
+``run_chimera_batches`` defaults to ``chimera_batch``; use ``--batch`` to select
+another batch. ``run_progress_batches`` defaults to ``snapshot_batch``. Batch
+names must resolve to callable functions in ``rubin_sim.maf.batches``.
 
 Both commands accept repeated ``--batch-kwarg KEY=VALUE`` options. Values are
 parsed as Python literals when possible, otherwise kept as strings. For example,

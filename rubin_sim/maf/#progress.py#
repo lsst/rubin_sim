@@ -585,7 +585,7 @@ def run_chimera_batches_cmd(chimera_dir, out_dir, batch, batch_kwargs):
     "--batch-kwarg",
     "batch_kwargs",
     multiple=True,
-    help="Additional batch kwarg as KEY=VALUE. May be specified multiple times.",
+q    help="Additional batch kwarg as KEY=VALUE. May be specified multiple times.",
 )
 def run_progress_batches_cmd(
     visits_file, out_dir, start_dayobs, end_dayobs, step, batch, run_prefix, batch_kwargs
