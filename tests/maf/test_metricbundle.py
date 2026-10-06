@@ -74,10 +74,10 @@ class TestMetricBundle(unittest.TestCase):
         )
         with sqlite3.connect(":memory:") as connection:
             visits.to_sql("observations", connection, index=False)
-            for predicate, columns in (
-                ("abs(night) < 3", {"night"}),
-                ('band.str.startswith("g")', {"band"}),
-                ("dayObs < 20230227", {"dayObs"}),
+            for predicate, columns, expected_count in (
+                ("abs(night) < 3", {"night"}, 2),
+                ('band.str.startswith("g")', {"band"}, 2),
+                ("dayObs < 20230227", {"dayObs"}, 2),
             ):
                 with self.subTest(predicate=predicate):
                     bundle = metric_bundles.MetricBundle(
@@ -94,33 +94,33 @@ class TestMetricBundle(unittest.TestCase):
                     )
                     with self.assertRaises(pd.errors.UndefinedVariableError):
                         group.run_all()
+                    # Explicitly request the predicate column before retrying.
                     bundle.db_cols.update(columns)
                     group.run_all()
                     self.assertEqual(set(group.db_cols), {"observationId"} | columns)
-                    self.assertEqual(bundle.metric_values.data[0], len(visits.query(predicate)))
+                    self.assertEqual(bundle.metric_values.data[0], expected_count)
 
     def test_pdconstraint_grouping(self):
         """Bundles are grouped, and made incompatible, by pdconstraint."""
         metric = metrics.MeanMetric(col="airmass")
         slicer = slicers.UniSlicer()
-        database = os.path.join(get_data_dir(), "tests", TEST_DB)
-
-        b_none = metric_bundles.MetricBundle(metric, slicer, "night < 100")
-        b_early = metric_bundles.MetricBundle(
+        unfiltered = metric_bundles.MetricBundle(metric, slicer, "night < 100")
+        early = metric_bundles.MetricBundle(
             metric, slicer, "night < 100", pdconstraint="night < 50", info_label="early"
         )
-        b_late = metric_bundles.MetricBundle(
+        late = metric_bundles.MetricBundle(
             metric, slicer, "night < 100", pdconstraint="night > 50", info_label="late"
         )
-        b_other = metric_bundles.MetricBundle(metric, slicer, "")
-        bundles = {"none": b_none, "early": b_early, "late": b_late, "other": b_other}
-        bg = metric_bundles.MetricBundleGroup(bundles, database, out_dir=self.out_dir)
+        other_sql = metric_bundles.MetricBundle(metric, slicer, "")
+        bundles = {"none": unfiltered, "early": early, "late": late, "other": other_sql}
+        # Only grouping metadata is inspected; no visit source is needed.
+        group = metric_bundles.MetricBundleGroup(bundles, None, out_dir=self.out_dir)
 
-        self.assertEqual(set(bg.constraints), {"night < 100", ""})
-        self.assertEqual(set(bg.pdconstraints["night < 100"]), {"", "night < 50", "night > 50"})
-        self.assertEqual(bg.pdconstraints[""], [""])
-        self.assertFalse(bg._check_compatible(b_early, b_late))
-        self.assertFalse(bg._check_compatible(b_none, b_early))
+        self.assertEqual(set(group.constraints), {"night < 100", ""})
+        self.assertEqual(set(group.pdconstraints["night < 100"]), {"", "night < 50", "night > 50"})
+        self.assertEqual(group.pdconstraints[""], [""])
+        self.assertFalse(group._check_compatible(early, late))
+        self.assertFalse(group._check_compatible(unfiltered, early))
 
     def test_pdconstraint_identity_collision(self):
         """Different pandas selections require distinct ResultsDb labels."""
@@ -141,17 +141,27 @@ class TestMetricBundle(unittest.TestCase):
                             )
                             for i, constraint in enumerate((first_constraint, "night > 5"))
                         ]
-                        bundle_dict = bundles if as_list else dict(enumerate(bundles))
+                        bundle_input = bundles if as_list else dict(enumerate(bundles))
                         if as_list and not custom_file_roots:
+                            # List conversion checks filenames first.
                             with self.assertRaisesRegex(NameError, "same file_root"):
-                                metric_bundles.MetricBundleGroup(bundle_dict, None, out_dir=self.out_dir)
+                                metric_bundles.MetricBundleGroup(bundle_input, None, out_dir=self.out_dir)
                             continue
                         with self.assertRaisesRegex(ValueError, "Use distinct info_label values"):
-                            metric_bundles.MetricBundleGroup(bundle_dict, None, out_dir=self.out_dir)
+                            metric_bundles.MetricBundleGroup(bundle_input, None, out_dir=self.out_dir)
 
-        bundles[0].info_label = "early"
-        bundles[1].info_label = "late"
-        metric_bundles.MetricBundleGroup(dict(enumerate(bundles)), None, out_dir=self.out_dir)
+        # Distinct labels resolve collisions even with custom file roots.
+        labeled_bundles = {
+            label: metric_bundles.MetricBundle(
+                metrics.CountMetric(col="observationId"),
+                slicers.UniSlicer(),
+                pdconstraint=predicate,
+                info_label=label,
+                file_root=f"bundle_{i}",
+            )
+            for i, (label, predicate) in enumerate((("early", "night < 5"), ("late", "night > 5")))
+        }
+        metric_bundles.MetricBundleGroup(labeled_bundles, None, out_dir=self.out_dir)
 
     def test_pdconstraint_end_to_end(self):
         """A pandas constraint selects the same visits as the SQL one."""

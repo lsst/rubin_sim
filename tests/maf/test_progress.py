@@ -1,12 +1,9 @@
-"""Regression tests for progress tracking (SP-3142): chimeras, snapshots,
-and the commands that run progress batches.
+"""Regression tests for chimera and snapshot progress tracking.
 
-All visits are small synthetic data built here; see
-docs/issues/SP-3142-regression-tests.md for the design.
+All visits are small synthetic data built here.
 """
 
 import os
-import shutil
 import tempfile
 import unittest
 from importlib.metadata import distribution
@@ -63,33 +60,35 @@ def _make_visits(first_dayobs, n_nights, per_night, seed):
 
 
 class TestChimeraConstruction(unittest.TestCase):
-    """R-1 and R-2."""
-
-    def setUp(self):
-        # S = 20260102, T = 20260104, E = 20260107 in test_build_chimera.
-        self.completed = pd.DataFrame(
-            {
-                "observationId": [1, 2, 3, 4, 5, 6, 7],
-                "dayObs": [20260101, 20260102, 20260103, 20260104, 20260104, 20260104, 20260105],
-                "fiveSigmaDepth": [24.0, 24.0, np.nan, 24.0, 0.0, -1.0, 24.0],
-                "band": ["g"] * 7,
-                "completed_only": range(7),
-            }
-        )
-        self.baseline = pd.DataFrame(
-            {
-                "observationId": [101, 102, 103, 104, 105, 106, 107],
-                "dayObs": [20260104, 20260105, 20260105, 20260106, 20260107, 20260108, 20260105],
-                "fiveSigmaDepth": [23.0, 23.0, np.nan, 0.0, 23.0, 23.0, -1.0],
-                "band": ["r"] * 7,
-                "exposures": [2] * 7,
-                "baseline_only": range(7),
-            }
-        )
+    """Construction and date-range tests for chimera visit sequences."""
 
     def test_build_chimera(self):
-        args = (20260102, 20260104, 20260107)
-        result = build_chimera(self.completed, self.baseline, *args)
+        dates = {"start_dayobs": 20260102, "transition_dayobs": 20260104, "end_dayobs": 20260107}
+        completed = pd.DataFrame(
+            [
+                (1, 20260101, 24.0),  # Before start.
+                (2, 20260102, 24.0),  # At start: included.
+                (3, 20260103, np.nan),
+                (4, 20260104, 24.0),  # At transition: included.
+                (5, 20260104, 0.0),
+                (6, 20260104, -1.0),
+                (7, 20260105, 24.0),  # After transition.
+            ],
+            columns=["observationId", "dayObs", "fiveSigmaDepth"],
+        ).assign(band="g", completed_only=range(7))
+        baseline = pd.DataFrame(
+            [
+                (101, 20260104, 23.0),  # At transition: excluded.
+                (102, 20260105, 23.0),  # After transition: included.
+                (103, 20260105, np.nan),
+                (104, 20260106, 0.0),
+                (105, 20260107, 23.0),  # At target: included.
+                (106, 20260108, 23.0),  # After target.
+                (107, 20260105, -1.0),
+            ],
+            columns=["observationId", "dayObs", "fiveSigmaDepth"],
+        ).assign(band="r", exposures=2, baseline_only=range(7))
+        result = build_chimera(completed, baseline, **dates)
 
         # Boundaries (S, T, E inclusive; T exclusive for baseline) and
         # depth cuts (NaN, zero, negative) on both sources.
@@ -104,13 +103,15 @@ class TestChimeraConstruction(unittest.TestCase):
         )
 
         # Null exposures in an existing completed-visits column become 1.
-        completed = self.completed.assign(exposures=[5.0, 3.0, 5.0, np.nan, 5.0, 5.0, 5.0])
-        result = build_chimera(completed, self.baseline, *args)
+        with_exposures = completed.assign(exposures=5.0)
+        with_exposures.loc[with_exposures["observationId"] == 2, "exposures"] = 3.0
+        with_exposures.loc[with_exposures["observationId"] == 4, "exposures"] = np.nan
+        result = build_chimera(with_exposures, baseline, **dates)
         self.assertEqual(result["exposures"].tolist(), [3, 1, 2, 2])
 
-        # The depth cut uses the module-level limit, for both sources.
+        # A cutoff equal to the baseline depth excludes baseline visits.
         with patch("rubin_sim.maf.progress.FIVE_SIGMA_DEPTH_LIMIT", 23.0):
-            result = build_chimera(self.completed, self.baseline, *args)
+            result = build_chimera(completed, baseline, **dates)
         self.assertEqual(result["observationId"].tolist(), [2, 4])
 
     def test_build_chimeras_series(self):
@@ -126,7 +127,20 @@ class TestChimeraConstruction(unittest.TestCase):
         baseline = pd.DataFrame(
             {
                 "observationId": range(100, 118),
-                "dayObs": [20260129 + i // 2 if i < 6 else 20260201 + (i - 6) // 2 for i in range(18)],
+                "dayObs": np.repeat(
+                    [
+                        20260129,
+                        20260130,
+                        20260131,
+                        20260201,
+                        20260202,
+                        20260203,
+                        20260204,
+                        20260205,
+                        20260206,
+                    ],
+                    2,
+                ),
                 "fiveSigmaDepth": 23.0,
             }
         )
@@ -153,37 +167,42 @@ class TestChimeraConstruction(unittest.TestCase):
 
 
 class TestProgressBatches(unittest.TestCase):
-    """R-3 and R-4: the batch definitions."""
+    """Regression tests for snapshot and chimera batch definitions."""
 
     def test_snapshot_batch_selection(self):
         end_mjd = Time("2026-01-03T12:00:00").mjd  # End of observing day 20260102.
         visits = pd.DataFrame(
-            {
-                "observationStartMJD": [
-                    end_mjd - 1.0,
-                    end_mjd - 0.001,
-                    end_mjd,
-                    end_mjd - 0.5,
-                    end_mjd - 0.5,
-                ],
-                "fiveSigmaDepth": [24.0, 24.0, 24.0, 0.0, 24.0],
-                "band": ["g", "g", "g", "g", "r"],
-            }
+            [
+                (end_mjd - 1.0, 24.0, "g"),
+                (end_mjd - 0.001, 24.0, "g"),
+                (end_mjd, 24.0, "g"),
+                (end_mjd - 0.5, 0.0, "g"),
+                (end_mjd - 0.5, 24.0, "r"),
+            ],
+            columns=["observationStartMJD", "fiveSigmaDepth", "band"],
+            index=["ordinary", "just_before_end", "at_end", "zero_depth", "other_band"],
         )
         bundles = batches.snapshot_batch(
             run_name="x_20260102", bands=("g",), nside=NSIDE, end_dayobs=20260102
         )
         constraints = {b.info_label: b.pdconstraint for b in bundles.values()}
-        self.assertEqual(visits.query(constraints["snapshot_all"]).index.tolist(), [0, 1, 4])
-        self.assertEqual(visits.query(constraints["snapshot_g"]).index.tolist(), [0, 1])
+        self.assertEqual(
+            visits.query(constraints["snapshot_all"]).index.tolist(),
+            ["ordinary", "just_before_end", "other_band"],
+        )
+        self.assertEqual(
+            visits.query(constraints["snapshot_g"]).index.tolist(), ["ordinary", "just_before_end"]
+        )
         self.assertEqual({b.run_name for b in bundles.values()}, {"x_20260102"})
 
         # No end date: no date cut, and the shared depth limit still applies.
-        late = visits.assign(observationStartMJD=1e6, fiveSigmaDepth=[23.9, 24.0, 24.1, 24.2, 24.3])
+        future_visits = pd.DataFrame(
+            {"observationStartMJD": 1e6, "fiveSigmaDepth": [23.9, 24.0, 24.1, 24.2, 24.3], "band": "g"}
+        )
         with patch("rubin_sim.maf.progress.FIVE_SIGMA_DEPTH_LIMIT", 24.0):
             bundles = batches.snapshot_batch(bands=(), nside=NSIDE)
         (pdconstraint,) = {b.pdconstraint for b in bundles.values()}
-        self.assertEqual(late.query(pdconstraint).index.tolist(), [2, 3, 4])
+        self.assertEqual(future_visits.query(pdconstraint)["fiveSigmaDepth"].tolist(), [24.1, 24.2, 24.3])
 
     def test_colmap_metric_values(self):
         visits = _make_visits(20260101, 1, 600, seed=2)
@@ -201,37 +220,41 @@ class TestProgressBatches(unittest.TestCase):
             {key: renamed.get(value, value) for key, value in colmap.items() if isinstance(value, str)}
         )
         with tempfile.TemporaryDirectory() as tmp:
-            paths = [os.path.join(tmp, name) for name in ("default.h5", "mapped.h5")]
-            visits.to_hdf(paths[0], key="observations")
-            visits.rename(columns=renamed).to_hdf(paths[1], key="observations")
-            for batch in (batches.snapshot_batch, batches.chimera_batch):
+            original_path = os.path.join(tmp, "default.h5")
+            mapped_path = os.path.join(tmp, "mapped.h5")
+            visits.to_hdf(original_path, key="observations")
+            visits.rename(columns=renamed).to_hdf(mapped_path, key="observations")
+            for batch, prefix in ((batches.snapshot_batch, "snapshot"), (batches.chimera_batch, "chimera")):
                 with self.subTest(batch=batch.__name__):
                     results = []
-                    for path, mapping in zip(paths, (None, colmap)):
+                    for path, mapping in ((original_path, None), (mapped_path, colmap)):
                         bundles = batch(nside=NSIDE, bands=("g",), colmap=mapping)
                         group = MetricBundleGroup(bundles, path, out_dir=tmp, save_early=False)
                         group.run_all()
                         results.append({(b.metric.name, b.info_label): b for b in bundles.values()})
-                    self.assertEqual(results[0].keys(), results[1].keys())
-                    for key, original in results[0].items():
-                        mapped = results[1][key]
-                        np.testing.assert_array_equal(original.metric_values.mask, mapped.metric_values.mask)
-                        np.testing.assert_allclose(
-                            original.metric_values.compressed(), mapped.metric_values.compressed()
-                        )
-                        self.assertEqual(original.summary_values.keys(), mapped.summary_values.keys())
-                        for name, value in original.summary_values.items():
-                            np.testing.assert_array_equal(value, mapped.summary_values[name])
-                        self.assertFalse(set(renamed) & mapped.db_cols)
-                    self.assertGreater(
-                        results[1][("Sum t_eff", f"{batch.__name__.split('_')[0]}_all")].metric_values[0], 0
-                    )
+                    original_bundles, mapped_bundles = results
+                    self.assertEqual(original_bundles.keys(), mapped_bundles.keys())
+                    for key, original in original_bundles.items():
+                        with self.subTest(metric=key):
+                            mapped = mapped_bundles[key]
+                            np.testing.assert_array_equal(
+                                original.metric_values.mask, mapped.metric_values.mask
+                            )
+                            np.testing.assert_allclose(
+                                original.metric_values.compressed(), mapped.metric_values.compressed()
+                            )
+                            self.assertEqual(original.summary_values.keys(), mapped.summary_values.keys())
+                            for name, value in original.summary_values.items():
+                                with self.subTest(summary=name):
+                                    np.testing.assert_array_equal(value, mapped.summary_values[name])
+                            self.assertFalse(set(renamed) & mapped.db_cols)
+                    self.assertGreater(mapped_bundles[("Sum t_eff", f"{prefix}_all")].metric_values[0], 0)
                     if batch is batches.chimera_batch:
-                        fo = next(b for b in results[1].values() if b.metric.name == "fO")
+                        fo = next(b for b in mapped_bundles.values() if b.metric.name == "fO")
                         self.assertGreater(fo.metric_values.count(), 0)
 
     def test_batch_contents(self):
-        std_summaries = {
+        required_spatial_summaries = {
             "Mean None",
             "Rms None",
             "Median None",
@@ -240,13 +263,15 @@ class TestProgressBatches(unittest.TestCase):
             "N(+3Sigma)",
             "N(-3Sigma)",
             "Count None",
+            "top18k",
+            "10th%ile metricdata",
         }
         fo_summaries = {"fOArea", "fOArea/benchmark", "fONv", "fONv/benchmark", "fOArea_750"}
 
         for batch, prefix in ((batches.snapshot_batch, "snapshot"), (batches.chimera_batch, "chimera")):
             with self.subTest(batch=batch.__name__):
                 bundles = list(batch(nside=NSIDE).values())
-                other = [b for b in bundles if b.metric.name != "fO"]
+                base_bundles = [b for b in bundles if b.metric.name != "fO"]
                 labels = [f"{prefix}_{band}" for band in BANDS] + [f"{prefix}_all"]
                 expected = {
                     (name, label, slicer)
@@ -258,17 +283,16 @@ class TestProgressBatches(unittest.TestCase):
                         ("Depth area stats", "HealpixSlicer"),
                     )
                 }
-                self.assertEqual(len(other), len(expected))
+                self.assertEqual(len(base_bundles), len(expected))
                 self.assertEqual(
-                    {(b.metric.name, b.info_label, type(b.slicer).__name__) for b in other}, expected
+                    {(b.metric.name, b.info_label, type(b.slicer).__name__) for b in base_bundles}, expected
                 )
 
-                for bundle in other:
+                for bundle in base_bundles:
                     if type(bundle.slicer).__name__ == "HealpixSlicer":
-                        names = {m.name for m in bundle.summary_metrics}
-                        self.assertTrue(std_summaries <= names, names)
-                        self.assertIn("top18k", names)
-                        self.assertIn("10th%ile metricdata", names)
+                        with self.subTest(metric=bundle.metric.name, label=bundle.info_label):
+                            names = {m.name for m in bundle.summary_metrics}
+                            self.assertEqual(required_spatial_summaries - names, set())
 
                 fo = [b for b in bundles if b.metric.name == "fO"]
                 if prefix == "snapshot":
@@ -280,13 +304,13 @@ class TestProgressBatches(unittest.TestCase):
 
 
 class TestProgressWorkflow(unittest.TestCase):
-    """R-2 to R-6: the commands of the SP-3142 example workflow, run on
-    synthetic visits sharing one results directory.
-    """
+    """Exercise progress workflow commands with shared synthetic inputs."""
 
     @classmethod
     def setUpClass(cls):
-        cls.tmp = tempfile.mkdtemp(prefix="progress_test_")
+        temporary_directory = tempfile.TemporaryDirectory(prefix="progress_test_")
+        cls.addClassCleanup(temporary_directory.cleanup)
+        cls.tmp = temporary_directory.name
         cls.completed = _make_visits(20260105, 20, 30, seed=1)
         cls.completed.loc[::17, "fiveSigmaDepth"] = np.nan
         baseline = _make_visits(20260101, 40, 30, seed=2)
@@ -324,14 +348,17 @@ class TestProgressWorkflow(unittest.TestCase):
                 ["--results-db", cls.results_db, "--out-file", cls.summary_file],
             ),
         }
-        cls.results = {name: runner.invoke(cmd, args) for name, (cmd, args) in steps.items()}
+        cls.results = {}
+        for name, (command, args) in steps.items():
+            result = runner.invoke(command, args)
+            if result.exit_code != 0:
+                raise AssertionError(
+                    f"Workflow step {name!r} failed with exit code {result.exit_code}:\n"
+                    f"{result.output}\n{result.exception!r}"
+                ) from result.exception
+            cls.results[name] = result
         cls.transitions = [20260101, 20260108, 20260115, 20260122, 20260124]
-        if all(r.exit_code == 0 for r in cls.results.values()):
-            cls.table = pd.read_hdf(cls.summary_file, key="summary")
-
-    @classmethod
-    def tearDownClass(cls):
-        shutil.rmtree(cls.tmp, ignore_errors=True)
+        cls.table = pd.read_hdf(cls.summary_file, key="summary")
 
     def _column(self, *column):
         return self.table[column]
@@ -342,53 +369,6 @@ class TestProgressWorkflow(unittest.TestCase):
                 self.assertEqual(result.exit_code, 0, f"{result.output}\n{result.exception!r}")
         # Four batches: the cadence dates plus the appended end date.
         self.assertIn("Ran 4 batch(es)", self.results["snapshot"].output)
-
-    def test_sparse_snapshot_warns_and_continues(self):
-        visits = _make_visits(20260101, 1, 1, seed=1)
-        visits.loc[:, ["fieldRA", "fieldDec"]] = 0.0
-        later = _make_visits(20260102, 1, 600, seed=2)
-        with tempfile.TemporaryDirectory() as tmp:
-            path = os.path.join(tmp, "visits.h5")
-            pd.concat([visits, later]).to_hdf(path, key="observations")
-            with self.assertWarnsRegex(UserWarning, "Snapshot consdb_20260101 has incomplete results"):
-                db_path = run_progress_batches(
-                    path,
-                    20260101,
-                    20260102,
-                    step=1,
-                    out_dir=tmp,
-                    batch_kwargs={"nside": NSIDE, "bands": ()},
-                )
-            results_db = ResultsDb(database=db_path)
-            stats = pd.DataFrame(results_db.get_summary_stats(with_sim_name=True))
-            results_db.close()
-            later_counts = stats[
-                (stats["run_name"] == "consdb_20260102")
-                & (stats["metric_name"] == "Numbers of exposures")
-                & (stats["summary_metric"] == "Identity")
-            ]
-            self.assertEqual(later_counts["summary_value"].tolist(), [601])
-            self.assertTrue(
-                ((stats["run_name"] == "consdb_20260102") & (stats["summary_metric"] == "top18k")).any()
-            )
-
-    def test_unrelated_snapshot_valueerror_propagates(self):
-        def invalid_batch(run_name, end_dayobs):
-            from rubin_sim.maf import MetricBundle
-            from rubin_sim.maf.metrics import CountMetric
-            from rubin_sim.maf.slicers import UniSlicer
-
-            class InvalidMetric(CountMetric):
-                def run(self, data_slice, slice_point=None):
-                    raise ValueError("unrelated metric failure")
-
-            return {"invalid": MetricBundle(InvalidMetric(col="band"), UniSlicer(), run_name=run_name)}
-
-        with tempfile.TemporaryDirectory() as tmp:
-            path = os.path.join(tmp, "visits.h5")
-            _make_visits(20260101, 1, 1, seed=1).to_hdf(path, key="observations")
-            with self.assertRaisesRegex(ValueError, "unrelated metric failure"):
-                run_progress_batches(path, 20260101, 20260102, out_dir=tmp, batch_func=invalid_batch)
 
     def test_run_names(self):
         results_db = ResultsDb(database=self.results_db)
@@ -486,9 +466,61 @@ class TestProgressWorkflow(unittest.TestCase):
             results_db.close()
         self.assertEqual(run_names, ["chimera_20260108"])
 
+
+class TestProgressCommands(unittest.TestCase):
+    """Error-path tests for progress commands using independent synthetic inputs."""
+
+    def test_sparse_snapshot_warns_and_continues(self):
+        sparse_visits = _make_visits(20260101, 1, 1, seed=1)
+        # This pointing misses all camera-footprint pixels at NSIDE=16.
+        sparse_visits.loc[:, ["fieldRA", "fieldDec"]] = 0.0
+        later_visits = _make_visits(20260102, 1, 600, seed=2)
+        with tempfile.TemporaryDirectory() as tmp:
+            path = os.path.join(tmp, "visits.h5")
+            pd.concat([sparse_visits, later_visits]).to_hdf(path, key="observations")
+            with self.assertWarnsRegex(UserWarning, "Snapshot consdb_20260101 has incomplete results"):
+                db_path = run_progress_batches(
+                    path,
+                    20260101,
+                    20260102,
+                    step=1,
+                    out_dir=tmp,
+                    batch_kwargs={"nside": NSIDE, "bands": ()},
+                )
+            results_db = ResultsDb(database=db_path)
+            stats = pd.DataFrame(results_db.get_summary_stats(with_sim_name=True))
+            results_db.close()
+            later_stats = stats[stats["run_name"] == "consdb_20260102"]
+            later_counts = later_stats[
+                (later_stats["metric_name"] == "Numbers of exposures")
+                & (later_stats["summary_metric"] == "Identity")
+            ]
+            # The later snapshot includes the sparse visit plus its own 600.
+            self.assertEqual(later_counts["summary_value"].tolist(), [601])
+            self.assertIn("top18k", later_stats["summary_metric"].tolist())
+
+    def test_unrelated_snapshot_valueerror_propagates(self):
+        def invalid_batch(run_name, end_dayobs):
+            from rubin_sim.maf import MetricBundle
+            from rubin_sim.maf.metrics import CountMetric
+            from rubin_sim.maf.slicers import UniSlicer
+
+            class InvalidMetric(CountMetric):
+                def run(self, data_slice, slice_point=None):
+                    raise ValueError("unrelated metric failure")
+
+            return {"invalid": MetricBundle(InvalidMetric(col="band"), UniSlicer(), run_name=run_name)}
+
+        with tempfile.TemporaryDirectory() as tmp:
+            path = os.path.join(tmp, "visits.h5")
+            _make_visits(20260101, 1, 1, seed=1).to_hdf(path, key="observations")
+            with self.assertRaisesRegex(ValueError, "unrelated metric failure"):
+                run_progress_batches(path, 20260101, 20260102, out_dir=tmp, batch_func=invalid_batch)
+
     def test_cli_rejects_bad_options(self):
         with tempfile.TemporaryDirectory() as tmp:
             visits_file = os.path.join(tmp, "visits.h5")
+            # Option validation runs before any visit data are loaded.
             open(visits_file, "wb").close()
             out_dir = os.path.join(tmp, "out")
             commands = {
@@ -513,7 +545,7 @@ class TestProgressWorkflow(unittest.TestCase):
 
 
 class TestConsoleScripts(unittest.TestCase):
-    """R-6."""
+    """Console-script registration tests for progress commands."""
 
     def test_console_scripts_registered(self):
         scripts = {

@@ -134,14 +134,6 @@ class TestBatches(unittest.TestCase):
         ack = batches.science_radar_batch()
         assert ack is not None
 
-    def test_science_radar_dayobs0(self):
-        # Observing day 20260629 begins at 12:00 UTC: SURVEY_START_MJD
-        # (61220.5). The conflict check runs before any bundle is built,
-        # so the reported difference pins the dayobs0 -> mjd0 mapping.
-        for dayobs0 in (20260629, "2026-06-29"):
-            with self.assertRaisesRegex(ValueError, "differ by 1.0 days"):
-                batches.science_radar_batch(dayobs0=dayobs0, mjd0=SURVEY_START_MJD + 1)
-
     @unittest.skipUnless(
         os.path.isdir(os.path.join(get_data_dir(), "maf")),
         "Skipping glance test because operating without full MAF test data",
@@ -161,6 +153,20 @@ class TestBatches(unittest.TestCase):
             batch, self.example_file, out_dir=self.out_dir, results_db=results_db, save_early=False
         )
         bgroup.run_all()
+
+
+class TestScienceRadarDates(unittest.TestCase):
+    """Date validation without the TestBatches simulation fixture."""
+
+    def test_science_radar_dayobs0(self):
+        # Observing day 20260629 begins at 2026-06-29 12:00 UTC (MJD 61220.5).
+        # A supplied MJD one day later must report that exact difference.
+        # Validation happens before constructing any metric bundles.
+        expected_mjd = 61220.5
+        for dayobs0 in (20260629, "2026-06-29"):
+            with self.subTest(dayobs0=dayobs0):
+                with self.assertRaisesRegex(ValueError, r"differ by 1\.0 days"):
+                    batches.science_radar_batch(dayobs0=dayobs0, mjd0=expected_mjd + 1)
 
 
 if __name__ == "__main__":
