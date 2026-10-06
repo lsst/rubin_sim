@@ -108,7 +108,12 @@ class MetricBundleGroup:
             bundle_dict = make_bundles_dict_from_list(bundle_dict)
         if not isinstance(bundle_dict, dict):
             raise ValueError("bundleDict should be a dictionary containing MetricBundle objects.")
-        # ResultsDb does not include pdconstraint in its metric identity.
+
+        # ResultsDb does not include pdconstraint in its metric identity,
+        # so make sure all results with differing pdconstraints values
+        # are distinguishable some other way (e.g., different info_label
+        # values). Otherwise, the same row in the results database will
+        # be used for metric values with different constraints.
         pdconstraint_by_results_db_key = {}
         for b in bundle_dict.values():
             if not isinstance(b, MetricBundle):
@@ -124,6 +129,7 @@ class MetricBundleGroup:
                     "Use distinct info_label values to prevent ResultsDb collisions and file overwrites."
                 )
             pdconstraint_by_results_db_key[results_db_key] = b.pdconstraint
+
         # Print occasional messages to screen.
         self.verbose = verbose
         # Save metric results as soon as possible (in case of crash).
