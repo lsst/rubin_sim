@@ -58,3 +58,4 @@ For more examples of using MAF, please see our `tutorials`_.
 .. toctree::
 
     List of Available Metrics <maf-metric-list>
+    Survey Progress <maf-progress>
