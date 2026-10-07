@@ -434,7 +434,7 @@ class TestProgressWorkflow(unittest.TestCase):
         results_db.close()
         stats = stats[
             (stats["metric_name"] == "Numbers of exposures")
-            & (stats["metric_info_label"] == "snapshot_all")
+            & (stats["metric_info_label"] == "consdb_all")
             & (stats["summary_metric"] == "Identity")
         ].set_index("run_name")["summary_value"]
 
@@ -476,6 +476,32 @@ class TestProgressWorkflow(unittest.TestCase):
 
 class TestProgressCommands(unittest.TestCase):
     """Error-path tests for progress commands."""
+
+    def test_run_prefix_defaults_label_prefix(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            with patch("rubin_sim.maf.progress.batches.snapshot_batch", return_value={}) as snapshot_batch:
+                with patch("rubin_sim.maf.progress.mb.MetricBundleGroup"):
+                    run_progress_batches(
+                        "unused.h5", 20260101, 20260101, out_dir=tmp, run_prefix="baseline"
+                    )
+            snapshot_batch.assert_called_once_with(
+                run_name="baseline_20260101", end_dayobs=20260101, label_prefix="baseline"
+            )
+
+        with tempfile.TemporaryDirectory() as tmp:
+            with patch("rubin_sim.maf.progress.batches.snapshot_batch", return_value={}) as snapshot_batch:
+                with patch("rubin_sim.maf.progress.mb.MetricBundleGroup"):
+                    run_progress_batches(
+                        "unused.h5",
+                        20260101,
+                        20260101,
+                        out_dir=tmp,
+                        run_prefix="baseline",
+                        batch_kwargs={"label_prefix": "custom"},
+                    )
+            snapshot_batch.assert_called_once_with(
+                run_name="baseline_20260101", end_dayobs=20260101, label_prefix="custom"
+            )
 
     def test_sparse_snapshot_warns_and_continues(self):
         sparse_visits = _make_visits(20260101, 1, 1, seed=1)

@@ -108,7 +108,7 @@ its final snapshot supplies the baseline reference for extrapolated metrics.
     run_progress_batches \
       --visits-file "$BASELINE_DB" \
       --start-dayobs "$START_DAYOBS" \
-      --end-dayobs "$END_DAYOBS" \
+      --end-dayobs "$LAST_CONSDB_DAYOBS" \
       --step "$STEP" \
       --run-prefix baseline \
       --out-dir "$RESULTS_DIR"
@@ -141,9 +141,7 @@ Both progress batches accept ``colmap`` for column aliases and coordinate units,
 ``bands`` for the individual-band selections (an all-band selection is always
 included), and ``label_prefix`` for metric info labels. These can be passed in
 ``batch_kwargs`` in Python or as literal ``--batch-kwarg`` values on the command
-line. For ``run_progress_batches``, ``label_prefix`` defaults to ``run_prefix``;
-an explicit ``label_prefix`` overrides it. Chimera construction itself expects
-the standard opsim column names.
+line. Chimera construction itself expects the standard opsim column names.
 
 Existing batches can also run on stored chimeras. For example:
 

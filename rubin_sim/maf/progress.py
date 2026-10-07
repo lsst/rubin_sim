@@ -339,6 +339,8 @@ def run_progress_batches(
     os.makedirs(out_dir, exist_ok=True)
     results_db = db.ResultsDb(out_dir=out_dir)
     batch_kwargs = {} if batch_kwargs is None else dict(batch_kwargs)
+    if batch_func is batches.snapshot_batch:
+        batch_kwargs.setdefault("label_prefix", run_prefix)
 
     dayobs_list = dayobs_range(start_dayobs, end_dayobs, step)
     if not dayobs_list or dayobs_list[-1] != end_dayobs:
