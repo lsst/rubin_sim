@@ -481,9 +481,7 @@ class TestProgressCommands(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             with patch("rubin_sim.maf.progress.batches.snapshot_batch", return_value={}) as snapshot_batch:
                 with patch("rubin_sim.maf.progress.mb.MetricBundleGroup"):
-                    run_progress_batches(
-                        "unused.h5", 20260101, 20260101, out_dir=tmp, run_prefix="baseline"
-                    )
+                    run_progress_batches("unused.h5", 20260101, 20260101, out_dir=tmp, run_prefix="baseline")
             snapshot_batch.assert_called_once_with(
                 run_name="baseline_20260101", end_dayobs=20260101, label_prefix="baseline"
             )
