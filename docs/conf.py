@@ -5,4 +5,6 @@
 
 from documenteer.conf.guide import *  # noqa: F403, import *
 
+exclude_patterns = [*exclude_patterns, "issues/**"]  # noqa: F405
+
 linkcheck_retries = 2
