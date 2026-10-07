@@ -2,6 +2,9 @@ __all__ = (
     "dayobs_range",
     "build_chimera",
     "build_chimeras",
+    "run_chimera_batches",
+    "run_progress_batches",
+    "make_chimera_summary_table",
 )
 
 import ast
@@ -20,6 +23,8 @@ import rubin_sim.maf.db as db
 import rubin_sim.maf.metric_bundles as mb
 from rubin_sim.maf.stackers.date_stackers import DayObsStacker
 from rubin_sim.maf.utils.opsim_utils import get_sim_data
+
+FIVE_SIGMA_DEPTH_LIMIT = 0.0
 
 # Default values for consdb columns without valid values.
 CONSDB_DEFAULTS = {"exposures": 1}
@@ -216,6 +221,231 @@ def build_chimeras(
     return chimera_specs
 
 
+def run_chimera_batches(
+    chimera_specs: list[tuple[int, str]],
+    batch_func: Callable[..., dict] | None = None,
+    out_dir: str = ".",
+    batch_kwargs: dict | None = None,
+) -> str:
+    """Run MAF metric batches on a collection of chimera visit sequences.
+
+    Each chimera is processed with ``batch_func``, which should return a
+    dictionary of ``MetricBundle`` objects.  All runs share a single
+    ``ResultsDb`` in ``out_dir``, with run names of the form
+    ``chimera_YYYYMMDD`` encoding the transition date.
+
+    Parameters
+    ----------
+    chimera_specs : `list` of `(int, str)`
+        List of ``(transition_dayobs, hdf5_path)`` tuples as returned by
+        `build_chimeras`.
+    batch_func : callable, optional
+        Function with signature ``batch_func(run_name=...) -> dict``
+        or ``batch_func(runName=...) -> dict``
+        Defaults to `rubin_sim.maf.batches.chimera_batch`.
+    out_dir : `str`, optional
+        Directory for results_db and metric output files.
+    batch_kwargs : `dict`, optional
+        Additional keyword arguments forwarded to ``batch_func`` for each
+        chimera run.
+
+    Returns
+    -------
+    results_db_path : `str`
+        Path to the shared ``resultsDb_sqlite.db`` file.
+    """
+    if batch_func is None:
+        batch_func = batches.chimera_batch
+
+    os.makedirs(out_dir, exist_ok=True)
+    results_db = db.ResultsDb(out_dir=out_dir)
+    batch_kwargs = {} if batch_kwargs is None else dict(batch_kwargs)
+
+    for transition_dayobs, hdf5_path in chimera_specs:
+        run_name = _run_name_from_dayobs(transition_dayobs)
+        try:
+            bdict = batch_func(run_name=run_name, **batch_kwargs)
+        except TypeError as batch_error:
+            if "got an unexpected keyword argument 'run_name'" not in str(batch_error):
+                # we got some other exception, just pass it along.
+                raise
+            # We have a batch that uses runName instead of run_name.
+            bdict = batch_func(runName=run_name, **batch_kwargs)
+
+        group = mb.MetricBundleGroup(
+            bdict,
+            hdf5_path,
+            out_dir=out_dir,
+            results_db=results_db,
+            save_early=False,
+        )
+        group.run_all(clear_memory=True)
+
+    results_db.close()
+    return os.path.join(out_dir, "resultsDb_sqlite.db")
+
+
+def run_progress_batches(
+    visits_path: str,
+    start_dayobs: int,
+    end_dayobs: int,
+    step: int = 30,
+    out_dir: str = ".",
+    run_prefix: str = "consdb",
+    batch_kwargs: dict | None = None,
+    batch_func: Callable[..., dict] | None = None,
+) -> str:
+    """Run MAF metric batches for a range of dayobs values.
+
+    Calls ``batch_func`` once per dayobs value in
+    ``dayobs_range(start_dayobs, end_dayobs, step)``, passing the dayobs as
+    ``end_dayobs`` to filter visits. All runs share a single ``ResultsDb``
+    in ``out_dir``.
+
+    Choose the HEALPix nside high enough that every LSST camera pointing
+    covers at least one pixel. Empty-map minimum-reduction errors warn and
+    skip the remainder of that snapshot, retaining any partial results and
+    continuing subsequent dates. Other ValueErrors propagate.
+
+    Parameters
+    ----------
+    visits_path : `str`
+        Path to an HDF5 or SQLite visits file.  May be a chimera file,
+        a pure baseline, or a consdb-derived visits file.
+    start_dayobs : `int`
+        First dayobs in the sequence, YYYYMMDD.
+    end_dayobs : `int`
+        Last dayobs in the sequence, YYYYMMDD (inclusive).
+    step : `int`, optional
+        Number of nights between successive dayobs values.  Default 30.
+    out_dir : `str`, optional
+        Directory for results_db and metric output files.
+    run_prefix : `str`, optional
+        Prefix for the run name, which will be f"{run_prefix}_{dayobs}"
+    batch_kwargs : `dict`, optional
+        Additional keyword arguments forwarded to ``batch_func`` for each run.
+    batch_func : callable, optional
+        Batch function accepting ``run_name`` and ``end_dayobs`` keyword
+        arguments. Defaults to `rubin_sim.maf.batches.snapshot_batch`.
+
+    Returns
+    -------
+    results_db_path : `str`
+        Path to the shared ``resultsDb_sqlite.db`` file.
+    """
+    if batch_func is None:
+        batch_func = batches.snapshot_batch
+
+    os.makedirs(out_dir, exist_ok=True)
+    results_db = db.ResultsDb(out_dir=out_dir)
+    batch_kwargs = {} if batch_kwargs is None else dict(batch_kwargs)
+    if batch_func is batches.snapshot_batch:
+        batch_kwargs.setdefault("label_prefix", run_prefix)
+
+    dayobs_list = dayobs_range(start_dayobs, end_dayobs, step)
+    if not dayobs_list or dayobs_list[-1] != end_dayobs:
+        dayobs_list.append(end_dayobs)
+    for dayobs in dayobs_list:
+        run_name = f"{run_prefix}_{int(dayobs):08d}"
+        bdict = batch_func(run_name=run_name, end_dayobs=dayobs, **batch_kwargs)
+        group = mb.MetricBundleGroup(
+            bdict,
+            visits_path,
+            out_dir=out_dir,
+            results_db=results_db,
+            save_early=False,
+        )
+        try:
+            group.run_all(clear_memory=True)
+        except ValueError as error:
+            if "zero-size array to reduction operation minimum which has no identity" not in str(error):
+                raise
+            warnings.warn(
+                f"Snapshot {run_name} has incomplete results: {error}. "
+                "Choose a higher HEALPix nside so every LSST camera pointing covers at least one pixel. "
+                "Continuing with subsequent snapshots.",
+                stacklevel=2,
+            )
+
+    results_db.close()
+    return os.path.join(out_dir, "resultsDb_sqlite.db")
+
+
+def make_chimera_summary_table(results_db: db.ResultsDb | str) -> pd.DataFrame:
+    """Build a summary table from chimera run results.
+
+    Queries the ``ResultsDb`` for all runs whose names match the
+    ``chimera_YYYYMMDD`` pattern and returns a wide-format DataFrame with
+    one row per transition date and one column per summary metric.
+
+    Parameters
+    ----------
+    results_db : `rubin_sim.maf.db.ResultsDb` or `str`
+        An open ``ResultsDb`` instance, or a path to a ``resultsDb_sqlite.db``
+        file.
+
+    Returns
+    -------
+    summary_table : `pandas.DataFrame`
+        DataFrame indexed by ``transition_dayobs`` (integer YYYYMMDD) with a
+        ``MultiIndex`` column of
+        ``(metric_name, slicer_name, metric_info_label, summary_metric)``.
+    """
+    close_after = False
+    if isinstance(results_db, str):
+        results_db = db.ResultsDb(database=results_db)
+        close_after = True
+
+    # Get all run_names that look like chimera runs and find their metric IDs.
+    all_run_names = results_db.get_run_name()
+    chimera_run_names = [
+        r for r in all_run_names if r.startswith("chimera_") and _dayobs_from_run_name(r) is not None
+    ]
+
+    if not chimera_run_names:
+        warnings.warn("No chimera run names found in results_db.")
+        if close_after:
+            results_db.close()
+        return pd.DataFrame()
+
+    # Collect all metric IDs for chimera runs.
+    metric_ids = []
+    for run_name in chimera_run_names:
+        results_db.open()
+        ids = (
+            results_db.session.query(db.results_db.MetricRow.metric_id)
+            .filter(db.results_db.MetricRow.run_name == run_name)
+            .all()
+        )
+        results_db.close()
+        metric_ids.extend(i[0] for i in ids)
+
+    if not metric_ids:
+        if close_after:
+            results_db.close()
+        return pd.DataFrame()
+
+    # Retrieve summary stats with run_name included.
+    stats = results_db.get_summary_stats(metric_id=metric_ids, with_sim_name=True)
+
+    if close_after:
+        results_db.close()
+
+    if stats.size == 0:
+        return pd.DataFrame()
+
+    df = pd.DataFrame(stats)
+    df["transition_dayobs"] = df["run_name"].apply(_dayobs_from_run_name)
+
+    pivot = df.pivot_table(
+        index="transition_dayobs",
+        columns=["metric_name", "slicer_name", "metric_info_label", "summary_metric"],
+        values="summary_value",
+        aggfunc="first",
+    )
+    pivot.index = pivot.index.astype(int)
+    pivot.sort_index(inplace=True)
+    return pivot
 
 
 # ---------------------------------------------------------------------------
@@ -263,3 +493,170 @@ def build_chimeras_cmd(consdb_file, opsim_file, start_dayobs, end_dayobs, step, 
     specs = build_chimeras(consdb_visits, opsim_visits, start_dayobs, end_dayobs, step, out_dir)
     click.echo(f"Wrote {len(specs)} chimera files to {out_dir}.")
 
+
+@click.command(name="run_chimera_batches")
+@click.option(
+    "--chimera-dir",
+    required=True,
+    type=click.Path(exists=True),
+    help="Directory containing chimera_*.h5 files.",
+)
+@click.option("--out-dir", default=".", show_default=True, help="Output directory for results_db.")
+@click.option(
+    "--batch",
+    default="chimera_batch",
+    show_default=True,
+    help="Batch function name from rubin_sim.maf.batches.",
+)
+@click.option(
+    "--batch-kwarg",
+    "batch_kwargs",
+    multiple=True,
+    help="Additional batch kwarg as KEY=VALUE. May be specified multiple times.",
+)
+def run_chimera_batches_cmd(chimera_dir, out_dir, batch, batch_kwargs):
+    """Run MAF metric batches on all chimera HDF5 files in a directory."""
+    parsed_batch_kwargs = {}
+    for item in batch_kwargs:
+        if "=" not in item:
+            raise click.BadParameter(
+                f"Invalid --batch-kwarg '{item}'. Expected KEY=VALUE.",
+                param_hint="--batch-kwarg",
+            )
+        key, value_text = item.split("=", 1)
+        if not key:
+            raise click.BadParameter(
+                f"Invalid --batch-kwarg '{item}'. Key cannot be empty.",
+                param_hint="--batch-kwarg",
+            )
+        try:
+            value = ast.literal_eval(value_text)
+        except (ValueError, SyntaxError):
+            value = value_text
+        parsed_batch_kwargs[key] = value
+
+    batch_func = getattr(batches, batch, None)
+    if batch_func is None or not callable(batch_func):
+        raise click.BadParameter(
+            f"'{batch}' is not a known batch function in rubin_sim.maf.batches.",
+            param_hint="--batch",
+        )
+    h5_files = sorted(glob.glob(os.path.join(chimera_dir, "chimera_*.h5")))
+    if not h5_files:
+        raise click.UsageError(f"No chimera_*.h5 files found in {chimera_dir}.")
+    chimera_specs = []
+    for path in h5_files:
+        t = _dayobs_from_filename(path)
+        if t is not None:
+            chimera_specs.append((t, path))
+    results_db_path = run_chimera_batches(
+        chimera_specs,
+        batch_func=batch_func,
+        out_dir=out_dir,
+        batch_kwargs=parsed_batch_kwargs,
+    )
+    click.echo(f"Results written to {results_db_path}.")
+
+
+@click.command(name="run_progress_batches")
+@click.option(
+    "--visits-file",
+    required=True,
+    type=click.Path(exists=True),
+    help="HDF5 or SQLite visits file.",
+)
+@click.option("--out-dir", default=".", show_default=True, help="Output directory for results_db.")
+@click.option("--start-dayobs", required=True, type=int, help="Start date YYYYMMDD.")
+@click.option("--end-dayobs", required=True, type=int, help="End date YYYYMMDD (inclusive).")
+@click.option(
+    "--step", default=30, show_default=True, type=int, help="Nights between successive dayobs values."
+)
+@click.option(
+    "--batch",
+    default="snapshot_batch",
+    show_default=True,
+    help="Batch function name from rubin_sim.maf.batches (must accept end_dayobs).",
+)
+@click.option(
+    "--run-prefix",
+    default="consdb",
+    show_default=True,
+    help="Prefix for run names, which will be {run_prefix}_{YYYYMMDD}.",
+)
+@click.option(
+    "--batch-kwarg",
+    "batch_kwargs",
+    multiple=True,
+    help="Additional batch kwarg as KEY=VALUE. May be specified multiple times.",
+)
+def run_progress_batches_cmd(
+    visits_file, out_dir, start_dayobs, end_dayobs, step, batch, run_prefix, batch_kwargs
+):
+    """Run MAF metric batches for a range of dayobs values."""
+    parsed_batch_kwargs = {}
+    for item in batch_kwargs:
+        if "=" not in item:
+            raise click.BadParameter(
+                f"Invalid --batch-kwarg '{item}'. Expected KEY=VALUE.",
+                param_hint="--batch-kwarg",
+            )
+        key, value_text = item.split("=", 1)
+        if not key:
+            raise click.BadParameter(
+                f"Invalid --batch-kwarg '{item}'. Key cannot be empty.",
+                param_hint="--batch-kwarg",
+            )
+        try:
+            value = ast.literal_eval(value_text)
+        except (ValueError, SyntaxError):
+            value = value_text
+        parsed_batch_kwargs[key] = value
+
+    batch_func = getattr(batches, batch, None)
+    if batch_func is None or not callable(batch_func):
+        raise click.BadParameter(
+            f"'{batch}' is not a known batch function in rubin_sim.maf.batches.",
+            param_hint="--batch",
+        )
+
+    dayobs_list = dayobs_range(start_dayobs, end_dayobs, step)
+    if not dayobs_list:
+        raise click.UsageError("dayobs_range produced no dates; check --start-dayobs and --end-dayobs.")
+    if dayobs_list[-1] != end_dayobs:
+        dayobs_list.append(end_dayobs)
+
+    results_db_path = run_progress_batches(
+        visits_file,
+        start_dayobs=start_dayobs,
+        end_dayobs=end_dayobs,
+        step=step,
+        out_dir=out_dir,
+        run_prefix=run_prefix,
+        batch_kwargs=parsed_batch_kwargs,
+        batch_func=batch_func,
+    )
+    click.echo(f"Ran {len(dayobs_list)} batch(es). Results written to {results_db_path}.")
+
+
+@click.command(name="make_chimera_summary_table")
+@click.option(
+    "--results-db",
+    required=True,
+    type=click.Path(exists=True),
+    help="Path to resultsDb_sqlite.db.",
+)
+@click.option(
+    "--out-file",
+    default="chimera_summary.h5",
+    show_default=True,
+    help="Output HDF5 file for the summary table.",
+)
+def make_chimera_summary_table_cmd(results_db, out_file):
+    """Query a results_db to produce a summary table
+    (one row per transition date)."""
+    table = make_chimera_summary_table(results_db)
+    if table.empty:
+        click.echo("Warning: summary table is empty.")
+    else:
+        table.to_hdf(out_file, key="summary")
+        click.echo(f"Summary table ({table.shape[0]} rows x {table.shape[1]} cols) written to {out_file}.")
