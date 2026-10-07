@@ -79,6 +79,22 @@ class MetricBundle:
         A list of pre-configured maps to use for the metric.
         This will be auto-generated if specified
         by the metric class, but pre-configured versions will override these.
+    pdconstraint : `str` or None, opt
+        A constraint passed to `pandas.DataFrame.query`, applied after
+        the SQL query.  Useful for filtering on columns with names that
+        are reserved SQL words (e.g. ``filter``).  Only database columns
+        may be referenced; stacker-produced columns are not available
+        at filter time.
+        Predicate columns are not fetched automatically. They must already
+        be requested by the metric, slicer, or stacker inputs, or explicitly
+        added to this bundle's db_cols before constructing the group, e.g.
+        ``bundle.db_cols.update({"band", "fiveSigmaDepth"})``.
+        This constraint is not part of the ResultsDb metric identity or
+        the automatically generated file name. Bundles in a MetricBundleGroup
+        with different pdconstraint values but the same metric name, slicer
+        name, run_name, and SQL constraint must use distinct info_label
+        values. Otherwise MetricBundleGroup raises ValueError, even if
+        custom file_root values are supplied.
 
     Notes
     -----
@@ -122,6 +138,7 @@ class MetricBundle:
         maps_list=None,
         file_root=None,
         plot_funcs=None,
+        pdconstraint=None,
     ):
         # Set the metric.
         if not isinstance(metric, metrics.BaseMetric):
@@ -135,6 +152,7 @@ class MetricBundle:
         self.constraint = constraint
         if self.constraint is None:
             self.constraint = ""
+        self.pdconstraint = pdconstraint if pdconstraint is not None else ""
         # Set the stacker_list if applicable.
         if stacker_list is not None:
             if isinstance(stacker_list, stackers.BaseStacker):
@@ -208,6 +226,7 @@ class MetricBundle:
         self.metric = None
         self.slicer = None
         self.constraint = None
+        self.pdconstraint = None
         self.stacker_list = []
         self.summary_metrics = []
         self.plot_funcs = []
@@ -631,7 +650,7 @@ class MetricBundle:
         """
         if self.summary_values is None:
             self.summary_values = {}
-        if self.summary_metrics is not None:
+        if self.summary_metrics is not None and self.metric_values is not None:
             # Build array of metric values, to use for  summary statistics.
             arr = self.metric_values.compressed()
             rarr_std = np.empty(arr.shape, dtype=[("metricdata", arr.dtype)])
@@ -727,6 +746,7 @@ class MetricBundle:
             summary_metrics=self.summary_metrics,
             maps_list=self.maps_list,
             file_root="",
+            pdconstraint=self.pdconstraint,
         )
         # Build a new output file root name.
         newmetric_bundle._build_file_root()
