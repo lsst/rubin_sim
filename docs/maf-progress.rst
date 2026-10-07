@@ -74,9 +74,9 @@ its final snapshot supplies the baseline reference for extrapolated metrics.
 
     CONSDB_VISIT_DB="completed.db"
     BASELINE_DB="baseline.db"
-    START_DAYOBS=20260629
-    LAST_CONSDB_DAYOBS=20261001
-    TARGET_DAYOBS=20360629
+    START_DAYOBS=20251001
+    LAST_CONSDB_DAYOBS=20260715
+    TARGET_DAYOBS=20351001
     STEP=30
     CHIMERA_DIR=./chimeras
     RESULTS_DIR=./results
