@@ -137,3 +137,5 @@ version.py
 
 # vscode files
 .vscode/
+short_example.db
+temp2/resultsDb_sqlite.db
