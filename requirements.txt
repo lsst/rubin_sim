@@ -1,5 +1,6 @@
 astropy-base
 astroplan
+click
 colorcet
 cycler
 gitpython
