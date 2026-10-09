@@ -21,6 +21,7 @@ dynamic = [ "version" ]
 dependencies = [
     "astroplan",
     "astropy",
+    "click",
     "colorcet",
     "cycler",
     "gitpython",
@@ -66,6 +67,7 @@ vseqarchive = [
 ]
 
 [project.scripts]
+generate_average_clouds = "rubin_sim.clouds:generate_average_clouds_cli"
 rs_download_data = "rubin_sim.data.rs_download_data:rs_download_data"
 rs_download_testing = "rubin_sim.data.rs_download_data:rs_download_testing"
 add_run = "rubin_sim.maf.db.add_run:add_run"

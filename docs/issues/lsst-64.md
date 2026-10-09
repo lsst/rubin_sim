@@ -3,16 +3,16 @@
 
 # LSST-64 — Generate a rubin_scheduler cloud database in which every month is average
 
-| Field | Value |
-|-------|--------|
-| **Issue** | [LSST-64](https://rubinobs.atlassian.net/browse/LSST-64) |
-| **Branch** | `tickets/lsst-64` |
-| **Author** | Eric H. Neilsen, Jr. |
-| **Status** | Implementation |
-| **Scope Tier** | T2 |
-| **QA Level** | Low |
-| **Estimate** | 2 days |
-| **Created / Updated** | <2026-10-07> / <2026-10-07> |
+| Field                 | Value                                                    |
+|-----------------------|----------------------------------------------------------|
+| **Issue**             | [LSST-64](https://rubinobs.atlassian.net/browse/LSST-64) |
+| **Branch**            | `tickets/lsst-64`                                        |
+| **Author**            | Eric H. Neilsen, Jr.                                     |
+| **Status**            | Implementation                                           |
+| **Scope Tier**        | T2                                                       |
+| **QA Level**          | Low                                                      |
+| **Estimate**          | 2 days                                                   |
+| **Created / Updated** | <2026-10-07> / <2026-10-07>                              |
 
 ---
 
@@ -106,13 +106,15 @@ The columns shall the following meanings:
 | eday        | int  | day of the month (in local time) on which the night ended |
 | month       | int  | the month of the year on which the night began (1 is January, etc.) |
 | year        | int  | the year on which the night began |
-| q1          | int  | cloud level in eighths recorded (9 for missing data) for the 1st quarter of the night |
-| q2          | int  | cloud level in eighths recorded (9 for missing data) for the 2nd quarter of the night |
-| q3          | int  | cloud level in eighths recorded (9 for missing data) for the 3rd quarter of the night |
-| q4          | int  | cloud level in eighths recorded (9 for missing data) for the 4th quarter of the night |
+| q1          | int  | cloud level in eighths recorded (9 or -1 for missing data) for the 1st quarter of the night |
+| q2          | int  | cloud level in eighths recorded (9 or -1 for missing data) for the 2nd quarter of the night |
+| q3          | int  | cloud level in eighths recorded (9 or -1 for missing data) for the 3rd quarter of the night |
+| q4          | int  | cloud level in eighths recorded (9 or -1 for missing data) for the 4th quarter of the night |
 
 The path of the file from which the historical data is to be loaded shall be passed by the user as an argument.
 If this file is missing data for all years for any month, the program shall exit with an error.
+
+Support for reading historical data from before 1975 is not required.
 
 #### R-2: Write a `rubin_scheduler` compatible cloud database
 
@@ -171,8 +173,9 @@ transitions in the historical record for that month to within the
 square root of the expected number of transitions (average historical
 frequency of transitions from the specified cloud state to the
 specified next scaled to the simulated month longth) in the simulated
-month. (A closer match is preferable.) If the program cannot achieve
-such a match, it may raise an error.
+month, or match within one quarter if the expected number of
+transitions is less than 1. (A closer match is preferable.) If the
+program cannot achieve such a match, it may raise an error.
 
 For example, if 31% of transitions ending in a quarter in a night
 starting in October were transitions from 1/8 to 0/8, then a simulated
@@ -191,9 +194,10 @@ the historical sequence, the program may exit with an error.
 
 Transitions to or from quarters with missing data (a sentinal value of
 "9" in the historical record) shall be excluded from the statistics.
-If quarters are separated by one or more missing quarters, they are
-not considered a pair.  Transitions from the 4th quarter of one night
-to the first quarter of the next is considered a pair.
+If quarters are separated by one or more missing quarters or otherwise
+separated by a quarter with no data (e.g. from missing rows), they are not
+considered a pair.  Transitions from the 4th quarter of one night to
+the first quarter of the next is considered a pair.
 
 Any transition pair for which the second quarter of the pair has a
 starting night in a given month shall be included in that month's
@@ -328,12 +332,17 @@ Type hints shall be defined for each schema of `pandas.Series` or
 `pandas.DataFrame` using using `typing.TypeAlias`. 
 
 The schema shall be described in comments in the code near the
-`typing.TypeAlias` line for each, but the schema need not be enforced
-in the code itself, but shall be checked in CI tests.
+`typing.TypeAlias` line for each. Functions that accept these aliases
+shall validate conformance to the data model, including ordering of
+columns, index levels, and (if specified in the data model) ordering
+of rows, and raise ValueErrors for input that fails validation.
+
 
 #### `Clouds`
 
-The historical record read from the input file shall be stored in a `pandas.DataFrame` with the following index levels and columns:
+The historical record read from the input file shall be stored in a
+`pandas.DataFrame` with the following index levels and columns, in the
+following order:
 
 | name    | index? | type | description |
 |:--------|:-------|:-----|:------------|
@@ -345,6 +354,9 @@ The historical record read from the input file shall be stored in a `pandas.Data
 | cloud   | N      | np.double | the fractional cloud cover for the quarter (np.nan if eighths=9, eighths/8 otherwise) |
 | c_date  | N      | np.uintp  | the number of seconds past 1975-01-01 00:00 TAI of the center of the quarter. |
 
+Rows shall be in ascending order by year, month, sday, and quarter.
+
+
 #### `TransitionMatrix`
 
 A `TransitionMatrix` holds the counts of transitions from one state to another for a series of cloud values.
@@ -353,14 +365,21 @@ There shall be two instances:
 - `historical_transition_matrix` counts transitions in the historical input data.
 - `simulation_transition_matrix` counts transitions in the simululated (output) data.
 
-A `TransitionMatrix` shall have a two level index:
+A `TransitionMatrix` shall have a two level index, in this order:
 
 | name  | type | description |
 |:------|:-----|:------------|
 | month | np.uint8  | The month number (1 is January, local calendar date at the start of the night) |
 | origin | np.unit8 | The cloud state (in eighths) for the state at the start of the counted transition |
 
-The name of the column index shall be 'destination', and the column names shall integer cloud cover states (0 through 8)
+Rows must be ordered by month, origin, and be unique (no duplicate
+rows for a given month and origin).
+All twelves months (1 through 12 inclusive) must be present.
+Each month must have `origin` values of `[0, 1, 2, 3, 4, 5, 6, 7, 8]`.
+
+The name of the column index shall be 'destination', and the column
+names shall integer cloud cover states (0 through 8) in numerical
+order.
 
 Transitions to or from the sentinal value for missing data (9) shall
 be excluded from the transition matrix entirely: only transitions from
@@ -381,7 +400,16 @@ The `StochasticMatrix` shall have a two level index:
 | month | np.uint8  | The month number (1 is January, local calendar date at the start of the night) |
 | origin | np.unit8 | The cloud state (in eighths) for the state at the start of the counted transition |
 
-The name of the column index shall be 'destination', and the column names shall integer cloud cover states (0 through 8)
+Rows must be ordered by month, origin, and be unique (no duplicate
+rows for a given month and origin).
+All twelves months (1 through 12 inclusive) must be present.
+Each month must have `origin` values of `[0, 1, 2, 3, 4, 5, 6, 7, 8]`.
+
+The name of the column index shall be 'destination', and the column
+names shall integer cloud cover states (0 through 8) in numerical
+order.
+
+The name of the column index shall be 'destination', and the column names shall integer cloud cover states (0 through 8) in numerical order.
 
 All columns will be of `np.float64` dtype.
 
@@ -390,9 +418,10 @@ Each row must sum to 1.0.
 #### `CloudDistribution`
 
 A `CloudDistribution` is a `pandas.DataFrame` indexed by month (as an
-integer), with columns for each cloud state (0 through 8, excluding
-missing data marked by 9).  The value of each column shall be the
-number of instances in that cloud state in that month.
+integer), with columns for each cloud state (0 through 8 inclusive in
+numerical order, excluding missing data marked by 9).  The value of
+each column shall be the number of instances in that cloud state in
+that month.
 
 ### High-level functions
 
@@ -496,7 +525,7 @@ point).
 | R-4         | End-to-end unit tests running `rubin_sim.clouds.cloud_generation_workflow` passes                                                    |
 | R-5         | Human verification by submission of batch test unit test script that then passes in specified time                                   |
 | R-6         | Human verification using the same batch script used in R-5                                                                           |
-| R-7         | Unit tests of `read_historical_clouds`, `compute_transition_matrix`, `compute_stochastic_matrix`, and `generate_average_clouds` pass |
+| R-7         | Unit tests of `read_historical_clouds`, `compute_transition_matrix`, `compute_stochastic_matrix`, and `generate_average_clouds` pass. These tests must test input validation. |
 | R-8         | Unit tests of `plot_cloud_histogram` and `plot_transition_histograms` pass                                                           |
 
 Most of these verification steps will be tested through standard unit
