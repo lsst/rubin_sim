@@ -13,6 +13,7 @@ from contextlib import closing
 from pathlib import Path
 from typing import Any, Union
 
+import nested_pandas as npd
 import numpy as np
 import pandas as pd
 from sqlalchemy import create_engine, inspect
@@ -241,7 +242,7 @@ def _local_get_parquet_data(
     if not os.path.isfile(path):
         raise FileNotFoundError(f"No file {path}")
 
-    sim_data = pd.read_parquet(path, columns=dbcols)
+    sim_data = npd.read_parquet(path, columns=dbcols)
 
     if len(sim_data) == 0:
         raise UserWarning(f"No data found in {path}")
