@@ -6,8 +6,7 @@ from .metrics import LCLObsCountMetric
 
 def run_lightcurvelynx(sim_data):
     out_dir = "/Users/maxwest/maf_runs/"
-    slicer = slicers.LynxSpatialSlicer(leafsize=25)
-    # slicer = slicers.LynxBaseSlicer()
+    slicer = slicers.LynxBaseSlicer()
     metric = LCLObsCountMetric()
 
     bundle = metricBundles.MetricBundle(metric, slicer, constraint="")
