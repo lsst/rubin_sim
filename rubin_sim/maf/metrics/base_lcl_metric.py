@@ -35,4 +35,4 @@ class LCLObsCountMetric(BaseLCLMetric):
         -------
         metricValue : `int` `float` or `object`
             The metric value at each slice_point."""
-        return len(data_slice)
+        return len(data_slice[0][0]["flux"])

@@ -4,9 +4,16 @@ from .metrics import LynxObsCountMetric
 from .slicers import LynxResultsSlicer
 
 
+<<<<<<< HEAD
 def run_lightcurvelynx(sim_data, out_dir):
     slicer = LynxResultsSlicer()
     metric = LynxObsCountMetric(col="lightcurve", from_results=True)
+=======
+def run_lightcurvelynx(sim_data):
+    out_dir = "/Users/maxwest/maf_runs/"
+    slicer = slicers.LynxBaseSlicer()
+    metric = LCLObsCountMetric(col="lightcurve")
+>>>>>>> c76a417f (checkpoint - nested pandas read in working)
 
     bundle = metricBundles.MetricBundle(metric, slicer, constraint="")
 
