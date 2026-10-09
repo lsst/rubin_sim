@@ -27,6 +27,7 @@ dependencies = [
     "h5py",
     "healpy",
     "matplotlib",
+    "nested-pandas",
     "numexpr",
     "numpy",
     "pandas",
