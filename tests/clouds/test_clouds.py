@@ -22,6 +22,7 @@ from matplotlib import pyplot as plt
 from matplotlib.figure import Figure
 from rubin_scheduler.site_models import CloudData
 
+import rubin_sim.clouds.generate as cloud_generate
 from rubin_sim.clouds import (
     cloud_generation_workflow,
     compute_stochastic_matrix,
@@ -605,6 +606,179 @@ def test_generate_nontrivial_monthly_requirements_and_seed(clear_statistics):
     other = generate_average_clouds(transitions, distribution, 1, seed=42)
     assert_monthly_requirements(other, transitions, distribution)
     assert not clouds.eighths.equals(other.eighths)
+
+
+def test_generation_candidates_match_accepted_same_month_totals(clear_statistics, monkeypatch):
+    transitions, distribution = (frame.copy() * 0 for frame in clear_statistics)
+    for month in range(1, 13):
+        transitions.loc[(month, 0), 0] = 51
+        transitions.loc[(month, 8), 8] = 49
+        distribution.loc[month, [0, 8]] = 1
+    monkeypatch.setattr(cloud_generate, "NUM_MONTH_CANDIDATES", 3)
+    calls = []
+
+    def sample(transitions, distribution, num_quarters, prior_state, rng, max_steps):
+        # Locally, all-clear is always better. The other two candidates are
+        # rejected in year one and must not enter the accumulated counts.
+        candidate = len(calls) % 3
+        calls.append(prior_state)
+        return np.full(num_quarters, 0 if candidate == 0 else 8, dtype=np.uint8)
+
+    monkeypatch.setattr(cloud_generate, "_generate_month", sample)
+    clouds = generate_average_clouds(transitions, distribution, 2, max_retries=3)
+    assert (clouds.loc[(1975, 1), "eighths"] == 0).all()
+    # January's accepted counts must not affect February's first pool.
+    assert (clouds.loc[(1975, 2), "eighths"] == 0).all()
+    assert (clouds.loc[(1976, 1), "eighths"] == 8).all()
+
+    historical = transitions.loc[1].to_numpy(dtype=float)
+    accepted = np.zeros((9, 9))
+    accepted[0, 0] = 123
+    clear = np.zeros((9, 9))
+    clear[0, 0] = 124
+    cloudy = np.zeros((9, 9))
+    cloudy[0, 8], cloudy[8, 8] = 1, 123
+
+    def score(counts):
+        return np.abs(counts - counts.sum() * historical / historical.sum()).sum()
+
+    assert score(clear) < score(cloudy)
+    assert score(accepted + cloudy) < score(accepted + clear)
+
+
+def test_generation_candidates_count_real_boundaries_and_retain_first_tie(clear_statistics, monkeypatch):
+    transitions, distribution = (frame.copy() for frame in clear_statistics)
+    for month, half in [(1, 62), (2, 56)]:
+        transitions.loc[month] = 0
+        transitions.loc[(month, 0), [0, 8]] = [half - 1, 1]
+        transitions.loc[(month, 8), [0, 8]] = [1, half - 1]
+    monkeypatch.setattr(cloud_generate, "NUM_MONTH_CANDIDATES", 2)
+    calls = []
+    candidates = []
+
+    def sample(transitions, distribution, num_quarters, prior_state, rng, max_steps):
+        offset, candidate = divmod(len(calls), 2)
+        calls.append(prior_state)
+        if offset < 2:
+            sequence = np.repeat(np.array([0, 8], dtype=np.uint8), num_quarters // 2)
+            # January's two actual internal count matrices tie. February's
+            # first candidate loses only when its real incoming pair is used.
+            if (offset == 0 and candidate == 1) or (offset == 1 and candidate == 0):
+                sequence = sequence[::-1].copy()
+            candidates.append(sequence)
+            return sequence
+        return np.zeros(num_quarters, dtype=np.uint8)
+
+    monkeypatch.setattr(cloud_generate, "_generate_month", sample)
+    clouds = generate_average_clouds(transitions, distribution, 1, max_retries=2)
+    np.testing.assert_array_equal(clouds.loc[(1975, 1), "eighths"], candidates[0])
+    np.testing.assert_array_equal(clouds.loc[(1975, 2), "eighths"], candidates[3])
+    assert calls[:6] == [None, None, 8, 8, 8, 8]
+    # Independently check the chosen February is an exact historical match,
+    # including 8->0 at the boundary rather than a fallback sampling origin.
+    actual = compute_transition_matrix(clouds).loc[2]
+    np.testing.assert_array_equal(actual.to_numpy(), transitions.loc[2].to_numpy())
+
+
+@pytest.mark.parametrize(
+    "outcomes, max_retries",
+    [
+        ([False, False, False], 3),
+        ([False, True, False], 3),
+        ([True, False, True], 3),
+        ([False, True, True, True], 7),
+        ([True, True, True], 7),
+    ],
+)
+def test_generation_candidate_pools_share_rng_and_total_retry_budget(
+    clear_statistics, monkeypatch, outcomes, max_retries
+):
+    transitions, distribution = clear_statistics
+    monkeypatch.setattr(cloud_generate, "NUM_MONTH_CANDIDATES", 3)
+    calls = []
+    seed = 123
+
+    def sample(transitions, distribution, num_quarters, prior_state, rng, max_steps):
+        attempt = len(calls) % len(outcomes)
+        calls.append((prior_state, rng, rng.random()))
+        if not outcomes[attempt]:
+            raise RuntimeError("controlled failed candidate")
+        sequence = np.zeros(num_quarters, dtype=np.uint8)
+        if any(outcomes[:attempt]):
+            sequence[-1] = 8
+        return sequence
+
+    monkeypatch.setattr(cloud_generate, "_generate_month", sample)
+    if not any(outcomes):
+        with pytest.raises(RuntimeError, match="1975-01.*3 attempts.*controlled failed candidate"):
+            generate_average_clouds(transitions, distribution, 1, seed=seed, max_retries=max_retries)
+        assert len(calls) == max_retries
+    else:
+        clouds = generate_average_clouds(transitions, distribution, 1, seed=seed, max_retries=max_retries)
+        months = clouds.groupby(level=["year", "month"]).ngroups
+        assert len(calls) == months * len(outcomes)
+        assert (clouds.eighths == 0).all()
+    assert [prior for prior, _, _ in calls[: len(outcomes)]] == [None] * len(outcomes)
+    assert all(prior == 0 for prior, _, _ in calls[len(outcomes) :])
+    assert all(rng is calls[0][1] for _, rng, _ in calls)
+    np.testing.assert_array_equal(
+        [draw for _, _, draw in calls], np.random.default_rng(seed).random(len(calls))
+    )
+
+
+@pytest.mark.parametrize("value", [0, -1, 1.5, True])
+def test_generation_invalid_candidate_count_before_sampling(clear_statistics, monkeypatch, value):
+    monkeypatch.setattr(cloud_generate, "NUM_MONTH_CANDIDATES", value)
+    monkeypatch.setattr(cloud_generate, "_generate_month", lambda *args: pytest.fail("Sampled invalid limit"))
+    with pytest.raises(ValueError, match="NUM_MONTH_CANDIDATES.*positive integer"):
+        generate_average_clouds(*clear_statistics, 1)
+
+
+def test_generation_candidate_count_is_snapshotted(clear_statistics, monkeypatch):
+    monkeypatch.setattr(cloud_generate, "NUM_MONTH_CANDIDATES", 3)
+    calls = []
+
+    def sample(transitions, distribution, num_quarters, prior_state, rng, max_steps):
+        monkeypatch.setattr(cloud_generate, "NUM_MONTH_CANDIDATES", 1)
+        calls.append(prior_state)
+        return np.zeros(num_quarters, dtype=np.uint8)
+
+    monkeypatch.setattr(cloud_generate, "_generate_month", sample)
+    clouds = generate_average_clouds(*clear_statistics, 1, max_retries=5)
+    assert len(calls) == 3 * clouds.groupby(level=["year", "month"]).ngroups
+
+
+def test_generation_one_candidate_preserves_first_success_output_and_rng(clear_statistics, monkeypatch):
+    transitions, distribution = (frame.copy() * 0 for frame in clear_statistics)
+    for month in range(1, 13):
+        distribution.loc[month, [0, 8]] = [1, 3]
+        transitions.loc[(month, 0), [0, 8]] = [100, 300]
+        transitions.loc[(month, 8), [0, 8]] = [300, 900]
+    monkeypatch.setattr(cloud_generate, "NUM_MONTH_CANDIDATES", 1)
+    clouds = generate_average_clouds(transitions, distribution, 1, seed=6563)
+    rng = np.random.default_rng(6563)
+    expected = []
+    prior_state = None
+    # Reproduce the pre-selection first-success loop with the real sampler.
+    for (year, month), group in clouds.groupby(level=["year", "month"], sort=True):
+        for attempt in range(10000):
+            try:
+                sequence = _generate_month(
+                    transitions.loc[month].to_numpy(dtype=float),
+                    distribution.loc[month].to_numpy(dtype=float),
+                    len(group),
+                    prior_state,
+                    rng,
+                    100,
+                )
+            except RuntimeError:
+                continue
+            break
+        else:
+            pytest.fail(f"Reference first-success loop exhausted retries for {year}-{month:02d}")
+        expected.extend(sequence)
+        prior_state = int(sequence[-1])
+    np.testing.assert_array_equal(clouds.eighths, expected)
 
 
 @pytest.mark.parametrize("parameter", ["num_years", "max_retries", "max_steps"])
