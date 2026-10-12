@@ -25,6 +25,7 @@ from .data import (
     _validate_transition_matrix,
     compute_transition_matrix,
     count_cloud_states,
+    make_cloud_figure,
     make_cloud_frame,
     plot_cloud_histogram,
     plot_transition_histograms,
@@ -343,6 +344,7 @@ def cloud_generation_workflow(
     *,
     cloud_histogram: str | PathLike | None = None,
     transition_histograms: str | PathLike | None = None,
+    cloud_figure: str | PathLike | None = None,
     seed: int | None = 6563,
     max_retries: int = 10000,
     max_steps: int = 100,
@@ -365,6 +367,8 @@ def cloud_generation_workflow(
         If given, path at which to save the cloud state histograms.
     transition_histograms : `str` or `os.PathLike`, optional
         If given, path at which to save the transition count histograms.
+    cloud_figure : `str` or `os.PathLike`, optional
+        If given, path at which to save the full simulated cloud sequence.
     seed : `int` or `None`, optional
         Seed for the random number generator.
     max_retries : `int`, optional
@@ -402,6 +406,13 @@ def cloud_generation_workflow(
         finally:
             plt.close(figure)
 
+    if cloud_figure is not None:
+        figure = make_cloud_figure(simulated.eighths)
+        try:
+            figure.savefig(cloud_figure)
+        finally:
+            plt.close(figure)
+
     return simulated
 
 
@@ -414,6 +425,9 @@ def cloud_generation_workflow(
 @click.option("--max-steps", default=100, show_default=True, type=click.IntRange(min=1))
 @click.option("--cloud-histogram", type=click.Path(dir_okay=False))
 @click.option("--transition-histograms", type=click.Path(dir_okay=False))
+@click.option(
+    "--cloud-figure", type=click.Path(dir_okay=False), help="Save the full simulated cloud sequence."
+)
 def generate_average_clouds_cli(**kwargs: Any) -> None:
     """Generate a scheduler cloud database from CTIO record files.
 

@@ -272,8 +272,11 @@ notebook.
 
 1. An array of historgrams (one for each month) overplotting the normalized distribution of simulated clouds over the distribution of historical clouds for each month.
 2. An array of transition count matrix count 2-d histograms, with one pair for each month, showing the transition count matrices for each month for historical and simulated data. The API should permit limiting simulated data to specific years, or combining that month for all years. The CLI should just show the all-year 2-d histograms.
+3. A visualizer for an entire set of clouds values. An example of an acceptabel plot is the one at the end of https://github.com/lsst/rubin_sim_notebooks/blob/tickets/LSST-2/clouds/cloud_origin_plot.ipynb .) The API shall accept either historical or simulated data sets, and the CLI shall create the figure for the new simulated data.
 
 Optionally (if and only if `statsmodels` is installed in the environment), the python API will support overplotting plotting of the autocorrelation function of the observability (1 if cloud level < a cloud threshhold provided an an argument, 0 otherwise) of either all simulated years of a given month, or one simulated month/year, over the autocorrelation function of that month in the historical record. Support for the CLI is not required for the ACF plots, and it should only be supported in the API if `statsmodels` is otherwise available (e.g. can be imported in the current jupyter kernel).
+
+
 
 ### 3.2 Design Evaluation Criteria
 Omit this subsection when only one design is plausible for this issue — that is expected for most T1/T2 issues (process §2.3, §2.4). When this subsection is omitted, the Frame and Design phases are normally performed in a single combined session (process §4, §5.2, §5.3).
@@ -509,6 +512,16 @@ output database and optional arguments for diagnosics, and runs the
 full workflow, writing the diagnostics if the optional arguments are
 provided.
 
+### `rubin_sim.clouds.make_cloud_figure`
+
+Create a plot that shows a full sequence of cloud data, closely resembling the plot made in  https://github.com/lsst/rubin_sim_notebooks/blob/tickets/LSST-2/clouds/cloud_origin_plot.ipynb .
+It shall accept one required argument: a `pandas.Series` indexed the same levels as `Clouds`  containing eighths cloudcover (typically the `eighths` column of `Clouds` in the data dictionary above), and an additional optional argumement, `origin`, a `pandas.Series` with the same index and text data with the source name.
+
+If the `origin` is provided (and not `None`), alpha shall represent the eighths cloudiness and color the origin, exactly as in the notebook prototype. Missing data (absent quarters, nans, or sentinels) shall be white.
+
+If `origin` is `None` (the default), eighths cloudiness shall be mapped to color with the Cividis color map, with the dark end as least cloudy (fewest eighths) and yellow the most cloudy (highest eighthts), with missing quarters being red.
+
+It shall return a matplotlib `Figure`.
 
 ### Average cloud generation algorithm.
 

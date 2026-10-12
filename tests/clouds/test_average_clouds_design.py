@@ -506,6 +506,9 @@ def test_acf_selection_validation(clouds, options):
 # parameters. Objects stand in for frames: these tests do not execute calls.
 FRAME = object()
 CALLS = [
+    ("make_cloud_figure", (FRAME,), {}),
+    ("make_cloud_figure", (FRAME, FRAME), {}),
+    ("make_cloud_figure", (), {"eighths": FRAME, "origin": None}),
     ("read_historical_clouds", ("historical.txt",), {}),
     ("read_historical_clouds", (["first.txt", "second.txt"],), {}),
     ("count_cloud_states", (FRAME,), {}),
@@ -535,7 +538,11 @@ CALLS = [
     (
         "cloud_generation_workflow",
         ("historical.txt", "clouds.db", 2),
-        {"cloud_histogram": "clouds.png", "transition_histograms": "transitions.png"},
+        {
+            "cloud_histogram": "clouds.png",
+            "transition_histograms": "transitions.png",
+            "cloud_figure": "sequence.png",
+        },
     ),
 ]
 
@@ -549,3 +556,59 @@ def test_documented_call_shapes(name, args, kwargs):
 
 def test_acf_year_defaults_to_all_years():
     assert inspect.signature(clouds_api.observability_acf).parameters["year"].default is None
+
+
+def test_cloud_figure_origin_defaults_to_none():
+    assert inspect.signature(clouds_api.make_cloud_figure).parameters["origin"].default is None
+
+
+@pytest.mark.parametrize(
+    "case",
+    [
+        "frame",
+        "empty",
+        "names",
+        "duplicate",
+        "order",
+        "dtype",
+        "date",
+        "quarter",
+        "state",
+        "text",
+        "origin_index",
+        "origin_text",
+    ],
+)
+def test_cloud_figure_input_validation(clouds, case):
+    eighths = clouds.eighths.copy()
+    origin = None
+    if case == "frame":
+        eighths = clouds
+    elif case == "empty":
+        eighths = eighths.iloc[:0]
+    elif case == "names":
+        eighths.index = eighths.index.set_names(["year", "month", "day", "quarter"])
+    elif case == "duplicate":
+        eighths = pd.concat([eighths.iloc[:1], eighths])
+    elif case == "order":
+        eighths = eighths.iloc[::-1]
+    elif case in ("dtype", "date", "quarter"):
+        fields = eighths.index.to_frame(index=False)
+        if case == "dtype":
+            fields["year"] = fields.year.astype(np.int64)
+        elif case == "date":
+            fields.loc[0, "sday"] = 32
+        else:
+            fields.loc[0, "quarter"] = 0
+        eighths.index = pd.MultiIndex.from_frame(fields)
+    elif case == "state":
+        eighths = eighths.astype(float)
+        eighths.iloc[0] = 1.5
+    elif case == "text":
+        eighths = eighths.astype(str)
+    elif case == "origin_index":
+        origin = pd.Series("ctio", index=eighths.index[::-1])
+    else:
+        origin = pd.Series(1, index=eighths.index)
+    with pytest.raises(ValueError):
+        clouds_api.make_cloud_figure(eighths, origin)

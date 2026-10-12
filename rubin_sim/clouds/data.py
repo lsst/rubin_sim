@@ -13,6 +13,7 @@ __all__ = [
     "save_clouds",
     "plot_cloud_histogram",
     "plot_transition_histograms",
+    "make_cloud_figure",
     "observability_acf",
 ]
 
@@ -24,6 +25,7 @@ from collections.abc import Sequence
 from contextlib import closing
 from typing import Any, TypeAlias
 
+import colorcet as cc
 import matplotlib.pyplot as plt
 import numpy as np
 import numpy.typing as npt
@@ -32,7 +34,11 @@ from astropy import units as u
 from astropy.coordinates import EarthLocation
 from astropy.time import Time
 from astropy.utils import iers
+from matplotlib.cm import ScalarMappable
+from matplotlib.collections import PolyCollection
+from matplotlib.colors import Normalize, to_rgba
 from matplotlib.figure import Figure
+from matplotlib.patches import Patch
 from rubin_scheduler.utils import Site
 from rubin_scheduler.utils.riseset import riseset_times
 
@@ -731,6 +737,129 @@ def plot_transition_histograms(
 
     figure.supxlabel("Destination cloud state (eighths)")
     figure.supylabel("Origin cloud state (eighths)")
+    return figure
+
+
+def make_cloud_figure(eighths: pd.Series, origin: pd.Series | None = None) -> Figure:
+    """Show a complete cloud sequence as quarter-night strips by year.
+
+    Parameters
+    ----------
+    eighths : `pandas.Series`
+        Cloud cover in integer eighths, indexed by year (uint16), month,
+        sday, and quarter (uint8), in that order, as in `Clouds`. Rows must
+        be unique and sorted. Absent quarters, NaNs, -1, and 9 are missing.
+    origin : `pandas.Series`, optional
+        Text source names with exactly the same index. Source colors match
+        the notebook prototype for ctio, blanco, satellite, and
+        stochastic_matrix; other names receive distinct palette colors.
+        Alpha is 1 - eighths/16, and missing quarters are white. Without
+        sources, Cividis maps 0..8 to dark..yellow and missing data are red.
+
+    Returns
+    -------
+    figure : `matplotlib.figure.Figure`
+        One strip per calendar year, with day of year on the horizontal
+        axis. The caller owns the figure and should close it.
+
+    Raises
+    ------
+    ValueError
+        If the series is empty or its index, states, or sources are invalid.
+    """
+    if not isinstance(eighths, pd.Series) or eighths.empty:
+        raise ValueError("eighths must be a nonempty pandas Series")
+    index = eighths.index
+    names = ["year", "month", "sday", "quarter"]
+    if not isinstance(index, pd.MultiIndex) or list(index.names) != names:
+        raise ValueError("eighths index levels must be year, month, sday, quarter, in that order")
+    if not index.is_unique or not index.is_monotonic_increasing:
+        raise ValueError("eighths rows must be unique and sorted by date and quarter")
+    for name, dtype in zip(names, [np.uint16, np.uint8, np.uint8, np.uint8]):
+        if index.get_level_values(name).dtype != np.dtype(dtype):
+            raise ValueError(f"eighths index level {name} must have dtype {np.dtype(dtype)}")
+    fields = index.to_frame(index=False)
+    if not fields.quarter.between(1, 4).all():
+        raise ValueError("quarters must be from 1 through 4")
+    try:
+        dates = pd.to_datetime(fields.rename(columns={"sday": "day"})[["year", "month", "day"]])
+    except (ValueError, OverflowError) as error:
+        raise ValueError("eighths must have valid calendar dates") from error
+    if (fields.year < 1975).any():
+        raise ValueError("eighths dates must be on or after 1975-01-01")
+    if (
+        not pd.api.types.is_numeric_dtype(eighths.dtype)
+        or pd.api.types.is_bool_dtype(eighths.dtype)
+        or pd.api.types.is_complex_dtype(eighths.dtype)
+    ):
+        raise ValueError("eighths must contain integer cloud states 0..8, or missing values")
+    values = eighths.to_numpy(dtype=float, na_value=np.nan)
+    if not np.all(np.isnan(values) | np.isin(values, np.arange(-1, 10))):
+        raise ValueError("eighths must contain integer cloud states 0..8, or missing values")
+    if origin is not None:
+        if not isinstance(origin, pd.Series) or not origin.index.identical(index):
+            raise ValueError("origin must be a pandas Series with the same index as eighths")
+        if not origin.dropna().map(lambda value: isinstance(value, str)).all():
+            raise ValueError("origin must contain text source names")
+
+    years = np.arange(int(fields.year.min()), int(fields.year.max()) + 1)
+    # Allocate every calendar quarter so gaps never become artificial runs.
+    lengths = np.array([4 * (366 if calendar.isleap(int(year)) else 365) for year in years])
+    offsets = np.r_[0, np.cumsum(lengths)]
+    y = np.repeat(years, lengths)
+    x = np.concatenate([1 + np.arange(length) / 4 for length in lengths])
+    vertices = np.stack(
+        [
+            np.column_stack([x, y - 0.4]),
+            np.column_stack([x + 0.25, y - 0.4]),
+            np.column_stack([x + 0.25, y + 0.4]),
+            np.column_stack([x, y + 0.4]),
+        ],
+        axis=1,
+    )
+    colors = np.tile(to_rgba("red" if origin is None else "white"), (len(x), 1))
+    positions = offsets[fields.year.to_numpy(dtype=int) - years[0]]
+    positions += (dates.dt.dayofyear.to_numpy() - 1) * 4 + fields.quarter.to_numpy() - 1
+    valid = (values >= 0) & (values <= 8)
+    cmap = plt.get_cmap("cividis")
+    norm = Normalize(0, 8)
+    handles = []
+    if origin is None:
+        colors[positions[valid]] = cmap(norm(values[valid]))
+    else:
+        source_indices = {"ctio": 0, "blanco": 9, "satellite": 4, "stochastic_matrix": 3}
+        available = iter(i for i in range(len(cc.glasbey_category10)) if i not in source_indices.values())
+        for source in sorted(origin.dropna().unique()):
+            if source not in source_indices:
+                source_indices[source] = next(available, len(source_indices))
+            color = cc.glasbey_category10[source_indices[source] % len(cc.glasbey_category10)]
+            selected = valid & origin.eq(source).to_numpy(dtype=bool, na_value=False)
+            colors[positions[selected], :3] = color
+            colors[positions[selected], 3] = 1 - values[selected] / 16
+            handles.append(Patch(color=color, label=source))
+
+    figure, axis = plt.subplots(figsize=(10, max(2.5, 0.25 * len(years))), layout="constrained")
+    axis.add_collection(PolyCollection(vertices, facecolors=colors, edgecolors="none"))
+    axis.set(
+        xlim=(0, 367),
+        ylim=(years[-1] + 1, years[0] - 1),
+        xlabel="Day of year",
+        ylabel="Year",
+        title="Cloud cover by year" if origin is None else "Cloud data source by year",
+    )
+    axis.set_yticks(years[::5] if len(years) > 20 else years)
+    handles.append(Patch(facecolor="red" if origin is None else "white", edgecolor="black", label="Missing"))
+    axis.legend(
+        handles=handles,
+        title="Source" if origin is not None else None,
+        loc="upper center",
+        bbox_to_anchor=(0.5, -0.15),
+        ncol=min(5, len(handles)),
+    )
+    if origin is None:
+        figure.colorbar(
+            ScalarMappable(norm=norm, cmap=cmap), ax=axis, label="Cloud cover (eighths)", ticks=np.arange(9)
+        )
     return figure
 
 
