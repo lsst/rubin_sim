@@ -13,6 +13,7 @@ from datetime import date, timedelta
 from pathlib import Path
 from time import perf_counter
 
+import colorcet as cc
 import numpy as np
 import pandas as pd
 import pytest
@@ -22,6 +23,7 @@ from astropy.time import Time
 from astropy.utils import iers
 from click.testing import CliRunner
 from matplotlib import pyplot as plt
+from matplotlib.colors import to_rgba
 from matplotlib.figure import Figure
 from rubin_scheduler.site_models import CloudData
 
@@ -31,6 +33,7 @@ from rubin_sim.clouds import (
     compute_transition_matrix,
     count_cloud_states,
     generate_average_clouds_cli,
+    make_cloud_figure,
     observability_acf,
     plot_cloud_histogram,
     plot_transition_histograms,
@@ -284,9 +287,68 @@ def test_diagnostic_plots_show_monthly_counts_and_normalized_distributions(histo
         plt.close(figure)
 
 
-def test_cli_writes_database_and_both_diagnostics(tmp_path, historical_path, records):
+@pytest.mark.parametrize("dataset", ["historical", "simulated"])
+def test_full_cloud_sequence_accepts_either_dataset(historical_path, simulated, dataset):
+    """R-8.3: all years and all quarter values are displayed."""
+    clouds = read_historical_clouds(historical_path) if dataset == "historical" else simulated[0]
+    figure = make_cloud_figure(clouds.eighths)
+    assert isinstance(figure, Figure)
+    colors = figure.axes[0].collections[0].get_facecolors()
+    np.testing.assert_allclose(colors[: len(clouds)], plt.get_cmap("cividis")(clouds.eighths / 8))
+    assert figure.axes[0].get_ylabel() == "Year"
+    assert figure.axes[0].yaxis_inverted()
+
+
+def test_full_cloud_sequence_missing_quarters_and_leap_dates():
+    """R-8.3/design: absent quarters, NaNs, and both sentinels stay visible."""
+    index = pd.MultiIndex.from_arrays(
+        [
+            np.array([1976] * 5, dtype=np.uint16),
+            np.array([2] * 5, dtype=np.uint8),
+            np.array([28, 28, 28, 29, 29], dtype=np.uint8),
+            np.array([1, 2, 4, 1, 2], dtype=np.uint8),
+        ],
+        names=["year", "month", "sday", "quarter"],
+    )
+    eighths = pd.Series([0, 8, np.nan, 9, -1], index=index)
+    figure = make_cloud_figure(eighths)
+    colors = figure.axes[0].collections[0].get_facecolors()
+    start = 58 * 4  # February 28 in a leap year, zero-based quarter position.
+    np.testing.assert_allclose(colors[start : start + 2], plt.get_cmap("cividis")([0.0, 1.0]))
+    np.testing.assert_allclose(colors[start + 2 : start + 6], np.tile(to_rgba("red"), (4, 1)))
+    assert len(colors) == 366 * 4
+    vertices = figure.axes[0].collections[0].get_paths()[start + 4].vertices
+    assert vertices[:, 0].min() == 60  # February 29 is day 60.
+    assert vertices[:, 0].max() == 60.25
+
+    origin = pd.Series("ctio", index=index)
+    source_figure = make_cloud_figure(eighths, origin)
+    colors = source_figure.axes[0].collections[0].get_facecolors()
+    np.testing.assert_allclose(colors[start : start + 2, :3], np.tile(cc.glasbey_category10[0], (2, 1)))
+    np.testing.assert_allclose(colors[start : start + 2, 3], [1, 0.5])
+    np.testing.assert_allclose(colors[start + 2 : start + 6], np.tile(to_rgba("white"), (4, 1)))
+
+
+def test_cloud_source_palette_matches_prototype(historical_path):
+    clouds = read_historical_clouds(historical_path).iloc[:4]
+    origins = pd.Series(["ctio", "blanco", "satellite", "stochastic_matrix"], index=clouds.index)
+    figure = make_cloud_figure(clouds.eighths, origins)
+    colors = figure.axes[0].collections[0].get_facecolors()[:4]
+    np.testing.assert_allclose(colors[:, :3], np.array(cc.glasbey_category10)[[0, 9, 4, 3]])
+    np.testing.assert_allclose(colors[:, 3], 1 - clouds.eighths.to_numpy() / 16)
+    assert {text.get_text() for text in figure.axes[0].get_legend().get_texts()} == {
+        "ctio",
+        "blanco",
+        "satellite",
+        "stochastic_matrix",
+        "Missing",
+    }
+
+
+def test_cli_writes_database_and_all_diagnostics(tmp_path, historical_path, records):
     """R-1/R-2/R-3/R-4/R-8: exercise the user-facing command end to end."""
     database, histogram, pairs = [tmp_path / name for name in ["cli.db", "clouds.png", "pairs.png"]]
+    sequence = tmp_path / "sequence.png"
     result = CliRunner().invoke(
         generate_average_clouds_cli,
         [
@@ -299,13 +361,20 @@ def test_cli_writes_database_and_both_diagnostics(tmp_path, historical_path, rec
             str(histogram),
             "--transition-histograms",
             str(pairs),
+            "--cloud-figure",
+            str(sequence),
         ],
     )
     assert result.exit_code == 0, result.output
-    assert all(path.stat().st_size > 0 for path in [database, histogram, pairs])
-    for path in [histogram, pairs]:
+    assert all(path.stat().st_size > 0 for path in [database, histogram, pairs, sequence])
+    for path in [histogram, pairs, sequence]:
         assert plt.imread(path).ndim == 3
-    expected = cloud_generation_workflow(historical_path, tmp_path / "api.db", 1, seed=6563)
+    api_sequence = tmp_path / "api-sequence.png"
+    expected = cloud_generation_workflow(
+        historical_path, tmp_path / "api.db", 1, seed=6563, cloud_figure=api_sequence
+    )
+    np.testing.assert_array_equal(plt.imread(sequence), plt.imread(api_sequence))
+    assert not plt.get_fignums()
     assert_typical_months(expected, *reference_counts(records))
     with closing(sqlite3.connect(database)) as connection:
         saved = connection.execute("SELECT c_date,cloud FROM Cloud ORDER BY cloudId").fetchall()
@@ -353,20 +422,21 @@ def test_acf_dependency_is_optional_and_insufficient_data_is_rejected(monkeypatc
 
 @pytest.mark.skipif(not os.environ.get("LSST64_HISTORICAL_DATA"), reason="Opt in with LSST64_HISTORICAL_DATA")
 def test_historical_data_workflow(tmp_path, record_property):
-    """R-5/R-6: 20 years and both diagnostics with the specified CTIO input."""
+    """R-5/R-6: 20 years and all diagnostics with the specified CTIO input."""
     path = Path(os.environ["LSST64_HISTORICAL_DATA"])
     records = pd.read_csv(path, sep=r"\s+")
     assert len(records) == 17414, "R-5 requires the specified 17,414-night historical input"
     database, histogram, pairs = [tmp_path / name for name in ["average.db", "clouds.png", "pairs.png"]]
+    sequence = tmp_path / "sequence.png"
     start = perf_counter()
     clouds = cloud_generation_workflow(
-        path, database, 20, cloud_histogram=histogram, transition_histograms=pairs
+        path, database, 20, cloud_histogram=histogram, transition_histograms=pairs, cloud_figure=sequence
     )
     elapsed = perf_counter() - start
     record_property("workflow_seconds", elapsed)
     assert elapsed < 3600, f"R-5: generation and diagnostics took {elapsed:.1f} seconds"
     assert_typical_months(clouds, *reference_counts(records))
     assert int(clouds.c_date.iloc[-1]) - int(clouds.c_date.iloc[0]) >= 20 * 31557600
-    assert all(output.stat().st_size > 0 for output in [database, histogram, pairs])
+    assert all(output.stat().st_size > 0 for output in [database, histogram, pairs, sequence])
     reader = CloudData(Time("2025-01-01", scale="tai"), cloud_db=str(database))
     assert reader.time_range >= 20 * 31557600
