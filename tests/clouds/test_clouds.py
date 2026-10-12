@@ -1,5 +1,6 @@
 """Verify LSST-64 cloud records, monthly statistics, and scheduler output."""
 
+import builtins
 import calendar
 import os
 import sqlite3
@@ -31,6 +32,7 @@ from rubin_sim.clouds import (
     generate_average_clouds,
     generate_average_clouds_cli,
     make_cloud_frame,
+    observability_acf,
     plot_cloud_histogram,
     plot_transition_histograms,
     read_historical_clouds,
@@ -39,6 +41,143 @@ from rubin_sim.clouds import (
 from rubin_sim.clouds.generate import _generate_month
 
 matplotlib.use("Agg")
+
+
+@pytest.fixture
+def acf_clouds(generated):
+    """Two years with varying observability and a missing January quarter."""
+    clouds = generated.copy()
+    clouds["eighths"] = np.resize(np.array([0, 4, 8, 0], dtype=np.uint8), len(clouds))
+    clouds.loc[(1975, 1, 1, 2), "eighths"] = 9
+    clouds["cloud"] = np.where(clouds.eighths == 9, np.nan, clouds.eighths / 8)
+    return clouds
+
+
+@pytest.mark.parametrize("year", [None, 1976])
+def test_observability_acf_values_and_selection(acf_clouds, year):
+    stattools = pytest.importorskip("statsmodels.tsa.stattools")
+    figure = observability_acf(0.5, acf_clouds, acf_clouds, 1, year, nlags=6)
+    assert isinstance(figure, Figure)
+    axis = figure.axes[0]
+    assert [line.get_label() for line in axis.lines] == ["Historical", "Simulated"]
+    for line, selected_year in zip(axis.lines, [None, year]):
+        clouds = acf_clouds
+        if selected_year is not None:
+            clouds = clouds.loc[
+                (clouds.index.get_level_values("year") == selected_year)
+                & (clouds.index.get_level_values("month") == 1)
+            ]
+        expected = np.where(
+            (clouds.index.get_level_values("month") == 1) & clouds.cloud.notna(),
+            (clouds.cloud < 0.5).astype(float),
+            np.nan,
+        )
+        np.testing.assert_allclose(line.get_ydata(), stattools.acf(expected, nlags=6, missing="conservative"))
+        np.testing.assert_array_equal(line.get_xdata(), np.arange(7))
+    assert "January" in axis.get_title()
+    assert axis.get_xlabel() == "Lag (quarter nights)"
+
+
+@pytest.mark.parametrize("missing", ["conservative", "drop"])
+def test_observability_acf_masks_and_forwards_options(monkeypatch, acf_clouds, missing):
+    stattools = pytest.importorskip("statsmodels.tsa.stattools")
+    calls = []
+
+    def capture_acf(values, **kwargs):
+        calls.append((values.copy(), kwargs))
+        return np.array([1.0, 0.25]), np.zeros((2, 2)), np.zeros(1), np.zeros(1)
+
+    monkeypatch.setattr(stattools, "acf", capture_acf)
+    # Missing rows, as well as sentinel values, must preserve lag spacing.
+    clouds = acf_clouds.drop(index=[(1975, 1, 2, quarter) for quarter in range(1, 5)])
+    observability_acf(0.5, clouds, clouds, 1, missing=missing, nlags=1, alpha=0.05, qstat=True, fft=False)
+    for values, options in calls:
+        assert len(values) == len(acf_clouds)
+        np.testing.assert_allclose(values[:8], [1, np.nan, 0, 1, np.nan, np.nan, np.nan, np.nan])
+        assert np.isnan(values[31 * 4 : 365 * 4]).all()
+        # Cloud cover exactly at the threshold is not observable.
+        assert values[9] == 0
+        assert options == {"missing": missing, "nlags": 1, "alpha": 0.05, "qstat": True, "fft": False}
+
+
+def test_observability_acf_optional_dependency(monkeypatch, acf_clouds):
+    original_import = builtins.__import__
+
+    def without_statsmodels(name, *args, **kwargs):
+        if name.startswith("statsmodels"):
+            raise ModuleNotFoundError("No module named 'statsmodels'")
+        return original_import(name, *args, **kwargs)
+
+    monkeypatch.setattr(builtins, "__import__", without_statsmodels)
+    # Other diagnostics remain usable without the optional dependency.
+    assert isinstance(
+        plot_cloud_histogram(count_cloud_states(acf_clouds), count_cloud_states(acf_clouds)), Figure
+    )
+    with pytest.raises(ImportError, match="observability_acf requires statsmodels"):
+        observability_acf(0.5, acf_clouds, acf_clouds, 1)
+
+
+@pytest.mark.parametrize(
+    "options",
+    [
+        {"month": 0},
+        {"month": 13},
+        {"month": True},
+        {"month": 1.5},
+        {"year": 1974},
+        {"year": True},
+        {"year": 1975.5},
+        {"cloud_threshold": np.nan},
+        {"cloud_threshold": np.inf},
+        {"cloud_threshold": "0.5"},
+    ],
+)
+def test_observability_acf_invalid_arguments(acf_clouds, options):
+    pytest.importorskip("statsmodels.tsa.stattools")
+    kwargs = {"cloud_threshold": 0.5, "month": 1, **options}
+    with pytest.raises(ValueError):
+        observability_acf(historical_clouds=acf_clouds, simulated_clouds=acf_clouds, **kwargs)
+
+
+@pytest.mark.parametrize("argument", ["historical_clouds", "simulated_clouds"])
+@pytest.mark.parametrize("invalid", ["column_order", "index_names", "row_order", "fractional"])
+def test_observability_acf_invalid_schema(acf_clouds, argument, invalid):
+    pytest.importorskip("statsmodels.tsa.stattools")
+    broken = acf_clouds.copy()
+    if invalid == "fractional":
+        broken.iloc[0, 1] = 0.75
+    else:
+        broken = invalid_schema(broken, invalid)
+    frames = {"historical_clouds": acf_clouds, "simulated_clouds": acf_clouds, argument: broken}
+    with pytest.raises(ValueError):
+        observability_acf(0.5, month=1, **frames)
+
+
+@pytest.mark.parametrize("case", ["empty", "missing", "single", "constant", "year", "month", "zero_lags"])
+def test_observability_acf_insufficient_data(acf_clouds, case):
+    pytest.importorskip("statsmodels.tsa.stattools")
+    clouds = acf_clouds.copy()
+    kwargs = {}
+    if case == "empty":
+        clouds = clouds.iloc[:0]
+    elif case == "missing":
+        clouds["eighths"] = np.uint8(9)
+        clouds["cloud"] = np.nan
+    elif case == "single":
+        clouds = clouds.iloc[:1]
+    elif case == "constant":
+        clouds["eighths"] = np.uint8(0)
+        clouds["cloud"] = 0.0
+    elif case == "year":
+        kwargs["year"] = 1980
+    elif case == "month":
+        clouds = clouds.loc[clouds.index.get_level_values("month") != 1]
+    else:
+        kwargs["nlags"] = 0
+    before = plt.get_fignums()
+    with pytest.raises(ValueError, match="too little"):
+        observability_acf(0.5, clouds, clouds, 1, **kwargs)
+    assert plt.get_fignums() == before
 
 
 @pytest.fixture(autouse=True)
