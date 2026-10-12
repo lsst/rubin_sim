@@ -273,6 +273,8 @@ notebook.
 1. An array of historgrams (one for each month) overplotting the normalized distribution of simulated clouds over the distribution of historical clouds for each month.
 2. An array of transition count matrix count 2-d histograms, with one pair for each month, showing the transition count matrices for each month for historical and simulated data. The API should permit limiting simulated data to specific years, or combining that month for all years. The CLI should just show the all-year 2-d histograms.
 
+Optionally (if and only if `statsmodels` is installed in the environment), the python API will support overplotting plotting of the autocorrelation function of the observability (1 if cloud level < a cloud threshhold provided an an argument, 0 otherwise) of either all simulated years of a given month, or one simulated month/year, over the autocorrelation function of that month in the historical record. Support for the CLI is not required for the ACF plots, and it should only be supported in the API if `statsmodels` is otherwise available (e.g. can be imported in the current jupyter kernel).
+
 ### 3.2 Design Evaluation Criteria
 Omit this subsection when only one design is plausible for this issue — that is expected for most T1/T2 issues (process §2.3, §2.4). When this subsection is omitted, the Frame and Design phases are normally performed in a single combined session (process §4, §5.2, §5.3).
 Prompts:
@@ -482,6 +484,24 @@ were the dictionary option of `simulated_distribution` maps years to clouds dist
 Accepts two instances of `TransitionMatrix` (one historical, one simulated) ang generates a `matplotlib` figure filling requirement R-8.2.
 It should accept additional argument in `**kwargs` and pass them to relevant `matplotlib` plotting functions.
 
+#### `rubin_sim.clouds.observability_acf`
+
+Takes a cloud threshhold, instance of `Clouds` for historical data, instance of `Clouds` for simulated data, month, (optionally) year, and a `**kwargs` with arguments to be passed to `statsmodels.tsa.stattools.acf` as arguments.
+
+If the year is provided, overplots the acf of observability (1 if cloud fraction < cloud threshhold, 0 otherwise) of the simulation for the specified month and year over the acf for that month in the historical data.
+
+`year` should default to `None`, in which case the simulated ACF of all simulated years of that specified month will be overplotted.
+
+For sequneces with multiple years (`year=None` case and historical values), do not simple drop records outside the months, but mask them by setting `observability` to NaN instead to prevent artificial transitions. The `missing` keyword (defaulting to `"conservative"`) passed to `statsmodels.tsa.stattools.acf` through `**kwargs` shall determine the treatment of NaN values.
+
+Quarters within the month but missing data shall also be set to NaN.
+
+If `statsmodels` is not importable, raise an informative error explaining that it needs to be for this function.
+
+If there is too little data to plot an ACF, a ValueError shall be raised.
+
+It shall return a `matplotlib` `Figure`.
+
 #### `rubin_sim.clouds.cloud_generation_workflow`
 
 An orchestration function that accepts paths to historical data and an
@@ -497,7 +517,9 @@ in `rubin_sim_notebooks/clouds/generate_average_clouds.ipynb`, except
 that:
 
 - there should be a limit to the number of times the while loop executes with a given len(cloud_seq), and throws an exception if that limit is exceeded.
+- instead of each month being simulated just once, each month should be simulated NUM\_MONTH\_CANDIDATES times, and the simulated month that minimizes the measured total absolute deviation between countsn of transitions for that month so far in the simulation to the historcial recorded transitions for that month (across all years) scaled to the number of simulated transitions.
 - When the loop exits (fills cloud_seq) it should test whether the requirements for the distribution of cloud state and numbers of transitions are met by it (R-3 and R-4), and throw an exception if they are not.
+
 
 The initial state of 0 is only an initial seed to get the sequence
 started: the transition into the first state should not be included in
@@ -526,7 +548,7 @@ point).
 | R-5         | Human verification by submission of batch test unit test script that then passes in specified time                                   |
 | R-6         | Human verification using the same batch script used in R-5                                                                           |
 | R-7         | Unit tests of `read_historical_clouds`, `compute_transition_matrix`, `compute_stochastic_matrix`, and `generate_average_clouds` pass. These tests must test input validation. |
-| R-8         | Unit tests of `plot_cloud_histogram` and `plot_transition_histograms` pass                                                           |
+| R-8         | Unit tests of `plot_cloud_histogram`, `plot_transition_histograms` and `observability_acf` pass                                                           |
 
 Most of these verification steps will be tested through standard unit
 tests needed in implementation anyway.  The exception is that
@@ -561,6 +583,14 @@ Prompts:
 ---
 
 ## 7. Acceptance Criteria and Evidence
+
+- [ ] All tests spesified in the "requirements verification" step pass.
+- [ ] The developer runs a sample jupyter notebook using the API, and verifies that the plots appear as expected.
+- [ ] The developer runs the CLI as a slurm job on the s3df milano cluster at SLAC using the same historical database and random number seed used in the jupyther notebook above, and verifies that it finishes in the required time.
+- [ ] The developer verifies that the database generate by the slurm job matches (same table schema and values) the database generated when the workflow was executed through the tested jupyter noteboook.
+- [ ] The developer verifies that the diagnostic plots generated by the slurm job are look correct.
+
+<!--
 Testable criteria confirming completion. Required whenever an IWD exists (T1 and above — T0 has no IWD, see process §2). Guidance (T2): at most 8 criteria (process §2.3).
 
 Each criterion must be demonstrated by an actual test result, not merely asserted. Record the evidence here or in the requirement-to-verification table in §6; do not duplicate the same criterion merely to preserve template symmetry.
@@ -571,15 +601,13 @@ Prompts:
 - API expectations
 - Performance thresholds
 - Non-functional criteria
+-->
 
 ---
 
 ## 8. Open Questions
-Gaps an agent could not resolve, raised here rather than answered by guessing or resolved only in conversation (process §3.4). Tactical questions that do not affect architecture, external requirements, or acceptance criteria may be resolved by the agent and noted in the Implementation Notes. Write `None.` if there are no outstanding blocking questions. Resolve each with a developer answer, or promote it to a Critical Design Decision (§5) if it turns out to be a genuine trade-off.
 
-**Q-1.** <question>
-- *Impact:* <what is blocked until this is answered>
-- *Answer:* <developer's answer, or "→ see §5">
+None
 
 ---
 

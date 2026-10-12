@@ -13,6 +13,7 @@ __all__ = [
     "save_clouds",
     "plot_cloud_histogram",
     "plot_transition_histograms",
+    "observability_acf",
 ]
 
 import calendar
@@ -726,4 +727,121 @@ def plot_transition_histograms(
 
     figure.supxlabel("Destination cloud state (eighths)")
     figure.supylabel("Origin cloud state (eighths)")
+    return figure
+
+
+def observability_acf(
+    cloud_threshold: float,
+    historical_clouds: Clouds,
+    simulated_clouds: Clouds,
+    month: int,
+    year: int | None = None,
+    **kwargs: Any,
+) -> Figure:
+    """Overlay historical and simulated monthly observability ACFs.
+
+    Parameters
+    ----------
+    cloud_threshold : `float`
+        A quarter is observable if its fractional cloud cover is strictly
+        below this finite threshold.
+    historical_clouds, simulated_clouds : `Clouds`
+        Historical and simulated records in chronological order.
+    month : `int`
+        Calendar month to compare (1 through 12).
+    year : `int` or `None`, optional
+        Limit the simulation to this year and month. By default, combine
+        all simulated years; historical years are always combined.
+    **kwargs
+        Passed to `statsmodels.tsa.stattools.acf`, with ``missing`` set to
+        ``"conservative"`` by default. If ``alpha`` or ``qstat`` is supplied,
+        only the returned ACF values are plotted.
+
+    Returns
+    -------
+    figure : `matplotlib.figure.Figure`
+        Historical and simulated curves versus lag in quarter nights.
+        The caller owns the figure and should close it.
+
+    Raises
+    ------
+    ImportError
+        If the optional ``statsmodels`` package cannot be imported.
+    ValueError
+        If either frame or a selection argument is invalid, or either
+        selection has insufficient varying data to plot an ACF.
+
+    Notes
+    -----
+    Missing quarters, omitted nights, and out-of-month quarters are NaN,
+    not unobservable zeros. Multi-year sequences retain calendar spacing
+    rather than concatenating the selected months. The ``missing`` option
+    determines how statsmodels treats these NaNs.
+    """
+    try:
+        from statsmodels.tsa.stattools import acf
+    except ImportError as error:
+        raise ImportError(
+            "observability_acf requires statsmodels to be importable in this environment"
+        ) from error
+
+    _validate_clouds(historical_clouds)
+    _validate_clouds(simulated_clouds)
+    if isinstance(month, bool) or not isinstance(month, (int, np.integer)) or month not in range(1, 13):
+        raise ValueError("month must be an integer from 1 through 12")
+    if year is not None and (
+        isinstance(year, bool) or not isinstance(year, (int, np.integer)) or not 1975 <= year <= 65535
+    ):
+        raise ValueError("year must be None or an integer from 1975 through 65535")
+    if (
+        isinstance(cloud_threshold, bool)
+        or not isinstance(cloud_threshold, (int, float, np.integer, np.floating))
+        or not np.isfinite(cloud_threshold)
+    ):
+        raise ValueError("cloud_threshold must be a finite number")
+
+    kwargs.setdefault("missing", "conservative")
+    curves = []
+    for label, clouds in (("Historical", historical_clouds), ("Simulated", simulated_clouds)):
+        if label == "Simulated" and year is not None:
+            clouds = clouds.loc[
+                (clouds.index.get_level_values("year") == year)
+                & (clouds.index.get_level_values("month") == month)
+            ]
+        if clouds.empty:
+            raise ValueError(f"{label} selection has too little data to plot an ACF")
+
+        selected = (clouds.index.get_level_values("month") == month) & clouds.cloud.notna()
+        observable = np.where(selected, (clouds.cloud < cloud_threshold).astype(float), np.nan)
+        fields = clouds.index.to_frame(index=False)
+        days = np.array(
+            [datetime.date(int(y), int(m), int(d)).toordinal() for y, m, d in fields.iloc[:, :3].values],
+            dtype=np.int64,
+        )
+        positions = 4 * days + fields.quarter.to_numpy(dtype=np.int64) - 1
+        # Reinsert absent rows so a missing night cannot become a lag-one pair.
+        observable = (
+            pd.Series(observable, index=positions)
+            .reindex(pd.RangeIndex(int(positions[0]), int(positions[-1]) + 1))
+            .to_numpy()
+        )
+        valid = observable[np.isfinite(observable)]
+        if len(valid) < 2 or np.unique(valid).size < 2:
+            raise ValueError(f"{label} selection has too little varying data to plot an ACF")
+
+        values = acf(observable, **kwargs)
+        if isinstance(values, tuple):
+            values = values[0]
+        if len(values) < 2 or not np.isfinite(values[1:]).any():
+            raise ValueError(f"{label} selection has too little data to plot an ACF at nonzero lags")
+        curves.append((label, values))
+
+    figure, axis = plt.subplots(layout="constrained")
+    for label, values in curves:
+        axis.plot(np.arange(len(values)), values, label=label)
+    suffix = "" if year is None else f" (simulation: {year})"
+    axis.set_title(f"{calendar.month_name[month]} observability ACF{suffix}")
+    axis.set_xlabel("Lag (quarter nights)")
+    axis.set_ylabel("Autocorrelation")
+    axis.legend()
     return figure
