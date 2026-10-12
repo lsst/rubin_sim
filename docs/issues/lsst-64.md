@@ -539,22 +539,28 @@ point).
 
 ### Requirements verification
 
+In addition to any white-box unit testing code that may be generated during implementation, there shall be a separate test file, `rubin_sim/tests/clouds/test_average_clouds.py`. `test_average_clouds.py` shall:
+
+1. For most tests, use synthetic data is input rather than historical, so that it can be run without historical data present. The exception should be one opt-in test that runs the full workflow using historical data, intended to be run in support of the test for R-5 and R-6.
+2. It shall be written for maximal comprehension by a human developer.
+3. Assertions in tests shall map directly to requirements R-1, R-2, R-3, R-4, R-7, and R-8, but need not be organized according to their organization in the requirements section of the issue working document: different requirements in the same requirements record may be spilt across test functions or classes, and test functions or classes may test requirments from different requirement records. The organization shall be driven by clarity to a human reader and brevity: the goal is to make it as easy as possible for a human developer to read the tests and be convinced that the code tests meets the requirements if it passes the tests.
+
 | Requirement | Verification                                                                                                                         |
 |:------------|:-------------------------------------------------------------------------------------------------------------------------------------|
-| R-1         | Unit test for  `rubin_sim.clouds.read_historical_clouds` passes                                                                      |
-| R-2         | Unit test for `rubin_sim.clouds.save_clouds` passes                                                                                  |
-| R-3         | End-to-end unit tests running `rubin_sim.clouds.cloud_generation_workflow` passes                                                    |
-| R-4         | End-to-end unit tests running `rubin_sim.clouds.cloud_generation_workflow` passes                                                    |
+| R-1         | Unit tests in `test_average_clouds.py` pass                                                                   |
+| R-2         | Unit tests in `test_average_clouds.py` pass                                                                   |
+| R-3         | Unit tests in `test_average_clouds.py` pass                                                                   |
+| R-4         | Unit tests in `test_average_clouds.py` pass                                                                   |
 | R-5         | Human verification by submission of batch test unit test script that then passes in specified time                                   |
 | R-6         | Human verification using the same batch script used in R-5                                                                           |
-| R-7         | Unit tests of `read_historical_clouds`, `compute_transition_matrix`, `compute_stochastic_matrix`, and `generate_average_clouds` pass. These tests must test input validation. |
-| R-8         | Unit tests of `plot_cloud_histogram`, `plot_transition_histograms` and `observability_acf` pass                                                           |
+| R-7         | Unit tests in `test_average_clouds.py` pass                                                                   |
+| R-8         | Unit tests in `test_average_clouds.py` pass                                                                   |
 
-Most of these verification steps will be tested through standard unit
-tests needed in implementation anyway.  The exception is that
-implementation also needs to create a bash script with an appropriate
+In addition to these tests, there will need to be a bash script with an appropriate
 slum header that sets up the environment and runs the
-`rubin_sim.clouds.cloud_generation_workflow` unit test.
+`rubin_sim.clouds.cloud_generation_workflow` unit test so that the verification of R-5 and R-6 can be run. This bash script should create necessary `venv` assuming `uv` is avaiable.
+
+A separate `rubin_sim/tests/clouds/test_average_clouds_design.py` test file shall contain tests that verify that the implemented code matches the design in this issue worknig document. It shall include verification of input validation, the schema of data frames specified in the IWD data dictionary, and the call signatures of functions in the IWD design.
 
 
 <!--
