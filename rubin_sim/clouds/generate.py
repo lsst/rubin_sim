@@ -34,6 +34,9 @@ from .data import (
 
 __all__ = ("generate_average_clouds", "cloud_generation_workflow", "generate_average_clouds_cli")
 
+# Number of valid sequences to compare within each month's retry budget.
+NUM_MONTH_CANDIDATES = 5
+
 # Origin states to try, in priority order, when sampling the next state from
 # a given current state (the row index). Each row starts with the state
 # itself, then falls back to the nearest states. This follows the historical
@@ -193,7 +196,10 @@ def generate_average_clouds(
 
     Months are generated one at a time and chained: the final state of one
     month is the prior state of the next, so that transitions across month
-    boundaries are counted in the month in which they end.
+    boundaries are counted in the month in which they end. Up to
+    ``NUM_MONTH_CANDIDATES`` valid sequences are compared per month, keeping
+    the one minimizing cumulative absolute transition-count deviation for
+    that calendar month across all simulated years.
 
     Parameters
     ----------
@@ -206,7 +212,8 @@ def generate_average_clouds(
     seed : `int` or `None`, optional
         Seed for a single generator retained across all attempts and months.
     max_retries : `int`, optional
-        Maximum candidate sequences attempted per month.
+        Maximum candidate sequences attempted per month, including failures.
+        If fewer than ``NUM_MONTH_CANDIDATES`` succeed, keep the best found.
     max_steps : `int`, optional
         Maximum attempts to advance at any one quarter in a candidate.
 
@@ -228,7 +235,13 @@ def generate_average_clouds(
     if set(historical_distribution.index) != set(range(1, 13)):
         raise ValueError("Generation requires historical cloud counts for all twelve months")
 
-    for name, value in (("num_years", num_years), ("max_retries", max_retries), ("max_steps", max_steps)):
+    num_candidates = NUM_MONTH_CANDIDATES
+    for name, value in (
+        ("num_years", num_years),
+        ("max_retries", max_retries),
+        ("max_steps", max_steps),
+        ("NUM_MONTH_CANDIDATES", num_candidates),
+    ):
         # bool is a subclass of int, but True/False are never intended here.
         if isinstance(value, bool) or not isinstance(value, (int, np.integer)) or value < 1:
             raise ValueError(f"{name} must be a positive integer")
@@ -253,6 +266,7 @@ def generate_average_clouds(
     dates: list[date] = []
     sequences: list[npt.NDArray[np.uint8]] = []
     prior_state: int | None = None
+    cumulative_counts = np.zeros((12, 9, 9), dtype=np.int64)
 
     # Loop one month past num_years * 12: that final pass is only used as a
     # check on whether an extra month is needed, never to generate one
@@ -268,14 +282,24 @@ def generate_average_clouds(
                 return clouds
 
         days = calendar.monthrange(year, month)[1]
+        transitions = historical_transition_matrix.loc[month].to_numpy(dtype=float)
+        distribution = historical_distribution.loc[month].to_numpy(dtype=float)
+        accepted_counts = cumulative_counts[month - 1]
+        num_transitions = days * 4 - (prior_state is None)
+        expected = transitions * (accepted_counts.sum() + num_transitions) / transitions.sum()
+        best_sequence = None
+        best_counts = np.zeros((9, 9), dtype=np.int64)
+        best_score = np.inf
+        num_valid = 0
+        last_error = None
 
         # Retry with the shared generator: each attempt draws fresh random
-        # numbers, so a failed candidate is not repeated.
+        # numbers. Every candidate starts from the same accepted predecessor.
         for attempt in range(max_retries):
             try:
                 sequence = _generate_month(
-                    historical_transition_matrix.loc[month].to_numpy(dtype=float),
-                    historical_distribution.loc[month].to_numpy(dtype=float),
+                    transitions,
+                    distribution,
                     days * 4,
                     prior_state,
                     rng,
@@ -283,17 +307,31 @@ def generate_average_clouds(
                 )
             except RuntimeError as error:
                 last_error = error
-            else:
+                continue
+
+            # Count actual origins, not the fallback rows used by the sampler.
+            states = sequence.astype(np.int64)
+            origins = states[:-1] if prior_state is None else np.r_[prior_state, states[:-1]]
+            destinations = states[1:] if prior_state is None else states
+            counts = np.bincount(origins * 9 + destinations, minlength=81).reshape(9, 9)
+            score = np.abs(accepted_counts + counts - expected).sum()
+            if score < best_score:
+                best_sequence = sequence
+                best_counts = counts
+                best_score = score
+            num_valid += 1
+            if num_valid == num_candidates:
                 break
-        else:
-            # Only reached if every attempt failed.
+
+        if best_sequence is None:
             raise RuntimeError(
                 f"Could not generate {year}-{month:02d} after {max_retries} attempts: {last_error}"
             ) from last_error
 
-        sequences.append(sequence)
+        sequences.append(best_sequence)
         dates.extend(date(year, month, day) for day in range(1, days + 1))
-        prior_state = int(sequence[-1])
+        accepted_counts += best_counts
+        prior_state = int(best_sequence[-1])
 
     return make_cloud_frame(dates, np.concatenate(sequences))
 
@@ -330,7 +368,7 @@ def cloud_generation_workflow(
     seed : `int` or `None`, optional
         Seed for the random number generator.
     max_retries : `int`, optional
-        Maximum candidate sequences attempted per month.
+        Maximum candidate sequences attempted per month, including failures.
     max_steps : `int`, optional
         Maximum attempts to advance at any one quarter in a candidate.
 
