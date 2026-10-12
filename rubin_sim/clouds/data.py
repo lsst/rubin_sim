@@ -420,7 +420,9 @@ def count_cloud_states(clouds: Clouds) -> CloudDistribution:
     )
 
 
-def compute_transition_matrix(clouds: Clouds, prior_state: int | None = None) -> TransitionMatrix:
+def compute_transition_matrix(
+    clouds: Clouds, prior_state: int | None = None, **kwargs: Any
+) -> TransitionMatrix:
     """Count adjacent valid-state transitions, grouped by destination month.
 
     Parameters
@@ -431,6 +433,8 @@ def compute_transition_matrix(clouds: Clouds, prior_state: int | None = None) ->
         Cloud state of the quarter immediately preceding the first quarter
         of ``clouds``; the caller asserts that it is adjacent. `None` or 9
         omits the transition into the first quarter.
+    **kwargs : `Any`
+        Accepted by the documented interface; currently unused.
 
     Returns
     -------
