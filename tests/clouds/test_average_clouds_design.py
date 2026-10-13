@@ -31,7 +31,8 @@ the pieces can be combined freely (for example, in a notebook):
 * Call signatures: the documented ways to call each public function are
   accepted, including optional keyword arguments and defaults.
 
-Algorithmic behavior (candidate selection, bounded retries, statistical
+The design's configurable ``MAX_TOLERANCE`` cap is checked here. Other
+algorithmic behavior (candidate selection, bounded retries, statistical
 tolerances, and so on) is tested in ``test_clouds.py`` and
 ``test_average_clouds.py``, and is not repeated here.
 """
@@ -50,6 +51,7 @@ from matplotlib.figure import Figure
 
 import rubin_sim.clouds as clouds_api
 import rubin_sim.clouds.data as cloud_data
+import rubin_sim.clouds.generate as cloud_generate
 
 matplotlib.use("Agg")
 
@@ -582,6 +584,55 @@ def test_generation_limits_validation(statistics, no_sampling, parameter, value)
     """Require the year count and retry and step limits to be positive."""
     with pytest.raises(ValueError):
         clouds_api.generate_average_clouds(*statistics, **{"num_years": 1, parameter: value})
+
+
+def test_max_transition_tolerance_defaults_to_one():
+    """Default the design's absolute transition-count deviation cap to one."""
+    assert cloud_generate.MAX_TOLERANCE == 1
+
+
+@pytest.mark.parametrize("prior_state", [None, 0], ids=["first-month", "later-month"])
+@pytest.mark.parametrize(
+    "num_transitions, expected_clear, max_tolerance, accepted",
+    [
+        (5, 4, 1, True),  # One-count deviation is exactly at the default cap.
+        (6, 4, 1, False),  # R-4 allows two, but the default cap does not.
+        (6, 4, 2, True),  # Raising the cap permits the same sequence.
+        (7, 4, 3, False),  # Raising the cap cannot relax R-4's sqrt(4) limit.
+        (5, 4, 0.5, False),  # The cap may also tighten the limit below one.
+        (1, 0.5, 0.5, True),  # Subunit expectations obey the cap too.
+        (1, 0.5, 0.25, False),
+    ],
+)
+def test_month_transition_deviation_is_capped(
+    monkeypatch, prior_state, num_transitions, expected_clear, max_tolerance, accepted
+):
+    """Apply MAX_TOLERANCE to each pair without relaxing the R-4 limit.
+
+    Only clear quarters are allowed, so sampling deterministically produces
+    an all-clear sequence with exactly ``num_transitions`` clear-to-clear
+    pairs. Other historical transitions are spread across eight unused pairs,
+    each expected less than once and within the configured cap. Thus only the
+    clear-to-clear pair can fail its tolerance check.
+    The state distribution is exact, isolating the transition-count check.
+    """
+    monkeypatch.setattr(cloud_generate, "MAX_TOLERANCE", max_tolerance)
+    transitions = np.zeros((9, 9))
+    transitions[0, 0] = expected_clear
+    transitions[8, 1:] = (num_transitions - expected_clear) / 8
+    distribution = np.zeros(9)
+    distribution[0] = 1
+    num_quarters = num_transitions + (prior_state is None)
+    rng = np.random.default_rng(6563)
+
+    if accepted:
+        sequence = cloud_generate._generate_month(
+            transitions, distribution, num_quarters, prior_state, rng, 2
+        )
+        np.testing.assert_array_equal(sequence, np.zeros(num_quarters, dtype=np.uint8))
+    else:
+        with pytest.raises(RuntimeError, match="Transition counts do not meet the monthly tolerance"):
+            cloud_generate._generate_month(transitions, distribution, num_quarters, prior_state, rng, 2)
 
 
 @pytest.mark.parametrize(
