@@ -1,8 +1,39 @@
-"""LSST-64 section 6 design contracts, independent of test_clouds fixtures.
+"""Tests of the data schemas and public interfaces of ``rubin_sim.clouds``.
 
-Algorithm requirements (including candidate selection and bounded retries) are
-already exercised in test_clouds.py; these tests target the data dictionary
-and public interfaces instead of repeating those algorithm tests.
+The cloud-generation code passes data between functions as ``pandas``
+objects with strictly defined layouts. This module verifies that these
+layouts and the public function signatures behave as documented, so that
+the pieces can be combined freely (for example, in a notebook):
+
+* Data layouts (the type aliases in ``rubin_sim.clouds.data``):
+
+  - ``Clouds``: one row per quarter-night, indexed by ``year`` (uint16),
+    ``month`` (uint8), ``sday`` (uint8, day of month at the start of the
+    night) and ``quarter`` (uint8, 1 through 4), sorted and unique, with
+    columns ``eighths`` (uint8; 9 marks missing data), ``cloud``
+    (float64; ``eighths / 8``, NaN if missing) and ``c_date`` (uintp;
+    strictly increasing seconds past 1975-01-01 TAI).
+  - ``TransitionMatrix``: counts (uintp) of transitions between cloud
+    states, indexed by ``month`` and ``origin`` (both uint8, all 12 months
+    by origins 0 through 8, in order), with columns named ``destination``
+    labelled 0 through 8.
+  - ``StochasticMatrix``: the same layout as ``TransitionMatrix`` but with
+    float64 probabilities, each row summing to 1.
+  - ``CloudDistribution``: counts of quarters per cloud state (columns 0
+    through 8), indexed by integer month.
+
+* Input validation: every public function that accepts one of these
+  layouts must raise ``ValueError`` (without side effects such as writing
+  files, drawing figures, or starting generation) if its input departs from
+  the layout: wrong index names or order, wrong dtypes, out-of-range
+  values, duplicated or unordered rows, missing months, and so on.
+
+* Call signatures: the documented ways to call each public function are
+  accepted, including optional keyword arguments and defaults.
+
+Algorithmic behavior (candidate selection, bounded retries, statistical
+tolerances, and so on) is tested in ``test_clouds.py`` and
+``test_average_clouds.py``, and is not repeated here.
 """
 
 import inspect
@@ -25,6 +56,7 @@ matplotlib.use("Agg")
 
 @pytest.fixture(autouse=True)
 def offline_figures():
+    """Disable IERS downloads and close figures after each test."""
     with iers.conf.set_temp("auto_download", False):
         yield
     plt.close("all")
@@ -32,7 +64,11 @@ def offline_figures():
 
 @pytest.fixture
 def clouds():
-    """One varying night per month, built without production schema helpers."""
+    """Build a valid ``Clouds`` frame with one varying night per month.
+
+    Construct the frame directly, without package helpers, so the tests do
+    not depend on the code they check.
+    """
     index = pd.MultiIndex.from_arrays(
         [
             np.full(48, 1975, dtype=np.uint16),
@@ -55,7 +91,12 @@ def clouds():
 
 @pytest.fixture
 def statistics():
-    """All-clear evidence provides feasible, inexpensive generation input."""
+    """Build minimal valid transition counts and a distribution for generation.
+
+    Every month contains only clear (0) quarters, with plenty of evidence, so
+    that generation is feasible and inexpensive. Return the
+    ``TransitionMatrix`` and ``CloudDistribution``.
+    """
     months = pd.Index(np.arange(1, 13, dtype=np.uint8), name="month")
     states = np.arange(9, dtype=np.uint8)
     matrix = pd.DataFrame(
@@ -70,6 +111,7 @@ def statistics():
 
 
 def assert_clouds_schema(frame):
+    """Check that a frame conforms to the ``Clouds`` layout and ordering."""
     assert isinstance(frame, pd.DataFrame)
     assert isinstance(frame.index, pd.MultiIndex)
     assert frame.index.names == ["year", "month", "sday", "quarter"]
@@ -88,6 +130,10 @@ def assert_clouds_schema(frame):
 
 
 def assert_matrix_schema(frame, dtype):
+    """Check that a frame conforms to the ``TransitionMatrix`` layout.
+
+    With a float64 ``dtype``, assert conformance to ``StochasticMatrix``.
+    """
     assert isinstance(frame, pd.DataFrame)
     assert isinstance(frame.index, pd.MultiIndex)
     assert frame.index.names == ["month", "origin"]
@@ -103,6 +149,7 @@ def assert_matrix_schema(frame, dtype):
 
 
 def assert_distribution_schema(frame):
+    """Check that a frame conforms to the ``CloudDistribution`` layout."""
     assert isinstance(frame, pd.DataFrame)
     assert frame.index.name == "month"
     assert pd.api.types.is_integer_dtype(frame.index.dtype)
@@ -116,11 +163,19 @@ def assert_distribution_schema(frame):
 
 @pytest.mark.parametrize("name", ["Clouds", "TransitionMatrix", "StochasticMatrix", "CloudDistribution"])
 def test_data_dictionary_type_aliases(name):
+    """Expose each data layout as a public ``pandas.DataFrame`` type alias."""
     assert getattr(clouds_api, name) is pd.DataFrame
     assert get_type_hints(cloud_data)[name] is TypeAlias
 
 
 def test_produced_data_dictionary_schemas(tmp_path, statistics):
+    """Return documented layouts from each function that produces cloud data.
+
+    Checks the output of reading historical records, generating simulated
+    clouds, counting states, and computing transition and stochastic matrices.
+    The historical records include a missing (-1) quarter, which must be
+    recorded as 9; generated data must have no missing quarters.
+    """
     records = pd.DataFrame(
         {"sday": 1, "eday": 2, "month": range(1, 13), "year": 1975, "q1": 0, "q2": 2, "q3": 8, "q4": -1}
     )
@@ -142,6 +197,13 @@ def test_produced_data_dictionary_schemas(tmp_path, statistics):
 
 @pytest.mark.parametrize("case", ["header", "month", "missing", "date", "early_year", "negative", "state"])
 def test_historical_input_validation(tmp_path, case):
+    """Reject malformed historical records with ``ValueError``.
+
+    Cases: a required column is missing from the header; a month is absent
+    from the data; a month has only missing data; a day of month out of
+    range; a year before 1975; a cloud level below the missing-data
+    sentinel (-1); and a cloud level above the missing-data sentinel (9).
+    """
     records = pd.DataFrame(
         {"sday": 1, "eday": 2, "month": range(1, 13), "year": 1975, "q1": 0, "q2": 0, "q3": 0, "q4": 0}
     )
@@ -166,11 +228,13 @@ def test_historical_input_validation(tmp_path, case):
 
 
 def test_historical_input_requires_a_path():
+    """Reject attempts to read historical records without an input path."""
     with pytest.raises(ValueError):
         clouds_api.read_historical_clouds([])
 
 
 def test_valid_clouds_are_accepted_by_consumers(clouds, tmp_path):
+    """Accept a valid ``Clouds`` frame in each public consumer."""
     assert_distribution_schema(clouds_api.count_cloud_states(clouds))
     assert_matrix_schema(clouds_api.compute_transition_matrix(clouds), np.uintp)
     path = tmp_path / "valid.db"
@@ -181,6 +245,12 @@ def test_valid_clouds_are_accepted_by_consumers(clouds, tmp_path):
 
 
 def test_missing_clouds_are_valid_except_for_simulation_output(clouds, tmp_path):
+    """Allow missing quarters in ``Clouds`` but reject them in database output.
+
+    Counting and transitions accept frames with a missing quarter, but saving
+    them as a scheduler database (which cannot represent missing clouds) fails
+    without creating the file.
+    """
     clouds.iloc[1, 0] = 9
     clouds.iloc[1, 1] = np.nan
     assert_distribution_schema(clouds_api.count_cloud_states(clouds))
@@ -192,11 +262,13 @@ def test_missing_clouds_are_valid_except_for_simulation_output(clouds, tmp_path)
 
 
 def test_transition_diagnostics_accept_both_valid_matrices(statistics):
+    """Plot valid transition matrices and pass extra keywords to matplotlib."""
     matrix, _ = statistics
     assert isinstance(clouds_api.plot_transition_histograms(matrix, matrix, cmap="magma"), Figure)
 
 
 def test_stochastic_matrix_requires_transition_evidence(statistics):
+    """Require transition evidence in every month of a stochastic matrix."""
     matrix, _ = statistics
     matrix.loc[12] = 0
     with pytest.raises(ValueError):
@@ -277,6 +349,11 @@ DISTRIBUTION_INVALID = COMMON_INVALID + (
 
 
 def corrupt(frame, case):
+    """Return a copy of ``frame`` with one layout invariant violated.
+
+    The violation is named by ``case``, one of the names in the ``*_INVALID``
+    tuples above.
+    """
     frame = frame.copy(deep=True)
     if case == "not_dataframe":
         return frame.to_numpy()
@@ -367,6 +444,8 @@ def corrupt(frame, case):
 
 @pytest.fixture
 def no_sampling(monkeypatch):
+    """Fail if generation starts, proving invalid input is rejected first."""
+
     def fail(*args, **kwargs):
         pytest.fail("Invalid inputs reached the sampler")
 
@@ -376,6 +455,13 @@ def no_sampling(monkeypatch):
 @pytest.mark.parametrize("case", CLOUD_INVALID)
 @pytest.mark.parametrize("consumer", ["counts", "transitions", "save", "acf_historical", "acf_simulated"])
 def test_clouds_consumers_reject_invalid_schema(clouds, tmp_path, case, consumer):
+    """Reject invalid ``Clouds`` frames in every consumer without side effects.
+
+    The frame is passed as the historical or simulated argument of the ACF
+    plot, or to counting, transitions, or saving. In each case ``ValueError``
+    must be raised, no database file may be written, and no figure may be
+    left open.
+    """
     broken = corrupt(clouds, case)
     path = tmp_path / "invalid.db"
     figures = plt.get_fignums()
@@ -398,6 +484,12 @@ def test_clouds_consumers_reject_invalid_schema(clouds, tmp_path, case, consumer
 @pytest.mark.parametrize("case", MATRIX_INVALID)
 @pytest.mark.parametrize("consumer", ["stochastic", "generate", "plot_historical", "plot_simulated"])
 def test_transition_consumers_reject_invalid_schema(statistics, no_sampling, case, consumer):
+    """Reject invalid transition matrices in every public consumer.
+
+    The matrix is passed to the stochastic matrix computation, generation, and
+    (as either the historical or simulated argument) the transition plot.
+    Generation must not begin, and no figure may be left open.
+    """
     matrix, distribution = statistics
     broken = corrupt(matrix, case)
     figures = plt.get_fignums()
@@ -416,6 +508,13 @@ def test_transition_consumers_reject_invalid_schema(statistics, no_sampling, cas
 @pytest.mark.parametrize("case", DISTRIBUTION_INVALID)
 @pytest.mark.parametrize("consumer", ["generate", "plot_historical", "plot_simulated", "plot_dictionary"])
 def test_distribution_consumers_reject_invalid_schema(statistics, no_sampling, case, consumer):
+    """Reject invalid cloud distributions in every public consumer.
+
+    The distribution is passed to generation and the histogram plot (as the
+    historical argument, as the simulated argument, or inside a dictionary
+    of simulated distributions by year). Generation must not begin, and no
+    figure may be left open.
+    """
     matrix, distribution = statistics
     broken = corrupt(distribution, case)
     figures = plt.get_fignums()
@@ -432,8 +531,14 @@ def test_distribution_consumers_reject_invalid_schema(statistics, no_sampling, c
 
 @pytest.mark.parametrize("dtype", [np.int32, np.int64, np.uint16, np.uintp])
 def test_distribution_does_not_require_unsigned_or_sorted_rows(statistics, dtype):
-    # The dictionary specifies integer counts and months, but no exact dtype
-    # or row ordering. Diagnostics can also consume only selected months.
+    """Accept distribution counts in any integer dtype and row order.
+
+    The layout requires integer counts and months, but no particular dtype or
+    row order, and diagnostics may use a subset of months, so these must not
+    be rejected.
+    """
+    # The layout requires integer counts and months, but no exact dtype or row
+    # order. Diagnostic plots can also use selected months only.
     matrix, distribution = statistics
     distribution = distribution.astype(dtype)
     distribution.index = distribution.index.astype(dtype)
@@ -445,6 +550,7 @@ def test_distribution_does_not_require_unsigned_or_sorted_rows(statistics, dtype
 
 @pytest.mark.parametrize("case", ["missing_month", "empty_counts", "empty_transitions"])
 def test_generation_requires_evidence_for_every_month(statistics, no_sampling, case):
+    """Require state-distribution and transition evidence for every month."""
     matrix, distribution = statistics
     if case == "missing_month":
         distribution = distribution.drop(12)
@@ -458,11 +564,13 @@ def test_generation_requires_evidence_for_every_month(statistics, no_sampling, c
 
 @pytest.mark.parametrize("prior_state", [-1, 10, 0.5, True, "0", np.nan])
 def test_transition_prior_state_validation(clouds, prior_state):
+    """Accept only ``None`` or an integer state from 0 through 9."""
     with pytest.raises(ValueError):
         clouds_api.compute_transition_matrix(clouds, prior_state)
 
 
 def test_transition_extra_keywords_preserve_counts(clouds):
+    """Accept and ignore extra keyword arguments to transition computation."""
     expected = clouds_api.compute_transition_matrix(clouds, prior_state=8)
     actual = clouds_api.compute_transition_matrix(clouds, prior_state=8, design_option=True)
     pd.testing.assert_frame_equal(actual, expected)
@@ -471,6 +579,7 @@ def test_transition_extra_keywords_preserve_counts(clouds):
 @pytest.mark.parametrize("parameter", ["num_years", "max_retries", "max_steps"])
 @pytest.mark.parametrize("value", [0, -1, 1.5, True, None])
 def test_generation_limits_validation(statistics, no_sampling, parameter, value):
+    """Require the year count and retry and step limits to be positive."""
     with pytest.raises(ValueError):
         clouds_api.generate_average_clouds(*statistics, **{"num_years": 1, parameter: value})
 
@@ -493,6 +602,12 @@ def test_generation_limits_validation(statistics, no_sampling, parameter, value)
     ],
 )
 def test_acf_selection_validation(clouds, options):
+    """Validate the ACF plot's month, year, and threshold arguments.
+
+    Months must be integers from 1 through 12, years integers that fit in
+    the ``Clouds`` year index (and no earlier than 1975), and the threshold a
+    finite real number. Booleans and strings are rejected.
+    """
     pytest.importorskip("statsmodels.tsa.stattools")
     with pytest.raises(ValueError):
         clouds_api.observability_acf(
@@ -551,14 +666,22 @@ CALLS = [
     "name,args,kwargs", CALLS, ids=[f"{name}-{i}" for i, (name, _, _) in enumerate(CALLS)]
 )
 def test_documented_call_shapes(name, args, kwargs):
+    """Bind every documented public function call to its signature.
+
+    Only binding is checked (``FRAME`` stands in for real frames), so that
+    additional optional parameters are allowed, but required ones and the
+    names and positions of the documented parameters are fixed.
+    """
     inspect.signature(getattr(clouds_api, name)).bind(*args, **kwargs)
 
 
 def test_acf_year_defaults_to_all_years():
+    """Use all simulated years as the default ACF selection (``year=None``)."""
     assert inspect.signature(clouds_api.observability_acf).parameters["year"].default is None
 
 
 def test_cloud_figure_origin_defaults_to_none():
+    """Default the full-sequence figure to no data source information."""
     assert inspect.signature(clouds_api.make_cloud_figure).parameters["origin"].default is None
 
 
@@ -580,6 +703,13 @@ def test_cloud_figure_origin_defaults_to_none():
     ],
 )
 def test_cloud_figure_input_validation(clouds, case):
+    """Reject full-sequence figure inputs that violate the required layout.
+
+    Cases: a whole frame instead of a series; an empty series; wrong index
+    names, duplicate, unordered, or wrongly typed index entries; an invalid
+    date or quarter; a non-integer or text cloud state; and a source series
+    that has a different index or is not text.
+    """
     eighths = clouds.eighths.copy()
     origin = None
     if case == "frame":
