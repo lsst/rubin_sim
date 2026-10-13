@@ -1231,13 +1231,14 @@ def test_generate_month_positive_subunit_transition_tolerance(num_quarters, acce
 
 
 @pytest.mark.parametrize("num_quarters, accepted", [(7, True), (8, False)])
-def test_generate_month_square_root_transition_tolerance(num_quarters, accepted):
+def test_generate_month_square_root_transition_tolerance(monkeypatch, num_quarters, accepted):
     """Apply the square-root tolerance to transitions expected at least once.
 
     For an all-clear month, the expected number of 0 -> 0 transitions is four.
     Six transitions are exactly at the limit (``4 + 2``) and are accepted;
-    seven are rejected.
+    seven are rejected even when MAX_TOLERANCE allows a deviation of three.
     """
+    monkeypatch.setattr(cloud_generate, "MAX_TOLERANCE", 3)
     # An expected count of 4 allows 6 transitions; 7 exceeds sqrt(4).
     transitions = np.eye(9) * ((num_quarters - 5) / 8)
     transitions[0, 0] = 4
