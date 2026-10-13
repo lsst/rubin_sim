@@ -1,7 +1,40 @@
-"""Black-box verification of LSST-64 external requirements.
+"""Black-box tests of the user-visible behavior of the average-cloud generator.
 
-Ordinary tests use synthetic CTIO records. Set LSST64_HISTORICAL_DATA to
-enable the separate 20-year historical-data acceptance test for R-5/R-6.
+The generator reads historical CTIO cloud records (one row per night, four
+quarter-night cloud levels in eighths), simulates a database in which every
+month is statistically typical of that calendar month, writes it in the
+SQLite format read by ``rubin_scheduler``, and produces diagnostic plots.
+
+These tests describe the behavior the generator must have:
+
+* Reading: historical records are read from a space- or tab-separated text
+  file; missing data (sentinels 9 and -1) are preserved but excluded from
+  statistics; a month with no usable data in any year is an error.
+* Output database: the SQLite ``Cloud`` table has the schema and time
+  convention expected by ``rubin_scheduler.site_models.CloudData``, covers
+  at least the requested number of years, and repeats correctly when the
+  scheduler wraps past its end.
+* Monthly distribution: in every simulated month, the number of quarters in
+  each cloud state matches the historical distribution for that calendar
+  month to within one quarter.
+* Monthly transitions: in every simulated month, the number of transitions
+  between each pair of states matches the historical frequency, scaled to
+  the length of the month, to within the square root of the expected count
+  (or one, if the expected count is below one). Transitions involving
+  missing quarters are excluded, and a transition belongs to the month of
+  its destination quarter.
+* Intermediate products: the historical records, transition counts,
+  stochastic matrix, and simulated records are available to callers as
+  ``pandas`` objects with documented indexes.
+* Diagnostics: histogram, transition-matrix, full-sequence, and (optionally,
+  if ``statsmodels`` is installed) autocorrelation figures.
+
+Ordinary tests use small synthetic CTIO records, so no historical data are
+needed. Set the environment variable ``LSST64_HISTORICAL_DATA`` to the path
+of the real historical record file to enable one additional, opt-in test
+that runs the full 20-year workflow on real data and checks that it
+finishes within one hour (the intended performance target when run as a
+batch job).
 """
 
 import builtins
@@ -43,6 +76,11 @@ from rubin_sim.clouds import (
 
 @pytest.fixture(autouse=True)
 def offline_plots():
+    """Use a non-interactive backend, avoid network access, and close figures.
+
+    Astropy would otherwise try to download IERS tables while computing
+    twilight times; the bundled tables are accurate enough for these tests.
+    """
     plt.switch_backend("Agg")
     with iers.conf.set_temp("auto_download", False):
         try:
@@ -53,6 +91,13 @@ def offline_plots():
 
 @pytest.fixture(scope="module")
 def records():
+    """Create two years of synthetic CTIO nightly records in raw file format.
+
+    Quarters 1, 2 and 4 are constant (0, 8, 8) in every night. Quarter 3 is
+    8 in odd-numbered months and 0 in even-numbered months, so each month has
+    a distinct, easily calculated distribution of states and transitions.
+    Only the states 0 and 8 occur.
+    """
     nights = pd.date_range("1975-01-01", "1976-12-31")
     return pd.DataFrame(
         {
@@ -70,6 +115,7 @@ def records():
 
 @pytest.fixture(scope="module")
 def historical_path(tmp_path_factory, records):
+    """Write the synthetic records to a space-separated file with a header."""
     path = tmp_path_factory.mktemp("requirements-clouds") / "synthetic.txt"
     records.to_csv(path, sep=" ", index=False)
     return path
@@ -77,13 +123,35 @@ def historical_path(tmp_path_factory, records):
 
 @pytest.fixture(scope="module")
 def simulated(tmp_path_factory, historical_path):
+    """Run the full workflow for two years; return records and database."""
     directory = tmp_path_factory.mktemp("requirements-output")
     clouds = cloud_generation_workflow(historical_path, directory / "clouds.db", 2, seed=6563)
     return clouds, directory / "clouds.db"
 
 
 def reference_counts(records):
-    """Count from raw CTIO rows, independently of the cloud API (R-3/R-4)."""
+    """Count states and transitions directly from raw CTIO rows.
+
+    This is a deliberately simple reference implementation, independent of the
+    cloud API, used to check what the API computes.
+
+    Parameters
+    ----------
+    records : `pandas.DataFrame`
+        Raw rows with columns ``sday``, ``month``, ``year``, ``q1`` ... ``q4``.
+
+    Returns
+    -------
+    states : `numpy.ndarray`, (12, 9)
+        Number of quarters in each cloud state (eighths 0..8) for each month.
+        Quarters with missing data (9 or -1) are not counted.
+    transitions : `numpy.ndarray`, (12, 9, 9)
+        Number of transitions from each origin state to each destination
+        state, indexed by the month of the destination quarter. A pair counts
+        only if both quarters are valid and adjacent in time (including from
+        quarter 4 of one night to quarter 1 of the next night); a missing
+        quarter or a missing night breaks the pair.
+    """
     states = np.zeros((12, 9), dtype=int)
     transitions = np.zeros((12, 9, 9), dtype=int)
     previous_position, previous_state = None, None
@@ -100,7 +168,31 @@ def reference_counts(records):
 
 
 def assert_typical_months(clouds, historical_states, historical_transitions):
-    """Verify every month, not merely the combined simulated distribution."""
+    """Check that every simulated month is typical of its calendar month.
+
+    For each simulated (year, month), compare against the historical counts
+    for that calendar month, scaled to the length of the simulated month:
+
+    * the number of quarters in each cloud state must be within one of the
+      scaled historical count;
+    * the number of transitions for each (origin, destination) pair must be
+      within the square root of the scaled historical count, or within one
+      if that count is below one.
+
+    The transition into the first quarter of a month is counted in that
+    month, using the last quarter of the previous month as origin. The very
+    first quarter of the simulation has no predecessor, so the first month
+    has one fewer transition than quarters.
+
+    Parameters
+    ----------
+    clouds : `pandas.DataFrame`
+        Simulated records, indexed by year, month, sday, and quarter.
+    historical_states : `numpy.ndarray`, (12, 9)
+        Historical quarter counts per month and state.
+    historical_transitions : `numpy.ndarray`, (12, 9, 9)
+        Historical transition counts per month, origin, and destination.
+    """
     previous = None
     for (year, month), group in clouds.groupby(level=["year", "month"], sort=True):
         states = group.eighths.to_numpy(dtype=int)
@@ -109,7 +201,7 @@ def assert_typical_months(clouds, historical_states, historical_transitions):
         assert set(states) <= set(range(9))
         expected = historical_states[month - 1] * quarters / historical_states[month - 1].sum()
         actual = np.bincount(states, minlength=9)
-        assert np.all(np.abs(actual - expected) <= 1 + 1e-12), (year, month, "R-3")
+        assert np.all(np.abs(actual - expected) <= 1 + 1e-12), (year, month, "state counts")
 
         pairs = list(zip(states[:-1], states[1:]))
         if previous is not None:
@@ -120,12 +212,23 @@ def assert_typical_months(clouds, historical_states, historical_transitions):
         historical = historical_transitions[month - 1]
         expected_pairs = historical * len(pairs) / historical.sum()
         tolerance = np.where(expected_pairs < 1, 1, np.sqrt(expected_pairs))
-        assert np.all(np.abs(actual_pairs - expected_pairs) <= tolerance + 1e-12), (year, month, "R-4")
+        assert np.all(np.abs(actual_pairs - expected_pairs) <= tolerance + 1e-12), (
+            year,
+            month,
+            "transition counts",
+        )
         previous = int(states[-1])
 
 
 def test_read_ctio_quarters_and_exclude_missing_data(tmp_path, records):
-    """R-1/R-3/R-4/R-7: preserve values and exclude missing pairs."""
+    """Preserve quarter values and exclude missing data from counts.
+
+    Quarters 3 and 4 of the first night are set to the missing-data sentinels
+    9 and -1, and the third night is dropped from the file entirely. Both
+    sentinels must read as eighths=9 with NaN fractional cloud cover, and
+    neither the missing quarters nor the missing night may contribute to the
+    state counts or transition counts, nor bridge a transition across the gap.
+    """
     records = records.copy()
     records.loc[0, ["q1", "q2", "q3", "q4"]] = [0, 2, 9, -1]
     records = records.drop(index=2)  # Missing night must not create a transition.
@@ -142,7 +245,12 @@ def test_read_ctio_quarters_and_exclude_missing_data(tmp_path, records):
 
 @pytest.mark.parametrize("all_missing", [False, True])
 def test_no_usable_data_for_a_month_is_an_error(tmp_path, records, all_missing):
-    """R-1: a month absent in every year cannot be simulated."""
+    """Require the CLI to fail when a month has no usable data in any year.
+
+    February is either missing from the file entirely, or present with every
+    quarter marked missing. In both cases there is nothing from which to build
+    February statistics, so the CLI must fail with an explanatory message.
+    """
     records = records.copy()
     if all_missing:
         records.loc[records.month == 2, ["q1", "q2", "q3", "q4"]] = 9
@@ -156,7 +264,13 @@ def test_no_usable_data_for_a_month_is_an_error(tmp_path, records, all_missing):
 
 
 def test_each_generated_month_is_typical(records, simulated):
-    """R-3/R-4: check each year, leap February, and month boundaries."""
+    """Check that every simulated month is typical of its calendar month.
+
+    The synthetic data contain only states 0 and 8 and a distinct mix in each
+    month, so each month has different targets. The statistics are checked
+    month by month across the simulation, including the leap-year February
+    (29 days) and the transitions across month boundaries.
+    """
     clouds, _ = simulated
     assert set(clouds.eighths) == {0, 8}
     assert len(clouds.loc[(1976, 2)]) == 29 * 4
@@ -164,7 +278,20 @@ def test_each_generated_month_is_typical(records, simulated):
 
 
 def test_database_schema_values_and_scheduler_repetition(simulated):
-    """R-2: inspect the actual SQLite output and use the scheduler reader."""
+    """Write SQLite output with required schema, values, and duration.
+
+    Checks that:
+
+    * the ``Cloud`` table has the columns ``cloudId`` (integer primary key),
+      ``c_date`` (integer), ``cloud`` (double), and ``source`` (text);
+    * ``cloudId`` increments from 1, ``c_date`` and ``cloud`` match the
+      simulated records, and ``source`` is always "simulation";
+    * the simulation spans at least ``num_years * 31557600`` seconds, which
+      requires an extra month (the first of the following year);
+    * ``rubin_scheduler``'s ``CloudData`` reads the database and returns the
+      stored cloud values at the stored times, and the same values one database
+      duration later, so that the scheduler's wrapping logic does not fail.
+    """
     clouds, database = simulated
     with closing(sqlite3.connect(database)) as connection:
         schema = connection.execute("PRAGMA table_info(Cloud)").fetchall()
@@ -191,7 +318,15 @@ def test_database_schema_values_and_scheduler_repetition(simulated):
 
 
 def test_quarter_times_use_tai_epoch_and_cerro_pachon_twilight(simulated):
-    """R-2: infer twilight endpoints from evenly spaced quarter centers."""
+    """Check quarter-center times relative to the 1975-01-01 TAI epoch.
+
+    A night is the period between evening and morning 12-degree twilight at
+    Cerro Pachon, and is divided into four equal quarters. For several nights
+    (including a leap day), the test checks that the four quarter centers are
+    evenly spaced, that the Sun is 12 degrees below the horizon at the start
+    of the first quarter and end of the last (inferred from the centers), and
+    that the middle of the night falls on the UTC date after the local evening.
+    """
     clouds, _ = simulated
     location = EarthLocation.from_geodetic(-70.74941 * u.deg, -30.244628 * u.deg, 2650 * u.m)
     epoch = Time("1975-01-01T00:00:00", scale="tai")
@@ -206,7 +341,16 @@ def test_quarter_times_use_tai_epoch_and_cerro_pachon_twilight(simulated):
 
 
 def test_intermediate_products_are_accessible(historical_path, records, simulated):
-    """R-7: callers can inspect records, counts, probabilities, and output."""
+    """Expose intermediate products as pandas objects with documented indexes.
+
+    Historical and simulated records are ``DataFrame``s indexed by year, month,
+    sday, and quarter, with ``eighths``, ``cloud``, and ``c_date`` columns. The
+    transition counts and stochastic matrix are ``DataFrame``s indexed by
+    month and origin state; the counts match an independent count of the raw
+    records, and each row of the stochastic matrix sums to one. In the
+    synthetic January, a clear (0) quarter is always followed by a cloudy (8)
+    one, so the 0 -> 8 probability is 1.
+    """
     historical = read_historical_clouds(historical_path)
     transitions = compute_transition_matrix(historical)
     probabilities = compute_stochastic_matrix(transitions)
@@ -226,7 +370,18 @@ def test_intermediate_products_are_accessible(historical_path, records, simulate
 
 @pytest.mark.parametrize("origin", range(9))
 def test_missing_transition_origins_follow_required_fallback_order(historical_path, origin):
-    """R-4: exhaust every priority in the specified fallback table."""
+    """Use the highest-priority available state for each empty origin.
+
+    If a month has no recorded transitions out of some origin state, that
+    row of the stochastic matrix is copied from the first state with data in
+    that origin's priority list. The priorities favor nearby states with a
+    bias that depends on the origin; they are defined in the test below.
+
+    Progressively remove data from the most-preferred remaining substitute
+    and check that the next available state is used. Give each substitute
+    state ``s`` a recognizable transition pattern (``s`` -> ``s`` three
+    times, ``s`` -> ``s+1`` once) to identify the copied row.
+    """
     priorities = [
         [1, 2, 3, 4, 5, 6, 7, 8],
         [2, 0, 3, 4, 5, 6, 7, 8],
@@ -252,7 +407,18 @@ def test_missing_transition_origins_follow_required_fallback_order(historical_pa
 
 
 def test_diagnostic_plots_show_monthly_counts_and_normalized_distributions(historical_path, simulated):
-    """R-8: verify plot data for all years and a selected year."""
+    """Check monthly counts and normalized distributions in diagnostic plots.
+
+    Cloud-state histograms: one panel per month. The historical distribution
+    is a normalized histogram, and the simulated distribution is overplotted
+    as normalized line(s): either one line for all simulated years combined,
+    or one per simulated year if a dictionary of year to distribution is
+    supplied.
+
+    Transition histograms: two panels per month (historical and simulated),
+    each showing the transition count matrix as an image, for all simulated
+    years combined or for a single selected year.
+    """
     historical = read_historical_clouds(historical_path)
     clouds, _ = simulated
     historical_counts = count_cloud_states(historical)
@@ -289,7 +455,11 @@ def test_diagnostic_plots_show_monthly_counts_and_normalized_distributions(histo
 
 @pytest.mark.parametrize("dataset", ["historical", "simulated"])
 def test_full_cloud_sequence_accepts_either_dataset(historical_path, simulated, dataset):
-    """R-8.3: all years and all quarter values are displayed."""
+    """Plot either historical or simulated records in the full-sequence figure.
+
+    Each quarter is drawn as one cell, colored with the cividis color map by
+    cloud level (clear is dark, cloudy is yellow), with one row per year.
+    """
     clouds = read_historical_clouds(historical_path) if dataset == "historical" else simulated[0]
     figure = make_cloud_figure(clouds.eighths)
     assert isinstance(figure, Figure)
@@ -300,7 +470,16 @@ def test_full_cloud_sequence_accepts_either_dataset(historical_path, simulated, 
 
 
 def test_full_cloud_sequence_missing_quarters_and_leap_dates():
-    """R-8.3/design: absent quarters, NaNs, and both sentinels stay visible."""
+    """Render missing quarters and leap days in their expected positions.
+
+    The input has an absent quarter, a NaN, and both missing-data sentinels (9
+    and -1) around February 28-29 of a leap year. With no ``origin`` given,
+    valid quarters use the cividis colors and every kind of missing quarter is
+    red, not silently skipped. The leap day occupies its own column (day 60).
+
+    If ``origin`` is given, color represents the data source and transparency
+    the cloud level, and missing data are white.
+    """
     index = pd.MultiIndex.from_arrays(
         [
             np.array([1976] * 5, dtype=np.uint16),
@@ -313,7 +492,7 @@ def test_full_cloud_sequence_missing_quarters_and_leap_dates():
     eighths = pd.Series([0, 8, np.nan, 9, -1], index=index)
     figure = make_cloud_figure(eighths)
     colors = figure.axes[0].collections[0].get_facecolors()
-    start = 58 * 4  # February 28 in a leap year, zero-based quarter position.
+    start = 58 * 4  # Use February 28's zero-based quarter position in a leap year.
     np.testing.assert_allclose(colors[start : start + 2], plt.get_cmap("cividis")([0.0, 1.0]))
     np.testing.assert_allclose(colors[start + 2 : start + 6], np.tile(to_rgba("red"), (4, 1)))
     assert len(colors) == 366 * 4
@@ -330,6 +509,13 @@ def test_full_cloud_sequence_missing_quarters_and_leap_dates():
 
 
 def test_cloud_source_palette_matches_prototype(historical_path):
+    """Color each source consistently and include it in the legend.
+
+    Map ``ctio``, ``blanco``, ``satellite``, and ``stochastic_matrix`` to
+    palette indices 0, 9, 4, and 3 in ``glasbey_category10``. Set opacity to
+    ``1 - eighths / 16`` so it decreases with cloud cover, and include
+    "Missing" in the legend.
+    """
     clouds = read_historical_clouds(historical_path).iloc[:4]
     origins = pd.Series(["ctio", "blanco", "satellite", "stochastic_matrix"], index=clouds.index)
     figure = make_cloud_figure(clouds.eighths, origins)
@@ -346,7 +532,13 @@ def test_cloud_source_palette_matches_prototype(historical_path):
 
 
 def test_cli_writes_database_and_all_diagnostics(tmp_path, historical_path, records):
-    """R-1/R-2/R-3/R-4/R-8: exercise the user-facing command end to end."""
+    """Exercise the CLI end to end with every diagnostic output option.
+
+    Runs the CLI with every output option, then checks that all outputs exist
+    and the images are readable. The sequence figure and the database must be
+    identical to those from calling the Python workflow with the same seed,
+    and the simulated months must be typical of the historical data.
+    """
     database, histogram, pairs = [tmp_path / name for name in ["cli.db", "clouds.png", "pairs.png"]]
     sequence = tmp_path / "sequence.png"
     result = CliRunner().invoke(
@@ -383,7 +575,16 @@ def test_cli_writes_database_and_all_diagnostics(tmp_path, historical_path, reco
 
 @pytest.mark.parametrize("year", [None, 1976])
 def test_optional_observability_acf(simulated, year):
-    """R-8: compare ACF curves with independently prepared inputs."""
+    """Plot historical and simulated ACFs when ``statsmodels`` is installed.
+
+    Observability is 1 where the cloud fraction is below the threshold and 0
+    otherwise. Quarters outside the selected month, or with missing data,
+    become NaN (not dropped) so that no artificial transitions are created
+    across gaps. The plotted curves are compared with ``statsmodels``' ACF
+    of independently prepared observability series, for all simulated years
+    (``year=None``) or one selected year. Skipped if ``statsmodels`` is not
+    installed.
+    """
     stattools = pytest.importorskip("statsmodels.tsa.stattools")
     clouds, _ = simulated
     clouds = clouds.copy()
@@ -399,7 +600,14 @@ def test_optional_observability_acf(simulated, year):
 
 
 def test_acf_dependency_is_optional_and_insufficient_data_is_rejected(monkeypatch, simulated):
-    """R-8: missing statsmodels must not disable the other diagnostics."""
+    """Keep other diagnostic plots available without ``statsmodels``.
+
+    Simulates a missing ``statsmodels`` and verifies that the other
+    diagnostic plots still work, and that the ACF function raises an
+    ``ImportError`` naming the package. When the package is present, also
+    checks that a ``ValueError`` is raised if there is too little data
+    to compute an ACF.
+    """
     clouds, _ = simulated
     original_import = builtins.__import__
 
@@ -422,10 +630,17 @@ def test_acf_dependency_is_optional_and_insufficient_data_is_rejected(monkeypatc
 
 @pytest.mark.skipif(not os.environ.get("LSST64_HISTORICAL_DATA"), reason="Opt in with LSST64_HISTORICAL_DATA")
 def test_historical_data_workflow(tmp_path, record_property):
-    """R-5/R-6: 20 years and all diagnostics with the specified CTIO input."""
+    """Run the opt-in 20-year workflow against real historical data.
+
+    Intended to be run as a batch job (see ``LSST64_HISTORICAL_DATA``) on the
+    historical record file with 17,414 nights. Verifies that generating 20
+    years and all diagnostic plots takes under an hour, that every month is
+    typical of its calendar month, that the simulation covers at least 20
+    years, and that the output is readable by ``CloudData``.
+    """
     path = Path(os.environ["LSST64_HISTORICAL_DATA"])
     records = pd.read_csv(path, sep=r"\s+")
-    assert len(records) == 17414, "R-5 requires the specified 17,414-night historical input"
+    assert len(records) == 17414, "This test requires the standard 17,414-night historical input"
     database, histogram, pairs = [tmp_path / name for name in ["average.db", "clouds.png", "pairs.png"]]
     sequence = tmp_path / "sequence.png"
     start = perf_counter()
@@ -434,7 +649,7 @@ def test_historical_data_workflow(tmp_path, record_property):
     )
     elapsed = perf_counter() - start
     record_property("workflow_seconds", elapsed)
-    assert elapsed < 3600, f"R-5: generation and diagnostics took {elapsed:.1f} seconds"
+    assert elapsed < 3600, f"Generation and diagnostics took {elapsed:.1f} seconds, over the one hour limit"
     assert_typical_months(clouds, *reference_counts(records))
     assert int(clouds.c_date.iloc[-1]) - int(clouds.c_date.iloc[0]) >= 20 * 31557600
     assert all(output.stat().st_size > 0 for output in [database, histogram, pairs, sequence])

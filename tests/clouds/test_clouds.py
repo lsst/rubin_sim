@@ -1,4 +1,33 @@
-"""Verify LSST-64 cloud records, monthly statistics, and scheduler output."""
+"""White-box tests for cloud reading, statistics, generation, and output.
+
+The ``rubin_sim.clouds`` package builds a ``rubin_scheduler`` cloud database
+in which every simulated month is typical of that calendar month in the
+historical CTIO record. Cloud levels are integers in eighths (0 through 8),
+recorded for four quarters of each night; 9 (or -1 in the raw files) marks
+missing data. The tests here cover, in order:
+
+* The ACF (autocorrelation) diagnostic of the observability series.
+* Reading historical records, and the validation of every data layout
+  (``Clouds``, ``TransitionMatrix``, ``StochasticMatrix`` and
+  ``CloudDistribution``) by every function that consumes it.
+* Counting states and transitions, and converting transition counts to
+  a stochastic matrix, including fallbacks for states with no data.
+* Generation of simulated months: candidate selection, the shared random
+  number generator and retry budget, and the tolerances on the numbers of
+  quarters in each state (within one) and on transitions (within the square
+  root of the expected number, or one if the expectation is under one).
+* The simulated quarter times, the SQLite output, and its use by the
+  scheduler's ``CloudData``.
+* Diagnostic figures, the workflow function, the command line interface,
+  and an opt-in test on real data.
+
+Most tests use a synthetic historical year that is entirely clear (0/8),
+since that makes generation trivially feasible and quick, and let the tests
+modify its statistics for the specific situation under test. The tests in
+``test_average_clouds.py`` instead check the observable behavior of the
+whole package, and those in ``test_average_clouds_design.py`` check data
+layouts and call signatures.
+"""
 
 import builtins
 import calendar
@@ -45,7 +74,7 @@ matplotlib.use("Agg")
 
 @pytest.fixture
 def acf_clouds(generated):
-    """Two years with varying observability and a missing January quarter."""
+    """Create two years of varying observability and one missing quarter."""
     clouds = generated.copy()
     clouds["eighths"] = np.resize(np.array([0, 4, 8, 0], dtype=np.uint8), len(clouds))
     clouds.loc[(1975, 1, 1, 2), "eighths"] = 9
@@ -55,6 +84,15 @@ def acf_clouds(generated):
 
 @pytest.mark.parametrize("year", [None, 1976])
 def test_observability_acf_values_and_selection(acf_clouds, year):
+    """Compare ACF curves for selected months and years.
+
+    Observability is 1 where cloud fraction is below the threshold and 0
+    otherwise. Missing quarters and quarters outside the selected month remain
+    NaN rather than being dropped, preserving lag spacing. With ``year=None``,
+    the simulated curve uses the selected month from all years; with a year,
+    it uses only that month and year. Compare both curves with
+    ``statsmodels``' ACF and check the figure labels.
+    """
     stattools = pytest.importorskip("statsmodels.tsa.stattools")
     figure = observability_acf(0.5, acf_clouds, acf_clouds, 1, year, nlags=6)
     assert isinstance(figure, Figure)
@@ -80,6 +118,14 @@ def test_observability_acf_values_and_selection(acf_clouds, year):
 
 @pytest.mark.parametrize("missing", ["conservative", "drop"])
 def test_observability_acf_masks_and_forwards_options(monkeypatch, acf_clouds, missing):
+    """Preserve quarter gaps and forward ACF options unchanged.
+
+    Replace ``statsmodels.tsa.stattools.acf`` with a stub that records its
+    arguments. Verify that its input contains every quarter (including NaNs for
+    absent rows), is NaN outside the selected month and at missing quarters,
+    treats a cloud fraction exactly at the threshold as not observable, and
+    receives ``missing`` and the other keyword arguments unchanged.
+    """
     stattools = pytest.importorskip("statsmodels.tsa.stattools")
     calls = []
 
@@ -101,6 +147,11 @@ def test_observability_acf_masks_and_forwards_options(monkeypatch, acf_clouds, m
 
 
 def test_observability_acf_optional_dependency(monkeypatch, acf_clouds):
+    """Report the missing optional dependency for ACF plotting.
+
+    Simulate failed imports of ``statsmodels`` and verify that other diagnostic
+    plots remain usable.
+    """
     original_import = builtins.__import__
 
     def without_statsmodels(name, *args, **kwargs):
@@ -133,6 +184,7 @@ def test_observability_acf_optional_dependency(monkeypatch, acf_clouds):
     ],
 )
 def test_observability_acf_invalid_arguments(acf_clouds, options):
+    """Reject invalid month, year, and cloud-threshold arguments."""
     pytest.importorskip("statsmodels.tsa.stattools")
     kwargs = {"cloud_threshold": 0.5, "month": 1, **options}
     with pytest.raises(ValueError):
@@ -142,6 +194,7 @@ def test_observability_acf_invalid_arguments(acf_clouds, options):
 @pytest.mark.parametrize("argument", ["historical_clouds", "simulated_clouds"])
 @pytest.mark.parametrize("invalid", ["column_order", "index_names", "row_order", "fractional"])
 def test_observability_acf_invalid_schema(acf_clouds, argument, invalid):
+    """Reject either ``Clouds`` argument when its layout is invalid."""
     pytest.importorskip("statsmodels.tsa.stattools")
     broken = acf_clouds.copy()
     if invalid == "fractional":
@@ -155,6 +208,12 @@ def test_observability_acf_invalid_schema(acf_clouds, argument, invalid):
 
 @pytest.mark.parametrize("case", ["empty", "missing", "single", "constant", "year", "month", "zero_lags"])
 def test_observability_acf_insufficient_data(acf_clouds, case):
+    """Reject ACF inputs that do not contain enough usable data.
+
+    Raise ``ValueError`` for no records, all-missing data, one record,
+    constant observability (whose ACF is undefined), no records for the
+    requested year or month, and zero lags.
+    """
     pytest.importorskip("statsmodels.tsa.stattools")
     clouds = acf_clouds.copy()
     kwargs = {}
@@ -182,7 +241,7 @@ def test_observability_acf_insufficient_data(acf_clouds, case):
 
 @pytest.fixture(autouse=True)
 def offline_astronomy():
-    """Avoid network access and close figures even after a failed assertion."""
+    """Disable IERS downloads and close figures after test failures."""
     with iers.conf.set_temp("auto_download", False):
         yield
     plt.close("all")
@@ -190,7 +249,7 @@ def offline_astronomy():
 
 @pytest.fixture(scope="module")
 def clear_records():
-    """A complete historical year guarantees feasible all-clear generation."""
+    """Provide a complete year of records for feasible all-clear generation."""
     nights = pd.date_range("1975-01-01", "1975-12-31", freq="D")
     return pd.DataFrame(
         {
@@ -208,6 +267,7 @@ def clear_records():
 
 @pytest.fixture(scope="module")
 def historical_path(tmp_path_factory, clear_records):
+    """Write the clear records to a tab-separated file."""
     path = tmp_path_factory.mktemp("historical-clouds") / "historical.txt"
     clear_records.to_csv(path, sep="\t", index=False)
     return path
@@ -215,21 +275,29 @@ def historical_path(tmp_path_factory, clear_records):
 
 @pytest.fixture(scope="module")
 def historical(historical_path):
+    """Return the ``Clouds`` frame read from the clear-record file."""
     return read_historical_clouds(historical_path)
 
 
 @pytest.fixture(scope="module")
 def clear_statistics(historical):
+    """Return transition counts and state distribution for clear records."""
     return compute_transition_matrix(historical), count_cloud_states(historical)
 
 
 @pytest.fixture(scope="module")
 def generated(clear_statistics):
+    """Generate two simulated years from the clear-record statistics."""
     transitions, distribution = clear_statistics
     return generate_average_clouds(transitions, distribution, 2, max_retries=1)
 
 
 def assert_cloud_schema(clouds):
+    """Assert ``clouds`` follows the ``Clouds`` layout.
+
+    Checks the index, column names, dtypes, consistency of ``cloud`` with
+    ``eighths``, and increasing ``c_date``.
+    """
     assert clouds.index.names == ["year", "month", "sday", "quarter"]
     assert clouds.index.is_unique
     assert clouds.index.is_monotonic_increasing
@@ -246,7 +314,26 @@ def assert_cloud_schema(clouds):
 
 
 def assert_monthly_requirements(clouds, historical_transitions, historical_distribution):
-    """Count independently; never trust the implementation's own validation."""
+    """Check monthly state and transition counts against historical targets.
+
+    Scale historical state counts to the quarters in each simulated month,
+    and transition counts to the adjacent pairs counted for that month. The
+    first simulated month has one fewer pair than quarters because it has no
+    predecessor; later months include the pair across the month boundary.
+    State counts may differ by at most one. Transition counts may differ by
+    at most the square root of the expected count, or one when the expectation
+    is below one. Calculate these checks independently of implementation
+    validation.
+
+    Parameters
+    ----------
+    clouds : `pandas.DataFrame`
+        Simulated cloud records indexed by year, month, day, and quarter.
+    historical_transitions : `pandas.DataFrame`
+        Historical transition counts indexed by month and origin state.
+    historical_distribution : `pandas.DataFrame`
+        Historical cloud-state counts indexed by month.
+    """
     previous = None
     for (year, month), group in clouds.groupby(level=["year", "month"], sort=True):
         states = group.eighths.to_numpy(dtype=int)
@@ -270,6 +357,12 @@ def assert_monthly_requirements(clouds, historical_transitions, historical_distr
 
 
 def test_read_schema_and_missing_values(tmp_path, clear_records):
+    """Preserve cloud states while excluding missing data from counts.
+
+    Set the first night's quarters to 0, 2, 8, and 9. Check that these values
+    are preserved, the missing quarter has NaN fractional cloud, and the state
+    counts exclude it and have the ``CloudDistribution`` layout.
+    """
     historical_path = tmp_path / "mixed.txt"
     clear_records = clear_records.copy()
     clear_records.loc[0, ["q1", "q2", "q3", "q4"]] = [0, 2, 8, 9]
@@ -288,6 +381,13 @@ def test_read_schema_and_missing_values(tmp_path, clear_records):
 
 
 def test_multiple_inputs_deduplicate_whole_night(tmp_path, clear_records):
+    """Keep the first complete night from overlapping input files.
+
+    The files overlap in June with different values. Take a night whole from
+    the first file that contains it, rather than merging quarter by quarter.
+    Swapping file order therefore swaps the selected June values, while row
+    order within each file has no effect.
+    """
     first, second = tmp_path / "first.txt", tmp_path / "second.txt"
     early = clear_records.loc[clear_records.month <= 6].copy()
     late = clear_records.loc[clear_records.month >= 6].copy()
@@ -308,6 +408,12 @@ def test_multiple_inputs_deduplicate_whole_night(tmp_path, clear_records):
     "invalid", ["missing_month", "all_missing_month", "state", "negative_state", "date", "header"]
 )
 def test_invalid_historical_records(tmp_path, clear_records, invalid):
+    """Reject historical records with absent months or invalid values.
+
+    Cases include a month with no nights, a month with only missing data, a
+    cloud state above 9 or below -1, an out-of-range day, and a missing
+    column.
+    """
     clear_records = clear_records.copy()
     if invalid == "missing_month":
         clear_records = clear_records.loc[clear_records.month != 2]
@@ -328,6 +434,11 @@ def test_invalid_historical_records(tmp_path, clear_records, invalid):
 
 
 def test_supplied_ctio_negative_missing_sentinel_without_warning(tmp_path, clear_records):
+    """Normalize the CTIO ``-1`` sentinel to missing data without a warning.
+
+    The sentinel becomes eighths 9 with NaN fractional cloud. Exclude the
+    missing quarters from transitions without emitting a warning.
+    """
     records = clear_records.copy()
     records.loc[0, ["q2", "q3"]] = -1
     path = tmp_path / "negative-missing.txt"
@@ -341,12 +452,13 @@ def test_supplied_ctio_negative_missing_sentinel_without_warning(tmp_path, clear
 
 
 def test_no_historical_paths():
+    """Reject an empty list of historical input paths."""
     with pytest.raises(ValueError):
         read_historical_clouds([])
 
 
 def invalid_schema(frame, invalid):
-    """Corrupt one invariant without relying on implementation validators."""
+    """Corrupt one frame invariant without using implementation validators."""
     frame = frame.copy()
     if invalid == "not_dataframe":
         return frame.to_numpy()
@@ -495,6 +607,14 @@ def invalid_schema(frame, invalid):
     ],
 )
 def test_clouds_schema_invalid_for_all_consumers(historical, tmp_path, consumer, invalid):
+    """Reject invalid ``Clouds`` frames in counting, transitions, and saving.
+
+    Exercise each violation of the ``Clouds`` layout: wrong or reordered
+    columns or index levels, wrong dtypes, out-of-range or invalid dates,
+    inconsistent ``cloud`` and ``eighths``, and non-increasing times. Each
+    operation must raise ``ValueError``; saving must not create a database.
+    The ACF plot's ``Clouds`` validation is tested separately.
+    """
     clouds = invalid_schema(historical.iloc[:8], invalid)
     database = tmp_path / "invalid.db"
     with pytest.raises(ValueError):
@@ -540,6 +660,12 @@ def test_clouds_schema_invalid_for_all_consumers(historical, tmp_path, consumer,
     ],
 )
 def test_transition_schema_invalid_for_all_consumers(clear_statistics, monkeypatch, consumer, invalid):
+    """Reject every invalid ``TransitionMatrix`` in each supported consumer.
+
+    Check the stochastic-matrix calculation, generation, and both inputs to
+    the transition plot. Generation must fail before sampling, and validation
+    must not leave a figure open.
+    """
     matrix, distribution = clear_statistics
     invalid_matrix = invalid_schema(matrix, invalid)
     figures = plt.get_fignums()
@@ -584,6 +710,12 @@ def test_transition_schema_invalid_for_all_consumers(clear_statistics, monkeypat
     ],
 )
 def test_distribution_schema_invalid_for_all_consumers(clear_statistics, monkeypatch, consumer, invalid):
+    """Reject every invalid ``CloudDistribution`` in each supported consumer.
+
+    Check generation and the historical, simulated, and per-year histogram
+    inputs. Generation must fail before sampling, and validation must not
+    leave a figure open.
+    """
     matrix, distribution = clear_statistics
     invalid_distribution = invalid_schema(distribution, invalid)
     figures = plt.get_fignums()
@@ -603,6 +735,7 @@ def test_distribution_schema_invalid_for_all_consumers(clear_statistics, monkeyp
 
 
 def test_generation_rejects_incomplete_distribution_before_sampling(clear_statistics, monkeypatch):
+    """Reject generation input without a distribution for every month."""
     matrix, distribution = clear_statistics
     monkeypatch.setattr(
         "rubin_sim.clouds.generate._generate_month", lambda *args: pytest.fail("Sampled incomplete months")
@@ -613,6 +746,7 @@ def test_generation_rejects_incomplete_distribution_before_sampling(clear_statis
 
 @pytest.mark.parametrize("dtype", [np.int32, np.int64, np.uint16, np.uintp])
 def test_distribution_accepts_integer_dtypes(clear_statistics, dtype):
+    """Accept integer distribution dtypes in generation and plots."""
     matrix, distribution = clear_statistics
     distribution = distribution.astype(dtype)
     distribution.index = distribution.index.astype(dtype)
@@ -623,6 +757,15 @@ def test_distribution_accepts_integer_dtypes(clear_statistics, dtype):
 
 
 def test_transition_adjacency_destination_month_and_missing_quarters():
+    """Count transitions only between adjacent, valid quarter pairs.
+
+    Records span a month boundary, include a missing quarter (9), omit a
+    quarter within a night, and omit a night. Count pairs only for consecutive
+    valid quarters, including quarter 4 to quarter 1 across nights and months.
+    Assign each transition to the destination quarter's month, and never
+    bridge a gap. ``prior_state`` supplies the origin before the first quarter;
+    ``9`` or ``None`` excludes that initial transition.
+    """
     indices = [
         (1975, 1, 31, 3),
         (1975, 1, 31, 4),
@@ -659,6 +802,12 @@ def test_transition_adjacency_destination_month_and_missing_quarters():
 
 
 def test_historical_counts_pool_years_without_bridging_gaps():
+    """Pool monthly counts across years without bridging temporal gaps.
+
+    Two Januaries a year apart are not adjacent, so there is no transition
+    from the end of one to the start of the next. Transition fractions are
+    those of the pooled counts, not an average of fractions of each year.
+    """
     clouds = make_cloud_frame([date(1975, 1, 1), date(1976, 1, 1)], [0, 0, 0, 0, 0, 8, 9, 9])
     counts = count_cloud_states(clouds)
     assert counts.loc[1, 0] == 5
@@ -675,6 +824,7 @@ def test_historical_counts_pool_years_without_bridging_gaps():
     np.testing.assert_allclose(stochastic.loc[(1, 0), [0, 8]], [0.75, 0.25])
 
 
+# Entry i lists fallback origin states for state i, in priority order.
 FALLBACKS = [
     [1, 2, 3, 4, 5, 6, 7, 8],
     [2, 0, 3, 4, 5, 6, 7, 8],
@@ -690,6 +840,14 @@ FALLBACKS = [
 
 @pytest.mark.parametrize("origin", range(9))
 def test_stochastic_fallback_order(origin, clear_statistics):
+    """Use the highest-priority available source for each empty transition row.
+
+    If a month has no recorded transitions out of a state, copy its
+    probabilities from the highest-priority state in the ``FALLBACKS`` list
+    that has transitions. Remove preferred sources one at a time and check
+    each is used in turn. Also check that the result is a stochastic matrix
+    with the same layout as its input.
+    """
     template, _ = clear_statistics
     # Progressively remove preferred rows to test the entire priority list.
     for position, preferred in enumerate(FALLBACKS[origin]):
@@ -711,6 +869,7 @@ def test_stochastic_fallback_order(origin, clear_statistics):
 
 
 def test_stochastic_empty_month_rejected(clear_statistics):
+    """Reject probability calculation for a month with no transitions."""
     matrix, _ = clear_statistics
     matrix = matrix.copy()
     matrix.loc[2] = 0
@@ -719,6 +878,13 @@ def test_stochastic_empty_month_rejected(clear_statistics):
 
 
 def test_generate_clear_months_first_transition_leap_and_duration(generated, clear_statistics):
+    """Check generated counts, leap days, duration, and the first transition.
+
+    Check the output layout, monthly statistical tolerances, February 1976's
+    leap day, and coverage of at least two years. The first simulated quarter
+    has no predecessor, so the first month has one fewer transition than
+    quarters. Every later month has as many transitions as quarters.
+    """
     matrix, distribution = clear_statistics
     assert_cloud_schema(generated)
     assert_monthly_requirements(generated, matrix, distribution)
@@ -731,6 +897,12 @@ def test_generate_clear_months_first_transition_leap_and_duration(generated, cle
 
 
 def test_generate_nontrivial_monthly_requirements_and_seed(clear_statistics):
+    """Check monthly tolerances and seeded reproducibility with mixed states.
+
+    Each month has a mix of clear and cloudy quarters with different weights.
+    The same seed must reproduce the same output; a different seed should
+    still meet the tolerances but give a different sequence.
+    """
     transitions, distribution = (frame.copy() * 0 for frame in clear_statistics)
     for month in range(1, 13):
         weights = np.array([1, 3]) if month % 2 else np.array([2, 2])
@@ -748,6 +920,20 @@ def test_generate_nontrivial_monthly_requirements_and_seed(clear_statistics):
 
 
 def test_generation_candidates_match_accepted_same_month_totals(clear_statistics, monkeypatch):
+    """Select candidates using accepted transition counts for the same month.
+
+    Each month is simulated ``NUM_MONTH_CANDIDATES`` times, and the candidate
+    whose accumulated transition counts for that calendar month (over the
+    months accepted so far) deviate least from the historical frequencies,
+    scaled to the number of transitions so far, is kept. Rejected candidates
+    must not affect those counts, and counts from other months (such as
+    January's, before February) must not be mixed in.
+
+    The sampler is replaced by a stub giving all-clear, all-cloudy, and
+    all-cloudy candidates, so the expected choices can be worked out by hand:
+    in year one, all-clear is closest; in year two, all-cloudy compensates for
+    the all-clear January already accepted.
+    """
     transitions, distribution = (frame.copy() * 0 for frame in clear_statistics)
     for month in range(1, 13):
         transitions.loc[(month, 0), 0] = 51
@@ -786,6 +972,14 @@ def test_generation_candidates_match_accepted_same_month_totals(clear_statistics
 
 
 def test_generation_candidates_count_real_boundaries_and_retain_first_tie(clear_statistics, monkeypatch):
+    """Include real month-boundary transitions when scoring candidates.
+
+    For January and February, stub two candidates: a sequence of clear then
+    cloudy quarters and its reverse. They tie in January, so the first must be
+    kept. In February, the first scores worse only when the real incoming
+    transition from January's last quarter (8 -> 0) is counted. Therefore,
+    the second must be selected, and its transitions must match history.
+    """
     transitions, distribution = (frame.copy() for frame in clear_statistics)
     for month, half in [(1, 62), (2, 56)]:
         transitions.loc[month] = 0
@@ -832,6 +1026,15 @@ def test_generation_candidates_count_real_boundaries_and_retain_first_tie(clear_
 def test_generation_candidate_pools_share_rng_and_total_retry_budget(
     clear_statistics, monkeypatch, outcomes, max_retries
 ):
+    """Share a random generator and retry budget across all generated months.
+
+    Replace the sampler with a stub that fails or succeeds on scripted
+    attempts. Verify that ``max_retries`` limits total attempts and exhaustion
+    raises an error naming the month and last failure. Every call must receive
+    the same generator so retries draw from one uninterrupted seeded stream.
+    The first month's candidates have no prior state; later candidates receive
+    the last state of the previously accepted month.
+    """
     transitions, distribution = clear_statistics
     monkeypatch.setattr(cloud_generate, "NUM_MONTH_CANDIDATES", 3)
     calls = []
@@ -867,6 +1070,7 @@ def test_generation_candidate_pools_share_rng_and_total_retry_budget(
 
 @pytest.mark.parametrize("value", [0, -1, 1.5, True])
 def test_generation_invalid_candidate_count_before_sampling(clear_statistics, monkeypatch, value):
+    """Reject an invalid candidate count before starting generation."""
     monkeypatch.setattr(cloud_generate, "NUM_MONTH_CANDIDATES", value)
     monkeypatch.setattr(cloud_generate, "_generate_month", lambda *args: pytest.fail("Sampled invalid limit"))
     with pytest.raises(ValueError, match="NUM_MONTH_CANDIDATES.*positive integer"):
@@ -874,6 +1078,7 @@ def test_generation_invalid_candidate_count_before_sampling(clear_statistics, mo
 
 
 def test_generation_candidate_count_is_snapshotted(clear_statistics, monkeypatch):
+    """Snapshot ``NUM_MONTH_CANDIDATES`` before generation starts."""
     monkeypatch.setattr(cloud_generate, "NUM_MONTH_CANDIDATES", 3)
     calls = []
 
@@ -888,6 +1093,12 @@ def test_generation_candidate_count_is_snapshotted(clear_statistics, monkeypatch
 
 
 def test_generation_one_candidate_preserves_first_success_output_and_rng(clear_statistics, monkeypatch):
+    """Preserve output and random draws when sampling one candidate per month.
+
+    Re-create the expected sequence with the real sampler and same seed,
+    repeating each month until it succeeds. This also checks that candidate
+    selection consumes no additional random numbers.
+    """
     transitions, distribution = (frame.copy() * 0 for frame in clear_statistics)
     for month in range(1, 13):
         distribution.loc[month, [0, 8]] = [1, 3]
@@ -898,7 +1109,7 @@ def test_generation_one_candidate_preserves_first_success_output_and_rng(clear_s
     rng = np.random.default_rng(6563)
     expected = []
     prior_state = None
-    # Reproduce the pre-selection first-success loop with the real sampler.
+    # Model first-success sampling with the real sampler and random stream.
     for (year, month), group in clouds.groupby(level=["year", "month"], sort=True):
         for attempt in range(10000):
             try:
@@ -923,6 +1134,7 @@ def test_generation_one_candidate_preserves_first_success_output_and_rng(clear_s
 @pytest.mark.parametrize("parameter", ["num_years", "max_retries", "max_steps"])
 @pytest.mark.parametrize("value", [0, -1, 1.5, True])
 def test_generation_invalid_limits(clear_statistics, parameter, value):
+    """Reject nonpositive or noninteger generation limits."""
     transitions, distribution = clear_statistics
     kwargs = {"num_years": 1, parameter: value}
     with pytest.raises(ValueError):
@@ -930,15 +1142,24 @@ def test_generation_invalid_limits(clear_statistics, parameter, value):
 
 
 def test_generation_impossible_counts_fail_with_bounded_retries(clear_statistics):
+    """Stop with a bounded error when monthly statistics are infeasible."""
     transitions, distribution = (frame.copy() for frame in clear_statistics)
     distribution.loc[:, :] = 0
     distribution.loc[:, 8] = 100
-    # All observed transitions are 0->0, while all output states must be 8.
+    # Observed transitions are 0 -> 0, while output states must all be 8.
     with pytest.raises(RuntimeError):
         generate_average_clouds(transitions, distribution, 1, max_retries=2, max_steps=2)
 
 
 def test_generation_required_rare_state_with_one_count_crossings(clear_statistics):
+    """Generate rare required states using transitions within the tolerance.
+
+    In January, about 1.5 cloudy (8) quarters are expected, while transitions
+    into and out of that state are each expected much less than once. The
+    one-quarter distribution tolerance still requires cloudy quarters to be
+    present; the one-count transition tolerance allows the crossing needed to
+    reach them.
+    """
     transitions, distribution = (frame.copy() * 0 for frame in clear_statistics)
     for month in range(1, 13):
         distribution.loc[month, [0, 8]] = [12252, 148]
@@ -946,8 +1167,8 @@ def test_generation_required_rare_state_with_one_count_crossings(clear_statistic
         transitions.loc[(month, 0), 8] = 100
         transitions.loc[(month, 8), 0] = 100
         transitions.loc[(month, 8), 8] = 725
-    # January requires state 8. The monthly tolerance allows one crossing even
-    # though the historical expected crossing count is only .123.
+    # January requires state 8, although the expected crossing count is 0.123.
+    # The one-count tolerance allows the single crossing needed to reach it.
     expected_eight = 124 * 148 / 12400
     expected_crossing = 123 * 100 / 100000
     assert expected_eight - 1 > 0
@@ -962,6 +1183,12 @@ def test_generation_required_rare_state_with_one_count_crossings(clear_statistic
     [(2, None, True), (3, None, True), (4, None, False), (2, 8, True), (3, 8, False)],
 )
 def test_generate_month_zero_expected_transition_tolerance(num_quarters, prior_state, accepted):
+    """Allow at most one transition whose expected monthly count is zero.
+
+    Only some origin states have historical transitions, so fallback sampling
+    can create a 0 -> 8 or 8 -> 0 pair with zero expected count. One such pair
+    is within tolerance; a second of the same pair must be rejected.
+    """
     # Only unused origins have historical evidence. Fallback sampling can
     # produce one zero-expectation crossing, but not two of the same pair.
     transitions = np.zeros((9, 9))
@@ -980,6 +1207,12 @@ def test_generate_month_zero_expected_transition_tolerance(num_quarters, prior_s
 
 @pytest.mark.parametrize("num_quarters, accepted", [(2, True), (3, False)])
 def test_generate_month_positive_subunit_transition_tolerance(num_quarters, accepted):
+    """Apply the one-count tolerance when expected transitions are below one.
+
+    The expected number of 0 -> 0 transitions is 0 < E < 1, but an all-clear
+    month has ``num_quarters - 1`` such transitions. Accept the month only if
+    that count is within one of E, so two quarters pass and three do not.
+    """
     transitions = np.zeros((9, 9))
     transitions[0, 0] = 0.1
     transitions[1:, 0] = 1
@@ -999,7 +1232,13 @@ def test_generate_month_positive_subunit_transition_tolerance(num_quarters, acce
 
 @pytest.mark.parametrize("num_quarters, accepted", [(7, True), (8, False)])
 def test_generate_month_square_root_transition_tolerance(num_quarters, accepted):
-    # E(0->0)=4: six transitions are exactly at sqrt(E), seven exceed it.
+    """Apply the square-root tolerance to transitions expected at least once.
+
+    For an all-clear month, the expected number of 0 -> 0 transitions is four.
+    Six transitions are exactly at the limit (``4 + 2``) and are accepted;
+    seven are rejected.
+    """
+    # An expected count of 4 allows 6 transitions; 7 exceeds sqrt(4).
     transitions = np.eye(9) * ((num_quarters - 5) / 8)
     transitions[0, 0] = 4
     distribution = np.zeros(9)
@@ -1014,6 +1253,15 @@ def test_generate_month_square_root_transition_tolerance(num_quarters, accepted)
 
 
 def test_quarter_center_astronomy_and_tai_epoch(generated):
+    """Check that quarter centers partition each night in TAI.
+
+    ``c_date`` is in seconds past 1975-01-01 TAI. A night runs from evening to
+    morning 12-degree twilight at Cerro Pachon. The night boundaries are
+    inferred from the first and last centers and the solar altitude there must
+    be -12 degrees. The night must last between 6 and 14 hours, and its middle
+    falls on the UTC date after the local evening. Includes solstices and a
+    leap day.
+    """
     location = EarthLocation.from_geodetic(-70.74941 * u.deg, -30.244628 * u.deg, 2650 * u.m)
     epoch = Time("1975-01-01T00:00:00", scale="tai")
     for night in [date(1975, 1, 1), date(1975, 6, 21), date(1975, 12, 21), date(1976, 2, 29)]:
@@ -1035,6 +1283,15 @@ def test_quarter_center_astronomy_and_tai_epoch(generated):
 
 
 def test_save_sql_schema_values_and_clouddata_wrap(tmp_path, generated):
+    """Write scheduler-compatible SQLite data that ``CloudData`` can read.
+
+    The SQLite ``Cloud`` table has columns ``cloudId`` (integer primary key),
+    ``c_date`` (integer), ``cloud`` (double), and ``source`` (text). IDs start
+    at 1, stored values match the simulated records, and every source is
+    "simulation". Check that ``CloudData`` returns stored values at stored
+    times, the nearest value between them, and the same values one database
+    duration later.
+    """
     database = tmp_path / "clouds.db"
     varying = generated.copy()
     varying["eighths"] = (np.arange(len(varying)) % 9).astype(np.uint8)
@@ -1066,6 +1323,7 @@ def test_save_sql_schema_values_and_clouddata_wrap(tmp_path, generated):
 
 
 def test_save_rejects_missing_states(tmp_path, historical):
+    """Reject database output containing missing quarters."""
     missing = historical.copy()
     missing.iloc[0, missing.columns.get_loc("eighths")] = 9
     missing.iloc[0, missing.columns.get_loc("cloud")] = np.nan
@@ -1074,6 +1332,13 @@ def test_save_rejects_missing_states(tmp_path, historical):
 
 
 def test_diagnostic_figures_and_year_dictionary(clear_statistics, generated):
+    """Plot monthly cloud distributions and transition counts accurately.
+
+    The cloud histogram accepts one simulated distribution or a dictionary
+    keyed by year, with one line per year. It passes extra keywords to
+    matplotlib. The transition figure shows a pair of images (historical and
+    simulated) for each month's supplied count matrices.
+    """
     transitions, distribution = clear_statistics
     by_year = {int(year): count_cloud_states(group) for year, group in generated.groupby(level="year")}
     for simulated in [count_cloud_states(generated), by_year]:
@@ -1102,6 +1367,7 @@ def test_diagnostic_figures_and_year_dictionary(clear_statistics, generated):
 
 
 def test_workflow_writes_database_and_diagnostics(tmp_path, historical_path, clear_statistics):
+    """Write workflow outputs and close all diagnostic figures."""
     database, histogram, transitions_plot = [
         tmp_path / name for name in ["clouds.db", "clouds.png", "pairs.png"]
     ]
@@ -1120,6 +1386,11 @@ def test_workflow_writes_database_and_diagnostics(tmp_path, historical_path, cle
 
 
 def test_cli_success_and_errors(tmp_path, historical_path):
+    """Exercise successful CLI output and input-validation errors.
+
+    A zero number of years, or a historical file without the required columns,
+    are errors, and exit with a non-zero status.
+    """
     runner = CliRunner()
     database, histogram, transition_plot = [
         tmp_path / name for name in ["cli.db", "cli.png", "cli-pairs.png"]
@@ -1162,7 +1433,13 @@ def test_cli_success_and_errors(tmp_path, historical_path):
     reason="Set LSST64_HISTORICAL_DATA for real 20-year acceptance test",
 )
 def test_real_data_workflow(tmp_path):
-    """Opt-in real-data acceptance run; suitable for the Slurm job."""
+    """Run the opt-in 20-year workflow on real historical cloud records.
+
+    Set ``LSST64_HISTORICAL_DATA`` to the path of the CTIO input file to run
+    this test. Verify the simulated schema, each month's state and transition
+    tolerances, the requested duration, diagnostic files, and compatibility
+    with the scheduler's ``CloudData`` reader.
+    """
     path = Path(os.environ["LSST64_HISTORICAL_DATA"])
     historical = read_historical_clouds(path)
     transitions = compute_transition_matrix(historical)
