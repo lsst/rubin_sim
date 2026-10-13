@@ -532,7 +532,7 @@ that:
 - there should be a limit to the number of times the while loop executes with a given len(cloud_seq), and throws an exception if that limit is exceeded.
 - instead of each month being simulated just once, each month should be simulated NUM\_MONTH\_CANDIDATES times, and the simulated month that minimizes the measured total absolute deviation between countsn of transitions for that month so far in the simulation to the historcial recorded transitions for that month (across all years) scaled to the number of simulated transitions.
 - When the loop exits (fills cloud_seq) it should test whether the requirements for the distribution of cloud state and numbers of transitions are met by it (R-3 and R-4), and throw an exception if they are not.
-
+  - A maximum tolerance in the absolute deviation between simulated and expected transitions for a simulated months shall be given by the module level variable `MAX_TOLERANCE` (defaulting to 1), and the loop that fills `cloud_seq` should throw an exception if the numbers of transitions in any given pair exceed that (this is a  mechanism for tightening the requirement in R-4), just as it would if the sequence failed to meet R-3 or R-4.
 
 The initial state of 0 is only an initial seed to get the sequence
 started: the transition into the first state should not be included in
