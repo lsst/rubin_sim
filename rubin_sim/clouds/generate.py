@@ -38,6 +38,9 @@ __all__ = ("generate_average_clouds", "cloud_generation_workflow", "generate_ave
 # Number of valid sequences to compare within each month's retry budget.
 NUM_MONTH_CANDIDATES = 5
 
+# Maximum tolerance
+MAX_TOLERANCE = 1.0
+
 # Origin states to try, in priority order, when sampling the next state from
 # a given current state (the row index). Each row starts with the state
 # itself, then falls back to the nearest states. This follows the historical
@@ -178,6 +181,7 @@ def _generate_month(
     # when fewer than one transition is expected. Small tolerances of 1e-12
     # guard against floating point noise at the boundary.
     tolerance = np.where(expected_transitions < 1, 1, np.sqrt(expected_transitions))
+    tolerance[tolerance > MAX_TOLERANCE] = MAX_TOLERANCE
     if np.any(np.abs(counts - expected_transitions) > tolerance + 1e-12):
         raise RuntimeError("Transition counts do not meet the monthly tolerance")
 
