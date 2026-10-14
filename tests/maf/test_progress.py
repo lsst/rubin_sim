@@ -3,6 +3,7 @@
 All visits are small synthetic data built here.
 """
 
+import glob
 import os
 import tempfile
 import unittest
@@ -114,9 +115,8 @@ class TestChimeraConstruction(unittest.TestCase):
             result = build_chimera(completed, baseline, **dates)
         self.assertEqual(result["observationId"].tolist(), [2, 4])
 
-    def test_build_chimeras_series(self):
-        # Completed visits run past end_dayobs, and the step does not
-        # land on the last completed date. Dates cross a month boundary.
+    def _chimera_data(self):
+        """Return (completed, baseline) DataFrames reused by chimera tests."""
         completed = pd.DataFrame(
             {
                 "observationId": range(12),
@@ -144,6 +144,12 @@ class TestChimeraConstruction(unittest.TestCase):
                 "fiveSigmaDepth": 23.0,
             }
         )
+        return completed, baseline
+
+    def test_build_chimeras_series(self):
+        # Completed visits run past end_dayobs, and the step does not
+        # land on the last completed date. Dates cross a month boundary.
+        completed, baseline = self._chimera_data()
         with tempfile.TemporaryDirectory() as out_dir:
             specs = build_chimeras(completed, baseline, 20260129, 20260201, step=2, out_dir=out_dir)
             self.assertEqual([t for t, _ in specs], [20260129, 20260131, 20260202, 20260203])
@@ -159,6 +165,39 @@ class TestChimeraConstruction(unittest.TestCase):
         self.assertEqual(len(last), len(completed))
         self.assertFalse(last["simulated"].any())
         self.assertEqual(last["dayObs"].max(), 20260203)
+
+    def test_build_chimeras_skips_existing(self):
+        """With update=False (default), existing files are not overwritten."""
+        completed, baseline = self._chimera_data()
+        with tempfile.TemporaryDirectory() as out_dir:
+            specs1 = build_chimeras(completed, baseline, 20260129, 20260201, step=2, out_dir=out_dir)
+            mtimes = {path: os.path.getmtime(path) for _, path in specs1}
+
+            # Second call with the default update=False: files should be skipped.
+            specs2 = build_chimeras(completed, baseline, 20260129, 20260201, step=2, out_dir=out_dir)
+            self.assertEqual(specs1, specs2)
+            for _, path in specs2:
+                self.assertEqual(os.path.getmtime(path), mtimes[path])
+
+    def test_build_chimeras_update_overwrites(self):
+        """With update=True, existing files are regenerated."""
+        completed, baseline = self._chimera_data()
+        with tempfile.TemporaryDirectory() as out_dir:
+            specs1 = build_chimeras(completed, baseline, 20260129, 20260201, step=2, out_dir=out_dir)
+
+            # Backdate all files so a rewrite is detectable.
+            old_time = os.path.getmtime(specs1[0][1]) - 10
+            for _, path in specs1:
+                os.utime(path, (old_time, old_time))
+
+            specs2 = build_chimeras(
+                completed, baseline, 20260129, 20260201, step=2, out_dir=out_dir, update=True
+            )
+            self.assertEqual([t for t, _ in specs2], [t for t, _ in specs1])
+            for _, path in specs2:
+                self.assertGreater(os.path.getmtime(path), old_time)
+                # Files are still valid HDF5.
+                pd.read_hdf(path, key="observations")
 
     def test_dayobs_range(self):
         self.assertEqual(dayobs_range(20260130, 20260202), [20260130, 20260131, 20260201, 20260202])
@@ -477,6 +516,16 @@ class TestProgressWorkflow(unittest.TestCase):
 class TestProgressCommands(unittest.TestCase):
     """Error-path tests for progress commands."""
 
+    def test_end_dayobs_defaults_to_start(self):
+        """Omitting end_dayobs processes only start_dayobs."""
+        with tempfile.TemporaryDirectory() as tmp:
+            with patch("rubin_sim.maf.progress.batches.snapshot_batch", return_value={}) as snapshot_batch:
+                with patch("rubin_sim.maf.progress.mb.MetricBundleGroup"):
+                    run_progress_batches("unused.h5", 20260115, out_dir=tmp)
+            snapshot_batch.assert_called_once_with(
+                run_name="consdb_20260115", end_dayobs=20260115, label_prefix="consdb"
+            )
+
     def test_run_prefix_defaults_label_prefix(self):
         with tempfile.TemporaryDirectory() as tmp:
             with patch("rubin_sim.maf.progress.batches.snapshot_batch", return_value={}) as snapshot_batch:
@@ -573,6 +622,115 @@ class TestProgressCommands(unittest.TestCase):
                         result = CliRunner().invoke(command, args + bad)
                         self.assertNotEqual(result.exit_code, 0)
                         self.assertFalse(os.path.exists(os.path.join(out_dir, "resultsDb_sqlite.db")))
+
+
+class TestIncrementalCLI(unittest.TestCase):
+    """CLI tests for incremental-update features."""
+
+    @classmethod
+    def setUpClass(cls):
+        temporary_directory = tempfile.TemporaryDirectory(prefix="incremental_test_")
+        cls.addClassCleanup(temporary_directory.cleanup)
+        cls.tmp = temporary_directory.name
+        completed = _make_visits(20260105, 20, 30, seed=1)
+        baseline = _make_visits(20260101, 40, 30, seed=2)
+        cls.completed_file = os.path.join(cls.tmp, "completed.h5")
+        cls.baseline_file = os.path.join(cls.tmp, "baseline.h5")
+        completed.to_hdf(cls.completed_file, key="observations")
+        baseline.to_hdf(cls.baseline_file, key="observations")
+
+    def test_build_chimeras_cmd_update_flag(self):
+        """build_chimeras_cmd --update overwrites; without it, files are skipped."""
+        runner = CliRunner()
+        chimera_dir = os.path.join(self.tmp, "chimeras_update")
+        base_args = [
+            "--consdb-file", self.completed_file,
+            "--opsim-file", self.baseline_file,
+            "--start-dayobs", "20260101",
+            "--end-dayobs", "20260209",
+            "--step", "30",
+            "--out-dir", chimera_dir,
+        ]
+        result1 = runner.invoke(build_chimeras_cmd, base_args)
+        self.assertEqual(result1.exit_code, 0, result1.output)
+        files = sorted(os.listdir(chimera_dir))
+        mtimes = {f: os.path.getmtime(os.path.join(chimera_dir, f)) for f in files}
+
+        # Without --update: files are not rewritten.
+        result2 = runner.invoke(build_chimeras_cmd, base_args)
+        self.assertEqual(result2.exit_code, 0, result2.output)
+        for f in files:
+            self.assertEqual(os.path.getmtime(os.path.join(chimera_dir, f)), mtimes[f])
+
+        # Backdate all files so a rewrite is detectable.
+        old_time = mtimes[files[0]] - 10
+        for f in files:
+            os.utime(os.path.join(chimera_dir, f), (old_time, old_time))
+
+        # With --update: files are rewritten.
+        result3 = runner.invoke(build_chimeras_cmd, base_args + ["--update"])
+        self.assertEqual(result3.exit_code, 0, result3.output)
+        for f in files:
+            self.assertGreater(os.path.getmtime(os.path.join(chimera_dir, f)), old_time)
+
+    def test_run_chimera_batches_cmd_single_file(self):
+        """run_chimera_batches_cmd accepts a single chimera file."""
+        runner = CliRunner()
+        chimera_dir = os.path.join(self.tmp, "chimeras_single")
+        build_args = [
+            "--consdb-file", self.completed_file,
+            "--opsim-file", self.baseline_file,
+            "--start-dayobs", "20260101",
+            "--end-dayobs", "20260209",
+            "--step", "30",
+            "--out-dir", chimera_dir,
+        ]
+        runner.invoke(build_chimeras_cmd, build_args)
+        single_file = sorted(glob.glob(os.path.join(chimera_dir, "chimera_*.h5")))[0]
+
+        out_dir = os.path.join(self.tmp, "results_single")
+        result = runner.invoke(
+            run_chimera_batches_cmd,
+            ["--chimera-dir", single_file, "--out-dir", out_dir, "--batch-kwarg", f"nside={NSIDE}"],
+        )
+        self.assertEqual(result.exit_code, 0, f"{result.output}\n{result.exception!r}")
+        results_db = ResultsDb(database=os.path.join(out_dir, "resultsDb_sqlite.db"))
+        run_names = results_db.get_run_name()
+        results_db.close()
+        self.assertEqual(len(run_names), 1)
+        self.assertTrue(run_names[0].startswith("chimera_"))
+
+    def test_run_chimera_batches_cmd_bad_filename(self):
+        """run_chimera_batches_cmd rejects a file not matching chimera_YYYYMMDD.h5."""
+        bad_file = os.path.join(self.tmp, "not_a_chimera.h5")
+        pd.DataFrame({"x": [1]}).to_hdf(bad_file, key="observations")
+        runner = CliRunner()
+        out_dir = os.path.join(self.tmp, "results_bad")
+        result = runner.invoke(
+            run_chimera_batches_cmd,
+            ["--chimera-dir", bad_file, "--out-dir", out_dir],
+        )
+        self.assertNotEqual(result.exit_code, 0)
+
+    def test_run_progress_batches_cmd_no_end_dayobs(self):
+        """run_progress_batches_cmd without --end-dayobs processes one date."""
+        runner = CliRunner()
+        out_dir = os.path.join(self.tmp, "results_no_end")
+        result = runner.invoke(
+            run_progress_batches_cmd,
+            [
+                "--visits-file", self.completed_file,
+                "--start-dayobs", "20260120",
+                "--out-dir", out_dir,
+                "--batch-kwarg", f"nside={NSIDE}",
+            ],
+        )
+        self.assertEqual(result.exit_code, 0, f"{result.output}\n{result.exception!r}")
+        self.assertIn("Ran 1 batch(es)", result.output)
+        results_db = ResultsDb(database=os.path.join(out_dir, "resultsDb_sqlite.db"))
+        run_names = results_db.get_run_name()
+        results_db.close()
+        self.assertEqual(run_names, ["consdb_20260120"])
 
 
 class TestConsoleScripts(unittest.TestCase):
