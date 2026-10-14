@@ -10,6 +10,7 @@ __all__ = (
 import ast
 import datetime
 import glob
+import logging
 import os
 import re
 import warnings
@@ -28,6 +29,8 @@ FIVE_SIGMA_DEPTH_LIMIT = 0.0
 
 # Default values for consdb columns without valid values.
 CONSDB_DEFAULTS = {"exposures": 1}
+
+logger = logging.getLogger(__name__)
 
 
 def dayobs_range(start_dayobs: int, end_dayobs: int, step: int = 1) -> list[int]:
@@ -90,8 +93,7 @@ def _dayobs_from_run_name(run_name: str) -> int | None:
 
 
 def _dayobs_from_filename(path: str) -> int | None:
-    """Extract transition dayobs integer from a chimera HDF5
-    filename, or None."""
+    """Extract transition dayobs integer from a chimera HDF5 filename, or None."""
     basename = os.path.basename(path)
     m = re.match(r"^chimera_(\d{8})\.h5$", basename)
     return int(m.group(1)) if m else None
@@ -112,7 +114,7 @@ def build_chimera(
     """Build a single chimera visit sequence.
 
     Combines consdb visits in [start_dayobs, transition_dayobs] with opsim
-    visits in (transition_dayobs, end_dayobs].  Both input DataFrames must
+    visits in (transition_dayobs, end_dayobs]. Both input DataFrames must
     already have a ``dayObs`` column (integer YYYYMMDD, UTC-12).
 
     Parameters
@@ -135,7 +137,8 @@ def build_chimera(
         Combined visit sequence containing columns present in both inputs.
     """
     consdb_part = consdb_visits.loc[
-        (consdb_visits["dayObs"] >= int(start_dayobs)) & (consdb_visits["dayObs"] <= int(transition_dayobs))
+        (consdb_visits["dayObs"] >= int(start_dayobs))
+        & (consdb_visits["dayObs"] <= int(transition_dayobs))
     ].copy()
 
     consdb_part = consdb_part.loc[consdb_part["fiveSigmaDepth"] > FIVE_SIGMA_DEPTH_LIMIT].copy()
@@ -159,7 +162,7 @@ def build_chimera(
 
     common_cols = sorted(set(consdb_part.columns) & set(opsim_part.columns))
     if not common_cols:
-        raise ValueError("consdb_visits and opsim_visits share no common columns; " "cannot build a chimera.")
+        raise ValueError("consdb_visits and opsim_visits share no common columns; cannot build a chimera.")
 
     return pd.concat(
         [consdb_part[common_cols], opsim_part[common_cols]],
@@ -174,12 +177,14 @@ def build_chimeras(
     end_dayobs: int,
     step: int = 1,
     out_dir: str = ".",
+    update: bool = False,
 ) -> list[tuple[int, str]]:
     """Build chimera visit sequences for a range of transition dates.
 
     For each transition date, a chimera is constructed by combining real
     consdb visits up to that date with simulated opsim visits after it, then
-    saved as an HDF5 file named ``chimera_YYYYMMDD.h5``.
+    saved as an HDF5 file named ``chimera_YYYYMMDD.h5``. Existing files are
+    skipped unless ``update`` is True.
 
     Both input DataFrames must already have a ``dayObs`` column (integer
     YYYYMMDD, UTC-12).
@@ -196,9 +201,12 @@ def build_chimeras(
     end_dayobs : `int`
         End of the opsim extension window used for every chimera, YYYYMMDD.
     step : `int`, optional
-        Number of nights between successive transition dates.  Default 1.
+        Number of nights between successive transition dates. Default 1.
     out_dir : `str`, optional
-        Directory in which to write HDF5 files.  Created if absent.
+        Directory in which to write HDF5 files. Created if absent.
+    update : `bool`, optional
+        If False, skip creating chimera files that already exist. If True,
+        overwrite existing files. Default is False.
 
     Returns
     -------
@@ -214,8 +222,13 @@ def build_chimeras(
         transition_dates.append(last_consdb)
     chimera_specs = []
     for t in transition_dates:
-        chimera = build_chimera(consdb_visits, opsim_visits, start_dayobs, t, end_dayobs)
         fname = os.path.join(out_dir, f"chimera_{t:08d}.h5")
+        if os.path.exists(fname) and not update:
+            logger.info("Skipping chimera creation because file already exists: %s", fname)
+            chimera_specs.append((t, fname))
+            continue
+
+        chimera = build_chimera(consdb_visits, opsim_visits, start_dayobs, t, end_dayobs)
         chimera.to_hdf(fname, key="observations", complevel=5)
         chimera_specs.append((t, fname))
     return chimera_specs
@@ -230,7 +243,7 @@ def run_chimera_batches(
     """Run MAF metric batches on a collection of chimera visit sequences.
 
     Each chimera is processed with ``batch_func``, which should return a
-    dictionary of ``MetricBundle`` objects.  All runs share a single
+    dictionary of ``MetricBundle`` objects. All runs share a single
     ``ResultsDb`` in ``out_dir``, with run names of the form
     ``chimera_YYYYMMDD`` encoding the transition date.
 
@@ -288,7 +301,7 @@ def run_chimera_batches(
 def run_progress_batches(
     visits_path: str,
     start_dayobs: int,
-    end_dayobs: int,
+    end_dayobs: int | None = None,
     step: int = 30,
     out_dir: str = ".",
     run_prefix: str = "consdb",
@@ -299,8 +312,9 @@ def run_progress_batches(
 
     Calls ``batch_func`` once per dayobs value in
     ``dayobs_range(start_dayobs, end_dayobs, step)``, passing the dayobs as
-    ``end_dayobs`` to filter visits. All runs share a single ``ResultsDb``
-    in ``out_dir``.
+    ``end_dayobs`` to filter visits. If ``end_dayobs`` is not specified, only
+    ``start_dayobs`` is processed. All runs share a single ``ResultsDb`` in
+    ``out_dir``.
 
     Choose the HEALPix nside high enough that every LSST camera pointing
     covers at least one pixel. Empty-map minimum-reduction errors warn and
@@ -310,14 +324,15 @@ def run_progress_batches(
     Parameters
     ----------
     visits_path : `str`
-        Path to an HDF5 or SQLite visits file.  May be a chimera file,
+        Path to an HDF5 or SQLite visits file. May be a chimera file,
         a pure baseline, or a consdb-derived visits file.
     start_dayobs : `int`
         First dayobs in the sequence, YYYYMMDD.
-    end_dayobs : `int`
-        Last dayobs in the sequence, YYYYMMDD (inclusive).
+    end_dayobs : `int` or None, optional
+        Last dayobs in the sequence, YYYYMMDD (inclusive). If not specified,
+        defaults to ``start_dayobs``.
     step : `int`, optional
-        Number of nights between successive dayobs values.  Default 30.
+        Number of nights between successive dayobs values. Default 30.
     out_dir : `str`, optional
         Directory for results_db and metric output files.
     run_prefix : `str`, optional
@@ -333,6 +348,9 @@ def run_progress_batches(
     results_db_path : `str`
         Path to the shared ``resultsDb_sqlite.db`` file.
     """
+    if end_dayobs is None:
+        end_dayobs = start_dayobs
+
     if batch_func is None:
         batch_func = batches.snapshot_batch
 
@@ -481,7 +499,8 @@ def _read_visits_with_dayobs(path: str) -> pd.DataFrame:
 @click.option("--end-dayobs", required=True, type=int, help="End date YYYYMMDD.")
 @click.option("--step", default=1, show_default=True, type=int, help="Nights between transition dates.")
 @click.option("--out-dir", default=".", show_default=True, help="Output directory for chimera HDF5 files.")
-def build_chimeras_cmd(consdb_file, opsim_file, start_dayobs, end_dayobs, step, out_dir):
+@click.option("--update", is_flag=True, help="Overwrite chimera files that already exist.")
+def build_chimeras_cmd(consdb_file, opsim_file, start_dayobs, end_dayobs, step, out_dir, update):
     """Build chimera visit sequences and save them as HDF5 files.
 
     Each HDF5 file is named chimera_YYYYMMDD.h5, where YYYYMMDD is the
@@ -490,7 +509,15 @@ def build_chimeras_cmd(consdb_file, opsim_file, start_dayobs, end_dayobs, step, 
     """
     consdb_visits = _read_visits_with_dayobs(consdb_file)
     opsim_visits = _read_visits_with_dayobs(opsim_file)
-    specs = build_chimeras(consdb_visits, opsim_visits, start_dayobs, end_dayobs, step, out_dir)
+    specs = build_chimeras(
+        consdb_visits,
+        opsim_visits,
+        start_dayobs,
+        end_dayobs,
+        step,
+        out_dir,
+        update=update,
+    )
     click.echo(f"Wrote {len(specs)} chimera files to {out_dir}.")
 
 
@@ -499,7 +526,7 @@ def build_chimeras_cmd(consdb_file, opsim_file, start_dayobs, end_dayobs, step, 
     "--chimera-dir",
     required=True,
     type=click.Path(exists=True),
-    help="Directory containing chimera_*.h5 files.",
+    help="Directory containing chimera_*.h5 files or an individual chimera HDF5 file.",
 )
 @click.option("--out-dir", default=".", show_default=True, help="Output directory for results_db.")
 @click.option(
@@ -515,7 +542,10 @@ def build_chimeras_cmd(consdb_file, opsim_file, start_dayobs, end_dayobs, step, 
     help="Additional batch kwarg as KEY=VALUE. May be specified multiple times.",
 )
 def run_chimera_batches_cmd(chimera_dir, out_dir, batch, batch_kwargs):
-    """Run MAF metric batches on all chimera HDF5 files in a directory."""
+    """Run MAF metric batches on chimera HDF5 files.
+
+    The input may be a directory of chimera files or an individual chimera file.
+    """
     parsed_batch_kwargs = {}
     for item in batch_kwargs:
         if "=" not in item:
@@ -541,14 +571,25 @@ def run_chimera_batches_cmd(chimera_dir, out_dir, batch, batch_kwargs):
             f"'{batch}' is not a known batch function in rubin_sim.maf.batches.",
             param_hint="--batch",
         )
-    h5_files = sorted(glob.glob(os.path.join(chimera_dir, "chimera_*.h5")))
-    if not h5_files:
-        raise click.UsageError(f"No chimera_*.h5 files found in {chimera_dir}.")
+
+    if os.path.isfile(chimera_dir):
+        h5_files = [chimera_dir]
+    elif os.path.isdir(chimera_dir):
+        h5_files = sorted(glob.glob(os.path.join(chimera_dir, "chimera_*.h5")))
+    else:
+        raise click.UsageError(f"{chimera_dir} is neither a file nor a directory.")
+
     chimera_specs = []
     for path in h5_files:
-        t = _dayobs_from_filename(path)
-        if t is not None:
-            chimera_specs.append((t, path))
+        transition_dayobs = _dayobs_from_filename(path)
+        if transition_dayobs is not None:
+            chimera_specs.append((transition_dayobs, path))
+
+    if not chimera_specs:
+        if os.path.isfile(chimera_dir):
+            raise click.UsageError(f"{chimera_dir} is not a valid chimera_YYYYMMDD.h5 file.")
+        raise click.UsageError(f"No chimera_*.h5 files found in {chimera_dir}.")
+
     results_db_path = run_chimera_batches(
         chimera_specs,
         batch_func=batch_func,
@@ -567,7 +608,7 @@ def run_chimera_batches_cmd(chimera_dir, out_dir, batch, batch_kwargs):
 )
 @click.option("--out-dir", default=".", show_default=True, help="Output directory for results_db.")
 @click.option("--start-dayobs", required=True, type=int, help="Start date YYYYMMDD.")
-@click.option("--end-dayobs", required=True, type=int, help="End date YYYYMMDD (inclusive).")
+@click.option("--end-dayobs", required=False, type=int, help="End date YYYYMMDD (inclusive). Defaults to start date.")
 @click.option(
     "--step", default=30, show_default=True, type=int, help="Nights between successive dayobs values."
 )
@@ -618,6 +659,9 @@ def run_progress_batches_cmd(
             f"'{batch}' is not a known batch function in rubin_sim.maf.batches.",
             param_hint="--batch",
         )
+
+    if end_dayobs is None:
+        end_dayobs = start_dayobs
 
     dayobs_list = dayobs_range(start_dayobs, end_dayobs, step)
     if not dayobs_list:
