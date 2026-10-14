@@ -18,6 +18,15 @@ environment with ``rubin_sim`` and its dependencies installed; USDF is a
 supported use case, not a platform requirement. See :ref:`installation`,
 :ref:`clouds-api`, and :ref:`clouds-architecture`.
 
+For an interactive workflow with historical records and diagnostic plots, see
+`generate_average_clouds.ipynb
+<https://github.com/lsst/rubin_sim_notebooks/blob/tickets/LSST-64/clouds/generate_average_clouds.ipynb>`_
+in the ``rubin_sim_notebooks`` repository's ``clouds`` directory. Supply the
+historical input separately and review the notebook's configuration before
+running it. The earlier ``generate_average_clouds_prototype.ipynb`` in that
+directory is an experimental algorithm prototype, not the current API example.
+The self-contained recipes below do not require either notebook.
+
 Historical Input
 ----------------
 
@@ -79,7 +88,7 @@ Exhausting the limits without a valid candidate raises an error, not a partial
 valid result. Use ``--help`` for the complete option list.
 
 ``python -m rubin_sim.clouds`` is the equivalent module invocation. The
-following executable example uses that invocation and a small synthetic,
+following executable example uses both invocations and a small synthetic,
 all-clear dataset. It demonstrates the mechanics, not realistic weather or
 performance. It needs no external records and provides the input used by the
 Python recipe below. Run the examples in order in one Python session.
@@ -94,7 +103,7 @@ Python recipe below. Run the examples in order in one Python session.
 >>> header = "sday eday month year q1 q2 q3 q4\n"
 >>> rows = [f"1 2 {month} 1975 0 0 0 0\n" for month in range(1, 13)]
 >>> _ = historical_path.write_text(header + "".join(rows), encoding="utf-8")
->>> command = [sys.executable, "-m", "rubin_sim.clouds"]
+>>> command = ["generate_average_clouds"]
 >>> help_result = subprocess.run(command + ["--help"], capture_output=True, text=True)
 >>> help_result.returncode == 0 and "--max-retries" in help_result.stdout
 True
@@ -107,6 +116,16 @@ True
 >>> assert result.returncode == 0, result.stderr
 >>> all((output / name).is_file() for name in
 ...     ["cli.db", "states.png", "transitions.png", "sequence.png"])
+True
+>>> module_command = [sys.executable, "-m", "rubin_sim.clouds"]
+>>> module_help = subprocess.run(module_command + ["--help"], capture_output=True, text=True)
+>>> module_help.returncode == 0 and "--output-database" in module_help.stdout
+True
+>>> module_result = subprocess.run(module_command + [str(historical_path),
+...     "-o", str(output / "module.db"), "--num-years", "1", "--seed", "6563"],
+...     capture_output=True, text=True)
+>>> assert module_result.returncode == 0, module_result.stderr
+>>> (output / "module.db").is_file()
 True
 
 Staged Python Recipe
@@ -126,8 +145,8 @@ distributions, not that matrix. See :ref:`clouds-schemas` for their layouts.
 >>> distribution = clouds.count_cloud_states(historical)
 >>> transitions = clouds.compute_transition_matrix(historical)
 >>> probabilities = clouds.compute_stochastic_matrix(transitions)
->>> historical.index.names
-FrozenList(['year', 'month', 'sday', 'quarter'])
+>>> list(historical.index.names)
+['year', 'month', 'sday', 'quarter']
 >>> bool((probabilities.sum(axis=1) == 1).all())
 True
 >>> simulated = clouds.generate_average_clouds(transitions, distribution, 1, seed=6563)

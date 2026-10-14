@@ -242,9 +242,9 @@ def make_cloud_frame(dates: Sequence[datetime.date], eighths: Sequence[int] | np
 
     Parameters
     ----------
-    dates : sequence of `datetime.date`
+    dates : sequence of ``datetime.date``
         Local calendar dates of the evenings, no earlier than 1975-01-01.
-    eighths : sequence of `int` or `numpy.ndarray`
+    eighths : sequence of `int` or ``numpy.ndarray``
         Flat, night-major sequence of four states (0..9) per date.
 
     Returns
@@ -348,7 +348,7 @@ def read_historical_clouds(
 
     Parameters
     ----------
-    paths : `str`, `os.PathLike`, or sequence of those
+    paths : `str`, ``os.PathLike``, or sequence of those
         Historical record file or files. Each must have sday, eday, month,
         year, and q1 through q4 column headings.
 
@@ -559,7 +559,7 @@ def save_clouds(path: str | os.PathLike, clouds: Clouds) -> None:
 
     Parameters
     ----------
-    path : `str` or `os.PathLike`
+    path : `str` or ``os.PathLike``
         Database file to write; created if it does not exist.
     clouds : `Clouds`
         Simulated records. ``cloudId`` starts at one in chronological
@@ -627,12 +627,12 @@ def plot_cloud_histogram(
         curve per key, labelled by year.
     **kwargs
         ``figsize``, ``dpi``, and ``layout`` are passed to figure
-        creation; the rest are passed to `matplotlib.axes.Axes.step` for
+        creation; the rest are passed to ``matplotlib.axes.Axes.step`` for
         the simulated curves.
 
     Returns
     -------
-    figure : `matplotlib.figure.Figure`
+    figure : ``matplotlib.figure.Figure``
         Figure with one panel per month. The caller owns it and should
         close it.
 
@@ -705,12 +705,12 @@ def plot_transition_histograms(
         years combined.
     **kwargs
         ``figsize``, ``dpi``, and ``layout`` affect the figure; the rest
-        are passed to `matplotlib.axes.Axes.imshow` (for example ``cmap``,
+        are passed to ``matplotlib.axes.Axes.imshow`` (for example ``cmap``,
         ``vmin``, ``vmax``, or ``norm``).
 
     Returns
     -------
-    figure : `matplotlib.figure.Figure`
+    figure : ``matplotlib.figure.Figure``
         Figure with a historical and simulated panel for each month.
         The caller owns it and should close it.
 
@@ -760,11 +760,11 @@ def make_cloud_figure(eighths: pd.Series, origin: pd.Series | None = None) -> Fi
 
     Parameters
     ----------
-    eighths : `pandas.Series`
+    eighths : ``pandas.Series``
         Cloud cover in integer eighths, indexed by year (uint16), month,
         sday, and quarter (uint8), in that order, as in `Clouds`. Rows must
         be unique and sorted. Absent quarters, NaNs, -1, and 9 are missing.
-    origin : `pandas.Series`, optional
+    origin : ``pandas.Series``, optional
         Text source names with exactly the same index. Source colors match
         the notebook prototype for ctio, blanco, satellite, and
         stochastic_matrix; other names receive distinct palette colors.
@@ -773,7 +773,7 @@ def make_cloud_figure(eighths: pd.Series, origin: pd.Series | None = None) -> Fi
 
     Returns
     -------
-    figure : `matplotlib.figure.Figure`
+    figure : ``matplotlib.figure.Figure``
         One strip per calendar year, with day of year on the horizontal
         axis. The caller owns the figure and should close it.
 
@@ -901,13 +901,13 @@ def observability_acf(
         Limit the simulation to this year and month. By default, combine
         all simulated years; historical years are always combined.
     **kwargs
-        Passed to `statsmodels.tsa.stattools.acf`, with ``missing`` set to
+        Passed to ``statsmodels.tsa.stattools.acf``, with ``missing`` set to
         ``"conservative"`` by default. If ``alpha`` or ``qstat`` is supplied,
         only the returned ACF values are plotted.
 
     Returns
     -------
-    figure : `matplotlib.figure.Figure`
+    figure : ``matplotlib.figure.Figure``
         Historical and simulated curves versus lag in quarter nights.
         The caller owns the figure and should close it.
 
