@@ -135,6 +135,10 @@ From the repository root in an activated development environment, run
 ``python -m pytest tests/clouds``. Ordinary tests use synthetic inputs and
 check input validation, schemas, monthly count constraints, candidate selection,
 timing and scheduler compatibility, database writing, and plotting behavior.
+They also run doctests directly from the clouds documentation pages and API
+docstrings, including both CLI invocations and the staged Python workflow.
+To run just those checks, use
+``python -m pytest tests/clouds/test_documentation.py``.
 
 The opt-in test
 ``tests/clouds/test_average_clouds.py::test_historical_data_workflow`` is enabled

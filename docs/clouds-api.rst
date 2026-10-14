@@ -95,3 +95,10 @@ Public Members
     :imported-members:
     :members:
     :show-inheritance:
+
+The exported CLI is a Click command object rather than a Python function;
+see the :ref:`clouds` command-line recipe and ``--help`` for its options.
+
+.. py:data:: generate_average_clouds_cli
+
+    Click command implementing the documented command-line workflow.

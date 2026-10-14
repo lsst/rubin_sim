@@ -376,17 +376,17 @@ def cloud_generation_workflow(
 
     Parameters
     ----------
-    historical_paths : `str`, `os.PathLike`, or sequence of those
+    historical_paths : `str`, ``os.PathLike``, or sequence of those
         Historical CTIO record file or files.
-    output_database : `str` or `os.PathLike`
+    output_database : `str` or ``os.PathLike``
         Path of the SQLite database to write.
     num_years : `int`, optional
         Minimum number of years to simulate.
-    cloud_histogram : `str` or `os.PathLike`, optional
+    cloud_histogram : `str` or ``os.PathLike``, optional
         If given, path at which to save the cloud state histograms.
-    transition_histograms : `str` or `os.PathLike`, optional
+    transition_histograms : `str` or ``os.PathLike``, optional
         If given, path at which to save the transition count histograms.
-    cloud_figure : `str` or `os.PathLike`, optional
+    cloud_figure : `str` or ``os.PathLike``, optional
         If given, path at which to save the full simulated cloud sequence.
     seed : `int` or `None`, optional
         Seed for the random number generator.
