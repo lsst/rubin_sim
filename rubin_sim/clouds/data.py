@@ -258,7 +258,8 @@ def make_cloud_frame(dates: Sequence[datetime.date], eighths: Sequence[int] | np
     Night boundaries are geometric -12 degree solar altitude at Cerro
     Pachon, using the scheduler's vectorized twilight solver. Quarter
     centers divide the elapsed TAI night into four equal intervals.
-    Times are rounded to the nearest second. IERS downloads are disabled
+    Times are seconds since 1975-01-01 00:00 TAI, rounded to the nearest
+    second. IERS downloads are disabled
     locally; Astropy's bundled tables and the solver's sidereal-time
     fallback suffice for these weather sampling times.
 
@@ -531,7 +532,9 @@ def compute_stochastic_matrix(matrix: TransitionMatrix) -> StochasticMatrix:
     -----
     An origin with no observed transitions copies the row of the first
     origin with data in its fallback list, since a stochastic row
-    cannot be empty.
+    cannot be empty. See :ref:`clouds-fallback` for the ordered priorities.
+    This inspection product is not an input to `generate_average_clouds`,
+    which uses raw counts and remaining budgets instead.
     """
     _validate_transition_matrix(matrix)
 
@@ -562,6 +565,11 @@ def save_clouds(path: str | os.PathLike, clouds: Clouds) -> None:
         Simulated records. ``cloudId`` starts at one in chronological
         order and ``source`` is always "simulation".
 
+    Returns
+    -------
+    None
+        Writes the database without returning a value.
+
     Raises
     ------
     ValueError
@@ -572,6 +580,13 @@ def save_clouds(path: str | os.PathLike, clouds: Clouds) -> None:
     -----
     The Cloud table is replaced inside a single transaction, so a failure
     leaves any existing table intact, and other tables are preserved.
+    Its schema is::
+
+        Cloud(cloudId INTEGER PRIMARY KEY, c_date INTEGER,
+              cloud DOUBLE, source TEXT)
+
+    ``c_date`` stores quarter-center seconds
+    since 1975-01-01 00:00 TAI; ``cloud`` is fractional cover in eighths.
     """
     _validate_clouds(clouds)
 

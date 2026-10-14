@@ -139,3 +139,4 @@ version.py
 .vscode/
 /temp2
 /docs/issues/lsst-64-output
+.DS_Store

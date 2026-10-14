@@ -9,6 +9,8 @@ User Guide
 
 .. toctree::
 
+    Clouds <clouds>
+
     Data Download Utilities <data-download>
 
     Metrics Analysis Framework (MAF) <maf>
