@@ -43,7 +43,8 @@ The commands use end dates differently:
 * ``run_progress_batches --end-dayobs D`` includes visits before the end of
   observing day D. It always evaluates D, even if the cadence does not land on
   that date. The start date sets the first evaluation date, not a lower bound
-  on the visits in each snapshot.
+  on the visits in each snapshot. When ``--end-dayobs`` is omitted it defaults
+  to ``--start-dayobs``, so a single snapshot date can be processed.
 * ``build_chimeras --end-dayobs E`` limits only the baseline portion of each
   chimera. Transition dates run from ``--start-dayobs`` through the latest
   ``dayObs`` in the completed-visits input, including that last date even when
@@ -121,6 +122,49 @@ its final snapshot supplies the baseline reference for extrapolated metrics.
 All three batch-running invocations use the same output directory and therefore
 the same ``resultsDb_sqlite.db``.
 
+Incremental Updates
+-------------------
+
+After new completed visits arrive, only the new dates need processing.
+``build_chimeras`` skips chimera files that already exist, so re-running with
+an updated consdb file and the same output directory builds only the new
+transition dates. Pass ``--update`` to force regeneration of all chimeras
+(e.g., when the consdb file has been revised for existing dates).
+
+``run_chimera_batches`` accepts an individual chimera HDF5 file via
+``--chimera-dir`` instead of a whole directory, so new chimeras can be evaluated
+without reprocessing earlier ones. Results accumulate in the same
+``resultsDb_sqlite.db``.
+
+``run_progress_batches`` allows ``--end-dayobs`` to be omitted; it defaults to
+``--start-dayobs``, processing a single snapshot. This makes it easy to append
+one date at a time.
+
+.. code-block:: bash
+
+    # After new visits are added to CONSDB_VISIT_DB:
+
+    # Build only the new chimera file(s); existing files are skipped.
+    build_chimeras \
+      --consdb-file "$CONSDB_VISIT_DB" \
+      --opsim-file "$BASELINE_DB" \
+      --start-dayobs "$START_DAYOBS" \
+      --end-dayobs "$TARGET_DAYOBS" \
+      --step "$STEP" \
+      --out-dir "$CHIMERA_DIR"
+
+    # Evaluate only the latest chimera.
+    run_chimera_batches \
+      --chimera-dir "$CHIMERA_DIR/chimera_${NEW_DAYOBS}.h5" \
+      --out-dir "$RESULTS_DIR"
+
+    # Add one snapshot for the new date.
+    run_progress_batches \
+      --visits-file "$CONSDB_VISIT_DB" \
+      --start-dayobs "$NEW_DAYOBS" \
+      --run-prefix consdb \
+      --out-dir "$RESULTS_DIR"
+
 Batch Selection
 ===============
 
@@ -134,7 +178,8 @@ parsed as Python literals when possible, otherwise kept as strings. For example,
 accept both ``run_name`` and ``end_dayobs`` keyword arguments; chimera batches
 must accept ``run_name`` or the legacy ``runName`` argument. Unknown batch names
 and malformed keyword options exit with a non-zero status. ``--step`` defaults
-to 1 for chimera construction and 30 for snapshots; ``--out-dir`` defaults to
+to 1 for chimera construction and 30 for snapshots; ``--end-dayobs`` for
+snapshots defaults to ``--start-dayobs`` when omitted; ``--out-dir`` defaults to
 the current directory.
 
 Both progress batches accept ``colmap`` for column aliases and coordinate units,
@@ -217,11 +262,16 @@ Dates before the first qualifying visit may have no results-database rows. Do
 not interpret a missing date or an incomplete snapshot as a measured zero.
 
 Stored chimeras duplicate visits across transition dates and can consume
-substantial disk space. Rebuild them when completed visits or the baseline
-change. Use fresh chimera and results directories for a new input revision or
-cadence: the chimera runner processes all matching files in its directory, and
-the results database is opened rather than cleared. These commands do not
-remove stale files or results automatically.
+substantial disk space. ``build_chimeras`` skips existing files by default, so
+re-running the same command after new visits arrive creates only new chimeras.
+Pass ``--update`` to regenerate all chimeras when the completed visits or the
+baseline have been revised for dates that already have chimera files.
+``run_chimera_batches`` can process a single chimera file as well as a whole
+directory, avoiding redundant computation for dates already in the results
+database. Use fresh chimera and results directories for a new input revision or
+cadence when a clean slate is preferable: the results database is opened rather
+than cleared, and these commands do not remove stale files or results
+automatically.
 
 Progress batches select dates and bands using in-memory pandas queries, avoiding
 conversion of HDF5 inputs to SQLite for those selections. For custom bundles,
