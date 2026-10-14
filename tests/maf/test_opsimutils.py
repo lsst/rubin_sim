@@ -77,6 +77,40 @@ class TestOpsimUtils(unittest.TestCase):
         with self.assertRaises(FileNotFoundError):
             opsimUtils.get_sim_data("not_a_file.db", sql, ["nocol"])
 
+    def test_pdconstraint_sqlite(self):
+        """A pandas constraint selects the same visits as SQL."""
+        import pandas as pd
+
+        database_file = os.path.join(get_data_dir(), "tests", TEST_DB)
+        sql = "night < 10"
+
+        all_data = opsimUtils.get_sim_data(database_file, sql)
+        from_sql = opsimUtils.get_sim_data(database_file, "night < 5")
+        filtered = opsimUtils.get_sim_data(database_file, sql, pdconstraint="night < 5")
+        assert isinstance(filtered, np.recarray)
+        assert np.size(filtered) == np.size(from_sql)
+        assert 0 < np.size(filtered) < np.size(all_data)
+        assert np.all(filtered["night"] < 5)
+
+        assert np.size(opsimUtils.get_sim_data(database_file, sql, pdconstraint=None)) == np.size(all_data)
+
+        filtered_df = opsimUtils.get_visit_data(database_file, sql, pdconstraint="night < 5")
+        assert isinstance(filtered_df, pd.DataFrame)
+        assert len(filtered_df) == np.size(from_sql)
+
+    def test_pdconstraint_hdf5(self):
+        """A pandas constraint works on HDF5 input."""
+        database_file = os.path.join(get_data_dir(), "tests", TEST_DB)
+        with TemporaryDirectory() as tmpdir:
+            hdf5_file = os.path.join(tmpdir, "test_visits.h5")
+            opsimdb_to_hdf5(database_file, hdf5_file)
+
+            all_data = opsimUtils.get_sim_data(hdf5_file)
+            filtered = opsimUtils.get_sim_data(hdf5_file, pdconstraint="night < 5")
+
+            assert 0 < np.size(filtered) < np.size(all_data)
+            assert np.all(filtered["night"] < 5)
+
     def test_get_sim_data_hdf5(self):
         """Test that we can get simulation data from HDF5 files."""
         database_file = os.path.join(get_data_dir(), "tests", TEST_DB)

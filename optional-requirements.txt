@@ -1,6 +1,5 @@
 botocore
 boto3
-click
 conda
 openorb
 openorb-data-de405
