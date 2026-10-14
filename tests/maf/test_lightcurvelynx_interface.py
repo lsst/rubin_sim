@@ -32,7 +32,7 @@ class TestLightCurveLynxInterface(unittest.TestCase):
             "observationStartMJD": np.array([0.0, 1.0, 2.0, 3.0]),
             "fieldRA": np.array([15.0, 15.0, 15.0, 15.0]),
             "fieldDec": np.array([-10.0, -10.0, -10.0, -10.0]),
-            "filter": np.array(["r", "g", "r", "r"]),
+            "band": np.array(["r", "g", "r", "r"]),
             "seeingFwhmEff": [1.12] * 4,
             "skyBrightness": [20.0] * 4,
             "visitExposureTime": [29.2] * 4,

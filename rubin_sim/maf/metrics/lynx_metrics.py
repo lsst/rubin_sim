@@ -26,7 +26,7 @@ class LynxBaseMetric(BaseMetric):
     _opsim_cols = [
         "fieldRA",
         "fieldDec",
-        "filter",
+        "band",
         "visitExposureTime",
         "numExposures",
         "seeingFwhmEff",
