@@ -233,6 +233,21 @@ def generate_average_clouds(
         If a month cannot meet the statistical requirements within the limits.
     ValueError
         If limits or historical counts are invalid.
+
+    Notes
+    -----
+    Each month's state counts differ from scaled historical expectations
+    by at most one quarter. Transition expectations use pooled joint pair
+    frequencies; absolute errors are capped at ``MAX_TOLERANCE`` and also
+    at one count for expectations below one, or their square root otherwise.
+    Both comparisons allow numerical slack of 1e-12. Actual adjacent pairs
+    are checked even when sampling borrows another origin's budget row.
+
+    The first quarter has no incoming transition. Coverage means that
+    ``max(c_date) - min(c_date) >= num_years * 31557600``; an extra full
+    January is generated if necessary. Candidate selection is a greedy
+    cumulative-transition heuristic, not an additional correctness limit
+    or a global optimum. See :ref:`clouds-architecture` for details.
     """
     _validate_transition_matrix(historical_transition_matrix)
     _validate_cloud_distribution(historical_distribution)
@@ -384,6 +399,14 @@ def cloud_generation_workflow(
     -------
     simulated : `Clouds`
         The simulated clouds that were written to ``output_database``.
+
+    Notes
+    -----
+    Output directories must already exist. Diagnostic state histograms
+    are normalized by month; transition matrices pool all simulated years
+    and show raw counts. Each figure is closed after saving, including
+    when saving fails. Input, generation, and writing exceptions propagate
+    to the caller; a later diagnostic failure does not undo a saved database.
     """
     historical = read_historical_clouds(historical_paths)
     distribution = count_cloud_states(historical)
