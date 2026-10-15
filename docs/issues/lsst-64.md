@@ -618,11 +618,12 @@ below are optional historical references, not retention requirements.
 
 | Verification | `rubin_sim` revision |
 | --- | --- |
-| Requirements-verification CI run linked below | `4ea0ba2e1275b265bcc850392351c3f899fa25bf` (successful run, confirmed from GitHub Actions metadata). |
+| Earlier requirements-verification CI | `4ea0ba2e1275b265bcc850392351c3f899fa25bf` (successful run, confirmed from GitHub Actions metadata). |
 | EHN notebook/API and Slurm/CLI acceptance checks | `aa070ffdc042c1c1b2e2a862508d53257999f327` |
+| Final documentation-fixes CI run linked below | `18694cdc0e71f58015975a0376902da850b23c08` (user confirmed successful GitHub CI on 2026-10-15). |
 
 - [x] All tests spesified in the "requirements verification" step pass.
-  - Tests related to this issue, including requirements verification, passed in https://github.com/lsst/rubin_sim/actions/runs/38577634882/job/115898832868
+  - Tests related to this issue, including requirements verification, passed in https://github.com/lsst/rubin_sim/actions/runs/38633731399
 - [x] The developer runs a sample jupyter notebook using the API, and verifies that the plots appear as expected.
   - EHN did this using [`rubin_sim_notebooks/clouds/generate_average_clouds.ipynb`](https://github.com/lsst/rubin_sim_notebooks/blob/tickets/LSST-64/clouds/generate_average_clouds.ipynb) on 2026-10-14.
 - [x] The developer runs the CLI as a slurm job on the s3df milano cluster at SLAC using the same historical database and random number seed used in the jupyther notebook above, and verifies that it finishes in the required time.
