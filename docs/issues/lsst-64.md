@@ -574,7 +574,7 @@ In addition to these tests, there will need to be a bash script with an appropri
 slum header that sets up the environment and runs the
 `rubin_sim.clouds.cloud_generation_workflow` unit test so that the verification of R-5 and R-6 can be run. This bash script should create necessary `venv` assuming `uv` is avaiable.
 
-A separate `rubin_sim/tests/clouds/test_average_clouds_design.py` test file shall contain tests that verify that the implemented code matches the design in this issue worknig document. It shall include verification of input validation, the schema of data frames specified in the IWD data dictionary, and the call signatures of functions in the IWD design.
+A separate `rubin_sim/tests/clouds/test_average_clouds_design.py` test file shall contain tests that verify that the implemented code matches the design in this issue worknig document. It shall include verification of input validation, the schema of data frames specified in the IWD data dictionary, and the call signatures of functions in the IWD design. These tests are not required to be retained during the documentation and closeout phase: during documentation and closeout, these design tests may be replaced by a few doctests that demonstrate APIs or data model elements that would not be tested otherwise.
 
 
 <!--
@@ -621,6 +621,7 @@ below are optional historical references, not retention requirements.
 | Earlier requirements-verification CI | `4ea0ba2e1275b265bcc850392351c3f899fa25bf` (successful run, confirmed from GitHub Actions metadata). |
 | EHN notebook/API and Slurm/CLI acceptance checks | `aa070ffdc042c1c1b2e2a862508d53257999f327` |
 | Final documentation-fixes CI run linked below | `18694cdc0e71f58015975a0376902da850b23c08` (user confirmed successful GitHub CI on 2026-10-15). |
+| Final closeout CI | `34551141` (user confirmed successful GitHub CI on 2026-10-16: https://github.com/lsst/rubin_sim/actions/runs/38967932045). |
 
 - [x] All tests spesified in the "requirements verification" step pass.
   - Tests related to this issue, including requirements verification, passed in https://github.com/lsst/rubin_sim/actions/runs/38633731399
@@ -670,14 +671,16 @@ Prompts:
 - Date / author / summary of changes
 - Harvested items: target file and short description
 
+- 2026-10-16 / EHN: Promoted cloud-generation user guidance, API schemas, and algorithm architecture to `docs/clouds.rst`, `docs/clouds-api.rst`, and `docs/clouds-architecture.rst`.
+
 ---
 
 ## Definition of Done
 
-- [ ] Scope (§1.1) respected — nothing implemented from the out-of-scope list.
-- [ ] Architecture and Design (§6) approved; for T2 before implementation, for T1 before merge.
-- [ ] Every External Requirement (§3.1) has a passing test or a recorded manual check (§6, §7).
-- [ ] Material deviations from Architecture and Design (§6) are approved and recorded.
-- [ ] A targeted diff review was completed; detailed review was performed for applicable risk triggers.
-- [ ] Durable content has been promoted to project documentation where useful and logged in the Change Log (§10).
-- [ ] CI is green; the change has been reviewed per the review discipline (process §4.1).
+- [x] Scope (§1.1) respected — nothing implemented from the out-of-scope list.
+- [x] Architecture and Design (§6) approved; for T2 before implementation, for T1 before merge.
+- [x] Every External Requirement (§3.1) has a passing test or a recorded manual check (§6, §7).
+- [x] Material deviations from Architecture and Design (§6) are approved and recorded.
+- [x] A targeted diff review was completed; detailed review was performed for applicable risk triggers.
+- [x] Durable content has been promoted to project documentation where useful and logged in the Change Log (§10).
+- [x] CI is green; the change has been reviewed per the review discipline (process §4.1).
