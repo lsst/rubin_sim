@@ -10,6 +10,7 @@ import sqlite3
 import urllib
 from contextlib import closing
 
+import nested_pandas as npd
 import numpy as np
 import pandas as pd
 from sqlalchemy import create_engine, inspect
@@ -73,7 +74,7 @@ def _local_get_sim_data(
         table_name = "observations"
 
     if full_sql_query is None:
-        col_str = "*" if dbcols is None else ", ".join(dbcols)
+        col_str = "*" if len(dbcols) == 0 else ", ".join(dbcols)
 
         query = "SELECT %s FROM %s" % (col_str, table_name)
         if len(sqlconstraint) > 0:
@@ -130,6 +131,58 @@ def _local_get_sim_data(
     return sim_data
 
 
+def _local_get_parquet_data(
+    path,
+    dbcols=None,
+    stackers=None,
+    return_class=np.recarray,
+):
+    """Query a Parquet file for the needed data columns
+    and run any required stackers.
+
+    Parameters
+    ----------
+    path : `str`
+        Path to a Parquet file.
+    dbcols : `list` [`str`]
+        Columns required from the database. Ignored if full_sql_query is set.
+    stackers : `list` [`rubin_sim.maf.stackers`], optional
+        Stackers to be used to generate additional columns. Default None.
+    return_class : `type`, optional
+        Class of the returned data. Default `numpy.recarray`.
+
+    Returns
+    -------
+    sim_data : `np.ndarray`
+        A numpy structured array with columns resulting from dbcols + stackers,
+        for observations matching the SQLconstraint.
+    """
+    if not os.path.isfile(path):
+        raise FileNotFoundError(f"No file {path}")
+
+    sim_data = npd.read_parquet(path, columns=dbcols)
+
+    if len(sim_data) == 0:
+        raise UserWarning(f"No data found in {path}")
+
+    # Now add the stacker columns.
+    # This fails for pandas.DataFrames, so convert to recarray
+    # if necessary.
+    if stackers is not None:
+        sim_data = sim_data.to_records(index=False)
+        for s in stackers:
+            sim_data = s.run(sim_data).view(np.recarray)
+
+    if return_class is np.recarray:
+        if isinstance(sim_data, pd.DataFrame):
+            sim_data = sim_data.to_records(index=False)
+    if return_class is pd.DataFrame:
+        if isinstance(sim_data, np.recarray):
+            sim_data = pd.DataFrame(sim_data)
+
+    return sim_data
+
+
 def get_sim_data(
     db_con,
     sqlconstraint=None,
@@ -168,7 +221,9 @@ def get_sim_data(
         A numpy structured array with columns resulting from dbcols + stackers,
         for observations matching the SQLconstraint.
     """
-    if (not isinstance(db_con, str)) or urllib.parse.urlparse(db_con).scheme == "":
+    if isinstance(db_con, str) and db_con.lower().endswith((".parquet")):
+        sim_data = _local_get_parquet_data(db_con, dbcols, stackers)
+    elif (not isinstance(db_con, str)) or urllib.parse.urlparse(db_con).scheme == "":
         # Already have a local copy
         sim_data = _local_get_sim_data(
             db_con, sqlconstraint, dbcols, stackers, table_name, full_sql_query, return_class=return_class
