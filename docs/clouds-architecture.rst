@@ -13,6 +13,67 @@ them for the CLI; notebooks can call the stages separately. Conditional
 probabilities from ``compute_stochastic_matrix`` are an inspection product,
 not an input to the constrained generator.
 
+Inspecting Shared Schemas
+-------------------------
+
+The stages exchange ordinary pandas dataframes with the layouts described in
+:ref:`clouds-schemas`. This self-contained example builds one synthetic night
+per month, with cloud states 0, 2, 8, and a missing quarter (9). It illustrates
+the data contracts, not a realistic historical sample.
+
+>>> from datetime import date
+>>> import rubin_sim.clouds as clouds
+>>> historical = clouds.make_cloud_frame(
+...     [date(1975, month, 1) for month in range(1, 13)], [0, 2, 8, 9] * 12)
+>>> list(historical.index.names)
+['year', 'month', 'sday', 'quarter']
+>>> list(historical.columns)
+['eighths', 'cloud', 'c_date']
+>>> historical.cloud.iloc[:3].tolist()
+[0.0, 0.25, 1.0]
+>>> bool(historical.cloud.isna().iloc[3])
+True
+
+State counts have one row per month and one column per valid state. The missing
+quarter contributes no count, so each synthetic month contains three counted
+quarters rather than four.
+
+>>> distribution = clouds.count_cloud_states(historical)
+>>> distribution.loc[1].tolist()
+[1, 0, 1, 0, 0, 0, 0, 0, 1]
+
+Transition counts use a complete month/origin index and destination columns.
+Only the two valid adjacent pairs, 0-to-2 and 2-to-8, contribute in each night;
+there is no transition into the missing quarter. The stochastic matrix retains
+this layout but contains floating-point conditional probabilities instead of
+integer counts.
+
+>>> transitions = clouds.compute_transition_matrix(historical)
+>>> transitions.shape, list(transitions.index.names)
+((108, 9), ['month', 'origin'])
+>>> transitions.columns.name, transitions.columns.tolist()
+('destination', [0, 1, 2, 3, 4, 5, 6, 7, 8])
+>>> int(transitions.loc[(1, 0), 2])
+1
+>>> probabilities = clouds.compute_stochastic_matrix(transitions)
+>>> bool(probabilities.sum(axis=1).eq(1).all())
+True
+
+Origin 1 has no historical transitions. Its fallback priority selects origin 2
+before origin 0, so its inspection probabilities favor destination 8.
+
+>>> float(probabilities.loc[(1, 1), 8])
+1.0
+
+These examples illustrate representative contracts; the dtype details remain
+in :ref:`clouds-schemas`. Public consumers reject malformed records rather than
+repairing them:
+
+>>> clouds.count_cloud_states(historical.drop(columns='cloud'))  # doctest: +IGNORE_EXCEPTION_DETAIL
+Traceback (most recent call last):
+    ...
+ValueError: ...
+
 Statistical Invariants
 ----------------------
 
@@ -43,6 +104,20 @@ adjacency. Consecutive nights include q4-to-q1 pairs. A pair belongs to its
 destination quarter's night-start month. The first simulated month excludes
 any artificial predecessor; subsequent months include their real incoming
 pair from the previously accepted month.
+
+Here, the January 31 q4-to-February 1 q1 transition belongs to February. Neither
+the missing quarter on February 1 nor the absent February 2 night creates a
+pair. The first queried cell counts only the real month-boundary pair; the
+second excludes the pair separated by missing data.
+
+>>> boundary = clouds.make_cloud_frame(
+...     [date(1975, 1, 31), date(1975, 2, 1), date(1975, 2, 3)],
+...     [0, 0, 0, 2, 8, 9, 2, 2, 8, 8, 8, 8])
+>>> boundary_counts = clouds.compute_transition_matrix(boundary)
+>>> int(boundary_counts.loc[(2, 2), 8])
+1
+>>> int(boundary_counts.loc[(2, 8), 2])
+0
 
 Budgets and Fallback
 --------------------
@@ -132,12 +207,14 @@ Verification
 ------------
 
 From the repository root in an activated development environment, run
-``python -m pytest tests/clouds``. Ordinary tests use synthetic inputs and
-check input validation, schemas, monthly count constraints, candidate selection,
-timing and scheduler compatibility, database writing, and plotting behavior.
-They also run doctests directly from the clouds documentation pages and API
-docstrings, including both CLI invocations and the staged Python workflow.
-To run just those checks, use
+``python -m pytest tests/clouds``. The requirements tests in
+``tests/clouds/test_average_clouds.py`` use synthetic inputs to check historical
+reading, monthly count constraints, intermediate products, timing and scheduler
+compatibility, database writing, diagnostics, and CLI/API output agreement.
+A single documentation test runs this page's short public-API examples to catch
+representative schema, validation, fallback, and adjacency mismatches. It does
+not exhaustively test sampler internals or rerun the user-guide workflows.
+To run just the architecture doctests, use
 ``python -m pytest tests/clouds/test_documentation.py``.
 
 The opt-in test
