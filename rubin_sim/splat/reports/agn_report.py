@@ -18,9 +18,7 @@ class AgnElement(BaseReportElement):
             df["saturation_mag"] = saturation_mag
         return df
 
-    def __call__(self, visits_df=None, visits_array=None):
-        # If we only have a dataframe, want the array
-        visits_df, visits_array = self.visit_resolver(visits_df, visits_array)
+    def compute_elements(self, visits_df=None, visits_array=None):
 
         sl = splat.Slicer(nside=64)
 

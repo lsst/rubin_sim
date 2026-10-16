@@ -57,13 +57,14 @@ class ParallaxMetric(BaseMetric):
         m5_col="fiveSigmaDepth",
         filter_col="filter",
         seeing_col="seeingFwhmGeom",
+        metric_name="parallax",
         **kwargs,
     ):
         if normalize:
             unit = "Parallax Uncertainty (ratio)"
         else:
             unit = "Parallax Uncertainty (mas)"
-        super().__init__(unit=unit, **kwargs)
+        super().__init__(unit=unit, name=metric_name, **kwargs)
         self.m5_col = m5_col
         self.seeing_col = seeing_col
         self.filter_col = filter_col

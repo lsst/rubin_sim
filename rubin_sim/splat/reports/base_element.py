@@ -3,8 +3,6 @@ __all__ = ("BaseReportElement",)
 
 import sqlite3
 from os.path import basename
-import rubin_sim.splat as splat
-
 
 import pandas as pd
 
@@ -23,7 +21,8 @@ class BaseReportElement:
     """Base class for making report element(s)."""
 
     def __init__(
-        self, observations=None, run_name=None, quick_test=False, fig_saver=None, info=None, quick_night=61
+        self, observations=None, run_name=None, quick_test=False, fig_saver=None, info=None, 
+        subset="", quick_night=61
     ):
 
         if fig_saver is None:
@@ -36,6 +35,7 @@ class BaseReportElement:
         self.quick_test = quick_test
         self.info = info
         self.quick_night = quick_night
+        self.subset = subset
 
         if quick_test:
             self.load_visits()
@@ -73,24 +73,34 @@ class BaseReportElement:
 
         return df
 
-    def visit_resolver(self, visits_df, visits_array):
+    def visit_resolver(self, visits_df, visits_array, make_array=True):
         if visits_df is None:
             self.load_visits()
             visits_df = self.visits_df
         else:
             visits_df = self.add_cols(visits_df)
 
-        if visits_array is None:
-            visits_array = visits_df.to_records(index=False)
+        if make_array:
+            if visits_array is None:
+                visits_array = visits_df.to_records(index=False)
 
         return visits_df, visits_array
 
-    def __call__(self, visits_df=None, visits_array=None):
-        """return a list of arrays, list of infos, and dataframe of summary stats"""
-        visits_df, visits_array = self.visit_resolver(visits_df, visits_array)
-
+    def compute_elements(self, visits_df=None, visits_array=None, **kwargs):
         list_of_data = []
         list_of_infos = []
         summary_dataframe = None
+
+        return list_of_data, list_of_infos, summary_dataframe
+
+    def __call__(self, visits_df=None, visits_array=None, **kwargs):
+        """return a list of arrays, list of infos, and dataframe of summary stats
+        """
+        # Make sure we have some data loaded and generate the array if needed.
+        visits_df, visits_array = self.visit_resolver(visits_df, visits_array)
+
+        list_of_data, list_of_infos, summary_dataframe = self.compute_elements(visits_df=visits_df,
+                                                                               visits_array=visits_array,
+                                                                               **kwargs)
 
         return list_of_data, list_of_infos, summary_dataframe
