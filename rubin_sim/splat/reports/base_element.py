@@ -21,8 +21,14 @@ class BaseReportElement:
     """Base class for making report element(s)."""
 
     def __init__(
-        self, observations=None, run_name=None, quick_test=False, fig_saver=None, info=None, 
-        subset="", quick_night=61
+        self,
+        observations=None,
+        run_name=None,
+        quick_test=False,
+        fig_saver=None,
+        info=None,
+        subset="",
+        quick_night=61,
     ):
 
         if fig_saver is None:
@@ -36,9 +42,6 @@ class BaseReportElement:
         self.info = info
         self.quick_night = quick_night
         self.subset = subset
-
-        if quick_test:
-            self.load_visits()
 
     def load_visits(self):
         if self.observations is None:
@@ -94,13 +97,12 @@ class BaseReportElement:
         return list_of_data, list_of_infos, summary_dataframe
 
     def __call__(self, visits_df=None, visits_array=None, **kwargs):
-        """return a list of arrays, list of infos, and dataframe of summary stats
-        """
+        """return a list of arrays, list of infos, and dataframe of summary stats"""
         # Make sure we have some data loaded and generate the array if needed.
         visits_df, visits_array = self.visit_resolver(visits_df, visits_array)
 
-        list_of_data, list_of_infos, summary_dataframe = self.compute_elements(visits_df=visits_df,
-                                                                               visits_array=visits_array,
-                                                                               **kwargs)
+        list_of_data, list_of_infos, summary_dataframe = self.compute_elements(
+            visits_df=visits_df, visits_array=visits_array, **kwargs
+        )
 
         return list_of_data, list_of_infos, summary_dataframe

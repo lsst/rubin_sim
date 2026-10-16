@@ -4,15 +4,14 @@ __all__ = (
     "AgnTimeLagMetric",
 )
 
-import numpy as np
-import warnings
-from astropy.stats import mad_std
 import os
+import warnings
 
 import healpy as hp
+import numpy as np
+from astropy.stats import mad_std
 from rubin_scheduler.data import get_data_dir
 from scipy import interpolate
-
 
 from rubin_sim.maf.utils import m52snr
 from rubin_sim.phot_utils import DustValues

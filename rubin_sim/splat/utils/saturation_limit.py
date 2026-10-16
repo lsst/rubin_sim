@@ -1,6 +1,7 @@
 __all__ = ("saturation_limit",)
 
 import numpy as np
+
 from rubin_sim.maf.utils import load_inst_zeropoints
 
 
