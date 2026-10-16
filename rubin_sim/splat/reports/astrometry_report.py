@@ -8,8 +8,7 @@ from .base_element import BaseReportElement
 
 
 class AstrometryElement(BaseReportElement):
-    """Check parallax, proper motion, etc.
-    """
+    """Check parallax, proper motion, etc."""
 
     def add_cols(self, df):
         """Add any columns to the dataframe that are needed"""
@@ -74,8 +73,7 @@ class AstrometryElement(BaseReportElement):
             # Do whatever stats we want on the hp_array
             for stat in stats_to_run:
                 summary_stats.append(splat.gen_summary_row(info, stat, stats_to_run[stat](hp_array)))
-        
+
         summary_dataframe = pd.DataFrame.from_dict(summary_stats)
 
         return result_hp_arrays, result_infos, summary_dataframe
-

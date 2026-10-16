@@ -2,12 +2,13 @@ __all__ = ("AgnElement",)
 
 import rubin_sim.splat as splat
 import numpy as np
-
+import pandas as pd
 
 from .base_element import BaseReportElement
 
 
 class AgnElement(BaseReportElement):
+    """Compute some AGN metrics."""
 
     def add_cols(self, df):
         """Add any columns to the dataframe that are needed"""
@@ -25,7 +26,7 @@ class AgnElement(BaseReportElement):
         # Lists to hold data and info
         result_hp_arrays = []
         result_infos = []
-        summary_dataframe = None
+        summary_dataframe = pd.DataFrame()
 
         for band in "ugrizy":
             metrics = []
@@ -55,5 +56,5 @@ class AgnElement(BaseReportElement):
                 pm = splat.PlotMoll(info=info)
                 fig = pm(hp_array, **plot_dict)
                 self.fig_saver(fig, info=info)
-  
+
         return result_hp_arrays, result_infos, summary_dataframe

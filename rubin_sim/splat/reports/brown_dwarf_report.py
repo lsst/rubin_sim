@@ -11,7 +11,6 @@ class BrownDwarfElement(BaseReportElement):
 
     def add_cols(self, df):
         """Add any columns to the dataframe that are needed"""
-        # Check if needed columns already exist, if not add them
 
         if "ra_pi_amp" not in df.columns:
             ra_pi_amp, dec_pi_amp = splat.parallax_amplitude(
@@ -39,7 +38,7 @@ class BrownDwarfElement(BaseReportElement):
         plot_dicts = []
         for m in metrics:
             info = splat.empty_info()
-            info["run_name"] = self.run_name
+            info["data_source"] = self.run_name
             info["observations_subset"] = (self.subset + "\n %s" % m.name).strip()
             info["population"] = m.name
             infos.append(info)
