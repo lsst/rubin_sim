@@ -22,11 +22,11 @@ class DepthCountElement(BaseReportElement):
         summary_stats = []
 
         # Things calculated per filter
-        for i, filtername in enumerate(bands):
+        for i, bandname in enumerate(bands):
             info = {"data_source": self.run_name}
-            info["observations_subset"] = self.subset + "\nfilter=%s" % filtername
+            info["observations_subset"] = self.subset + "\nband=%s" % bandname
             # select subset of data
-            sub_data = visits_array[np.where(visits_array["filter"] == filtername)[0]]
+            sub_data = visits_array[np.where(visits_array["band"] == bandname)[0]]
 
             #
             metrics = []
@@ -34,7 +34,7 @@ class DepthCountElement(BaseReportElement):
             plot_dicts = []
 
             # Coadd depth
-            metrics.append(splat.CoaddM5Metric(filtername))
+            metrics.append(splat.CoaddM5Metric(bandname))
             temp_info = copy.copy(info)
             temp_info["group"] = "Basics"
             temp_info["subgroup"] = "Coadd"

@@ -16,19 +16,9 @@ class AstrometryElement(BaseReportElement):
         # Check if needed columns already exist, if not add them
 
         if "ra_pi_amp" not in df.columns:
-            ra_pi_amp, dec_pi_amp = splat.parallax_amplitude(
-                df["fieldRA"].values, df["fieldDec"].values, df["observationStartMJD"].values, degrees=True
-            )
-
-            df["ra_pi_amp"] = ra_pi_amp
-            df["dec_pi_amp"] = dec_pi_amp
+            df = splat.add_astrometry_pi_cols(df)
         if "ra_dcr_amp" not in df.columns:
-
-            ra_dcr_amp, dec_dcr_amp = splat.dcr_amplitude(
-                90.0 - df["altitude"].values, df["paraAngle"].values, df["filter"].values, degrees=True
-            )
-            df["ra_dcr_amp"] = ra_dcr_amp
-            df["dec_dcr_amp"] = dec_dcr_amp
+            df = splat.add_astrometry_dcr_cols(df)
 
         return df
 

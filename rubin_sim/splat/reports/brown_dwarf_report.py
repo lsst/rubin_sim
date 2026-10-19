@@ -14,11 +14,7 @@ class BrownDwarfElement(BaseReportElement):
         """Add any columns to the dataframe that are needed"""
 
         if "ra_pi_amp" not in df.columns:
-            ra_pi_amp, dec_pi_amp = splat.parallax_amplitude(
-                df["fieldRA"].values, df["fieldDec"].values, df["observationStartMJD"].values, degrees=True
-            )
-            df["ra_pi_amp"] = ra_pi_amp
-            df["dec_pi_amp"] = dec_pi_amp
+            df = splat.add_astrometry_pi_cols(df)
 
         return df
 

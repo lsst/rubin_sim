@@ -16,8 +16,7 @@ class AgnElement(BaseReportElement):
         # Check if needed columns already exist, if not add them
 
         if "saturation_mag" not in df.columns:
-            saturation_mag = splat.saturation_limit(df.to_records(index=False))
-            df["saturation_mag"] = saturation_mag
+            df = splat.add_saturation_mag(df)
         return df
 
     def compute_elements(self, visits_df=None, visits_array=None):
