@@ -50,6 +50,12 @@ class Slicer(object):
     camera : `str` or camera object
         Default value of "default" loads utils.LsstCameraFootprint.
         False uses no camera. Or pass in a custom camera object.
+    ra : `np.NDArray`
+        The RA of points to loop over
+    dec : `np.NDArray`
+        The dec of points to loop over
+    hpindx : `np.NDArray`
+        If one should only use a subset of HEALpixels.
     """
 
     def __init__(
@@ -65,6 +71,7 @@ class Slicer(object):
         cache=False,
         ra=None,
         dec=None,
+        hpindx=None,
     ):
 
         self.lon_col = lon_col
@@ -95,9 +102,10 @@ class Slicer(object):
                 nside = None
         if dec is not None:
             dec = np.radians(np.atleast_1d(dec))
-        self.setup_slice_points(nside=nside, ra_rad=ra, dec_rad=dec)
+        self.setup_slice_points(nside=nside, ra_rad=ra, dec_rad=dec, hpindx=hpindx)
+        self.hpindx = hpindx
 
-    def setup_slice_points(self, nside=None, ra_rad=None, dec_rad=None):
+    def setup_slice_points(self, nside=None, ra_rad=None, dec_rad=None, hpindx=None):
         """Define the slice points we're using."""
 
         if (nside is not None) & (ra_rad is not None):
@@ -112,6 +120,14 @@ class Slicer(object):
             self.shape = self.nslice
             self.slice_points["dec"] = dec_rad
             self.nside = None
+        elif hpindx is not None:
+            self.nside = int(nside)
+            self.nslice = np.size(hpindx)
+            self.shape = self.nslice
+            self.slice_points["sid"] = hpindx
+            self.slice_points["ra"], self.slice_points["dec"] = utils._hpid2_ra_dec(
+                self.nside, self.slice_points["sid"]
+            )
         else:
             self.nside = int(nside)
             self.nslice = hp.nside2npix(self.nside)
@@ -339,6 +355,15 @@ class Slicer(object):
 
         concat_results = [concat_with_missing(arrays_list, missing=self.missing) for arrays_list in results]
         results = concat_results
+
+        # If we are filling in a subset of HEALpix
+        if self.hpindx is not None:
+            new_arrays_list = []
+            for array in results:
+                na = np.zeros(hp.nside2npix(self.nside)) + self.missing
+                na[self.hpindx] = np.ravel(array)
+                new_arrays_list.append(na)
+            results = new_arrays_list
 
         final_info = []
         if orig_info is not None:

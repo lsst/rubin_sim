@@ -4,6 +4,7 @@ from .astrometry_report import *
 from .base_element import *
 from .brown_dwarf_report import *
 from .color_slope_report import *
+from .ddf_depth_report import *
 from .depth_count_report import *
 from .fO_report import *
 from .hourglass_report import *
