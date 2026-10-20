@@ -10,6 +10,9 @@ from rubin_sim.data import get_baseline
 
 
 class DoNothing:
+    """Dummy class for when we don't need to
+    save figures as they are generated.
+    """
     def __call__(*args, **kwargs):
         pass
 
@@ -73,10 +76,12 @@ class BaseReportElement:
     def add_cols(self, df):
         """Add any columns to the dataframe that are needed"""
         # Check if needed columns already exist, if not add them
-
         return df
 
     def visit_resolver(self, visits_df, visits_array, make_array=True):
+        """Figure out if we need to load visits. Convert DataFrame
+        to a numpy array if needed. 
+        """
         if visits_df is None:
             self.load_visits()
             visits_df = self.visits_df
@@ -90,6 +95,8 @@ class BaseReportElement:
         return visits_df, visits_array
 
     def compute_elements(self, visits_df=None, visits_array=None, **kwargs):
+        """Compute stuff. 
+        """
         list_of_data = []
         list_of_infos = []
         summary_dataframe = None
@@ -98,9 +105,11 @@ class BaseReportElement:
 
     def __call__(self, visits_df=None, visits_array=None, **kwargs):
         """return a list of arrays, list of infos, and dataframe of summary stats"""
-        # Make sure we have some data loaded and generate the array if needed.
+
+        # Make sure we have some data loaded and array if needed.
         visits_df, visits_array = self.visit_resolver(visits_df, visits_array)
 
+        # Compute the report elements.
         list_of_data, list_of_infos, summary_dataframe = self.compute_elements(
             visits_df=visits_df, visits_array=visits_array, **kwargs
         )
