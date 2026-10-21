@@ -194,9 +194,15 @@ class AnomalousOverheadFunc:
                     "The visittime argument is deprecated and unused", DeprecationWarning, stacklevel=2
                 )
             else:
-                assert isinstance(obs, Mapping)
-                assert isinstance(obs["slewtime"], float)
-                slewtime = obs["slewtime"]
+                if isinstance(obs, Mapping):
+                    assert isinstance(obs["slewtime"], float)
+                    slewtime = obs["slewtime"]
+                else:
+                    assert isinstance(obs, ObservationArray)
+                    assert len(obs) == 1
+                    slewtime = obs["slewtime"].item()
+
+                assert isinstance(slewtime, float)
 
             slew_overhead_offset = slewtime * self.rng.normal(self.slew_loc, self.slew_scale)
             # Slew might be faster than expected,
