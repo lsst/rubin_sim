@@ -4,8 +4,7 @@ from . import slicers
 from .metrics import LCLObsCountMetric
 
 
-def run_lightcurvelynx(sim_data):
-    out_dir = "/Users/maxwest/maf_runs/"
+def run_lightcurvelynx(sim_data, out_dir):
     slicer = slicers.LynxBaseSlicer()
     metric = LCLObsCountMetric(col="lightcurve")
 
