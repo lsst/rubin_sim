@@ -145,23 +145,12 @@ class AnomalousOverheadFunc:
 
     def __call__(
         self,
-        visittime: float | np.ndarray | None = None,
-        slewtime: float | np.ndarray | None = None,
         obs: Mapping[str, Any] | ObservationArray | None = None,
     ) -> float:
         """Return a randomized offset for the visit overhead.
 
         Parameters
         ----------
-        visittime : `float` or `None`
-            The visit time (seconds). No longer does anything,
-            and will be removed.
-        slewtime : `float` or `None`
-            The slew time (seconds). If the ``slew_scale`` attribute
-            is greater than zero, either ``slewtime`` must not be
-            ``None`` or ``obs`` (below) must have a ``slewtime`` key.
-            The use of ``slewtime`` is deprecated in favor of using
-            ``obs``.
         obs : `Mapping[str, Any]`
             Observation record.
 
@@ -176,27 +165,19 @@ class AnomalousOverheadFunc:
             So, the ``offset`` here is time to be added to
             the modeled start of an exposure.
         """
-        if visittime is not None:
-            warnings.warn(
-                "The visittime argument is deprecated and does nothing.", DeprecationWarning, stacklevel=2
-            )
 
         slew_overhead_offset: float
         if self.slew_scale > 0 or self.slew_loc > 0:
             # we are actually using slew time scattering, so
             # get the model slewtime.
-            if slewtime is not None:
-                if isinstance(slewtime, np.ndarray):
-                    assert slewtime.shape == (1,)
-                    slewtime = float(slewtime.item())
-                assert isinstance(slewtime, float)
-                warnings.warn(
-                    "The visittime argument is deprecated and unused", DeprecationWarning, stacklevel=2
-                )
-            else:
-                assert isinstance(obs, Mapping)
-                assert isinstance(obs["slewtime"], float)
+            if isinstance(obs, Mapping):
                 slewtime = obs["slewtime"]
+            else:
+                assert isinstance(obs, ObservationArray)
+                assert len(obs) == 1
+                slewtime = obs["slewtime"].item()
+
+            assert isinstance(slewtime, float)
 
             slew_overhead_offset = slewtime * self.rng.normal(self.slew_loc, self.slew_scale)
             # Slew might be faster than expected,
