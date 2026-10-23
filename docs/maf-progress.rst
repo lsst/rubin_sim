@@ -95,7 +95,7 @@ its final snapshot supplies the baseline reference for extrapolated metrics.
 
     # Measure extrapolated progress on every chimera.
     run_chimera_batches \
-      --chimera-dir "$CHIMERA_DIR" \
+      --chimera-path "$CHIMERA_DIR" \
       --out-dir "$RESULTS_DIR"
 
     # Measure actual progress through the latest completed observing day.
@@ -139,7 +139,7 @@ The command reports each selected transition dayObs and file path, followed by
 the output does not indicate whether a file was written or skipped.
 
 ``run_chimera_batches`` accepts an individual chimera HDF5 file via
-``--chimera-dir`` instead of a whole directory, so new chimeras can be evaluated
+``--chimera-path`` instead of a whole directory, so new chimeras can be evaluated
 without reprocessing earlier ones. Results accumulate in the same
 ``resultsDb_sqlite.db``.
 
@@ -164,7 +164,7 @@ one date at a time.
 
     # Evaluate only the latest chimera.
     run_chimera_batches \
-      --chimera-dir "$NEW_CHIMERA" \
+      --chimera-path "$NEW_CHIMERA" \
       --out-dir "$RESULTS_DIR"
 
     # Add one snapshot for the new date.
@@ -205,7 +205,7 @@ Existing batches can also run on stored chimeras. For example:
 .. code-block:: bash
 
     run_chimera_batches \
-      --chimera-dir "$CHIMERA_DIR" \
+      --chimera-path "$CHIMERA_DIR" \
       --batch science_radar_batch \
       --batch-kwarg dayobs0="$START_DAYOBS" \
       --out-dir ./science_radar_results

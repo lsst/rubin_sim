@@ -444,7 +444,7 @@ class TestProgressWorkflow(unittest.TestCase):
             ),
             "chimera": (
                 run_chimera_batches_cmd,
-                ["--chimera-dir", cls.chimera_dir, "--out-dir", cls.results_dir] + kwarg,
+                ["--chimera-path", cls.chimera_dir, "--out-dir", cls.results_dir] + kwarg,
             ),
             "snapshot": (
                 run_progress_batches_cmd,
@@ -680,7 +680,7 @@ class TestProgressCommands(unittest.TestCase):
                     ["--visits-file", visits_file, "--start-dayobs", "20260101"]
                     + ["--end-dayobs", "20260101", "--out-dir", out_dir],
                 ),
-                "chimera": (run_chimera_batches_cmd, ["--chimera-dir", tmp, "--out-dir", out_dir]),
+                "chimera": (run_chimera_batches_cmd, ["--chimera-path", tmp, "--out-dir", out_dir]),
             }
             bad_options = (
                 ["--batch", "not_a_batch"],
@@ -801,6 +801,15 @@ class TestIncrementalCLI(unittest.TestCase):
         for f in files:
             self.assertGreater(os.path.getmtime(os.path.join(chimera_dir, f)), old_time)
 
+    def test_run_chimera_batches_cmd_path_help(self):
+        result = CliRunner().invoke(run_chimera_batches_cmd, ["--help"])
+        self.assertEqual(result.exit_code, 0, result.output)
+        self.assertIn("--chimera-path", result.output)
+        self.assertIn(
+            "Directory containing chimera_*.h5 files or an individual chimera HDF5 file.",
+            " ".join(result.output.split()),
+        )
+
     def test_run_chimera_batches_cmd_single_file(self):
         """run_chimera_batches_cmd accepts a single chimera file."""
         runner = CliRunner()
@@ -825,7 +834,7 @@ class TestIncrementalCLI(unittest.TestCase):
         out_dir = os.path.join(self.tmp, "results_single")
         result = runner.invoke(
             run_chimera_batches_cmd,
-            ["--chimera-dir", single_file, "--out-dir", out_dir, "--batch-kwarg", f"nside={NSIDE}"],
+            ["--chimera-path", single_file, "--out-dir", out_dir, "--batch-kwarg", f"nside={NSIDE}"],
         )
         self.assertEqual(result.exit_code, 0, f"{result.output}\n{result.exception!r}")
         results_db = ResultsDb(database=os.path.join(out_dir, "resultsDb_sqlite.db"))
@@ -842,7 +851,7 @@ class TestIncrementalCLI(unittest.TestCase):
         out_dir = os.path.join(self.tmp, "results_bad")
         result = runner.invoke(
             run_chimera_batches_cmd,
-            ["--chimera-dir", bad_file, "--out-dir", out_dir],
+            ["--chimera-path", bad_file, "--out-dir", out_dir],
         )
         self.assertNotEqual(result.exit_code, 0)
 
