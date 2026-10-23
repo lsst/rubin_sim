@@ -11,7 +11,7 @@ jobs:
 
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - uses: lsst-sqre/build-and-push-to-ghcr@tickets/DM-41857
         id: build
