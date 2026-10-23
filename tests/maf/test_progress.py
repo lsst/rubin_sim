@@ -146,6 +146,77 @@ class TestChimeraConstruction(unittest.TestCase):
         )
         return completed, baseline
 
+    def test_build_chimeras_latest(self):
+        completed, baseline = self._chimera_data()
+        with tempfile.TemporaryDirectory() as out_dir:
+            specs = build_chimeras(completed, baseline, 20260131, 20260205, out_dir=out_dir)
+            path = os.path.join(out_dir, "chimera_20260203.h5")
+            self.assertEqual(specs, [(20260203, path)])
+            self.assertEqual(os.listdir(out_dir), [os.path.basename(path)])
+            chimera = pd.read_hdf(path, key="observations")
+
+        real = chimera.loc[~chimera["simulated"]]
+        simulated = chimera.loc[chimera["simulated"]]
+        self.assertEqual(real["observationId"].tolist(), list(range(4, 12)))
+        self.assertEqual(real["dayObs"].min(), 20260131)
+        self.assertEqual(real["dayObs"].max(), 20260203)
+        self.assertEqual(simulated["observationId"].tolist(), list(range(112, 116)))
+        self.assertEqual(simulated["dayObs"].min(), 20260204)
+        self.assertEqual(simulated["dayObs"].max(), 20260205)
+
+    def test_build_chimeras_latest_skips_and_updates(self):
+        completed, baseline = self._chimera_data()
+        with tempfile.TemporaryDirectory() as out_dir:
+            specs = build_chimeras(completed, baseline, 20260131, 20260205, out_dir=out_dir)
+            path = specs[0][1]
+            original = pd.read_hdf(path, key="observations")
+            old_time = os.path.getmtime(path) - 10
+            os.utime(path, (old_time, old_time))
+            revised = completed.assign(fiveSigmaDepth=25.0)
+
+            with self.assertLogs("rubin_sim.maf.progress", level="INFO") as logs:
+                skipped = build_chimeras(revised, baseline, 20260131, 20260205, out_dir=out_dir)
+            self.assertEqual(skipped, specs)
+            self.assertEqual(os.path.getmtime(path), old_time)
+            pd.testing.assert_frame_equal(pd.read_hdf(path, key="observations"), original)
+            self.assertEqual(len(logs.records), 1)
+            self.assertEqual(logs.records[0].levelname, "INFO")
+            self.assertIn("Skipping chimera creation", logs.output[0])
+
+            updated = build_chimeras(revised, baseline, 20260131, 20260205, out_dir=out_dir, update=True)
+            self.assertEqual(updated, specs)
+            self.assertGreater(os.path.getmtime(path), old_time)
+            chimera = pd.read_hdf(path, key="observations")
+            self.assertTrue((chimera.loc[~chimera["simulated"], "fiveSigmaDepth"] == 25.0).all())
+
+    def test_build_chimeras_daily_series(self):
+        completed, baseline = self._chimera_data()
+        with tempfile.TemporaryDirectory() as out_dir:
+            specs = build_chimeras(completed, baseline, 20260129, 20260205, step=1, out_dir=out_dir)
+            self.assertEqual(
+                [t for t, _ in specs], [20260129, 20260130, 20260131, 20260201, 20260202, 20260203]
+            )
+
+    def test_build_chimeras_invalid_inputs(self):
+        completed, baseline = self._chimera_data()
+        cases = (
+            (completed.iloc[:0], 20260129, "consdb_visits must not be empty"),
+            (completed, 20260204, "start_dayobs must not be later than the latest consdb dayObs"),
+        )
+        with tempfile.TemporaryDirectory() as tmp:
+            out_dir = os.path.join(tmp, "chimeras")
+            for visits, start, message in cases:
+                for kwargs in ({}, {"step": 1}, {"step": 2}):
+                    with self.subTest(start=start, kwargs=kwargs):
+                        with self.assertRaisesRegex(ValueError, message):
+                            build_chimeras(visits, baseline, start, 20260205, out_dir=out_dir, **kwargs)
+                        self.assertFalse(os.path.exists(out_dir))
+            for step in (0, -1):
+                with self.subTest(step=step):
+                    with self.assertRaisesRegex(ValueError, "step must be a positive integer"):
+                        build_chimeras(completed, baseline, 20260129, 20260205, step=step, out_dir=out_dir)
+                    self.assertFalse(os.path.exists(out_dir))
+
     def test_build_chimeras_series(self):
         # Completed visits run past end_dayobs, and the step does not
         # land on the last completed date. Dates cross a month boundary.
@@ -173,7 +244,7 @@ class TestChimeraConstruction(unittest.TestCase):
             specs1 = build_chimeras(completed, baseline, 20260129, 20260201, step=2, out_dir=out_dir)
             mtimes = {path: os.path.getmtime(path) for _, path in specs1}
 
-            # Second call with the default update=False: files should be skipped.
+            # A second call with update=False should skip existing files.
             specs2 = build_chimeras(completed, baseline, 20260129, 20260201, step=2, out_dir=out_dir)
             self.assertEqual(specs1, specs2)
             for _, path in specs2:
@@ -639,17 +710,74 @@ class TestIncrementalCLI(unittest.TestCase):
         completed.to_hdf(cls.completed_file, key="observations")
         baseline.to_hdf(cls.baseline_file, key="observations")
 
+    def test_build_chimeras_cmd_latest(self):
+        runner = CliRunner()
+        with tempfile.TemporaryDirectory() as chimera_dir:
+            args = [
+                "--consdb-file",
+                self.completed_file,
+                "--opsim-file",
+                self.baseline_file,
+                "--start-dayobs",
+                "20260101",
+                "--end-dayobs",
+                "20260209",
+                "--out-dir",
+                chimera_dir,
+            ]
+            path = os.path.join(chimera_dir, "chimera_20260124.h5")
+            expected_output = f"20260124 {path}\nSelected 1 chimera files\n"
+            first = runner.invoke(build_chimeras_cmd, args)
+            self.assertEqual(first.exit_code, 0, f"{first.output}\n{first.exception!r}")
+            self.assertEqual(first.output, expected_output)
+            self.assertEqual(os.listdir(chimera_dir), [os.path.basename(path)])
+            original = pd.read_hdf(path, key="observations")
+            old_time = os.path.getmtime(path) - 10
+            os.utime(path, (old_time, old_time))
+
+            # Refresh the input without advancing the latest dayObs.
+            revised_file = os.path.join(self.tmp, "revised_completed.h5")
+            completed = pd.read_hdf(self.completed_file, key="observations")
+            completed.assign(fiveSigmaDepth=25.0).to_hdf(revised_file, key="observations")
+            args[1] = revised_file
+            repeated = runner.invoke(build_chimeras_cmd, args)
+            self.assertEqual(repeated.exit_code, 0, repeated.output)
+            self.assertEqual(repeated.output, expected_output)
+            self.assertEqual(os.path.getmtime(path), old_time)
+            pd.testing.assert_frame_equal(pd.read_hdf(path, key="observations"), original)
+
+            updated = runner.invoke(build_chimeras_cmd, args + ["--update"])
+            self.assertEqual(updated.exit_code, 0, updated.output)
+            self.assertEqual(updated.output, expected_output)
+            self.assertGreater(os.path.getmtime(path), old_time)
+            chimera = pd.read_hdf(path, key="observations")
+            self.assertTrue((chimera.loc[~chimera["simulated"], "fiveSigmaDepth"] == 25.0).all())
+
+    def test_build_chimeras_cmd_step_help(self):
+        result = CliRunner().invoke(build_chimeras_cmd, ["--help"])
+        self.assertEqual(result.exit_code, 0, result.output)
+        self.assertIn(
+            "If omitted, build only the chimera for the latest dayObs in the consdb file.",
+            " ".join(result.output.split()),
+        )
+
     def test_build_chimeras_cmd_update_flag(self):
-        """build_chimeras_cmd --update overwrites; without it, files are skipped."""
+        """The --update flag overwrites files; otherwise, they are skipped."""
         runner = CliRunner()
         chimera_dir = os.path.join(self.tmp, "chimeras_update")
         base_args = [
-            "--consdb-file", self.completed_file,
-            "--opsim-file", self.baseline_file,
-            "--start-dayobs", "20260101",
-            "--end-dayobs", "20260209",
-            "--step", "30",
-            "--out-dir", chimera_dir,
+            "--consdb-file",
+            self.completed_file,
+            "--opsim-file",
+            self.baseline_file,
+            "--start-dayobs",
+            "20260101",
+            "--end-dayobs",
+            "20260209",
+            "--step",
+            "30",
+            "--out-dir",
+            chimera_dir,
         ]
         result1 = runner.invoke(build_chimeras_cmd, base_args)
         self.assertEqual(result1.exit_code, 0, result1.output)
@@ -678,12 +806,18 @@ class TestIncrementalCLI(unittest.TestCase):
         runner = CliRunner()
         chimera_dir = os.path.join(self.tmp, "chimeras_single")
         build_args = [
-            "--consdb-file", self.completed_file,
-            "--opsim-file", self.baseline_file,
-            "--start-dayobs", "20260101",
-            "--end-dayobs", "20260209",
-            "--step", "30",
-            "--out-dir", chimera_dir,
+            "--consdb-file",
+            self.completed_file,
+            "--opsim-file",
+            self.baseline_file,
+            "--start-dayobs",
+            "20260101",
+            "--end-dayobs",
+            "20260209",
+            "--step",
+            "30",
+            "--out-dir",
+            chimera_dir,
         ]
         runner.invoke(build_chimeras_cmd, build_args)
         single_file = sorted(glob.glob(os.path.join(chimera_dir, "chimera_*.h5")))[0]
@@ -701,7 +835,7 @@ class TestIncrementalCLI(unittest.TestCase):
         self.assertTrue(run_names[0].startswith("chimera_"))
 
     def test_run_chimera_batches_cmd_bad_filename(self):
-        """run_chimera_batches_cmd rejects a file not matching chimera_YYYYMMDD.h5."""
+        """Reject a file not matching chimera_YYYYMMDD.h5."""
         bad_file = os.path.join(self.tmp, "not_a_chimera.h5")
         pd.DataFrame({"x": [1]}).to_hdf(bad_file, key="observations")
         runner = CliRunner()
@@ -719,10 +853,14 @@ class TestIncrementalCLI(unittest.TestCase):
         result = runner.invoke(
             run_progress_batches_cmd,
             [
-                "--visits-file", self.completed_file,
-                "--start-dayobs", "20260120",
-                "--out-dir", out_dir,
-                "--batch-kwarg", f"nside={NSIDE}",
+                "--visits-file",
+                self.completed_file,
+                "--start-dayobs",
+                "20260120",
+                "--out-dir",
+                out_dir,
+                "--batch-kwarg",
+                f"nside={NSIDE}",
             ],
         )
         self.assertEqual(result.exit_code, 0, f"{result.output}\n{result.exception!r}")
