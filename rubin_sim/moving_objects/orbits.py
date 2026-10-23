@@ -122,11 +122,11 @@ class Orbits:
             orbits = pd.DataFrame.from_records(orbits)
         elif isinstance(orbits, np.record):
             # This was a single object in a numpy array
-            orbits = pd.DataFrame.from_records([orbits], columns=orbits.dtype.names)
+            orbits = pd.DataFrame(np.array([orbits], dtype=orbits.dtype))
         elif isinstance(orbits, pd.DataFrame):
-            # This was a pandas dataframe ..
+            # This was a pandas dataframe,
             # but we probably want to drop the index and recount.
-            orbits.reset_index(drop=True, inplace=True)
+            orbits = orbits.reset_index(drop=True)
 
         if "index" in orbits:
             del orbits["index"]
