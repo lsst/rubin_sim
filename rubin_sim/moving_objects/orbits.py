@@ -314,7 +314,7 @@ class Orbits:
                         # And if it worked, we're done here (it's an orbit) -
                         # go on to parsing header values.
                         break
-                    except (ValueError, IndexError):
+                    except ValueError, IndexError:
                         # This wasn't a valid number or there wasn't
                         # anything in the third value.
                         # So this is either the header line or it's a

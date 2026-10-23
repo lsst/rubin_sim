@@ -147,7 +147,7 @@ def get_prenight_index_from_bucket(
         replacement_values = None
         try:
             replacement_values = pd.to_datetime(prenights[key]).dt.date
-        except (ValueError, KeyError):
+        except ValueError, KeyError:
             pass
         if replacement_values is not None:
             prenights[key] = replacement_values
