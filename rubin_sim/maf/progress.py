@@ -93,7 +93,7 @@ def _dayobs_from_run_name(run_name: str) -> int | None:
 
 
 def _dayobs_from_filename(path: str) -> int | None:
-    """Extract transition dayobs integer from a chimera HDF5 filename, or None."""
+    """Extract transition dayobs from a chimera HDF5 filename, or None."""
     basename = os.path.basename(path)
     m = re.match(r"^chimera_(\d{8})\.h5$", basename)
     return int(m.group(1)) if m else None
@@ -137,8 +137,7 @@ def build_chimera(
         Combined visit sequence containing columns present in both inputs.
     """
     consdb_part = consdb_visits.loc[
-        (consdb_visits["dayObs"] >= int(start_dayobs))
-        & (consdb_visits["dayObs"] <= int(transition_dayobs))
+        (consdb_visits["dayObs"] >= int(start_dayobs)) & (consdb_visits["dayObs"] <= int(transition_dayobs))
     ].copy()
 
     consdb_part = consdb_part.loc[consdb_part["fiveSigmaDepth"] > FIVE_SIGMA_DEPTH_LIMIT].copy()
@@ -175,16 +174,17 @@ def build_chimeras(
     opsim_visits: pd.DataFrame,
     start_dayobs: int,
     end_dayobs: int,
-    step: int = 1,
+    step: int | None = None,
     out_dir: str = ".",
     update: bool = False,
 ) -> list[tuple[int, str]]:
-    """Build chimera visit sequences for a range of transition dates.
+    """Build chimera visit sequences for selected transition dates.
 
     For each transition date, a chimera is constructed by combining real
     consdb visits up to that date with simulated opsim visits after it, then
     saved as an HDF5 file named ``chimera_YYYYMMDD.h5``. Existing files are
-    skipped unless ``update`` is True.
+    skipped unless ``update`` is True. Omit ``step`` to build only the chimera
+    for the latest consdb ``dayObs``; supply ``step`` to build a series.
 
     Both input DataFrames must already have a ``dayObs`` column (integer
     YYYYMMDD, UTC-12).
@@ -197,29 +197,49 @@ def build_chimeras(
         Simulated visits from an opsim database. Must include a ``dayObs``
         column.
     start_dayobs : `int`
-        First date in the chimera window, YYYYMMDD.
+        Lower bound on real visits, YYYYMMDD. Also the first transition date
+        when ``step`` is supplied. Required in both modes.
     end_dayobs : `int`
         End of the opsim extension window used for every chimera, YYYYMMDD.
-    step : `int`, optional
-        Number of nights between successive transition dates. Default 1.
+        Required in both modes; does not cap real visits or transition dates.
+    step : `int` or None, optional
+        If omitted or None (default), select only the latest consdb dayObs.
+        A positive integer selects transition dates every ``step`` nights
+        from ``start_dayobs``, plus the latest date if it is off cadence.
+        Explicit ``step=1`` builds the full daily series.
     out_dir : `str`, optional
         Directory in which to write HDF5 files. Created if absent.
     update : `bool`, optional
         If False, skip creating chimera files that already exist. If True,
-        overwrite existing files. Default is False.
+        overwrite existing files, for example after a same-day refresh of
+        consdb visits or a baseline revision. Default is False.
 
     Returns
     -------
     chimera_specs : `list` of `(int, str)`
-        List of ``(transition_dayobs, hdf5_path)`` tuples, one per chimera.
-        The last transition date is always the maximum dayobs present in
-        ``consdb_visits``, even if it does not fall on the step cadence.
+        List of ``(transition_dayobs, hdf5_path)`` tuples, including existing
+        files that were skipped. Without ``step``, the list has one entry
+        for the maximum dayObs in ``consdb_visits``. With ``step``, the last
+        entry is that maximum, even if it is off cadence.
+
+    Raises
+    ------
+    ValueError
+        If consdb visits are empty, ``start_dayobs`` is later than their
+        latest dayObs, or an explicit ``step`` is non-positive.
     """
-    os.makedirs(out_dir, exist_ok=True)
+    if consdb_visits.empty:
+        raise ValueError("consdb_visits must not be empty; cannot select a transition date.")
     last_consdb = int(consdb_visits["dayObs"].max())
-    transition_dates = dayobs_range(start_dayobs, last_consdb, step)
-    if not transition_dates or transition_dates[-1] != last_consdb:
-        transition_dates.append(last_consdb)
+    if start_dayobs > last_consdb:
+        raise ValueError("start_dayobs must not be later than the latest consdb dayObs.")
+    if step is None:
+        transition_dates = [last_consdb]
+    else:
+        transition_dates = dayobs_range(start_dayobs, last_consdb, step)
+        if transition_dates[-1] != last_consdb:
+            transition_dates.append(last_consdb)
+    os.makedirs(out_dir, exist_ok=True)
     chimera_specs = []
     for t in transition_dates:
         fname = os.path.join(out_dir, f"chimera_{t:08d}.h5")
@@ -497,7 +517,15 @@ def _read_visits_with_dayobs(path: str) -> pd.DataFrame:
 )
 @click.option("--start-dayobs", required=True, type=int, help="Start date YYYYMMDD.")
 @click.option("--end-dayobs", required=True, type=int, help="End date YYYYMMDD.")
-@click.option("--step", default=1, show_default=True, type=int, help="Nights between transition dates.")
+@click.option(
+    "--step",
+    default=None,
+    type=int,
+    help=(
+        "Nights between transition dates. "
+        "If omitted, build only the chimera for the latest dayObs in the consdb file."
+    ),
+)
 @click.option("--out-dir", default=".", show_default=True, help="Output directory for chimera HDF5 files.")
 @click.option("--update", is_flag=True, help="Overwrite chimera files that already exist.")
 def build_chimeras_cmd(consdb_file, opsim_file, start_dayobs, end_dayobs, step, out_dir, update):
@@ -518,7 +546,9 @@ def build_chimeras_cmd(consdb_file, opsim_file, start_dayobs, end_dayobs, step, 
         out_dir,
         update=update,
     )
-    click.echo(f"Wrote {len(specs)} chimera files to {out_dir}.")
+    for dayobs, path in specs:
+        click.echo(f"{dayobs} {path}")
+    click.echo(f"Selected {len(specs)} chimera files")
 
 
 @click.command(name="run_chimera_batches")
@@ -544,7 +574,7 @@ def build_chimeras_cmd(consdb_file, opsim_file, start_dayobs, end_dayobs, step, 
 def run_chimera_batches_cmd(chimera_dir, out_dir, batch, batch_kwargs):
     """Run MAF metric batches on chimera HDF5 files.
 
-    The input may be a directory of chimera files or an individual chimera file.
+    The input may be a directory of chimera files or a single chimera file.
     """
     parsed_batch_kwargs = {}
     for item in batch_kwargs:
@@ -608,7 +638,9 @@ def run_chimera_batches_cmd(chimera_dir, out_dir, batch, batch_kwargs):
 )
 @click.option("--out-dir", default=".", show_default=True, help="Output directory for results_db.")
 @click.option("--start-dayobs", required=True, type=int, help="Start date YYYYMMDD.")
-@click.option("--end-dayobs", required=False, type=int, help="End date YYYYMMDD (inclusive). Defaults to start date.")
+@click.option(
+    "--end-dayobs", required=False, type=int, help="End date YYYYMMDD (inclusive). Defaults to start date."
+)
 @click.option(
     "--step", default=30, show_default=True, type=int, help="Nights between successive dayobs values."
 )

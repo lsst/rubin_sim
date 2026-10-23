@@ -46,9 +46,11 @@ The commands use end dates differently:
   on the visits in each snapshot. When ``--end-dayobs`` is omitted it defaults
   to ``--start-dayobs``, so a single snapshot date can be processed.
 * ``build_chimeras --end-dayobs E`` limits only the baseline portion of each
-  chimera. Transition dates run from ``--start-dayobs`` through the latest
-  ``dayObs`` in the completed-visits input, including that last date even when
-  it is off cadence. E does not cap transition dates or completed visits.
+  chimera. Without ``--step``, only the latest completed ``dayObs`` is used as
+  the transition date. With ``--step``, transition dates run from
+  ``--start-dayobs`` through the latest ``dayObs`` in the completed-visits input,
+  including that last date even when it is off cadence. E does not cap transition
+  dates or completed visits. Both start and end dates are required in either mode.
 
 For start day S, transition day T, and target day E, each chimera contains
 completed visits with S <= ``dayObs`` <= T, followed by baseline visits with
@@ -125,11 +127,16 @@ the same ``resultsDb_sqlite.db``.
 Incremental Updates
 -------------------
 
-After new completed visits arrive, only the new dates need processing.
-``build_chimeras`` skips chimera files that already exist, so re-running with
-an updated consdb file and the same output directory builds only the new
-transition dates. Pass ``--update`` to force regeneration of all chimeras
-(e.g., when the consdb file has been revised for existing dates).
+After new completed visits arrive, omit ``--step`` from ``build_chimeras`` to
+select only the chimera for the latest ``dayObs`` in the consdb file. An existing
+file for that dayObs is kept unless ``--update`` is passed. Same-day refreshes
+of the consdb file need ``--update`` to incorporate the revised visits, as do
+baseline revisions affecting an existing chimera. Unchanged inputs can be rerun
+without ``--update`` harmlessly.
+
+The command reports each selected transition dayObs and file path, followed by
+``Selected N chimera files``. Selection includes files kept from earlier runs;
+the output does not indicate whether a file was written or skipped.
 
 ``run_chimera_batches`` accepts an individual chimera HDF5 file via
 ``--chimera-dir`` instead of a whole directory, so new chimeras can be evaluated
@@ -144,18 +151,20 @@ one date at a time.
 
     # After new visits are added to CONSDB_VISIT_DB:
 
-    # Build only the new chimera file(s); existing files are skipped.
-    build_chimeras \
+    # Select only the latest chimera; add --update for a same-day refresh.
+    CHIMERA_SELECTION=$(build_chimeras \
       --consdb-file "$CONSDB_VISIT_DB" \
       --opsim-file "$BASELINE_DB" \
       --start-dayobs "$START_DAYOBS" \
       --end-dayobs "$TARGET_DAYOBS" \
-      --step "$STEP" \
-      --out-dir "$CHIMERA_DIR"
+      --out-dir "$CHIMERA_DIR")
+    printf '%s\n' "$CHIMERA_SELECTION"
+    # The first output line contains the selected date and path.
+    read -r NEW_DAYOBS NEW_CHIMERA <<< "$CHIMERA_SELECTION"
 
     # Evaluate only the latest chimera.
     run_chimera_batches \
-      --chimera-dir "$CHIMERA_DIR/chimera_${NEW_DAYOBS}.h5" \
+      --chimera-dir "$NEW_CHIMERA" \
       --out-dir "$RESULTS_DIR"
 
     # Add one snapshot for the new date.
@@ -177,8 +186,9 @@ parsed as Python literals when possible, otherwise kept as strings. For example,
 ``--batch-kwarg nside=64`` changes the HEALPix resolution. Snapshot batches must
 accept both ``run_name`` and ``end_dayobs`` keyword arguments; chimera batches
 must accept ``run_name`` or the legacy ``runName`` argument. Unknown batch names
-and malformed keyword options exit with a non-zero status. ``--step`` defaults
-to 1 for chimera construction and 30 for snapshots; ``--end-dayobs`` for
+and malformed keyword options exit with a non-zero status. Omitting ``--step``
+selects only the latest chimera; an explicit ``--step 1`` builds the daily series.
+For snapshots, ``--step`` defaults to 30; ``--end-dayobs`` for
 snapshots defaults to ``--start-dayobs`` when omitted; ``--out-dir`` defaults to
 the current directory.
 
@@ -264,7 +274,7 @@ not interpret a missing date or an incomplete snapshot as a measured zero.
 Stored chimeras duplicate visits across transition dates and can consume
 substantial disk space. ``build_chimeras`` skips existing files by default, so
 re-running the same command after new visits arrive creates only new chimeras.
-Pass ``--update`` to regenerate all chimeras when the completed visits or the
+Pass ``--update`` to regenerate selected chimeras when the completed visits or the
 baseline have been revised for dates that already have chimera files.
 ``run_chimera_batches`` can process a single chimera file as well as a whole
 directory, avoiding redundant computation for dates already in the results
