@@ -1,5 +1,3 @@
-botocore
-boto3
 click
 conda
 openorb
