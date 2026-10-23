@@ -553,7 +553,7 @@ def build_chimeras_cmd(consdb_file, opsim_file, start_dayobs, end_dayobs, step, 
 
 @click.command(name="run_chimera_batches")
 @click.option(
-    "--chimera-dir",
+    "--chimera-path",
     required=True,
     type=click.Path(exists=True),
     help="Directory containing chimera_*.h5 files or an individual chimera HDF5 file.",
@@ -571,7 +571,7 @@ def build_chimeras_cmd(consdb_file, opsim_file, start_dayobs, end_dayobs, step, 
     multiple=True,
     help="Additional batch kwarg as KEY=VALUE. May be specified multiple times.",
 )
-def run_chimera_batches_cmd(chimera_dir, out_dir, batch, batch_kwargs):
+def run_chimera_batches_cmd(chimera_path, out_dir, batch, batch_kwargs):
     """Run MAF metric batches on chimera HDF5 files.
 
     The input may be a directory of chimera files or a single chimera file.
@@ -602,12 +602,12 @@ def run_chimera_batches_cmd(chimera_dir, out_dir, batch, batch_kwargs):
             param_hint="--batch",
         )
 
-    if os.path.isfile(chimera_dir):
-        h5_files = [chimera_dir]
-    elif os.path.isdir(chimera_dir):
-        h5_files = sorted(glob.glob(os.path.join(chimera_dir, "chimera_*.h5")))
+    if os.path.isfile(chimera_path):
+        h5_files = [chimera_path]
+    elif os.path.isdir(chimera_path):
+        h5_files = sorted(glob.glob(os.path.join(chimera_path, "chimera_*.h5")))
     else:
-        raise click.UsageError(f"{chimera_dir} is neither a file nor a directory.")
+        raise click.UsageError(f"{chimera_path} is neither a file nor a directory.")
 
     chimera_specs = []
     for path in h5_files:
@@ -616,9 +616,9 @@ def run_chimera_batches_cmd(chimera_dir, out_dir, batch, batch_kwargs):
             chimera_specs.append((transition_dayobs, path))
 
     if not chimera_specs:
-        if os.path.isfile(chimera_dir):
-            raise click.UsageError(f"{chimera_dir} is not a valid chimera_YYYYMMDD.h5 file.")
-        raise click.UsageError(f"No chimera_*.h5 files found in {chimera_dir}.")
+        if os.path.isfile(chimera_path):
+            raise click.UsageError(f"{chimera_path} is not a valid chimera_YYYYMMDD.h5 file.")
+        raise click.UsageError(f"No chimera_*.h5 files found in {chimera_path}.")
 
     results_db_path = run_chimera_batches(
         chimera_specs,
