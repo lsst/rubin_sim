@@ -45,7 +45,7 @@ dependencies = [
 [project.optional-dependencies]
 test = [
      "pytest",
-     "black>=26",
+     "black>= 26.10.1",
      "ruff",
      "isort",
      "pytest-cov",
