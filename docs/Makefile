@@ -28,5 +28,3 @@ linkcheck:
 %: Makefile
 	python metric_list.py
 	@$(SPHINXBUILD) -M $@ "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
-
-

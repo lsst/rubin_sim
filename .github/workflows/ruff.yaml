@@ -25,4 +25,3 @@ jobs:
         with:
           options: "--check --verbose"
           version: "~= 26.1"
-

@@ -75,4 +75,3 @@ jobs:
           dir: "docs/_build/html"
           username: ${{ secrets.ltd_username }}
           password: ${{ secrets.ltd_password }}
-
