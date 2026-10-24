@@ -46,7 +46,7 @@
   {% if 'Count' in statname or '-3Sigma' in statname or '+3Sigma' in statname or 'TableFraction' in statname %}
    {{ '%.0f'|format(statvalue) }}
   {% else %}
-   {% if statvalue|abs < 0.03 %} 
+   {% if statvalue|abs < 0.03 %}
       {{ '%.4f'|format(statvalue) }}
    {% else %}
       {{ '%.2f'|format(statvalue) }}
