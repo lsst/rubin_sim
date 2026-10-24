@@ -12,14 +12,14 @@ Scheduler, survey strategy analysis, and other simulation tools for Rubin Observ
 [![DOI](https://zenodo.org/badge/365031715.svg)](https://zenodo.org/badge/latestdoi/365031715)
 
 
-## rubin_sim ## 
+## rubin_sim ##
 
 The [Legacy Survey of Space and Time](http://www.lsst.org) (LSST)
 is anticipated to encompass around 2 million observations spanning a decade,
 averaging 800 visits per night. The `rubin_sim` package was built to help
 understand the predicted performance of the LSST.
 
-The `rubin_sim` package contains the following main modules: 
+The `rubin_sim` package contains the following main modules:
 * `phot_utils` - provides synthetic photometry
 using provided throughput curves based on current predicted performance.
 * `skybrightness` incorporates the ESO
@@ -36,8 +36,8 @@ scientifically varied evaluation of the LSST survey strategy and progress
 by providing a framework to enable these metrics to run in a
 standardized way on opsim outputs.
 
-More documentation for `rubin_sim` is available at 
-[https://rubin-sim.lsst.io](https://rubin-sim.lsst.io), including installation instructions. 
+More documentation for `rubin_sim` is available at
+[https://rubin-sim.lsst.io](https://rubin-sim.lsst.io), including installation instructions.
 
 ### Getting Help ###
 

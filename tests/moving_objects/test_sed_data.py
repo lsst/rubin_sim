@@ -30,7 +30,7 @@ class SedDataUnitTest(unittest.TestCase):
         # However, those are 'observed' spectra
         # (already includes a sample solar spectra)
         ast_templates = [
-            k.replace(".dat.gz", "")
+            k
             for k in os.listdir(os.path.join(get_data_dir(), "movingObjects"))
             if "kurucz" not in k and "harris" not in k
         ]
@@ -38,7 +38,7 @@ class SedDataUnitTest(unittest.TestCase):
         sso = {}
         for k in ast_templates:
             sso[k] = phot_utils.Sed()
-            sso[k].read_sed_flambda(os.path.join(get_data_dir(), "movingObjects", f"{k}.dat.gz"))
+            sso[k].read_sed_flambda(os.path.join(get_data_dir(), "movingObjects", k))
 
         # Calculate the colors for each type:
         # referenc e bandpass first

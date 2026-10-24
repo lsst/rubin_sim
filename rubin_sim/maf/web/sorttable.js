@@ -150,7 +150,7 @@ sorttable = {
 	        /* If you want a stable sort, uncomment the following line */
 	        sorttable.shaker_sort(row_array, this.sorttable_sortfunction);
 	        /* and comment out this one */
-	        
+
 	        /* row_array.sort(this.sorttable_sortfunction); */
 
 	        tb = this.sorttable_tbody;
@@ -493,4 +493,3 @@ var forEach = function(object, block, context) {
 		resolve.forEach(object, block, context);
 	}
 };
-

@@ -8,21 +8,20 @@ jobs:
   isort:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: isort/isort-action@v1
         with:
           requirements-files: "requirements.txt test-requirements.txt"
   ruff:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: astral-sh/ruff-action@v3
   black:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: psf/black@stable
         with:
           options: "--check --verbose"
-          version: "~= 26.1"
-
+          version: "~= 26.10.1"

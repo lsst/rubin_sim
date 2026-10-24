@@ -44,8 +44,8 @@ class M5OptimalStacker(BaseStacker):
         Column name for the pointing declination.
     sky_bright_col : `str`
         Column name for the sky brighntess per pointing.
-    filter_col : `str`
-        Column name for the filter name.
+    band_col : `str`
+        Column name for the bandpass name.
     m5_col : `str`
         Colum name for the five sigma limiting depth per pointing.
     moon_alt_col : `str`
@@ -65,7 +65,7 @@ class M5OptimalStacker(BaseStacker):
         sky_bright_col="skyBrightness",
         seeing_col="seeingFwhmEff",
         m5_col="fiveSigmaDepth",
-        filter_col="filter",
+        band_col="band",
         moon_alt_col="moonAlt",
         sun_alt_col="sunAlt",
         site="LSST",
@@ -76,7 +76,7 @@ class M5OptimalStacker(BaseStacker):
         self.dec_col = dec_col
         self.sky_bright_col = sky_bright_col
         self.seeing_col = seeing_col
-        self.filter_col = filter_col
+        self.band_col = band_col
         self.moon_alt_col = moon_alt_col
         self.sun_alt_col = sun_alt_col
         self.m5_col = m5_col
@@ -85,7 +85,7 @@ class M5OptimalStacker(BaseStacker):
             dec_col,
             sky_bright_col,
             seeing_col,
-            filter_col,
+            band_col,
             moon_alt_col,
             sun_alt_col,
         ]
@@ -107,8 +107,8 @@ class M5OptimalStacker(BaseStacker):
         }
         min_z_possible = np.abs(np.radians(sim_data[self.dec_col]) - self.site.latitude_rad)
         min_airmass_possible = 1.0 / np.cos(min_z_possible)
-        for filter_name in np.unique(sim_data[self.filter_col]):
-            delta_sky = sky_slopes[filter_name] * (sim_data[self.airmass_col] - min_airmass_possible)
+        for band_name in np.unique(sim_data[self.band_col]):
+            delta_sky = sky_slopes[band_name] * (sim_data[self.airmass_col] - min_airmass_possible)
             delta_sky[
                 np.where((sim_data[self.moon_alt_col] > 0) | (sim_data[self.sun_alt_col] > np.radians(-18.0)))
             ] = 0
@@ -119,8 +119,8 @@ class M5OptimalStacker(BaseStacker):
                 sim_data[self.m5_col]
                 - 0.5 * delta_sky
                 - 0.15 * np.log10(min_airmass_possible / sim_data[self.airmass_col])
-                - k_atm[filter_name] * (min_airmass_possible - sim_data[self.airmass_col])
+                - k_atm[band_name] * (min_airmass_possible - sim_data[self.airmass_col])
             )
-            good = np.where(sim_data[self.filter_col] == filter_name)
+            good = np.where(sim_data[self.band_col] == band_name)
             sim_data["m5_optimal"][good] = m5_optimal[good]
         return sim_data

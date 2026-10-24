@@ -14,7 +14,7 @@ Installation from PyPI:
 ::
 
     pip install rubin-sim
-    scheduler_download_data 
+    scheduler_download_data
     rs_download_data
 
 Note: pip installation of rubin-sim will lack the JPL data (DE405, etc.)
@@ -26,7 +26,7 @@ or from conda-forge:
 ::
 
     conda install -c conda-forge rubin-sim
-    scheduler_download_data 
+    scheduler_download_data
     rs_download_data
 
 The `scheduler_download_data` and `rs_download_data` commands will
@@ -47,7 +47,7 @@ First, clone the `rubin_sim <https://github.com/lsst/rubin_sim>`_ repository:
  conda activate rubin-sim
  conda install -c conda-forge --file=test-requirements.txt # Optional test requirements
  pip install -e . --no-deps
- scheduler_download_data 
+ scheduler_download_data
  rs_download_data
 
 The `scheduler_download_data` and `rs_download_data` commands will
@@ -55,7 +55,7 @@ download data files to the default location of `~/rubin_sim_data`.
 To store the data elsewhere, see instructions at
 :ref:`Data Download<data-download>`.
 
-Note conda may override previous installs of 
+Note conda may override previous installs of
 `rubin_scheduler`, in which case one can uninstall the conda version
 and re-run `pip install -e . --no-deps` from the needed git repo directory.
 
@@ -73,4 +73,3 @@ however building a local copy can be done as follows:
 
 
 The root of the local documentation will then be ``docs/_build/html/index.html``.
-
