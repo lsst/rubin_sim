@@ -46,10 +46,12 @@ class MDwarfCountMetric(BaseLCLMetric):
         # for each band, see if any data points are observed in flare
         for band in bands:
             observations_in_filter = observed_points[observed_points["filter"] == band]
-            pre_flare_mask = observations_in_filter["time_rel"] < -1  # more than one day pre-peak
             potential_flare_mask = (observations_in_filter["time_rel"] > -1) * (
                 observations_in_filter["time_rel"] < 2
             )
+            if not np.sum(potential_flare_mask): #no potential flares
+                continue
+            pre_flare_mask = observations_in_filter["time_rel"] < -1  # more than one day pre-peak
 
             pre_flare_average = np.average(
                 unumpy.uarray(
@@ -57,14 +59,21 @@ class MDwarfCountMetric(BaseLCLMetric):
                     observations_in_filter[pre_flare_mask]["fluxerr"],
                 )
             )
+            flux_diff = observations_in_filter[potential_flare_mask.values]["flux"] - pre_flare_average.nominal_value
+            error_combo = np.sqrt(observations_in_filter[potential_flare_mask.values]["fluxerr"] ** 2 + pre_flare_average.std_dev**2)
+            if np.any(np.abs(flux_diff / error_combo) > 3):
+            # return True
+            # for i, obs in observations_in_filter[potential_flare_mask.values].iterrows():
+            #     flux_diff = obs["flux"] - pre_flare_average.nominal_value
+            #     error_combo = np.sqrt(obs["fluxerr"] ** 2 + pre_flare_average.std_dev**2)
+            #     if np.abs(flux_diff / error_combo) > 3:
+                    return {"metric_value": True,
+                            "first_true_band": band,
+                            "pre_flare_average": pre_flare_average}
 
-            for i, obs in observations_in_filter[potential_flare_mask.values].iterrows():
-                flux_diff = obs["flux"] - pre_flare_average.nominal_value
-                error_combo = np.sqrt(obs["fluxerr"] ** 2 + pre_flare_average.std_dev**2)
-                if np.abs(flux_diff / error_combo) > 3:
-                    return True
-
-        return False
+        return {"metric_value": False,
+                "first_true_band": None,
+                "pre_flare_average": None}
 
 class MDwarfMeasureMetric(BaseLCLMetric):
     """
@@ -113,10 +122,12 @@ class MDwarfMeasureMetric(BaseLCLMetric):
         # for each band, see if any data points are observed in flare
         for band in bands:
             observations_in_filter = observed_points[observed_points["filter"] == band]
-            pre_flare_mask = observations_in_filter["time_rel"] < -1  # more than one day pre-peak
             potential_flare_mask = (observations_in_filter["time_rel"] > -1) * (
                 observations_in_filter["time_rel"] < 2
             )
+            if not np.sum(potential_flare_mask): #no potential flares
+                continue
+            pre_flare_mask = observations_in_filter["time_rel"] < -1  # more than one day pre-peak
 
             pre_flare_average = np.average(
                 unumpy.uarray(
@@ -124,7 +135,6 @@ class MDwarfMeasureMetric(BaseLCLMetric):
                     observations_in_filter[pre_flare_mask]["fluxerr"],
                 )
             )
-
             for i, obs in observations_in_filter[potential_flare_mask.values].iterrows():
                 flux_diff = obs["flux"] - pre_flare_average.nominal_value
                 error_combo = np.sqrt(obs["fluxerr"] ** 2 + pre_flare_average.std_dev**2)
@@ -133,6 +143,10 @@ class MDwarfMeasureMetric(BaseLCLMetric):
                 if np.abs(flux_diff / error_combo) > 5:
                     count_above_5 += 1
         if count_above_5 > 0 and count_above_3 > 2:
-            return True
+            return {"metric_value": True,
+                            "first_true_band": band,
+                            "pre_flare_average": pre_flare_average}
         else:
-            return False
+                return {"metric_value": False,
+                    "first_true_band": None,
+                    "pre_flare_average": None}
