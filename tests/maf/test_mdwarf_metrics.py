@@ -96,14 +96,14 @@ def test_metric(self, metric):
     ]
     assert not metric.run(self, test_data_slice_noisy_transient, None)["metric_value"]
 
+
 def test_with_lcl_slicer(self, metric):
     """loads a data file from lightcurvelynx output
     and runs it through the slicer."""
     parent_dir = os.path.dirname(os.path.realpath(__file__))
-    
-    sim_data = os.path.join(parent_dir,'../data/mdwarf_test_data.parquet')
-    print(sim_data)
-    out_dir = os.path.join(parent_dir,'../data') #can't make this None
+
+    sim_data = os.path.join(parent_dir, "../data/mdwarf_test_data.parquet")
+    out_dir = os.path.join(parent_dir, "../data")  # can't make this None
     results_db = None
     slicer = slicers.LynxBaseSlicer()
     metric = metric(col="lightcurve")
@@ -117,10 +117,11 @@ def test_with_lcl_slicer(self, metric):
     )
     group.run_all()
 
-    # should remove extra files but i am anxious about 
+    # should remove extra files but i am anxious about
     # deleting too much by accident
     # so for now i will leave it as is
     return
+
 
 class TestMDwarfMetric(unittest.TestCase):
     """
@@ -155,7 +156,6 @@ class TestMDwarfMetric(unittest.TestCase):
     def test_with_slicer(self):
         for metric in [MDwarfCountMetric, MDwarfMeasureMetric]:
             test_with_lcl_slicer(self, metric)
-
 
 
 if __name__ == "__main__":
