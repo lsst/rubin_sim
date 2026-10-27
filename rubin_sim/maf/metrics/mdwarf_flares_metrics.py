@@ -71,6 +71,12 @@ class MDwarfCountMetric(BaseLCLMetric):
                 return {"metric_value": True, "first_true_band": band, "pre_flare_average": pre_flare_average}
 
         return {"metric_value": False, "first_true_band": None, "pre_flare_average": None}
+    def reduce_value(self, metric_value):
+        return metric_value["metric_value"]
+    def reduce_band(self, metric_value):
+        return metric_value["first_true_band"]
+    def reduce_average(self, metric_value):
+        return metric_value["pre_flare_average"]
 
 
 class MDwarfMeasureMetric(BaseLCLMetric):
@@ -144,3 +150,10 @@ class MDwarfMeasureMetric(BaseLCLMetric):
             return {"metric_value": True, "first_true_band": band, "pre_flare_average": pre_flare_average}
         else:
             return {"metric_value": False, "first_true_band": None, "pre_flare_average": None}
+    
+    def reduce_value(self, metric_value):
+        return metric_value["metric_value"]
+    def reduce_band(self, metric_value):
+        return metric_value["first_true_band"]
+    def reduce_average(self, metric_value):
+        return metric_value["pre_flare_average"]

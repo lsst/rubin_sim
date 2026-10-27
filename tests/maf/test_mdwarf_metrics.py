@@ -127,7 +127,25 @@ class TestMDwarfMetric(unittest.TestCase):
     def test_with_lcl_slicer(self):
         """loads a data file from lightcurvelynx output
         and runs it through the slicer."""
+        sim_data = '../data/mdwarf_test_data'
+        out_dir = None
+        results_db = None
+        slicer = slicers.LynxBaseSlicer()
+        metric = metric(col="lightcurve")
 
+        bundle = metricBundles.MetricBundle(metric, slicer, constraint="")
+
+        results_db = db.ResultsDb(out_dir=out_dir)
+
+        group = metricBundles.MetricBundleGroup(
+            [bundle],
+            sim_data,
+            out_dir=out_dir,
+            results_db=results_db,
+            db_table="lightcurves",
+        )
+
+        group.run_all()
         return
 
 
