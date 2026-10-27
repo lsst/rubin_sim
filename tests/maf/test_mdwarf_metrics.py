@@ -2,8 +2,11 @@ import unittest
 
 import numpy as np
 import pandas as pd
+import os
 
 from rubin_sim.maf.metrics.mdwarf_flares_metrics import MDwarfCountMetric, MDwarfMeasureMetric
+from rubin_sim.maf import slicers
+from rubin_sim.maf import metricBundles
 
 
 def test_metric(self, metric):
@@ -93,6 +96,31 @@ def test_metric(self, metric):
     ]
     assert not metric.run(self, test_data_slice_noisy_transient, None)["metric_value"]
 
+def test_with_lcl_slicer(self, metric):
+    """loads a data file from lightcurvelynx output
+    and runs it through the slicer."""
+    parent_dir = os.path.dirname(os.path.realpath(__file__))
+    
+    sim_data = os.path.join(parent_dir,'../data/mdwarf_test_data.parquet')
+    print(sim_data)
+    out_dir = os.path.join(parent_dir,'../data') #can't make this None
+    results_db = None
+    slicer = slicers.LynxBaseSlicer()
+    metric = metric(col="lightcurve")
+    bundle = metricBundles.MetricBundle(metric, slicer, constraint="")
+    group = metricBundles.MetricBundleGroup(
+        [bundle],
+        sim_data,
+        out_dir=out_dir,
+        results_db=results_db,
+        db_table="lightcurves",
+    )
+    group.run_all()
+
+    # should remove extra files but i am anxious about 
+    # deleting too much by accident
+    # so for now i will leave it as is
+    return
 
 class TestMDwarfMetric(unittest.TestCase):
     """
@@ -124,29 +152,10 @@ class TestMDwarfMetric(unittest.TestCase):
         assert MDwarfCountMetric.run(self, test_data_slice_onepoint, None)["metric_value"]
         assert not MDwarfMeasureMetric.run(self, test_data_slice_onepoint, None)["metric_value"]
 
-    def test_with_lcl_slicer(self):
-        """loads a data file from lightcurvelynx output
-        and runs it through the slicer."""
-        sim_data = '../data/mdwarf_test_data'
-        out_dir = None
-        results_db = None
-        slicer = slicers.LynxBaseSlicer()
-        metric = metric(col="lightcurve")
+    def test_with_slicer(self):
+        for metric in [MDwarfCountMetric, MDwarfMeasureMetric]:
+            test_with_lcl_slicer(self, metric)
 
-        bundle = metricBundles.MetricBundle(metric, slicer, constraint="")
-
-        results_db = db.ResultsDb(out_dir=out_dir)
-
-        group = metricBundles.MetricBundleGroup(
-            [bundle],
-            sim_data,
-            out_dir=out_dir,
-            results_db=results_db,
-            db_table="lightcurves",
-        )
-
-        group.run_all()
-        return
 
 
 if __name__ == "__main__":

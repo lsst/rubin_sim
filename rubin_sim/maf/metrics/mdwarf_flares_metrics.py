@@ -20,6 +20,7 @@ class MDwarfCountMetric(BaseLCLMetric):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.metric_dtype = object
 
     def run(self, data_slice, slice_point):
         """
@@ -98,6 +99,7 @@ class MDwarfMeasureMetric(BaseLCLMetric):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.metric_dtype = object
 
     def run(self, data_slice, slice_point):
         """
