@@ -40,7 +40,6 @@ class BaseLCLMetric(BaseMetric):
         # Initialize the parent class with the updated keyword arguments.
         super().__init__(*args, **kwargs)
 
-
     def get_lightcurve(self, data_slice, slice_point):
         """Run the LightCurveLynx simulation and return the resulting light
         curve information in a pandas DataFrame with columns such as mjd,
@@ -89,7 +88,6 @@ class BaseLCLMetric(BaseMetric):
             graph_state=slice_point["lynx_params"],
         )
         return lightcurve_data
-
 
 
 class LCLObsCountMetric(BaseLCLMetric):

@@ -14,6 +14,7 @@ class LynxResultsSlicer(BaseSlicer):
     The base class for slicers that handle files of LightCurveLynx results.
     The lightcurves are returned in the data_slice objects provided to the metrics.
     """
+
     def __init__(self, batch_size=1, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.ra_col = "ra"

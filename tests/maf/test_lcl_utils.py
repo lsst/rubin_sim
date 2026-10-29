@@ -5,7 +5,7 @@ try:
     import lightcurvelynx
 except ImportError:
     lightcurvelynx = None
-
+from rubin_sim.maf.metrics import LCLObsCountMetric
 from rubin_sim.maf.slicers import LynxSamplerSlicer
 
 
@@ -27,8 +27,34 @@ def _create_basic_opssim_data(num_points):
     return data
 
 
+def _create_basic_lc_data(num_samples):
+    """Create a basic light curve data set."""
+    lc_data = {
+        "mjd": np.arange(num_samples).tolist(),
+        "flux": np.full(num_samples, 1010.0).tolist(),
+        "fluxerr": np.full(num_samples, 10.0).tolist(),
+        "flux_perfect": np.full(num_samples, 1000.0).tolist(),
+    }
+    return lc_data
+
+
+class TestLynxResults(unittest.TestCase):
+    """Test cases for slicers and metrics that read LightCurveLynx results."""
+
+    def test_metric_eval(self):
+        """Test that we can evaluate a metric that uses LightCurveLynx results."""
+        # Create a slice point with the model and a single sampled state.
+        slice_point = {"sid": 0}
+        data_slice = [[_create_basic_lc_data(num_samples=15)]]
+
+        # The count should match the number of observations in the data slice.
+        metric = LCLObsCountMetric()
+        assert metric.run(data_slice, slice_point) == 15
+
+
 @unittest.skipIf(lightcurvelynx is None, "lightcurvelynx not installed")
 class TestLynxSampler(unittest.TestCase):
+    """Test cases for slicers and metrics that dynamically call LightCurveLynx."""
 
     def setUp(self):
         from lightcurvelynx.math_nodes.np_random import NumpyRandomFunc
@@ -60,7 +86,7 @@ class TestLynxSampler(unittest.TestCase):
         # the correct state at each sample.
         for idx, sample in enumerate(slicer):
             assert sample["slice_point"]["lynx_model"] is self.model
-            
+
             given_state_i = states.extract_single_sample(idx)
             iter_state_i = sample["slice_point"]["lynx_params"]
             assert given_state_i == iter_state_i
@@ -78,3 +104,17 @@ class TestLynxSampler(unittest.TestCase):
         for sample in slicer:
             assert sample["slice_point"]["lynx_model"] is self.model
             assert isinstance(sample["slice_point"]["lynx_params"], GraphState)
+
+    def test_metric_eval(self):
+        """Test that we can evaluate a metric that uses LightCurveLynx sampling."""
+        # Create a slice point with the model and a single sampled state.
+        slice_point = {
+            "sid": 0,
+            "lynx_model": self.model,
+            "lynx_params": self.model.sample_parameters(num_samples=1),
+        }
+
+        # The count should match the number of times we observe this point in
+        # the fake OpSim.
+        metric = LCLObsCountMetric()
+        assert metric.run(self.data, slice_point) == 10
