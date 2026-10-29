@@ -1,6 +1,7 @@
 from .agn_time_lag_metric import *
 from .agnstructure import *
 from .area_summary_metrics import *
+from .base_lcl_metric import *
 from .base_metric import *
 from .brown_dwarf_metric import *
 from .cadence_metrics import *
