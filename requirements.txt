@@ -6,6 +6,7 @@ gitpython
 healpy
 h5py
 matplotlib-base
+nested-pandas
 numpy
 numexpr
 pandas
