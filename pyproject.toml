@@ -11,9 +11,8 @@ classifiers = [
     "Intended Audience :: Science/Research",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.11",
-    "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
     "Topic :: Scientific/Engineering :: Astronomy",
  ]
 urls = {documentation = "https://rubin-sim.lsst.io", repository = "https://github.com/lsst/rubin_sim" }
@@ -26,12 +25,13 @@ dependencies = [
     "gitpython",
     "h5py",
     "healpy",
+    "lsst-resources",
     "matplotlib",
     "numexpr",
     "numpy",
     "pandas",
     "pyarrow",
-    "rubin-scheduler>=3.18",
+    "rubin-scheduler>=4.6.0",
     "scikit-learn",
     "scipy",
     "shapely",
@@ -45,7 +45,7 @@ dependencies = [
 [project.optional-dependencies]
 test = [
      "pytest",
-     "black>=25",
+     "black>= 26.5.1",
      "ruff",
      "isort",
      "pytest-cov",
@@ -110,7 +110,7 @@ exclude = "version.py"
 
 [tool.black]
 line-length = 110
-target-version = ["py312"]
+target-version = ["py314"]
 
 [tool.isort]
 profile = "black"
@@ -121,7 +121,7 @@ exclude = [
     "__init__.py",
 ]
 line-length = 110
-target-version = "py312"
+target-version = "py314"
 
 [tool.ruff.lint]
 ignore = [

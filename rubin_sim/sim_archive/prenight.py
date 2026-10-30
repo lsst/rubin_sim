@@ -199,7 +199,7 @@ class AnomalousOverheadFunc:
             try:
                 model_overhead = obs["slewtime"] + obs["visittime"] - obs["exptime"]
                 needed_data_found = True
-            except (KeyError, ValueError):
+            except KeyError, ValueError:
                 pass
             if needed_data_found:
                 after_offset_overhead = model_overhead + overhead_offset

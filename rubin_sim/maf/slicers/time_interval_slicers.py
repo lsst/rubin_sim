@@ -95,7 +95,7 @@ class TimeIntervalSlicer(BaseSlicer):
 
             try:
                 _ = idxs[0]
-            except (TypeError, IndexError):
+            except TypeError, IndexError:
                 idxs = [idxs]
 
             slice_points = {

@@ -2,9 +2,11 @@ astropy-base
 astroplan
 colorcet
 cycler
+boto3
 gitpython
 healpy
 h5py
+lsst-resources
 matplotlib-base
 numpy
 numexpr
@@ -12,7 +14,7 @@ pandas
 psycopg2
 pyarrow
 pytables
-rubin-scheduler >=3.8
+rubin-scheduler >=4.6.0
 scikit-learn
 scipy
 setuptools_scm
