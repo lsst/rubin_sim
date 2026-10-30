@@ -16,6 +16,7 @@ MAF API
     Metrics <maf-api-metrics>
     MetricBundles <maf-api-metricbundles>
     Plots <maf-api-plots>
+    Progress <maf-api-progress>
     Run Comparison <maf-api-run-comparison>
     Slicers <maf-api-slicers>
     Stackers <maf-api-stackers>

@@ -27,6 +27,7 @@ def _local_get_sim_data(
     table_name=None,
     full_sql_query=None,
     *,
+    pdconstraint=None,
     return_class=np.recarray,
 ):
     if sqlconstraint is None:
@@ -138,6 +139,11 @@ def _local_get_sim_data(
         for s in stackers:
             sim_data = s.run(sim_data).view(np.recarray)
 
+    if pdconstraint is not None and len(pdconstraint) > 0:
+        if isinstance(sim_data, np.recarray):
+            sim_data = pd.DataFrame(sim_data)
+        sim_data.query(pdconstraint, inplace=True)
+
     if return_class is np.recarray:
         if isinstance(sim_data, pd.DataFrame):
             sim_data = sim_data.to_records(index=False)
@@ -220,6 +226,7 @@ def get_sim_data(
     table_name=None,
     full_sql_query=None,
     *,
+    pdconstraint=None,
     return_class=np.recarray,
 ):
     """Query an opsim database for the needed data columns
@@ -243,6 +250,8 @@ def get_sim_data(
         Ignored if full_sql_query is set.
     full_sql_query : `str`
         The full SQL query to use. Overrides sqlconstraint, dbcols, tablename.
+    pdconstraint : `str` or `None`
+        Constraint passed to `pandas.query`.
 
     Returns
     -------
@@ -253,7 +262,14 @@ def get_sim_data(
     if (not isinstance(db_con, str)) or urllib.parse.urlparse(db_con).scheme == "":
         # Already have a local copy
         sim_data = _local_get_sim_data(
-            db_con, sqlconstraint, dbcols, stackers, table_name, full_sql_query, return_class=return_class
+            db_con,
+            sqlconstraint,
+            dbcols,
+            stackers,
+            table_name,
+            full_sql_query,
+            pdconstraint=pdconstraint,
+            return_class=return_class,
         )
     else:
         try:
@@ -267,6 +283,7 @@ def get_sim_data(
                     stackers,
                     table_name,
                     full_sql_query,
+                    pdconstraint=pdconstraint,
                     return_class=return_class,
                 )
         except ModuleNotFoundError:
@@ -290,6 +307,7 @@ def get_visit_data(
     table_name=None,
     full_sql_query=None,
     *,
+    pdconstraint=None,
     return_class=pd.DataFrame,
 ):
     """Query an opsim database, returning a `pandas.DataFrame` by default.
@@ -316,6 +334,8 @@ def get_visit_data(
         Ignored if full_sql_query is set.
     full_sql_query : `str`
         The full SQL query to use. Overrides sqlconstraint, dbcols, tablename.
+    pdconstraint : `str` or `None`
+        Constraint passed to `pandas.query`
     return_class : `type`, optional
         Class of the returned data. Default `pandas.DataFrame`.
 
@@ -337,6 +357,7 @@ def get_visit_data(
         stackers=stackers,
         table_name=table_name,
         full_sql_query=full_sql_query,
+        pdconstraint=pdconstraint,
         return_class=return_class,
     )
 
