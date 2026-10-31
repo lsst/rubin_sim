@@ -9,6 +9,8 @@ User Guide
 
 .. toctree::
 
+    Cloud Generation Architecture <clouds-architecture>
+
     Visit Sequence Archive Architecture <vseqarchive-architecture>
 
     Visit Sequence Archive Setup <vseqarchive-setup>
