@@ -2,7 +2,7 @@ name: base
 channels:
  - conda-forge
 dependencies:
- - numpy <2
+ - numpy
  - matplotlib-base
  - healpy
  - pandas
