@@ -155,5 +155,19 @@ class TestBatches(unittest.TestCase):
         bgroup.run_all()
 
 
+class TestScienceRadarDates(unittest.TestCase):
+    """Date validation without the TestBatches simulation fixture."""
+
+    def test_science_radar_dayobs0(self):
+        # Observing day 20260629 begins at 2026-06-29 12:00 UTC (MJD 61220.5).
+        # A supplied MJD one day later must report that exact difference.
+        # Validation happens before constructing any metric bundles.
+        expected_mjd = 61220.5
+        for dayobs0 in (20260629, "2026-06-29"):
+            with self.subTest(dayobs0=dayobs0):
+                with self.assertRaisesRegex(ValueError, r"differ by 1\.0 days"):
+                    batches.science_radar_batch(dayobs0=dayobs0, mjd0=expected_mjd + 1)
+
+
 if __name__ == "__main__":
     unittest.main()
