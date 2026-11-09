@@ -14,13 +14,14 @@ jobs:
     name: Build and upload documentation
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: conda-incubator/setup-miniconda@v3
+      - uses: actions/checkout@v7
+      - uses: conda-incubator/setup-miniconda@v4
         with:
           auto-update-conda: true
-          python-version: "3.13"
+          python-version: "3.14"
           miniforge-version: latest
-          channels: conda-forge,defaults
+          channels: conda-forge
+          conda-only-install: true
           show-channel-urls: true
 
       - name: configure conda and install requirements
@@ -39,7 +40,7 @@ jobs:
 
       - name: Access rubin-sim-data cache
         id: cache-rs
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         env:
           cache-name: cached-rubin-sim-data
         with:
@@ -74,4 +75,3 @@ jobs:
           dir: "docs/_build/html"
           username: ${{ secrets.ltd_username }}
           password: ${{ secrets.ltd_password }}
-

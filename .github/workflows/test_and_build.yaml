@@ -21,15 +21,16 @@ jobs:
       fail-fast: false
       matrix:
         os: ["ubuntu-latest", "macos-latest"]
-        python-version: ["3.12", "3.13"]
+        python-version: ["3.14",]
     steps:
-      - uses: actions/checkout@v4
-      - uses: conda-incubator/setup-miniconda@v3
+      - uses: actions/checkout@v7
+      - uses: conda-incubator/setup-miniconda@v4
         with:
           auto-update-conda: true
           python-version: ${{ matrix.python-version }}
           miniforge-version: latest
-          channels: conda-forge,defaults
+          channels: conda-forge
+          conda-remove-defaults: true
           show-channel-urls: true
 
       - name: configure conda and install requirements
@@ -42,7 +43,7 @@ jobs:
       - name: pip install pypi requirements for testing
         shell: bash -l {0}
         run: |
-          pip install testing.postgresql lsst.resources
+          pip install testing.postgresql
 
       - name: install rubin_sim
         shell: bash -l {0}
@@ -53,7 +54,7 @@ jobs:
 
       - name: Access rubin-sim-data cache
         id: cache-rs
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         env:
           cache-name: cached-rubin-sim-data
         with:
@@ -84,7 +85,7 @@ jobs:
           pytest -r a -v --cov=rubin_sim --cov=tests --cov-report=xml --cov-report=term --cov-branch
 
       - name: Upload coverage to codecov
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v6
         with:
           file: coverage.xml
 
@@ -95,15 +96,15 @@ jobs:
     if: startsWith(github.ref, 'refs/tags/')
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           # Need to clone everything to embed the version.
           fetch-depth: 0
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v7
         with:
-          python-version: "3.13"
+          python-version: "3.14"
           cache: "pip"
 
       - name: Install dependencies for build
