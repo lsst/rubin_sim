@@ -26,6 +26,7 @@ dependencies = [
     "healpy",
     "lsst-resources",
     "matplotlib",
+    "nested-pandas",
     "numexpr",
     "numpy",
     "pandas",

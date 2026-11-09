@@ -128,11 +128,13 @@ class BaseSpatialSlicer(BaseSlicer):
         if self.latLonDeg:
             self.data_ra = np.radians(sim_data[self.lon_col])
             self.data_dec = np.radians(sim_data[self.lat_col])
-            self.data_rot = np.radians(sim_data[self.rotSkyPosColName])
+            if self.rotSkyPosColName is not None:
+                self.data_rot = np.radians(sim_data[self.rotSkyPosColName])
         else:
             self.data_ra = sim_data[self.lon_col]
             self.data_dec = sim_data[self.lat_col]
-            self.data_rot = sim_data[self.rotSkyPosColName]
+            if self.rotSkyPosColName is not None:
+                self.data_rot = sim_data[self.rotSkyPosColName]
         if self.use_camera:
             self._setupLSSTCamera()
 
