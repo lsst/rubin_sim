@@ -41,9 +41,10 @@ class BaseLCLMetric(BaseMetric):
         super().__init__(*args, **kwargs)
 
     def get_lightcurve(self, data_slice, slice_point):
-        """Run the LightCurveLynx simulation and return the resulting light
-        curve information in a pandas DataFrame with columns such as mjd,
-        flux, and fluxerr.
+        """
+        Get the light curve for the given data slice and slice point. This
+        may mean running a new LightCurveLynx simulation. The data is returned
+        in a pandas DataFrame with columns such as mjd, flux, and fluxerr.
 
         Parameters
         ----------
@@ -60,8 +61,9 @@ class BaseLCLMetric(BaseMetric):
             A pandas data frame with the light curve information for the
             object.
         """
-        # If the slice_point does not contain the necessary model information,
-        # we assume the data came from the precomputed lightcurve in the data_slice.
+        # If the slice_point does not contain the necessary model information to run
+        # the simulations, we assume the data came from the precomputed lightcurve in
+        # the data_slice.
         if slice_point is None or "lynx_model" not in slice_point or "lynx_params" not in slice_point:
             return data_slice[0][0]
 
