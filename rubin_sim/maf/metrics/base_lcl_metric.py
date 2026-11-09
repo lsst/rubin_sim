@@ -10,7 +10,7 @@ class BaseLCLMetric(BaseMetric):
     Base class for LightCurveLynx metrics, extending the BaseMetric class.
 
     This class can either read from the saved "lightcurve" data (in the
-    data_slice) via the `LynxResultsSliceror` compute it dynamically using
+    data_slice) via the `LynxResultsSlicer` or compute it dynamically using
     LightCurveLynx via the data by the `LynxResultsSlicer`.
 
     Parameters
