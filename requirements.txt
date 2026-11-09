@@ -8,6 +8,7 @@ healpy
 h5py
 lsst-resources
 matplotlib-base
+nested-pandas
 numpy
 numexpr
 pandas

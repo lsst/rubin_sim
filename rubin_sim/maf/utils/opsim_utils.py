@@ -13,6 +13,7 @@ from contextlib import closing
 from pathlib import Path
 from typing import Any, Union
 
+import nested_pandas as npd
 import numpy as np
 import pandas as pd
 from sqlalchemy import create_engine, inspect
@@ -121,7 +122,7 @@ def _local_get_sim_data(
                     raw_observations.to_sql("observations", con, index=False)
                     sim_data = pd.read_sql(query, con)
             else:
-                sim_data = pd.read_parquet(db_con)
+                sim_data = npd.read_parquet(db_con, columns=dbcols)
         case _:
             raise RuntimeError(f"Cannot find {db_con}.")
 
