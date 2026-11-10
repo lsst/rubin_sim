@@ -95,8 +95,8 @@ class TestLynxResults(unittest.TestCase):
 
             # Create the metric bundle and the metric bundle group
             bundle = MetricBundle(
-                metric = LynxObsCountMetric(from_results=True),
-                slicer = LynxResultsSlicer(),
+                metric=LynxObsCountMetric(from_results=True),
+                slicer=LynxResultsSlicer(),
                 constraint="",
             )
             bundle_group = MetricBundleGroup([bundle], fname, out_dir=tmpdir)
