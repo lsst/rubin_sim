@@ -5,7 +5,7 @@
 from .base_metric import BaseMetric
 
 
-class BaseLCLMetric(BaseMetric):
+class BaseLynxMetric(BaseMetric):
     """
     Base class for LightCurveLynx metrics, extending the BaseMetric class.
 
@@ -15,6 +15,8 @@ class BaseLCLMetric(BaseMetric):
 
     Parameters
     ----------
+    from_results : `bool`
+        Whether to use precomputed results or compute them dynamically.
     **kwargs
         Additional keyword arguments passed to the parent class (BaseMetric).
     """
@@ -32,10 +34,18 @@ class BaseLCLMetric(BaseMetric):
         "airmass",
     ]
 
-    def __init__(self, *args, **kwargs):
-        # Update the columns that we need to fetch from the Opsim database
-        # to ensure we have all the necessary columns for the simulation.
-        kwargs["col"] = list(set(kwargs.get("col", []) + self._simulate_cols))
+    def __init__(self, from_results, *args, **kwargs):
+        if from_results is None:
+            raise ValueError("from_results must be specified as True or False.")
+        self.from_results = from_results
+
+        if not self.from_results:
+            # Update the columns that we need to fetch from the Opsim database
+            # to ensure we have all the necessary columns for the simulation.
+            kwargs["col"] = list(set(kwargs.get("col", []) + self._simulate_cols))
+        else:
+            # All we need is the "lightcurve" column from the result data.
+            kwargs["col"] = "lightcurve"
 
         # Initialize the parent class with the updated keyword arguments.
         super().__init__(*args, **kwargs)
@@ -61,11 +71,14 @@ class BaseLCLMetric(BaseMetric):
             A pandas data frame with the light curve information for the
             object.
         """
-        # If the slice_point does not contain the necessary model information to run
-        # the simulations, we assume the data came from the precomputed lightcurve in
-        # the data_slice.
-        if slice_point is None or "lynx_model" not in slice_point or "lynx_params" not in slice_point:
+        # If twe are computing metrics from the precomputed results, return the
+        # lightcurve from the data slice.
+        if self.from_results:
             return data_slice[0][0]
+
+        # Check that we have the model and the parameters.
+        if "lynx_model" not in slice_point or "lynx_params" not in slice_point:
+            raise ValueError("Slice point must contain 'lynx_model' and 'lynx_params'.")
 
         # Make sure we can use the LightCurveLynx libraries.
         try:
@@ -92,7 +105,7 @@ class BaseLCLMetric(BaseMetric):
         return lightcurve_data
 
 
-class LCLObsCountMetric(BaseLCLMetric):
+class LynxObsCountMetric(BaseLynxMetric):
     """
     A simple test metric that will probably be removed later.
     """

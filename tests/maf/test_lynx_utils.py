@@ -1,12 +1,19 @@
 import numpy as np
+import os
+import tempfile
 import unittest
 
 try:
     import lightcurvelynx
 except ImportError:
     lightcurvelynx = None
-from rubin_sim.maf.metrics import LCLObsCountMetric
-from rubin_sim.maf.slicers import LynxSamplerSlicer
+
+from rubin_sim.maf.db.results_db import ResultsDb
+from rubin_sim.maf.metric_bundles.metric_bundle import MetricBundle
+from rubin_sim.maf.metric_bundles.metric_bundle_group import MetricBundleGroup
+from rubin_sim.maf.metrics.base_lynx_metrics import LynxObsCountMetric
+from rubin_sim.maf.slicers.lynx_slicer import LynxSamplerSlicer
+from rubin_sim.maf.slicers.lynx_slicer import LynxResultsSlicer
 
 
 def _create_basic_opssim_data(num_points):
@@ -48,8 +55,67 @@ class TestLynxResults(unittest.TestCase):
         data_slice = [[_create_basic_lc_data(num_samples=15)]]
 
         # The count should match the number of observations in the data slice.
-        metric = LCLObsCountMetric()
+        metric = LynxObsCountMetric(from_results=True)
         assert metric.run(data_slice, slice_point) == 15
+
+    @unittest.skipIf(lightcurvelynx is None, "lightcurvelynx not installed")
+    def test_lynx_results_end_to_end(self):
+        """Do an end-to-end test of using precomputed LightCurveLynx results."""
+        from lightcurvelynx.math_nodes.np_random import NumpyRandomFunc
+        from lightcurvelynx.models.basic_models import SinWaveModel
+        from lightcurvelynx.simulate import simulate_lightcurves
+        from lightcurvelynx.survey_info import SurveyInfo
+
+        # Create a test model for the simulation.
+        model = SinWaveModel(
+            brightness=2000.0,
+            amplitude=200.0,
+            frequency=NumpyRandomFunc("uniform", low=0.01, high=0.1),
+            t0=NumpyRandomFunc("uniform", low=0.0, high=10.0),
+            ra=NumpyRandomFunc("normal", loc=200.5, scale=0.01),
+            dec=NumpyRandomFunc("normal", loc=-50.0, scale=0.01),
+            node_label="sin_wave_model",
+        )
+
+        # Create a basic data set with everything we need to run a simulation.
+        ops_data = _create_basic_opssim_data(num_points=10)
+
+        # Simulate light curves using the specified model and survey information.
+        lightcurves = simulate_lightcurves(
+            model,  # The model to simulate (including effects).
+            1000,  # The number of light curves to simulate.
+            SurveyInfo(ops_data),  # The survey information.
+        )
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            # Save the resuts to a temporary file.
+            fname = os.path.join(tmpdir, "test_results.parquet")
+            lightcurves.to_parquet(fname)
+
+            # Create a new database for the MAF results.
+            results_db = ResultsDb(out_dir=data_dir)
+
+            # Create the metric bundle and the metric bundle group
+            bundle = MetricBundle(
+                metric = LynxObsCountMetric(from_results=True),
+                slicer = LynxResultsSlicer(),
+                constraint="",
+            )
+
+            bundle_group = MetricBundleGroup(
+                [bundle],
+                fname,
+                out_dir=tmpdir,
+                results_db=results_db,
+                db_table="lightcurves",
+            )
+
+            # Run the metric bundle group
+            bundle_group.run_all()
+
+
+
+
 
 
 @unittest.skipIf(lightcurvelynx is None, "lightcurvelynx not installed")
@@ -116,5 +182,5 @@ class TestLynxSampler(unittest.TestCase):
 
         # The count should match the number of times we observe this point in
         # the fake OpSim.
-        metric = LCLObsCountMetric()
+        metric = LynxObsCountMetric(from_results=False)
         assert metric.run(self.data, slice_point) == 10
