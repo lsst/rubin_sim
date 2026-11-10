@@ -130,4 +130,6 @@ class LynxObsCountMetric(BaseLynxMetric):
         metricValue : `int` `float` or `object`
             The metric value at each slice_point."""
         lc = self.get_lightcurve(data_slice, slice_point)
+        if lc is None:
+            return 0
         return len(lc["flux"])

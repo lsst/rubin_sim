@@ -8,7 +8,6 @@ try:
 except ImportError:
     lightcurvelynx = None
 
-from rubin_sim.maf.db.results_db import ResultsDb
 from rubin_sim.maf.metric_bundles.metric_bundle import MetricBundle
 from rubin_sim.maf.metric_bundles.metric_bundle_group import MetricBundleGroup
 from rubin_sim.maf.metrics.base_lynx_metrics import LynxObsCountMetric
@@ -63,6 +62,7 @@ class TestLynxResults(unittest.TestCase):
         """Do an end-to-end test of using precomputed LightCurveLynx results."""
         from lightcurvelynx.math_nodes.np_random import NumpyRandomFunc
         from lightcurvelynx.models.basic_models import SinWaveModel
+        from lightcurvelynx.obstable.opsim import OpSim
         from lightcurvelynx.simulate import simulate_lightcurves
         from lightcurvelynx.survey_info import SurveyInfo
 
@@ -79,12 +79,13 @@ class TestLynxResults(unittest.TestCase):
 
         # Create a basic data set with everything we need to run a simulation.
         ops_data = _create_basic_opssim_data(num_points=10)
+        opsim = OpSim(ops_data)
 
         # Simulate light curves using the specified model and survey information.
         lightcurves = simulate_lightcurves(
             model,  # The model to simulate (including effects).
-            1000,  # The number of light curves to simulate.
-            SurveyInfo(ops_data),  # The survey information.
+            10,  # The number of light curves to simulate.
+            SurveyInfo(opsim),  # The survey information.
         )
 
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -92,30 +93,20 @@ class TestLynxResults(unittest.TestCase):
             fname = os.path.join(tmpdir, "test_results.parquet")
             lightcurves.to_parquet(fname)
 
-            # Create a new database for the MAF results.
-            results_db = ResultsDb(out_dir=data_dir)
-
             # Create the metric bundle and the metric bundle group
             bundle = MetricBundle(
                 metric = LynxObsCountMetric(from_results=True),
                 slicer = LynxResultsSlicer(),
                 constraint="",
             )
-
-            bundle_group = MetricBundleGroup(
-                [bundle],
-                fname,
-                out_dir=tmpdir,
-                results_db=results_db,
-                db_table="lightcurves",
-            )
+            bundle_group = MetricBundleGroup([bundle], fname, out_dir=tmpdir)
 
             # Run the metric bundle group
             bundle_group.run_all()
 
-
-
-
+            # Check that the metric bundle has metric values.
+            assert len(bundle.metric_values) == 10
+            assert np.all(bundle.metric_values >= 0)
 
 
 @unittest.skipIf(lightcurvelynx is None, "lightcurvelynx not installed")
