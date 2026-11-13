@@ -1,12 +1,12 @@
 from . import db as db
 from . import metricBundles as metricBundles
 from . import slicers
-from .metrics import LCLObsCountMetric
+from .metrics import LynxObsCountMetric
 
 
 def run_lightcurvelynx(sim_data, out_dir):
     slicer = slicers.LynxBaseSlicer()
-    metric = LCLObsCountMetric(col="lightcurve")
+    metric = LynxObsCountMetric(col="lightcurve")
 
     bundle = metricBundles.MetricBundle(metric, slicer, constraint="")
 
