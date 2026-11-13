@@ -12,7 +12,8 @@ from .user_points_slicer import UserPointsSlicer
 class LynxResultsSlicer(BaseSlicer):
     """
     The base class for slicers that handle files of LightCurveLynx results.
-    The lightcurves are returned in the data_slice objects provided to the metrics.
+    The lightcurves are returned in the data_slice objects provided to the
+    metrics.
     """
 
     def __init__(self, batch_size=1, *args, **kwargs):

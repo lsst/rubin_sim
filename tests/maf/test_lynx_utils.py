@@ -1,7 +1,8 @@
-import numpy as np
 import os
 import tempfile
 import unittest
+
+import numpy as np
 
 try:
     import lightcurvelynx
@@ -11,8 +12,7 @@ except ImportError:
 from rubin_sim.maf.metric_bundles.metric_bundle import MetricBundle
 from rubin_sim.maf.metric_bundles.metric_bundle_group import MetricBundleGroup
 from rubin_sim.maf.metrics.base_lynx_metrics import LynxObsCountMetric
-from rubin_sim.maf.slicers.lynx_slicer import LynxSamplerSlicer
-from rubin_sim.maf.slicers.lynx_slicer import LynxResultsSlicer
+from rubin_sim.maf.slicers.lynx_slicer import LynxResultsSlicer, LynxSamplerSlicer
 
 
 def _create_basic_opssim_data(num_points):
@@ -48,7 +48,7 @@ class TestLynxResults(unittest.TestCase):
     """Test cases for slicers and metrics that read LightCurveLynx results."""
 
     def test_metric_eval(self):
-        """Test that we can evaluate a metric that uses LightCurveLynx results."""
+        """Test a metric that uses LightCurveLynx results."""
         # Create a slice point with the model and a single sampled state.
         slice_point = {"sid": 0}
         data_slice = [[_create_basic_lc_data(num_samples=15)]]
@@ -59,7 +59,7 @@ class TestLynxResults(unittest.TestCase):
 
     @unittest.skipIf(lightcurvelynx is None, "lightcurvelynx not installed")
     def test_lynx_results_end_to_end(self):
-        """Do an end-to-end test of using precomputed LightCurveLynx results."""
+        """Do an end-to-end test of using precomputed results."""
         from lightcurvelynx.math_nodes.np_random import NumpyRandomFunc
         from lightcurvelynx.models.basic_models import SinWaveModel
         from lightcurvelynx.obstable.opsim import OpSim
@@ -81,7 +81,8 @@ class TestLynxResults(unittest.TestCase):
         ops_data = _create_basic_opssim_data(num_points=10)
         opsim = OpSim(ops_data)
 
-        # Simulate light curves using the specified model and survey information.
+        # Simulate light curves using the specified model and survey
+        # information.
         lightcurves = simulate_lightcurves(
             model,  # The model to simulate (including effects).
             10,  # The number of light curves to simulate.
@@ -111,7 +112,7 @@ class TestLynxResults(unittest.TestCase):
 
 @unittest.skipIf(lightcurvelynx is None, "lightcurvelynx not installed")
 class TestLynxSampler(unittest.TestCase):
-    """Test cases for slicers and metrics that dynamically call LightCurveLynx."""
+    """Tests for slicers and metrics that dynamically call LightCurveLynx."""
 
     def setUp(self):
         from lightcurvelynx.math_nodes.np_random import NumpyRandomFunc
@@ -132,7 +133,7 @@ class TestLynxSampler(unittest.TestCase):
         self.data = _create_basic_opssim_data(num_points=10)
 
     def test_iteration_on_states(self):
-        """Test iteration goes through the expected samples given the states."""
+        """Test iteration goes through the samples given states."""
         states = self.model.sample_parameters(num_samples=20)
 
         # Set up a data set and the slicer.
@@ -149,7 +150,7 @@ class TestLynxSampler(unittest.TestCase):
             assert given_state_i == iter_state_i
 
     def test_iteration_on_num_samples(self):
-        """Test iteration goes through the expected samples given the number of samples."""
+        """Test iteration goes through the samples given number."""
         from lightcurvelynx.graph_state import GraphState
 
         # Set up a data set and the slicer.
@@ -163,7 +164,7 @@ class TestLynxSampler(unittest.TestCase):
             assert isinstance(sample["slice_point"]["lynx_params"], GraphState)
 
     def test_metric_eval(self):
-        """Test that we can evaluate a metric that uses LightCurveLynx sampling."""
+        """Test a metric that uses LightCurveLynx sampling."""
         # Create a slice point with the model and a single sampled state.
         slice_point = {
             "sid": 0,
