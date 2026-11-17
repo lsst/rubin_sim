@@ -8,6 +8,8 @@ API
 .. toctree::
     :maxdepth: 2
 
+    Clouds <clouds-api>
+
     Data <data-api>
 
     Metrics Analysis Framework (MAF) <maf-api>

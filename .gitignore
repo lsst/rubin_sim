@@ -137,3 +137,6 @@ version.py
 
 # vscode files
 .vscode/
+/temp2
+/docs/issues/lsst-64-output
+.DS_Store
