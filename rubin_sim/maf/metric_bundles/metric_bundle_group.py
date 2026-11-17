@@ -106,6 +106,30 @@ class MetricBundleGroup:
         """Set up the MetricBundleGroup."""
         if isinstance(bundle_dict, list):
             bundle_dict = make_bundles_dict_from_list(bundle_dict)
+        if not isinstance(bundle_dict, dict):
+            raise ValueError("bundleDict should be a dictionary containing MetricBundle objects.")
+
+        # ResultsDb does not include pdconstraint in its metric identity,
+        # so make sure all results with differing pdconstraints values
+        # are distinguishable some other way (e.g., different info_label
+        # values). Otherwise, the same row in the results database will
+        # be used for metric values with different constraints.
+        pdconstraint_by_results_db_key = {}
+        for b in bundle_dict.values():
+            if not isinstance(b, MetricBundle):
+                raise ValueError("bundleDict should contain only MetricBundle objects.")
+            results_db_key = (b.metric.name, b.slicer.slicer_name, b.run_name, b.constraint, b.info_label)
+            if (
+                results_db_key in pdconstraint_by_results_db_key
+                and pdconstraint_by_results_db_key[results_db_key] != b.pdconstraint
+            ):
+                raise ValueError(
+                    f"MetricBundles with identity {results_db_key!r} have different pdconstraint values "
+                    f"({pdconstraint_by_results_db_key[results_db_key]!r} and {b.pdconstraint!r}). "
+                    "Use distinct info_label values to prevent ResultsDb collisions and file overwrites."
+                )
+            pdconstraint_by_results_db_key[results_db_key] = b.pdconstraint
+
         # Print occasional messages to screen.
         self.verbose = verbose
         # Save metric results as soon as possible (in case of crash).
@@ -123,6 +147,10 @@ class MetricBundleGroup:
                 raise ValueError("bundleDict should contain only MetricBundle objects.")
         # Identify the series of constraints.
         self.constraints = list(set([b.constraint for b in bundle_dict.values()]))
+        self.pdconstraints = {
+            c: list(set([b.pdconstraint for b in bundle_dict.values() if b.constraint == c]))
+            for c in self.constraints
+        }
         # Set the bundleDict (all bundles, with all constraints)
         self.bundle_dict = bundle_dict
 
@@ -162,6 +190,8 @@ class MetricBundleGroup:
         Returns True if the MetricBundles are compatible, False if not.
         """
         if metric_bundle1.constraint != metric_bundle2.constraint:
+            return False
+        if metric_bundle1.pdconstraint != metric_bundle2.pdconstraint:
             return False
         if metric_bundle1.slicer != metric_bundle2.slicer:
             return False
@@ -228,18 +258,18 @@ class MetricBundleGroup:
             kwargs to pass to plotCurrent.
         """
         for constraint in self.constraints:
-            # Set the 'currentBundleDict' which is a dictionary of the
-            # metricBundles which match this constraint.
-            self.run_current(
-                constraint,
-                clear_memory=clear_memory,
-                plot_now=plot_now,
-                plot_kwargs=plot_kwargs,
-            )
+            for pdconstraint in self.pdconstraints[constraint]:
+                self.run_current(
+                    constraint,
+                    pdconstraint=pdconstraint,
+                    clear_memory=clear_memory,
+                    plot_now=plot_now,
+                    plot_kwargs=plot_kwargs,
+                )
 
-    def set_current(self, constraint):
+    def set_current(self, constraint, pdconstraint=None):
         """Utility to set the currentBundleDict
-        (i.e. a set of metricBundles with the same SQL constraint).
+        (i.e. a set of metricBundles with the same SQL and pandas constraints).
 
         Parameters
         ----------
@@ -248,6 +278,9 @@ class MetricBundleGroup:
             constraint will be included in a subset identified as the
             currentBundleDict.
             These are the active metrics to be calculated and plotted, etc.
+        pdconstraint : `str` or None, opt
+            Additionally filter to bundles whose pdconstraint matches.
+            Default None is equivalent to "" (no pandas constraint).
 
         Notes
         -----
@@ -256,9 +289,11 @@ class MetricBundleGroup:
         """
         if constraint is None:
             constraint = ""
+        if pdconstraint is None:
+            pdconstraint = ""
         self.current_bundle_dict = {}
         for k, b in self.bundle_dict.items():
-            if b.constraint == constraint:
+            if b.constraint == constraint and b.pdconstraint == pdconstraint:
                 self.current_bundle_dict[k] = b
         # Build list of all the columns needed from the database.
         self.db_cols = []
@@ -273,6 +308,7 @@ class MetricBundleGroup:
         clear_memory=False,
         plot_now=False,
         plot_kwargs=None,
+        pdconstraint=None,
     ):
         """Calculates the metric values, then runs reduce functions and
         summary statistics for metrics in the current set only
@@ -294,13 +330,15 @@ class MetricBundleGroup:
            values are calculated for all constraints).
         plot_kwargs : kwargs, opt
            Plotting kwargs to pass to plotCurrent.
+        pdconstraint : `str` or None, opt
+           Pandas constraint to pass to set_current and get_data.
 
         Notes
         -----
         This is useful, for the context of running only a specific set
         of metric bundles so that the user can provide `sim_data` directly.
         """
-        self.set_current(constraint)
+        self.set_current(constraint, pdconstraint=pdconstraint)
 
         # Can pass simData directly (if had other method for getting data)
         if sim_data is not None:
@@ -310,7 +348,7 @@ class MetricBundleGroup:
             self.sim_data = None
             # Query for the data.
             try:
-                self.get_data(constraint)
+                self.get_data(constraint, pdconstraint=pdconstraint)
             except UserWarning:
                 warnings.warn("No data matching constraint %s" % constraint)
                 metrics_skipped = []
@@ -367,7 +405,7 @@ class MetricBundleGroup:
             if self.verbose:
                 print("Deleted metric_values from memory.")
 
-    def get_data(self, constraint):
+    def get_data(self, constraint, pdconstraint=None):
         """Query the data from the database.
 
         The currently bundleDict should generally be set
@@ -376,7 +414,9 @@ class MetricBundleGroup:
         Parameters
         ----------
         constraint : `str`
-           The constraint for the currently active set of MetricBundles.
+           The SQL constraint for the currently active set of MetricBundles.
+        pdconstraint : `str` or None, opt
+           Pandas constraint applied after the SQL query.
         """
         if self.verbose:
             if constraint == "":
@@ -386,13 +426,14 @@ class MetricBundleGroup:
                     "Querying table %s with constraint %s for columns %s"
                     % (self.db_table, constraint, self.db_cols)
                 )
-        # Note that we do NOT run the stackers at this point
-        # (this must be done in each 'compatible' group).
+            if pdconstraint:
+                print("Applying pandas constraint: %s" % pdconstraint)
         self.sim_data = utils.get_sim_data(
             self.db_obj,
             constraint,
             self.db_cols,
             table_name=self.db_table,
+            pdconstraint=pdconstraint or None,
         )
 
         if self.verbose:
