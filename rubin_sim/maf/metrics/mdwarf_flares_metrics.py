@@ -53,14 +53,19 @@ class MDwarfCountMetric(BaseLCLMetric):
             )
             if not np.sum(potential_flare_mask):  # no potential flares
                 continue
+            
             pre_flare_mask = observations_in_filter["time_rel"] < -1  # more than one day pre-peak
-
+            if not np.sum(pre_flare_mask):  # we also need quiescent detections
+                continue
             pre_flare_average = np.average(
                 unumpy.uarray(
                     observations_in_filter[pre_flare_mask]["flux"],
                     observations_in_filter[pre_flare_mask]["fluxerr"],
                 )
             )
+            # print("pre  flare average:",pre_flare_average, flush=True)
+            # print(np.sum(potential_flare_mask))
+            # print("obs in filter: "), 
             flux_diff = (
                 observations_in_filter[potential_flare_mask.values]["flux"] - pre_flare_average.nominal_value
             )
@@ -69,13 +74,13 @@ class MDwarfCountMetric(BaseLCLMetric):
                 + pre_flare_average.std_dev**2
             )
             if np.any(np.abs(flux_diff / error_combo) > 3):
-                return {"metric_value": True, "first_true_band": band, "pre_flare_average": pre_flare_average}
+                return {"metric_value": True, "pre_flare_average": pre_flare_average.nominal_value} #"first_true_band": band, 
 
-        return {"metric_value": False, "first_true_band": None, "pre_flare_average": None}
+        return {"metric_value": False, "pre_flare_average": None} #"first_true_band": None, 
     def reduce_value(self, metric_value):
         return metric_value["metric_value"]
-    def reduce_band(self, metric_value):
-        return metric_value["first_true_band"]
+    # def reduce_band(self, metric_value):
+    #     return metric_value["first_true_band"]
     def reduce_average(self, metric_value):
         return metric_value["pre_flare_average"]
 
@@ -149,13 +154,13 @@ class MDwarfMeasureMetric(BaseLCLMetric):
                 if np.abs(flux_diff / error_combo) > 5:
                     count_above_5 += 1
         if count_above_5 > 0 and count_above_3 > 2:
-            return {"metric_value": True, "first_true_band": band, "pre_flare_average": pre_flare_average}
+            return {"metric_value": True,  "pre_flare_average": pre_flare_average.nominal_value} #"first_true_band": band,
         else:
-            return {"metric_value": False, "first_true_band": None, "pre_flare_average": None}
+            return {"metric_value": False,  "pre_flare_average": None} #"first_true_band": None,
     
     def reduce_value(self, metric_value):
         return metric_value["metric_value"]
-    def reduce_band(self, metric_value):
-        return metric_value["first_true_band"]
+    # def reduce_band(self, metric_value):
+    #     return metric_value["first_true_band"]
     def reduce_average(self, metric_value):
         return metric_value["pre_flare_average"]
