@@ -11,6 +11,7 @@ classifiers = [
     "Intended Audience :: Science/Research",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.13",
     "Programming Language :: Python :: 3.14",
     "Topic :: Scientific/Engineering :: Astronomy",
  ]
@@ -110,7 +111,7 @@ exclude = "version.py"
 
 [tool.black]
 line-length = 110
-target-version = ["py314"]
+target-version = ["py313"]
 
 [tool.isort]
 profile = "black"
@@ -121,7 +122,7 @@ exclude = [
     "__init__.py",
 ]
 line-length = 110
-target-version = "py314"
+target-version = "py313"
 
 [tool.ruff.lint]
 ignore = [
