@@ -5,4 +5,5 @@ openorb-data-de405
 psycopg2
 george
 jinja2
+lightcurvelynx
 tornado

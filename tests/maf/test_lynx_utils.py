@@ -3,6 +3,7 @@ import tempfile
 import unittest
 
 import numpy as np
+import pandas as pd
 
 try:
     import lightcurvelynx
@@ -176,3 +177,40 @@ class TestLynxSampler(unittest.TestCase):
         # the fake OpSim.
         metric = LynxObsCountMetric(from_results=False)
         assert metric.run(self.data, slice_point) == 10
+
+
+@unittest.skipIf(lightcurvelynx is None, "lightcurvelynx not installed")
+class TestRunLightCurveLynx(unittest.TestCase):
+    """Tests the utility for running LightCurveLynx simulations."""
+
+    def test_run_lightcurvelynx(self):
+        """Test that we can call the LightCurveLynx simulation utility."""
+        from nested_pandas import NestedFrame  # Included with LightCurveLynx
+
+        from rubin_sim.maf.run_lightcurvelynx import run_lightcurvelynx
+
+        # Create a basic light curve data set for simulation.
+        num_objects = 5
+        obs_per_obj = 4
+        num_obs = num_objects * obs_per_obj
+        lightcurve_column_data = {
+            "mjd": [59000 + i for i in range(num_obs)],
+            "flux": [1000 + i for i in range(num_obs)],
+            "fluxerr": [10 + i for i in range(num_obs)],
+        }
+        lightcurve_frame = pd.DataFrame(
+            lightcurve_column_data,
+            index=np.repeat(range(num_objects), obs_per_obj).tolist(),
+        )
+
+        obj_id_list = list(range(num_objects))
+        results_df = NestedFrame({"obj_id": obj_id_list}, index=obj_id_list)
+        results_df = results_df.join_nested(lightcurve_frame, "lightcurve")
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            # Save the resuts to a temporary file.
+            fname = os.path.join(tmpdir, "test_results.parquet")
+            results_df.to_parquet(fname)
+
+            # Run the LightCurveLynx simulation utility on the saved results.
+            run_lightcurvelynx(fname, tmpdir)

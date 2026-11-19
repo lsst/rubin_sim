@@ -9,14 +9,16 @@ class BaseLynxMetric(BaseMetric):
     """
     Base class for LightCurveLynx metrics, extending the BaseMetric class.
 
-    This class can either read from the saved "lightcurve" data (in the
+    This class can either use from the loaded "lightcurve" data (in the
     data_slice) via the `LynxResultsSlicer` or compute it dynamically using
-    LightCurveLynx via the data by the `LynxResultsSlicer`.
+    LightCurveLynx via the data by the `LynxSamplerSlicer`.
 
     Parameters
     ----------
-    from_results : `bool`
+    from_results : `bool` or `None`
         Whether to use precomputed results or compute them dynamically.
+        This is a required keyword argument that must be specified as
+        True or False. Default is None, which will raise an error.
     **kwargs
         Additional keyword arguments passed to the parent class (BaseMetric).
     """
@@ -34,7 +36,7 @@ class BaseLynxMetric(BaseMetric):
         "airmass",
     ]
 
-    def __init__(self, from_results, *args, **kwargs):
+    def __init__(self, *args, from_results=None, **kwargs):
         if from_results is None:
             raise ValueError("from_results must be specified as True or False.")
         self.from_results = from_results
