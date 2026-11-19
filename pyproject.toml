@@ -57,6 +57,7 @@ dev = [
 ]
 extras = [
     "george",
+    "lightcurvelynx",
     "pyoorb",
 ]
 vseqarchive = [
