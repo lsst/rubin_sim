@@ -192,9 +192,10 @@ class AccumulateCountMetric(BaseMetric):
         data_slice.sort(order=self.time_col)
         to_count = np.ones(data_slice.size)
         result = self.function.accumulate(to_count)
-        indices = np.searchsorted(data_slice[self.time_col], self.time_points, side="right")
+        indices = np.searchsorted(data_slice[self.time_col], self.time_points, side="left")
         # If we have time points beyond the end, pull it back
         indices[np.where(indices >= np.size(result))] = np.size(result) - 1
         result = result[indices]
-        result[np.where(indices == 0)] = 0
+        ind_right = np.searchsorted(data_slice[self.time_col], self.time_points, side="right")
+        result[np.where(ind_right == 0)] = 0
         return [result]

@@ -38,13 +38,12 @@ class DdfDepthElement(BaseReportElement):
         self.ddfs["WFD"] = {"ra": 0, "dec": -20.0}
 
         
-    def compute_elements(self, visits_df=None, visits_array=None, nside=64, bands="ugrizy"):
+    def compute_elements(self, visits_df=None, visits_array=None, bands="ugrizy"):
 
-        ra, dec = hpid2_ra_dec(nside, np.arange(hp.nside2npix(nside)))
+        ra, dec = hpid2_ra_dec(self.nside, np.arange(hp.nside2npix(self.nside)))
         ra_sne, dec_sne = hpid2_ra_dec(self.nside_sne, np.arange(hp.nside2npix(self.nside_sne)))
 
         stats_to_run = {"mean": np.nanmean, "median": np.nanmedian}
-        sl = splat.Slicer(nside=nside)
 
         result_hp_arrays = []
         result_infos = []
@@ -94,7 +93,7 @@ class DdfDepthElement(BaseReportElement):
                 
                 # select subset of data
                 sub_data = visits_array[np.where(visits_array["band"] == bandname)[0]]
-                sl = splat.Slicer(nside=nside, hpindx=good)
+                sl = splat.Slicer(nside=self.nside, hpindx=good)
                 #
                 # Run the metics through the slicer
                 hp_arrays, infos = sl(sub_data, metrics, info=infos)
