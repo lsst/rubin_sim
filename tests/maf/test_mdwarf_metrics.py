@@ -7,6 +7,7 @@ import os
 from rubin_sim.maf.metrics.mdwarf_flares_metrics import MDwarfCountMetric, MDwarfMeasureMetric
 from rubin_sim.maf import slicers
 from rubin_sim.maf import metricBundles
+import tempfile
 
 
 def test_metric(self, metric):
@@ -47,9 +48,7 @@ def test_metric(self, metric):
             )
         ]
     ]
-    assert np.isclose(
-        metric.run(self, test_data_slice_average, None)["pre_flare_average"].nominal_value, 1000
-    )
+    assert np.isclose(metric.run(self, test_data_slice_average, None)["pre_flare_average"], 1000)
 
     # check that it returns false if we have a densely sampled flat line
     filters = ["g"] * 100
@@ -97,7 +96,7 @@ def test_metric(self, metric):
     assert not metric.run(self, test_data_slice_noisy_transient, None)["metric_value"]
 
 
-def test_with_lcl_slicer(self, metric):
+def test_with_lynx_slicer(self, metric):
     """loads a data file from lightcurvelynx output
     and runs it through the slicer."""
     parent_dir = os.path.dirname(os.path.realpath(__file__))
@@ -105,8 +104,8 @@ def test_with_lcl_slicer(self, metric):
     sim_data = os.path.join(parent_dir, "../data/mdwarf_test_data.parquet")
     out_dir = os.path.join(parent_dir, "../data")  # can't make this None
     results_db = None
-    slicer = slicers.LynxBaseSlicer()
-    metric = metric(col="lightcurve")
+    slicer = slicers.LynxResultsSlicer()
+    metric = metric(col="lightcurve", from_results=True)
     bundle = metricBundles.MetricBundle(metric, slicer, constraint="")
     group = metricBundles.MetricBundleGroup(
         [bundle],
@@ -115,11 +114,9 @@ def test_with_lcl_slicer(self, metric):
         results_db=results_db,
         db_table="lightcurves",
     )
-    group.run_all()
+    with tempfile.TemporaryDirectory() as out_dir:
+        group.run_all()
 
-    # should remove extra files but i am anxious about
-    # deleting too much by accident
-    # so for now i will leave it as is
     return
 
 
@@ -155,7 +152,7 @@ class TestMDwarfMetric(unittest.TestCase):
 
     def test_with_slicer(self):
         for metric in [MDwarfCountMetric, MDwarfMeasureMetric]:
-            test_with_lcl_slicer(self, metric)
+            test_with_lynx_slicer(self, metric)
 
 
 if __name__ == "__main__":

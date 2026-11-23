@@ -2,10 +2,10 @@ __all__ = ("MDwarfCountMetric", "MDwarfMeasureMetric")
 
 import numpy as np
 from uncertainties import unumpy
-from rubin_sim.maf.metrics.base_lcl_metric import BaseLCLMetric
+from rubin_sim.maf.metrics.base_lynx_metrics import BaseLynxMetric
 
 
-class MDwarfCountMetric(BaseLCLMetric):
+class MDwarfCountMetric(BaseLynxMetric):
     """
     Metric based on lightcurvelynx parquet file.
     Counts the number of flares that have been observed at least once
@@ -53,7 +53,7 @@ class MDwarfCountMetric(BaseLCLMetric):
             )
             if not np.sum(potential_flare_mask):  # no potential flares
                 continue
-            
+
             pre_flare_mask = observations_in_filter["time_rel"] < -1  # more than one day pre-peak
             if not np.sum(pre_flare_mask):  # we also need quiescent detections
                 continue
@@ -65,7 +65,7 @@ class MDwarfCountMetric(BaseLCLMetric):
             )
             # print("pre  flare average:",pre_flare_average, flush=True)
             # print(np.sum(potential_flare_mask))
-            # print("obs in filter: "), 
+            # print("obs in filter: "),
             flux_diff = (
                 observations_in_filter[potential_flare_mask.values]["flux"] - pre_flare_average.nominal_value
             )
@@ -74,18 +74,23 @@ class MDwarfCountMetric(BaseLCLMetric):
                 + pre_flare_average.std_dev**2
             )
             if np.any(np.abs(flux_diff / error_combo) > 3):
-                return {"metric_value": True, "pre_flare_average": pre_flare_average.nominal_value} #"first_true_band": band, 
+                return {
+                    "metric_value": True,
+                    "pre_flare_average": pre_flare_average.nominal_value,
+                }  # "first_true_band": band,
 
-        return {"metric_value": False, "pre_flare_average": None} #"first_true_band": None, 
+        return {"metric_value": False, "pre_flare_average": None}  # "first_true_band": None,
+
     def reduce_value(self, metric_value):
         return metric_value["metric_value"]
+
     # def reduce_band(self, metric_value):
     #     return metric_value["first_true_band"]
     def reduce_average(self, metric_value):
         return metric_value["pre_flare_average"]
 
 
-class MDwarfMeasureMetric(BaseLCLMetric):
+class MDwarfMeasureMetric(BaseLynxMetric):
     """
     Counts the number of flares that have been detected
     according to Hilton (2011)'s criteria for confirmed flares:
@@ -154,12 +159,16 @@ class MDwarfMeasureMetric(BaseLCLMetric):
                 if np.abs(flux_diff / error_combo) > 5:
                     count_above_5 += 1
         if count_above_5 > 0 and count_above_3 > 2:
-            return {"metric_value": True,  "pre_flare_average": pre_flare_average.nominal_value} #"first_true_band": band,
+            return {
+                "metric_value": True,
+                "pre_flare_average": pre_flare_average.nominal_value,
+            }  # "first_true_band": band,
         else:
-            return {"metric_value": False,  "pre_flare_average": None} #"first_true_band": None,
-    
+            return {"metric_value": False, "pre_flare_average": None}  # "first_true_band": None,
+
     def reduce_value(self, metric_value):
         return metric_value["metric_value"]
+
     # def reduce_band(self, metric_value):
     #     return metric_value["first_true_band"]
     def reduce_average(self, metric_value):
