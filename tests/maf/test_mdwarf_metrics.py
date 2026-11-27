@@ -106,15 +106,15 @@ def _test_with_lynx_slicer(self, metric):
     slicer = slicers.LynxResultsSlicer()
     metric = metric(col="lightcurve", from_results=True)
     bundle = metricBundles.MetricBundle(metric, slicer, constraint="")
-    
+
     with tempfile.TemporaryDirectory() as out_dir:
         group = metricBundles.MetricBundleGroup(
-        [bundle],
-        sim_data,
-        out_dir=out_dir,
-        results_db=results_db,
-        db_table="lightcurves",
-    )
+            [bundle],
+            sim_data,
+            out_dir=out_dir,
+            results_db=results_db,
+            db_table="lightcurves",
+        )
         group.run_all()
 
     return
