@@ -10,7 +10,7 @@ from rubin_sim.maf import metricBundles
 import tempfile
 
 
-def test_metric(self, metric):
+def _test_metric(self, metric):
     """
     This can test either m dwarf metric with
     simplistic data slices.
@@ -96,25 +96,25 @@ def test_metric(self, metric):
     assert not metric.run(self, test_data_slice_noisy_transient, None)["metric_value"]
 
 
-def test_with_lynx_slicer(self, metric):
+def _test_with_lynx_slicer(self, metric):
     """loads a data file from lightcurvelynx output
     and runs it through the slicer."""
     parent_dir = os.path.dirname(os.path.realpath(__file__))
 
     sim_data = os.path.join(parent_dir, "../data/mdwarf_test_data.parquet")
-    out_dir = os.path.join(parent_dir, "../data")  # can't make this None
     results_db = None
     slicer = slicers.LynxResultsSlicer()
     metric = metric(col="lightcurve", from_results=True)
     bundle = metricBundles.MetricBundle(metric, slicer, constraint="")
-    group = metricBundles.MetricBundleGroup(
+    
+    with tempfile.TemporaryDirectory() as out_dir:
+        group = metricBundles.MetricBundleGroup(
         [bundle],
         sim_data,
         out_dir=out_dir,
         results_db=results_db,
         db_table="lightcurves",
     )
-    with tempfile.TemporaryDirectory() as out_dir:
         group.run_all()
 
     return
@@ -127,7 +127,7 @@ class TestMDwarfMetric(unittest.TestCase):
 
     def test_simple_tests(self):
         for metric in [MDwarfCountMetric, MDwarfMeasureMetric]:
-            test_metric(self, metric)
+            _test_metric(self, metric)
 
     def test_single_point(self):
         """
@@ -152,7 +152,7 @@ class TestMDwarfMetric(unittest.TestCase):
 
     def test_with_slicer(self):
         for metric in [MDwarfCountMetric, MDwarfMeasureMetric]:
-            test_with_lynx_slicer(self, metric)
+            _test_with_lynx_slicer(self, metric)
 
 
 if __name__ == "__main__":
